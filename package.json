@@ -6,9 +6,10 @@
   "sideEffects": false,
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "eslint . --ext .ts,.tsx",
-    "lint:write": "eslint . --ext .ts,.tsx --fix"
-  },
+    "format": "biome format . --write",
+    "lint": "biome check .",
+    "lint:fix": "bun run lint --apply"
+},
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -23,6 +24,7 @@
     ]
   },
   "simple-git-hooks": {
+    "pre-commit": "bun run format && bun run lint:fix",
     "commit-msg": "npx --no -- commitlint --edit ${1}"
   }
 }
