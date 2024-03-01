@@ -1,5 +1,5 @@
 # sdk
 
 ```
-pnpm i && pnpm test
+bun i && bun run test
 ```
