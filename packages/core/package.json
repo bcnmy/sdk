@@ -1,7 +1,7 @@
 {
-    "name": "biconomy-core",
+    "name": "biconomy/core",
     "version": "1.0.0",
-    "author": "Pimlico",
+    "author": "Biconomy",
     "homepage": "https://biconomy.io",
     "repository": "github:bcnmy/sdk",
     "main": "./_cjs/index.js",
@@ -10,11 +10,10 @@
     "typings": "./_types/index.d.ts",
     "type": "module",
     "sideEffects": false,
-    "description": "A utility library for working with ERC-7579",
+    "description": "A utility library for working with erc-7579",
     "keywords": [
-        "ERC-7579",
-        "EIP-7579",
-        "Smart Account"
+        "erc-7579",
+        "smart account"
     ],
     "license": "MIT",
     "exports": {
