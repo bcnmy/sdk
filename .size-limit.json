@@ -1,0 +1,19 @@
+[
+  {
+    "name": "core (esm)",
+    "path": "./packages/core/_esm/index.js",
+    "limit": "35 kB",
+    "import": "*"
+  },
+  {
+    "name": "core (cjs)",
+    "path": "./packages/core/_cjs/index.js",
+    "limit": "150 kB"
+  },
+  {
+    "name": "core (minimal surface - tree-shaking)",
+    "path": "./packages/core/_esm/index.js",
+    "limit": "15 kB",
+    "import": "{ bundlerActions }"
+  }
+]
