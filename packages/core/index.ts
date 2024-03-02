@@ -10,4 +10,4 @@
  *
  * addTwo(1, 2) // 3
  */
-export const addTwo = (a: number, b: number) => a + b;
+export const addTwo = (a: number, b: number) => a + b
