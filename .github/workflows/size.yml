@@ -1,4 +1,4 @@
-name: Size Limit
+name: size limit
 on:
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review]
@@ -9,7 +9,7 @@ concurrency:
 
 jobs:
   size:
-    name: Size
+    name: size
     runs-on: ubuntu-latest
     timeout-minutes: 5
 
