@@ -1,4 +1,4 @@
-import { defineConfig } from "vitest/config";
+import { defineConfig } from "vitest/config"
 
 export default defineConfig({
   test: {
@@ -11,10 +11,10 @@ export default defineConfig({
         lines: 90,
         functions: 90,
         branches: 90,
-        statements: 90,
-      },
+        statements: 90
+      }
     },
     environment: "node",
-    testTimeout: 10_000,
-  },
-});
+    testTimeout: 10_000
+  }
+})
