@@ -13,7 +13,6 @@
   {
     "name": "core (minimal surface - tree-shaking)",
     "path": "./packages/core/_esm/index.js",
-    "limit": "15 kB",
-    "import": "{ bundlerActions }"
+    "limit": "15 kB"
   }
 ]
