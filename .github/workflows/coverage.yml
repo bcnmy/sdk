@@ -1,4 +1,4 @@
-name: Coverage
+name: coverage
 on:
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review]
@@ -9,7 +9,7 @@ concurrency:
 
 jobs:
   coverage:
-    name: Coverage
+    name: coverage
     runs-on: ubuntu-latest
     timeout-minutes: 5
 

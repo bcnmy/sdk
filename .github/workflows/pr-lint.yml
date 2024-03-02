@@ -4,7 +4,7 @@ on:
     types: [opened, edited, synchronize]
 jobs:
   enforce_title:
-    name: Enforce PR Title Format
+    name: pr lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2

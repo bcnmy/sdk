@@ -10,11 +10,10 @@
     "typings": "./_types/index.d.ts",
     "type": "module",
     "sideEffects": false,
-    "description": "A utility library for working with ERC-7579",
+    "description": "A utility library for working with erc-7579",
     "keywords": [
-        "ERC-7579",
-        "EIP-7579",
-        "Smart Account"
+        "erc-7579",
+        "smart account"
     ],
     "license": "MIT",
     "exports": {

@@ -2,7 +2,7 @@
   "name": "test",
   "private": true,
   "type": "module",
-  "devDependencies": {
+  "dependencies": {
     "@vitest/coverage-v8": "latest"
   }
 }
