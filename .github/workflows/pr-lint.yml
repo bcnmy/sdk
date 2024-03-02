@@ -1,15 +1,21 @@
 name: Lint PR Title
 on:
   pull_request_target:
-    types:
-      - opened
-      - edited
-      - synchronize
-
+    types: [opened, edited, synchronize]
 jobs:
-  main:
+  enforce_title:
+    name: Enforce PR Title Format
     runs-on: ubuntu-latest
     steps:
-      - uses: dreampulse/action-lint-pull-request-title@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/checkout@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18.16"
+
+      - name: Install dependencies
+        uses: ./.github/actions/install-dependencies
+
+      - name: Use commitlint to check PR title
+        run: echo "${{ github.event.pull_request.title }}" | bun commitlint
