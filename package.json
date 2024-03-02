@@ -14,12 +14,12 @@
     "lint": "biome check .",
     "lint:fix": "bun run lint --apply",
     "build": "bun run clean && bun run build:cjs && bun run build:esm && bun run build:types",
-    "build:cjs": "tsc --project ./tsconfig/tsconfig.cjs.json && tsc-alias -p ./tsconfig/tsconfig.cjs.json && printf '{\"type\":\"commonjs\"}' > ./packages/core/_cjs/package.json",
-    "build:esm": "tsc --project ./tsconfig/tsconfig.esm.json && tsc-alias -p ./tsconfig/tsconfig.esm.json && printf '{\"type\": \"module\",\"sideEffects\":false}' > ./packages/core/_esm/package.json",
+    "build:cjs": "tsc --project ./tsconfig/tsconfig.cjs.json && tsc-alias -p ./tsconfig/tsconfig.cjs.json && printf '{\"type\":\"commonjs\"}' > ./packages/account/_cjs/package.json",
+    "build:esm": "tsc --project ./tsconfig/tsconfig.esm.json && tsc-alias -p ./tsconfig/tsconfig.esm.json && printf '{\"type\": \"module\",\"sideEffects\":false}' > ./packages/account/_esm/package.json",
     "build:types": "tsc --project ./tsconfig/tsconfig.types.json && tsc-alias -p ./tsconfig/tsconfig.types.json",
-    "clean": "rimraf ./packages/core/_esm ./packages/core/_cjs ./packages/core/_types",
-    "test": "vitest dev -c ./packages/test/vitest.config.ts",
-    "test:ci": "CI=true vitest -c ./packages/test/vitest.config.ts --coverage"
+    "clean": "rimraf ./packages/account/_esm ./packages/account/_cjs ./packages/account/_types",
+    "test": "vitest dev -c ./packages/tests/vitest.config.ts",
+    "test:ci": "CI=true vitest -c ./packages/tests/vitest.config.ts --coverage"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.5.3",
@@ -29,7 +29,10 @@
     "rimraf": "^5.0.5",
     "simple-git-hooks": "^2.9.0",
     "tsc-alias": "^1.8.8",
-    "vitest": "^1.3.1"
+    "vitest": "^1.3.1",
+    "@size-limit/esbuild-why": "^9.0.0",
+    "@size-limit/preset-small-lib": "^9.0.0",
+    "size-limit": "^9.0.0"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"

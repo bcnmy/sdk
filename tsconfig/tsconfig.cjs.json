@@ -3,7 +3,7 @@
     "extends": "./tsconfig.json",
     "compilerOptions": {
         "module": "commonjs",
-        "outDir": "../packages/core/_cjs",
+        "outDir": "../packages/account/_cjs",
         "removeComments": true,
         "verbatimModuleSyntax": false,
     }

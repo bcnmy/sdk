@@ -2,8 +2,8 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "module": "esnext",
-    "outDir": "../packages/core/_esm",
-    "declarationDir": "../packages/core/_types",
+    "outDir": "../packages/account/_esm",
+    "declarationDir": "../packages/account/_types",
     "emitDeclarationOnly": true,
     "declaration": true,
     "declarationMap": true
