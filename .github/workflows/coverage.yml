@@ -1,24 +1,15 @@
 name: coverage
 on:
   pull_request:
-    types: [opened, reopened, synchronize, ready_for_review]
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
-  cancel-in-progress: true
-
 jobs:
   coverage:
     name: coverage
     runs-on: ubuntu-latest
-    timeout-minutes: 5
-
     steps:
-      - name: Clone repository
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
       - name: Install dependencies
         uses: ./.github/actions/install-dependencies
 
-      - name: Run coverage
+      - name: Use commitlint to check PR title
         run: bun run test:ci
