@@ -2,6 +2,6 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "module": "es2015",
-    "outDir": "../packages/account/_esm"
+    "outDir": "../packages/core/_esm"
   }
 }
