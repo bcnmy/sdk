@@ -1,0 +1,15 @@
+name: coverage
+on:
+  pull_request:
+jobs:
+  coverage:
+    name: coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install dependencies
+        uses: ./.github/actions/install-dependencies
+
+      - name: Use commitlint to check PR title
+        run: bun run test:ci
