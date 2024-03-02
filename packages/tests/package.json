@@ -1,0 +1,16 @@
+{
+  "type": "module",
+  "name": "biconomy/tests",
+  "author": "Biconomy",
+  "version": "1.0.0",
+  "homepage": "https://biconomy.io",
+  "repository": "github:bcnmy/sdk",
+  "devDependencies": {
+    "@vitest/coverage-v8": "latest"
+  },
+  "dependencies": {
+    "dotenv": "latest",
+    "viem": "latest",
+    "biconomy/account": "workspace:*"
+  }
+}
