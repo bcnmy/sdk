@@ -19,7 +19,8 @@
     "build:types": "tsc --project ./tsconfig/tsconfig.types.json && tsc-alias -p ./tsconfig/tsconfig.types.json",
     "clean": "rimraf ./packages/core/_esm ./packages/core/_cjs ./packages/core/_types",
     "test": "vitest dev -c ./tests/vitest.config.ts",
-    "test:ci": "CI=true vitest -c ./tests/vitest.config.ts --coverage"
+    "test:ci": "CI=true vitest -c ./tests/vitest.config.ts --coverage",
+    "size": "size-limit"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.5.3",
@@ -45,5 +46,11 @@
   "simple-git-hooks": {
     "pre-commit": "bun run format && bun run lint:fix",
     "commit-msg": "npx --no -- commitlint --edit ${1}"
-  }
+  },
+  "size-limit": [
+    {    
+      "limit": "9 kB",
+      "path": "packages/core/index.ts"
+    }
+  ]
 }
