@@ -18,8 +18,8 @@
     "build:esm": "tsc --project ./tsconfig/tsconfig.esm.json && tsc-alias -p ./tsconfig/tsconfig.esm.json && printf '{\"type\": \"module\",\"sideEffects\":false}' > ./packages/core/_esm/package.json",
     "build:types": "tsc --project ./tsconfig/tsconfig.types.json && tsc-alias -p ./tsconfig/tsconfig.types.json",
     "clean": "rimraf ./packages/core/_esm ./packages/core/_cjs ./packages/core/_types",
-    "test": "vitest dev -c ./packages/tests/vitest.config.ts",
-    "test:ci": "CI=true vitest -c ./packages/tests/vitest.config.ts --coverage"
+    "test": "vitest dev -c ./tests/vitest.config.ts",
+    "test:ci": "CI=true vitest -c ./tests/vitest.config.ts --coverage"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.5.3",
