@@ -1,13 +1,12 @@
 name: pr lint
 on:
-  pull_request_target:
-    types: [opened, edited, synchronize]
+  pull_request:
 jobs:
   enforce_title:
     name: pr lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Install dependencies
         uses: ./.github/actions/install-dependencies
