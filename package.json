@@ -4,8 +4,8 @@
   "name": "sdk",
   "author": "Biconomy",
   "version": "1.0.0",
-  "description": "SDK for Biconomy integration with support for account abstraction, smart accounts, ERC-4337 and ERC-7579.",
-  "keywords": ["ERC-7579", "Modular Smart Account", "Account Abstraction", "Biconomy", "SDK"],
+  "description": "sdk for account abstraction, smart accounts, erc-4337 and erc-7579.",
+  "keywords": ["erc-7579", "modular smart account", "account abstraction", "biconomy", "sdk"],
   "sideEffects": false,
   "private": true,
   "license": "MIT",
@@ -52,7 +52,7 @@
     "commit-msg": "npx --no -- commitlint --edit ${1}"
   },
   "size-limit": [
-    {
+    {    
       "limit": "10 kB",
       "path": "packages/core/index.ts"
     }
