@@ -44,12 +44,12 @@
     ]
   },
   "simple-git-hooks": {
-    "pre-commit": "bun run format && bun run lint:fix",
+    "pre-commit": "bun run format && bun run lint:fix && bun run size",
     "commit-msg": "npx --no -- commitlint --edit ${1}"
   },
   "size-limit": [
     {    
-      "limit": "10 kB",
+      "limit": "10 B",
       "path": "packages/core/index.ts"
     }
   ]
