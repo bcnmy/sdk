@@ -12,4 +12,5 @@ runs:
       run: bun install --frozen-lockfile
 
     - name: Build
+      shell: bash
       run: bun run build
