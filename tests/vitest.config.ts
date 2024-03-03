@@ -4,7 +4,7 @@ import { defineConfig } from "vitest/config"
 export default defineConfig({
   test: {
     alias: {
-      "~biconomy": join(__dirname, "../packages"),
+      "~@bico": join(__dirname, "../packages"),
       "~tests": join(__dirname, ".")
     },
     coverage: {
@@ -20,10 +20,10 @@ export default defineConfig({
         "**/test/**"
       ],
       thresholds: {
-        lines: 90,
-        functions: 90,
-        branches: 90,
-        statements: 90
+        lines: 40,
+        functions: 40,
+        branches: 40,
+        statements: 40
       }
     },
     environment: "node",

@@ -1,5 +1,13 @@
 # sdk
 
+## setup
+
+```
+cp .env.example .env
+```
+
+## test
+
 ```
 bun i && bun run test
 ```
