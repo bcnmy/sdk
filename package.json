@@ -44,7 +44,7 @@
     ]
   },
   "simple-git-hooks": {
-    "pre-commit": "bun run size && bun run format && bun run lint:fix",
+    "pre-commit": "bun run format && bun run size && bun run lint:fix",
     "commit-msg": "npx --no -- commitlint --edit ${1}"
   },
   "size-limit": [
