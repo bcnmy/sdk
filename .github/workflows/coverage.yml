@@ -13,3 +13,5 @@ jobs:
 
       - name: Run the tests
         run: bun run test:ci
+        env:
+          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
