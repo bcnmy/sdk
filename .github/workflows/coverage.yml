@@ -11,5 +11,5 @@ jobs:
       - name: Install dependencies
         uses: ./.github/actions/install-dependencies
 
-      - name: Use commitlint to check PR title
+      - name: Run the tests
         run: bun run test:ci

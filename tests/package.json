@@ -1,8 +1,5 @@
 {
   "name": "test",
   "private": true,
-  "type": "module",
-  "dependencies": {
-    "@vitest/coverage-v8": "latest"
-  }
+  "type": "module"
 }
