@@ -6,8 +6,8 @@ import {
   type TypedDataDefinition
 } from "viem"
 import { signMessage, signTypedData } from "viem/actions"
-import type { SmartAccountSigner, TChain } from "../../common/utils/types"
-import type { BiconomySmartAccountConfig } from "./types"
+import type { SmartAccountSigner, TChain } from "../../common/utils/types.js"
+import type { BiconomySmartAccountConfig } from "./types.js"
 
 export const toAccount = (
   client: Client<Transport, TChain, undefined>,
@@ -21,7 +21,7 @@ export const toAccount = (
   } as LocalAccount
 
   return {
-    async signMessage({ message }) {
+    async signMessage({ message }: { message: string }) {
       return signMessage(client, { account: viemSigner, message })
     },
     async signTransaction() {

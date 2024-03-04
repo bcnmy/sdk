@@ -3,7 +3,7 @@ import { beforeAll, describe, test } from "vitest"
 import { http, WalletClient, createWalletClient } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { polygonMumbai } from "viem/chains"
-import { createBiconomySmartAccount } from "~@bico/core/index.js"
+import { createBiconomySmartAccount } from "~@biconomy/core/index.js"
 
 describe("Account", () => {
   let smartAccount: Awaited<ReturnType<typeof createBiconomySmartAccount>>

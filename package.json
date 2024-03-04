@@ -21,7 +21,7 @@
     "test": "vitest dev -c ./tests/vitest.config.ts",
     "test:ci": "CI=true vitest -c ./tests/vitest.config.ts --coverage",
     "size": "size-limit",
-    "docs": "typedoc",
+    "docs": "typedoc --tsconfig ./tsconfig/tsconfig.esm.json",
     "docs:deploy": "bun run docs && gh-pages -d docs"
   },
   "devDependencies": {
