@@ -24,7 +24,7 @@ export const extractChainIdFromBundlerUrl = (url: string): number => {
 }
 
 import { signTypedData } from "viem/actions"
-import type { SmartAccountSigner } from "./types"
+import type { SmartAccountSigner } from "./types.js"
 
 export function walletClientToSmartAccountSigner<
   TChain extends Chain | undefined = Chain | undefined
