@@ -1,14 +1,22 @@
 {
-  "workspaces": ["packages/*"],
+  "workspaces": [
+    "packages/*"
+  ],
   "type": "module",
   "name": "sdk",
   "author": "Biconomy",
   "version": "1.0.0",
   "description": "sdk for account abstraction, smart accounts, erc-4337 and erc-7579.",
-  "keywords": ["erc-7579", "modular smart account", "account abstraction", "biconomy", "sdk"],
+  "keywords": [
+    "erc-7579",
+    "modular smart account",
+    "account abstraction",
+    "biconomy",
+    "sdk"
+  ],
   "sideEffects": false,
-  "private": true,
   "license": "MIT",
+  "scope": "@biconomy",
   "scripts": {
     "format": "biome format . --write",
     "lint": "biome check .",
@@ -22,7 +30,10 @@
     "test:ci": "CI=true vitest -c ./tests/vitest.config.ts --coverage",
     "size": "size-limit",
     "docs": "typedoc --tsconfig ./tsconfig/tsconfig.esm.json",
-    "docs:deploy": "bun run docs && gh-pages -d docs"
+    "docs:deploy": "bun run docs && gh-pages -d docs",
+    "changeset": "changeset",
+    "changeset:release": "bun run build && changeset publish",
+    "changeset:version": "changeset version && bun install --lockfile-only"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.5.3",
