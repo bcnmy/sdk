@@ -26,6 +26,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^1.5.3",
+    "@changesets/cli": "^2.27.1",
     "@commitlint/cli": "^19.0.3",
     "@commitlint/config-conventional": "^19.0.3",
     "@size-limit/esbuild-why": "^9.0.0",
