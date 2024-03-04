@@ -7,24 +7,24 @@ import type {
   Transport,
   TypedData,
   TypedDataDefinition,
-  WalletClient
-} from "viem"
+  WalletClient,
+} from "viem";
 
 export const extractChainIdFromBundlerUrl = (url: string): number => {
   try {
-    const regex = /\/api\/v2\/(\d+)\/[a-zA-Z0-9.-]+$/
-    const match = regex.exec(url)
+    const regex = /\/api\/v2\/(\d+)\/[a-zA-Z0-9.-]+$/;
+    const match = regex.exec(url);
     if (!match) {
-      throw new Error("No match")
+      throw new Error("No match");
     }
-    return parseInt(match[1])
+    return parseInt(match[1]);
   } catch (error) {
-    throw new Error("Invalid chain id")
+    throw new Error("Invalid chain id");
   }
-}
+};
 
-import { signTypedData } from "viem/actions"
-import type { SmartAccountSigner } from "./types"
+import { signTypedData } from "viem/actions";
+import type { SmartAccountSigner } from "./types.js";
 
 export function walletClientToSmartAccountSigner<
   TChain extends Chain | undefined = Chain | undefined
@@ -37,11 +37,11 @@ export function walletClientToSmartAccountSigner<
     source: "custom",
     publicKey: walletClient.account.address,
     signMessage: async ({
-      message
+      message,
     }: {
-      message: SignableMessage
+      message: SignableMessage;
     }): Promise<Hex> => {
-      return walletClient.signMessage({ message })
+      return walletClient.signMessage({ message });
     },
     async signTypedData<
       const TTypedData extends TypedData | Record<string, unknown>,
@@ -51,9 +51,9 @@ export function walletClientToSmartAccountSigner<
         walletClient,
         {
           account: walletClient.account,
-          ...typedData
+          ...typedData,
         }
-      )
-    }
-  }
+      );
+    },
+  };
 }
