@@ -3,11 +3,11 @@ import {
   type LocalAccount,
   type Transport,
   type TypedData,
-  type TypedDataDefinition,
-} from "viem";
-import { signMessage, signTypedData } from "viem/actions";
-import type { SmartAccountSigner, TChain } from "../../common/utils/types.js";
-import type { BiconomySmartAccountConfig } from "./types.js";
+  type TypedDataDefinition
+} from "viem"
+import { signMessage, signTypedData } from "viem/actions"
+import type { SmartAccountSigner, TChain } from "../../common/utils/types.js"
+import type { BiconomySmartAccountConfig } from "./types.js"
 
 export const toAccount = (
   client: Client<Transport, TChain, undefined>,
@@ -16,16 +16,16 @@ export const toAccount = (
   const viemSigner: LocalAccount = {
     ...signer,
     signTransaction: (_, __) => {
-      throw new Error("signTransaction not supported by ERC4337 account");
-    },
-  } as LocalAccount;
+      throw new Error("signTransaction not supported by ERC4337 account")
+    }
+  } as LocalAccount
 
   return {
     async signMessage({ message }: { message: string }) {
-      return signMessage(client, { account: viemSigner, message });
+      return signMessage(client, { account: viemSigner, message })
     },
     async signTransaction() {
-      throw new Error("signTransaction not supported by ERC4337 account");
+      throw new Error("signTransaction not supported by ERC4337 account")
     },
     async signTypedData<
       const TTypedData extends TypedData | Record<string, unknown>,
@@ -35,16 +35,16 @@ export const toAccount = (
         client,
         {
           account: viemSigner,
-          ...typedData,
+          ...typedData
         }
-      );
-    },
-  };
-};
+      )
+    }
+  }
+}
 
 export const validateConfig = (config: BiconomySmartAccountConfig) => {
   if (config.walletClient.account === undefined) {
-    throw new Error("walletClient.account is required");
+    throw new Error("walletClient.account is required")
   }
   // ...
-};
+}
