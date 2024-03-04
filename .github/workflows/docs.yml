@@ -16,6 +16,9 @@ jobs:
       - name: Install dependencies
         uses: ./.github/actions/install-dependencies
 
+      - name: Set remote url
+        run: git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/bcnmy/sdk
+
       - name: Run the tests
         run: bun run docs:deploy
 
