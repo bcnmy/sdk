@@ -59,7 +59,7 @@ export const packUserOp = (
         keccak256(op.paymasterAndData as Hex)
       ]
     )
-  } 
+  }
   // for the purpose of calculating gas cost encode also signature (and no keccak of bytes)
   return encodeAbiParameters(
     parseAbiParameters(

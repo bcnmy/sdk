@@ -29,7 +29,6 @@ import {
 } from "../common/index.js"
 
 import {
-  type BaseValidationModule,
   createECDSAOwnershipModule
 } from "../modules/index.js"
 
