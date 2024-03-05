@@ -59,25 +59,24 @@ export const packUserOp = (
         keccak256(op.paymasterAndData as Hex)
       ]
     )
-  } else {
-    // for the purpose of calculating gas cost encode also signature (and no keccak of bytes)
-    return encodeAbiParameters(
-      parseAbiParameters(
-        "address, uint256, bytes, bytes, uint256, uint256, uint256, uint256, uint256, bytes, bytes"
-      ),
-      [
-        op.sender as Hex,
-        op.nonce,
-        op.initCode as Hex,
-        op.callData as Hex,
-        op.callGasLimit,
-        op.verificationGasLimit,
-        op.preVerificationGas,
-        op.maxFeePerGas,
-        op.maxPriorityFeePerGas,
-        op.paymasterAndData as Hex,
-        op.signature as Hex
-      ]
-    )
-  }
+  } 
+  // for the purpose of calculating gas cost encode also signature (and no keccak of bytes)
+  return encodeAbiParameters(
+    parseAbiParameters(
+      "address, uint256, bytes, bytes, uint256, uint256, uint256, uint256, uint256, bytes, bytes"
+    ),
+    [
+      op.sender as Hex,
+      op.nonce,
+      op.initCode as Hex,
+      op.callData as Hex,
+      op.callGasLimit,
+      op.verificationGasLimit,
+      op.preVerificationGas,
+      op.maxFeePerGas,
+      op.maxPriorityFeePerGas,
+      op.paymasterAndData as Hex,
+      op.signature as Hex
+    ]
+  )
 }

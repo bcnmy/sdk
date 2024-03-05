@@ -26,8 +26,7 @@
         "noExplicitAny": "warn"
       },
       "style": {
-        "noUnusedTemplateLiteral": "warn",
-        "noUselessElse": "off"
+        "noUnusedTemplateLiteral": "warn"
       }
     }
   },
