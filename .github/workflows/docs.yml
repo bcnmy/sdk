@@ -12,10 +12,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - run: git config --global user.email "gh@runner.com"
+      - run: git config --global user.name "gh-runner"
 
       - name: Install dependencies
         uses: ./.github/actions/install-dependencies
 
+      - name: Set remote url
+        run: git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/bcnmy/sdk.git
+  
       - name: Run the tests
         run: bun run docs:deploy
 

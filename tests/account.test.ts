@@ -14,8 +14,6 @@ import {
   UserOperationStruct,
   walletClientToSmartAccountSigner
 } from "~@bico/core/account/index.js"
-import { toAccount } from "~@bico/core/account/utils/helpers.js"
-import { BiconomySmartAccountConfig } from "~@bico/core/account/utils/types.js"
 import { createBiconomySmartAccount } from "../packages/core/account/index.js"
 
 describe("Biconomy Smart Account core tests", () => {
@@ -44,7 +42,7 @@ describe("Biconomy Smart Account core tests", () => {
   })
 
   test("Should get account address + nonce", async () => {
-    const address = await smartAccount.getAccountAddress()
+    const address = smartAccount.address
     console.log("Smart Account Address: ", address)
 
     const nonce = await smartAccount.getNonce()

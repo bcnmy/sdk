@@ -6,7 +6,7 @@
       "types": ["bun-types"],
       "baseUrl": ".",
       "paths": {
-        "~@bico/*": ["../packages/*"]
+        "~@biconomy/*": ["../packages/*"]
       }
     }
   }
