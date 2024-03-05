@@ -28,9 +28,7 @@ import {
   isSmartAccountDeployed
 } from "../common/index.js"
 
-import {
-  createECDSAOwnershipModule
-} from "../modules/index.js"
+import { createECDSAOwnershipModule } from "../modules/index.js"
 
 import { getUserOperationHash, validateConfig } from "./utils/helpers.js"
 import type { BiconomySmartAccountConfig, SmartAccount } from "./utils/types.js"
