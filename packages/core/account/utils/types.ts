@@ -1,5 +1,21 @@
-import type { Hex, WalletClient } from "viem"
-import type { BaseValidationModule } from "../../common/utils/types"
+import type {
+  Abi,
+  Address,
+  Chain,
+  Client,
+  EncodeDeployDataParameters,
+  Hex,
+  LocalAccount,
+  Transport
+} from "viem"
+
+import {
+  type ENTRYPOINT_ADDRESS_V07_TYPE,
+  type SmartAccountSigner,
+  type UserOperationStruct
+} from "../../common/index.js"
+
+import type { BaseValidationModule } from "../../modules/index.js"
 
 export type BiconomySmartAccountConfig = {
   /** Factory address of biconomy factory contract or some other contract you have deployed on chain */
@@ -18,7 +34,44 @@ export type BiconomySmartAccountConfig = {
   activeValidationModule?: BaseValidationModule
   /** the index of SA the EOA have generated and till which indexes the upgraded SA should scan */
   maxIndexForScan?: number
-  walletClient: WalletClient
+  signer: SmartAccountSigner
   bundlerUrl: string
   accountIndex?: number
+  entryPointAddress?: string
+  defaultValidationModule: BaseValidationModule
+}
+
+export type SmartAccount<
+  entryPoint extends ENTRYPOINT_ADDRESS_V07_TYPE,
+  Name extends string = string,
+  transport extends Transport = Transport,
+  chain extends Chain | undefined = Chain | undefined,
+  TAbi extends Abi | readonly unknown[] = Abi
+> = LocalAccount<Name> & {
+  client: Client<transport, chain>
+  entryPoint: entryPoint
+  getNonce: () => Promise<bigint>
+  getInitCode: () => Promise<Hex>
+  getFactory: () => Promise<Address | undefined>
+  getFactoryData: () => Promise<Hex | undefined>
+  encodeCallData: (
+    args:
+      | {
+          to: Address
+          value: bigint
+          data: Hex
+        }
+      | {
+          to: Address
+          value: bigint
+          data: Hex
+        }[]
+  ) => Promise<Hex>
+  getDummySignature(userOperation: UserOperationStruct): Promise<Hex>
+  encodeDeployCallData: ({
+    abi,
+    args,
+    bytecode
+  }: EncodeDeployDataParameters<TAbi>) => Promise<Hex>
+  signUserOperation: (userOperation: UserOperationStruct) => Promise<Hex>
 }

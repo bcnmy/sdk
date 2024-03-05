@@ -1,2 +1,6 @@
 export { createBiconomySmartAccount } from "./createBiconomySmartAccount.js"
-export { walletClientToSmartAccountSigner } from "../common/index.js"
+
+export {
+  walletClientToSmartAccountSigner,
+  type UserOperationStruct
+} from "../common/index.js"

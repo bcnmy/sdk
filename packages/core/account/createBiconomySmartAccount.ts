@@ -1,237 +1,253 @@
-import { http, createPublicClient } from "viem"
-import { getNonce } from "../common/index.js"
+import {
+  type Address,
+  type Client,
+  type Hex,
+  type LocalAccount,
+  type Transport,
+  type TypedData,
+  type TypedDataDefinition,
+  concatHex,
+  encodeFunctionData
+} from "viem"
+import { toAccount } from "viem/accounts"
+import { getChainId, signMessage, signTypedData } from "viem/actions"
+
 import {
   ACCOUNT_V2_0_LOGIC,
+  BiconomyExecuteAbi,
+  BiconomyFactoryAbi,
+  BiconomyInitAbi,
   DEFAULT_BICONOMY_FACTORY_ADDRESS,
-  DEFAULT_ECDSA_OWNERSHIP_MODULE
-} from "../common/utils/constants.js"
-import { extractChainIdFromBundlerUrl } from "../common/utils/helpers.js"
+  DEFAULT_ECDSA_OWNERSHIP_MODULE,
+  DEFAULT_ENTRYPOINT_ADDRESS,
+  type ENTRYPOINT_ADDRESS_V07_TYPE,
+  type TChain,
+  type UserOperationStruct,
+  extractChainIdFromBundlerUrl,
+  getNonce,
+  isSmartAccountDeployed
+} from "../common/index.js"
+
+import {
+  type BaseValidationModule,
+  createECDSAOwnershipModule
+} from "../modules/index.js"
+
+import { getUserOperationHash, validateConfig } from "./utils/helpers.js"
+import type { BiconomySmartAccountConfig, SmartAccount } from "./utils/types.js"
+
 import { getAccountAddress } from "./actions/getAccountAddress.js"
-import { validateConfig } from "./utils/helpers.js"
-import type { BiconomySmartAccountConfig } from "./utils/types.js"
 
 export const DEFAULT_FALLBACK_HANDLER_ADDRESS =
   "0x0bBa6d96BD616BedC6BFaa341742FD43c60b83C1"
 
-export const createBiconomySmartAccount = async (
-  config: BiconomySmartAccountConfig
-) => {
-  validateConfig(config)
-  if (!config.walletClient.account?.address) {
-    throw new Error("No account address")
-  }
+/**
+ * Return the value to put into the "initCode" field, if the account is not yet deployed.
+ * This value holds the "factory" address, followed by this account's information
+ */
+const getAccountInitCode = async ({
+  owner,
+  index,
+  moduleAddress
+}: {
+  owner: Address
+  index: bigint
+  moduleAddress: Address
+}): Promise<Hex> => {
+  if (!owner) throw new Error("Owner account not found")
 
-  const chainId = await config.walletClient.getChainId()
-
-  // Signer needs to be initialised here before defaultValidationModule is set
-  if (config.walletClient) {
-    if (!chainId && !!config.walletClient.chain?.id) {
-      let chainIdFromBundler: number | undefined
-      if (config.bundlerUrl) {
-        chainIdFromBundler = extractChainIdFromBundlerUrl(config.bundlerUrl)
-      }
-      if (chainIdFromBundler !== chainId) {
-        throw new Error("ChainId from bundler and signer do not match")
-      }
-    }
-  }
-  if (!chainId) {
-    throw new Error("chainId required in clients")
-  }
-
-  const publicClient = createPublicClient({
-    transport: http(config.walletClient.transport.url)
+  // Build the module setup data
+  const ecdsaOwnershipInitData = encodeFunctionData({
+    abi: BiconomyInitAbi,
+    functionName: "initForSmartAccount",
+    args: [owner]
   })
-  const account = config.walletClient.account
+
+  // Build the account init code
+  return encodeFunctionData({
+    abi: BiconomyFactoryAbi,
+    functionName: "deployCounterFactualAccount",
+    args: [moduleAddress, ecdsaOwnershipInitData, index]
+  })
+}
+
+export const createBiconomySmartAccount = async (
+  client: Client<Transport, TChain, undefined>,
+  config: BiconomySmartAccountConfig
+): Promise<
+  SmartAccount<ENTRYPOINT_ADDRESS_V07_TYPE, "BiconomySmartAccountV3", Transport>
+> => {
+  // TODO* Add error handling and validation for config
+  validateConfig(config)
+
+  const chainId = await getChainId(client)
+
+  // let activeValidationModule: BaseValidationModule | undefined
+
+  let chainIdFromBundler: number | undefined
+  if (config.bundlerUrl) {
+    chainIdFromBundler = extractChainIdFromBundlerUrl(config.bundlerUrl)
+  }
+  if (chainIdFromBundler !== chainId) {
+    throw new Error("ChainId from bundler and client do not match")
+  }
+
+  const viemSigner: LocalAccount = {
+    ...config.signer,
+    signTransaction: (_, __) => {
+      throw new Error("signTransaction not supported by ERC4337 account")
+    }
+  } as LocalAccount
+
+  // We set ECDSA as default module if no module is provided
+  const defaultValidationModule =
+    config.defaultValidationModule ??
+    (await createECDSAOwnershipModule({
+      signer: viemSigner
+    }))
+  // activeValidationModule =
+  //   config.activeValidationModule ?? defaultValidationModule
 
   const accountAddress = await getAccountAddress({
-    owner: config.walletClient.account?.address,
-    ecdsaModuleAddress: DEFAULT_ECDSA_OWNERSHIP_MODULE,
-    factoryAddress: DEFAULT_BICONOMY_FACTORY_ADDRESS,
+    validationModule: defaultValidationModule,
+    factoryAddress: config.factoryAddress ?? DEFAULT_BICONOMY_FACTORY_ADDRESS,
     accountLogicAddress: ACCOUNT_V2_0_LOGIC,
     fallbackHandlerAddress: DEFAULT_FALLBACK_HANDLER_ADDRESS,
     index: config.accountIndex ? BigInt(config.accountIndex) : 0n
   })
 
+  if (!accountAddress) throw new Error("Account address not found")
+
+  let smartAccountDeployed = await isSmartAccountDeployed(
+    client,
+    accountAddress
+  )
+
+  const account = toAccount({
+    address: accountAddress,
+    async signMessage({ message }) {
+      // @ts-ignore // We check for walletClient.account in validateConfig
+      return signMessage(config.walletClient, { account: viemSigner, message })
+    },
+    async signTransaction(_, __) {
+      throw new Error("signTransaction not supported by ERC4337 account")
+    },
+    async signTypedData<
+      const TTypedData extends TypedData | Record<string, unknown>,
+      TPrimaryType extends keyof TTypedData | "EIP712Domain" = keyof TTypedData
+    >(typedData: TypedDataDefinition<TTypedData, TPrimaryType>) {
+      return signTypedData<TTypedData, TPrimaryType, TChain, undefined>(
+        // @ts-ignore
+        config.walletClient,
+        {
+          account: viemSigner,
+          ...typedData
+        }
+      )
+    }
+  })
+
   return {
     ...account,
-    client: publicClient,
-    publicKey: config.walletClient.account?.address,
-    entryPoint: "",
-    source: "SimpleSmartAccount",
+    client: client,
+    publicKey: accountAddress,
+    entryPoint: DEFAULT_ENTRYPOINT_ADDRESS,
+    source: "BiconomySmartAccountV3",
     async getNonce() {
-      return getNonce(publicClient, accountAddress)
+      return getNonce(client, accountAddress)
     },
-    async getAccountAddress() {
-      if (!config.walletClient.account?.address) {
-        throw new Error("No account")
-      }
-      return getAccountAddress({
-        owner: config.walletClient.account?.address,
-        ecdsaModuleAddress: DEFAULT_ECDSA_OWNERSHIP_MODULE,
-        factoryAddress: DEFAULT_BICONOMY_FACTORY_ADDRESS,
-        accountLogicAddress: ACCOUNT_V2_0_LOGIC,
-        fallbackHandlerAddress: DEFAULT_FALLBACK_HANDLER_ADDRESS,
-        index: config.accountIndex ? BigInt(config.accountIndex) : 0n
+    // async getAccountAddress() {
+    //   return getAccountAddress({
+    //     validationModule: defaultValidationModule,
+    //     factoryAddress:
+    //       config.factoryAddress ?? DEFAULT_BICONOMY_FACTORY_ADDRESS,
+    //     accountLogicAddress: ACCOUNT_V2_0_LOGIC,
+    //     fallbackHandlerAddress: DEFAULT_FALLBACK_HANDLER_ADDRESS,
+    //     index: config.accountIndex ? BigInt(config.accountIndex) : 0n
+    //   })
+    // },
+    async signUserOperation(userOperation: UserOperationStruct) {
+      return account.signMessage({
+        message: {
+          raw: getUserOperationHash(userOperation, chainId)
+        }
       })
+    },
+    async getInitCode() {
+      if (smartAccountDeployed) return "0x"
+
+      smartAccountDeployed = await isSmartAccountDeployed(
+        client,
+        accountAddress
+      )
+
+      if (smartAccountDeployed) return "0x"
+
+      return concatHex([
+        config.factoryAddress ?? DEFAULT_BICONOMY_FACTORY_ADDRESS,
+        await getAccountInitCode({
+          owner: viemSigner.address,
+          index: BigInt(config.accountIndex ?? 0),
+          moduleAddress: DEFAULT_ECDSA_OWNERSHIP_MODULE
+        })
+      ])
+    },
+    async getFactory() {
+      return "0x"
+      //     if (smartAccountDeployed) return undefined
+      //     smartAccountDeployed = await isSmartAccountDeployed(
+      //         client,
+      //         accountAddress
+      //     )
+      //     if (smartAccountDeployed) return undefined
+      //     return factoryAddress
+    },
+    async getFactoryData() {
+      return "0x"
+      //     if (smartAccountDeployed) return undefined
+      //     smartAccountDeployed = await isSmartAccountDeployed(
+      //         client,
+      //         accountAddress
+      //     )
+      //     if (smartAccountDeployed) return undefined
+      //     return getAccountInitCode(viemSigner.address, index)
+    },
+    async encodeDeployCallData(_) {
+      throw new Error("Simple account doesn't support account deployment")
+    },
+    async encodeCallData(args) {
+      if (Array.isArray(args)) {
+        // Encode a batched call
+        const argsArray = args as {
+          to: Address
+          value: bigint
+          data: Hex
+        }[]
+
+        return encodeFunctionData({
+          abi: BiconomyExecuteAbi,
+          functionName: "executeBatch_y6U",
+          args: [
+            argsArray.map((a) => a.to),
+            argsArray.map((a) => a.value),
+            argsArray.map((a) => a.data)
+          ]
+        })
+      }
+      const { to, value, data } = args as {
+        to: Address
+        value: bigint
+        data: Hex
+      }
+      // Encode a simple call
+      return encodeFunctionData({
+        abi: BiconomyExecuteAbi,
+        functionName: "execute_ncC",
+        args: [to, value, data]
+      })
+    },
+    async getDummySignature(_userOperation) {
+      return "0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c"
     }
-    // async signUserOperation(userOperation) {
-    //     return account.signMessage({
-    //         message: {
-    //             raw: getUserOperationHash({
-    //                 userOperation,
-    //                 entryPoint: entryPointAddress,
-    //                 chainId: chainId
-    //             })
-    //         }
-    //     })
-    // },
-    // async getInitCode() {
-    //     if (smartAccountDeployed) return "0x"
-
-    //     smartAccountDeployed = await isSmartAccountDeployed(
-    //         client,
-    //         accountAddress
-    //     )
-
-    //     if (smartAccountDeployed) return "0x"
-
-    //     return concatHex([
-    //         factoryAddress,
-    //         await getAccountInitCode(viemSigner.address, index)
-    //     ])
-    // },
-    // async getFactory() {
-    //     if (smartAccountDeployed) return undefined
-    //     smartAccountDeployed = await isSmartAccountDeployed(
-    //         client,
-    //         accountAddress
-    //     )
-    //     if (smartAccountDeployed) return undefined
-    //     return factoryAddress
-    // },
-    // async getFactoryData() {
-    //     if (smartAccountDeployed) return undefined
-    //     smartAccountDeployed = await isSmartAccountDeployed(
-    //         client,
-    //         accountAddress
-    //     )
-    //     if (smartAccountDeployed) return undefined
-    //     return getAccountInitCode(viemSigner.address, index)
-    // },
-    // async encodeDeployCallData(_) {
-    //     throw new Error("Simple account doesn't support account deployment")
-    // },
-    // async encodeCallData(args) {
-    //     if (Array.isArray(args)) {
-    //         const argsArray = args as {
-    //             to: Address
-    //             value: bigint
-    //             data: Hex
-    //         }[]
-
-    //         if (getEntryPointVersion(entryPointAddress) === "v0.6") {
-    //             return encodeFunctionData({
-    //                 abi: [
-    //                     {
-    //                         inputs: [
-    //                             {
-    //                                 internalType: "address[]",
-    //                                 name: "dest",
-    //                                 type: "address[]"
-    //                             },
-    //                             {
-    //                                 internalType: "bytes[]",
-    //                                 name: "func",
-    //                                 type: "bytes[]"
-    //                             }
-    //                         ],
-    //                         name: "executeBatch",
-    //                         outputs: [],
-    //                         stateMutability: "nonpayable",
-    //                         type: "function"
-    //                     }
-    //                 ],
-    //                 functionName: "executeBatch",
-    //                 args: [
-    //                     argsArray.map((a) => a.to),
-    //                     argsArray.map((a) => a.data)
-    //                 ]
-    //             })
-    //         }
-    //         return encodeFunctionData({
-    //             abi: [
-    //                 {
-    //                     inputs: [
-    //                         {
-    //                             internalType: "address[]",
-    //                             name: "dest",
-    //                             type: "address[]"
-    //                         },
-    //                         {
-    //                             internalType: "uint256[]",
-    //                             name: "value",
-    //                             type: "uint256[]"
-    //                         },
-    //                         {
-    //                             internalType: "bytes[]",
-    //                             name: "func",
-    //                             type: "bytes[]"
-    //                         }
-    //                     ],
-    //                     name: "executeBatch",
-    //                     outputs: [],
-    //                     stateMutability: "nonpayable",
-    //                     type: "function"
-    //                 }
-    //             ],
-    //             functionName: "executeBatch",
-    //             args: [
-    //                 argsArray.map((a) => a.to),
-    //                 argsArray.map((a) => a.value),
-    //                 argsArray.map((a) => a.data)
-    //             ]
-    //         })
-    //     }
-
-    //     const { to, value, data } = args as {
-    //         to: Address
-    //         value: bigint
-    //         data: Hex
-    //     }
-
-    //     return encodeFunctionData({
-    //         abi: [
-    //             {
-    //                 inputs: [
-    //                     {
-    //                         internalType: "address",
-    //                         name: "dest",
-    //                         type: "address"
-    //                     },
-    //                     {
-    //                         internalType: "uint256",
-    //                         name: "value",
-    //                         type: "uint256"
-    //                     },
-    //                     {
-    //                         internalType: "bytes",
-    //                         name: "func",
-    //                         type: "bytes"
-    //                     }
-    //                 ],
-    //                 name: "execute",
-    //                 outputs: [],
-    //                 stateMutability: "nonpayable",
-    //                 type: "function"
-    //             }
-    //         ],
-    //         functionName: "execute",
-    //         args: [to, value, data]
-    //     })
-    // },
-    // async getDummySignature(_userOperation) {
-    //     return "0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c"
-    // }
   }
 }

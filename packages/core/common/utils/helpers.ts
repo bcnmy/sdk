@@ -2,6 +2,7 @@ import type {
   Account,
   Address,
   Chain,
+  Client,
   Hex,
   SignableMessage,
   Transport,
@@ -23,8 +24,8 @@ export const extractChainIdFromBundlerUrl = (url: string): number => {
   }
 }
 
-import { signTypedData } from "viem/actions"
-import type { SmartAccountSigner } from "./types"
+import { getBytecode, signTypedData } from "viem/actions"
+import type { SmartAccountSigner } from "./types.js"
 
 export function walletClientToSmartAccountSigner<
   TChain extends Chain | undefined = Chain | undefined
@@ -56,4 +57,18 @@ export function walletClientToSmartAccountSigner<
       )
     }
   }
+}
+
+export const isSmartAccountDeployed = async (
+  client: Client,
+  address: Address
+): Promise<boolean> => {
+  const contractCode = await getBytecode(client, {
+    address: address
+  })
+
+  if ((contractCode?.length ?? 0) > 2) {
+    return true
+  }
+  return false
 }

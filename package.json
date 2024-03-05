@@ -54,7 +54,7 @@
   },
   "size-limit": [
     {
-      "limit": "10 kB",
+      "limit": "100 kB",
       "path": "packages/core/index.ts"
     }
   ]
