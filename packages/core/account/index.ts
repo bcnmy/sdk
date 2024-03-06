@@ -1,4 +1,4 @@
-export { createBiconomySmartAccount } from "./createBiconomySmartAccount.js"
+export { createSmartAccount } from "./createSmartAccount.js"
 
 export {
   walletClientToSmartAccountSigner,

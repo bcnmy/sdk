@@ -10,7 +10,8 @@ export type {
   UserOperationStruct,
   TChain,
   SmartAccountSigner,
-  ENTRYPOINT_ADDRESS_V07_TYPE
+  ENTRYPOINT_ADDRESS_V07_TYPE,
+  Prettify
 } from "./utils/types.js"
 
 export * from "./utils/constants.js"

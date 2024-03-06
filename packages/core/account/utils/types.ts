@@ -50,6 +50,7 @@ export type SmartAccount<
 > = LocalAccount<Name> & {
   client: Client<transport, chain>
   entryPoint: entryPoint
+  defaultValidationModule: BaseValidationModule
   getNonce: () => Promise<bigint>
   getInitCode: () => Promise<Hex>
   getFactory: () => Promise<Address | undefined>

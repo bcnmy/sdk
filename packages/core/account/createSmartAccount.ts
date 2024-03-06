@@ -27,7 +27,8 @@ import {
   type UserOperationStruct,
   extractChainIdFromBundlerUrl,
   getNonce,
-  isSmartAccountDeployed
+  isSmartAccountDeployed,
+  type Prettify
 } from "../common/index.js"
 
 import { createECDSAOwnershipModule } from "../modules/index.js"
@@ -74,11 +75,17 @@ const getAccountInitCode = async ({
   })
 }
 
-export const createBiconomySmartAccount = async (
+export const createSmartAccount = async (
   client: Client<Transport, TChain, undefined>,
   config: BiconomySmartAccountConfig
 ): Promise<
-  SmartAccount<ENTRYPOINT_ADDRESS_V07_TYPE, "BiconomySmartAccountV3", Transport>
+  Prettify<
+    SmartAccount<
+      ENTRYPOINT_ADDRESS_V07_TYPE,
+      "BiconomySmartAccountV3",
+      Transport
+    >
+  >
 > => {
   // TODO* Add error handling and validation for config
   validateConfig(config)
@@ -98,9 +105,9 @@ export const createBiconomySmartAccount = async (
   const viemSigner: LocalAccount = {
     ...config.signer,
     signTransaction: (_, __) => {
-      throw SignTransactionNotSupportedBySmartAccount
+      throw new SignTransactionNotSupportedBySmartAccount()
     }
-  } as LocalAccount
+  }
 
   // We set ECDSA as default module if no module is provided
   const defaultValidationModule =
@@ -136,6 +143,7 @@ export const createBiconomySmartAccount = async (
 
   return toSmartAccount({
     address: accountAddress,
+    defaultValidationModule: defaultValidationModule,
     async signMessage({ message }) {
       return signMessage(client, { account: viemSigner, message })
     },
@@ -161,16 +169,6 @@ export const createBiconomySmartAccount = async (
     async getNonce() {
       return getNonce(client, accountAddress)
     },
-    // async getAccountAddress() {
-    //   return getAccountAddress({
-    //     validationModule: defaultValidationModule,
-    //     factoryAddress:
-    //       config.factoryAddress ?? DEFAULT_BICONOMY_FACTORY_ADDRESS,
-    //     accountLogicAddress: ACCOUNT_V2_0_LOGIC,
-    //     fallbackHandlerAddress: DEFAULT_FALLBACK_HANDLER_ADDRESS,
-    //     index: config.accountIndex ? BigInt(config.accountIndex) : 0n
-    //   })
-    // },
     async signUserOperation(userOperation: UserOperationStruct) {
       const signature = await signMessage(client, {
         account: viemSigner,

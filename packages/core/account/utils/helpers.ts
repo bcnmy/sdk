@@ -26,6 +26,7 @@ import {
 import { type BiconomySmartAccountConfig, type SmartAccount } from "./types.js"
 
 import { toAccount } from "viem/accounts"
+import { type BaseValidationModule } from "../../modules/index.js"
 
 const MAGIC_BYTES =
   "0x6492649264926492649264926492649264926492649264926492649264926492"
@@ -109,6 +110,7 @@ export function toSmartAccount<
   TAbi extends Abi | readonly unknown[] = Abi
 >({
   address,
+  defaultValidationModule,
   client,
   source,
   entryPoint,
@@ -124,6 +126,7 @@ export function toSmartAccount<
   signTypedData
 }: TAccountSource & {
   source: TSource
+  defaultValidationModule: BaseValidationModule
   client: Client<transport, chain>
   entryPoint: TEntryPoint
   getNonce: () => Promise<bigint>
@@ -222,6 +225,7 @@ export function toSmartAccount<
     ...account,
     source,
     client,
+    defaultValidationModule,
     type: "local",
     entryPoint,
     publicKey: address,

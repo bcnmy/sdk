@@ -21,7 +21,7 @@ export type UserOperationStruct = {
 }
 
 export type SmartAccountSigner<
-  TSource extends string = string,
+  TSource extends string = "custom",
   TAddress extends Address = Address
 > = Omit<LocalAccount<TSource, TAddress>, "signTransaction">
 
@@ -31,3 +31,7 @@ export type EntryPointVersion = "v0.6" | "v0.7"
 
 export type ENTRYPOINT_ADDRESS_V07_TYPE =
   "0x0000000071727De22E5E9d8BAf0edAc6f37da032"
+
+export type Prettify<T> = {
+  [K in keyof T]: T[K]
+} & {}

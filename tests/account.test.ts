@@ -12,12 +12,12 @@ import { polygonMumbai } from "viem/chains"
 
 import {
   UserOperationStruct,
-  createBiconomySmartAccount,
+  createSmartAccount,
   walletClientToSmartAccountSigner
 } from "../packages/core/account/index.js"
 
 describe("Biconomy Smart Account core tests", () => {
-  let smartAccount: Awaited<ReturnType<typeof createBiconomySmartAccount>>
+  let smartAccount: Awaited<ReturnType<typeof createSmartAccount>>
   let walletClient: WalletClient
   let publicClient: PublicClient
   const bundlerUrlMumbai =
@@ -38,10 +38,11 @@ describe("Biconomy Smart Account core tests", () => {
       transport: http(polygonMumbai.rpcUrls.default.http[0])
     })
 
-    smartAccount = await createBiconomySmartAccount(publicClient, {
+    smartAccount = await createSmartAccount(publicClient, {
       signer: walletClientToSmartAccountSigner(walletClient),
       bundlerUrl: bundlerUrlMumbai
     })
+
   })
 
   test("Should get account address + nonce", async () => {
@@ -82,7 +83,7 @@ describe("Biconomy Smart Account core tests", () => {
       bundlerUrl: wrongBundlerUrl
     }
     await expect(
-      createBiconomySmartAccount(publicClient, config)
+      createSmartAccount(publicClient, config)
     ).rejects.toThrow("ChainId from bundler and client do not match")
   })
 })
