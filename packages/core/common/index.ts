@@ -2,21 +2,23 @@ export {
   walletClientToSmartAccountSigner,
   extractChainIdFromBundlerUrl,
   isSmartAccountDeployed
-} from "./utils/helpers.js"
+} from "./utils/helpers.js";
 
-export { getNonce } from "./actions/getNonce.js"
+export { getNonce } from "./actions/getNonce.js";
 
 export type {
   UserOperationStruct,
   TChain,
   SmartAccountSigner,
   ENTRYPOINT_ADDRESS_V07_TYPE
-} from "./utils/types.js"
+} from "./utils/types.js";
 
-export * from "./utils/constants.js"
+export * from "./utils/constants.js";
 
 export {
   BiconomyInitAbi,
   BiconomyFactoryAbi,
   BiconomyExecuteAbi
-} from "./utils/abis.js"
+} from "./utils/abis.js";
+
+export * from "./utils/errors.js";

@@ -9,7 +9,6 @@ import {
   concatHex,
   encodeFunctionData
 } from "viem"
-import { toAccount } from "viem/accounts"
 import { getChainId, signMessage, signTypedData } from "viem/actions"
 
 import {
@@ -25,12 +24,13 @@ import {
   type UserOperationStruct,
   extractChainIdFromBundlerUrl,
   getNonce,
-  isSmartAccountDeployed
+  isSmartAccountDeployed,
+  SignTransactionNotSupportedBySmartAccount
 } from "../common/index.js"
 
 import { createECDSAOwnershipModule } from "../modules/index.js"
 
-import { getUserOperationHash, validateConfig } from "./utils/helpers.js"
+import { getUserOperationHash, toSmartAccount, validateConfig } from "./utils/helpers.js"
 import type { BiconomySmartAccountConfig, SmartAccount } from "./utils/types.js"
 
 import { getAccountAddress } from "./actions/getAccountAddress.js"
@@ -54,7 +54,7 @@ const getAccountInitCode = async ({
   if (!owner) throw new Error("Owner account not found")
 
   // Build the module setup data
-  const ecdsaOwnershipInitData = encodeFunctionData({
+  const moduleInitData = encodeFunctionData({
     abi: BiconomyInitAbi,
     functionName: "initForSmartAccount",
     args: [owner]
@@ -64,7 +64,7 @@ const getAccountInitCode = async ({
   return encodeFunctionData({
     abi: BiconomyFactoryAbi,
     functionName: "deployCounterFactualAccount",
-    args: [moduleAddress, ecdsaOwnershipInitData, index]
+    args: [moduleAddress, moduleInitData, index]
   })
 }
 
@@ -92,7 +92,7 @@ export const createBiconomySmartAccount = async (
   const viemSigner: LocalAccount = {
     ...config.signer,
     signTransaction: (_, __) => {
-      throw new Error("signTransaction not supported by ERC4337 account")
+      throw SignTransactionNotSupportedBySmartAccount;
     }
   } as LocalAccount
 
@@ -113,6 +113,14 @@ export const createBiconomySmartAccount = async (
     index: config.accountIndex ? BigInt(config.accountIndex) : 0n
   })
 
+  // Helper to generate the init code for the smart account
+  const generateInitCode = () =>
+    getAccountInitCode({
+        owner: viemSigner.address,
+        index: BigInt(config.accountIndex ?? 0n),
+        moduleAddress: defaultValidationModule.getModuleAddress()
+    })
+
   if (!accountAddress) throw new Error("Account address not found")
 
   let smartAccountDeployed = await isSmartAccountDeployed(
@@ -120,32 +128,28 @@ export const createBiconomySmartAccount = async (
     accountAddress
   )
 
-  const account = toAccount({
+  return toSmartAccount({
     address: accountAddress,
     async signMessage({ message }) {
-      // @ts-ignore // We check for walletClient.account in validateConfig
-      return signMessage(config.walletClient, { account: viemSigner, message })
+        return signMessage(client, { account: viemSigner, message })
     },
     async signTransaction(_, __) {
-      throw new Error("signTransaction not supported by ERC4337 account")
+        throw new SignTransactionNotSupportedBySmartAccount()
     },
     async signTypedData<
-      const TTypedData extends TypedData | Record<string, unknown>,
-      TPrimaryType extends keyof TTypedData | "EIP712Domain" = keyof TTypedData
+        const TTypedData extends TypedData | Record<string, unknown>,
+        TPrimaryType extends
+            | keyof TTypedData
+            | "EIP712Domain" = keyof TTypedData
     >(typedData: TypedDataDefinition<TTypedData, TPrimaryType>) {
-      return signTypedData<TTypedData, TPrimaryType, TChain, undefined>(
-        // @ts-ignore
-        config.walletClient,
-        {
-          account: viemSigner,
-          ...typedData
-        }
-      )
-    }
-  })
-
-  return {
-    ...account,
+        return signTypedData<TTypedData, TPrimaryType, TChain, undefined>(
+            client,
+            {
+                account: viemSigner,
+                ...typedData
+            }
+        )
+    },
     client: client,
     publicKey: accountAddress,
     entryPoint: DEFAULT_ENTRYPOINT_ADDRESS,
@@ -164,7 +168,7 @@ export const createBiconomySmartAccount = async (
     //   })
     // },
     async signUserOperation(userOperation: UserOperationStruct) {
-      return account.signMessage({
+      return signMessage({
         message: {
           raw: getUserOperationHash(userOperation, chainId)
         }
@@ -190,24 +194,28 @@ export const createBiconomySmartAccount = async (
       ])
     },
     async getFactory() {
-      return "0x"
-      //     if (smartAccountDeployed) return undefined
-      //     smartAccountDeployed = await isSmartAccountDeployed(
-      //         client,
-      //         accountAddress
-      //     )
-      //     if (smartAccountDeployed) return undefined
-      //     return factoryAddress
+      if (smartAccountDeployed) return undefined
+
+      smartAccountDeployed = await isSmartAccountDeployed(
+          client,
+          accountAddress
+      )
+
+      if (smartAccountDeployed) return undefined
+
+      return config.factoryAddress;
     },
     async getFactoryData() {
-      return "0x"
-      //     if (smartAccountDeployed) return undefined
-      //     smartAccountDeployed = await isSmartAccountDeployed(
-      //         client,
-      //         accountAddress
-      //     )
-      //     if (smartAccountDeployed) return undefined
-      //     return getAccountInitCode(viemSigner.address, index)
+        if (smartAccountDeployed) return undefined
+
+        smartAccountDeployed = await isSmartAccountDeployed(
+            client,
+            accountAddress
+        )
+
+        if (smartAccountDeployed) return undefined
+
+        return generateInitCode();
     },
     async encodeDeployCallData(_) {
       throw new Error("Simple account doesn't support account deployment")
@@ -246,5 +254,5 @@ export const createBiconomySmartAccount = async (
     async getDummySignature(_userOperation) {
       return "0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c"
     }
-  }
-}
+  })
+};

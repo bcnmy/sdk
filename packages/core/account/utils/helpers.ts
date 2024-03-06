@@ -3,13 +3,32 @@ import {
   type Hex,
   encodeAbiParameters,
   keccak256,
-  parseAbiParameters
+  parseAbiParameters,
+  type Abi,
+  type Chain,
+  type Client,
+  type CustomSource,
+  type EncodeDeployDataParameters,
+  type SignableMessage,
+  type Transport,
+  type TypedDataDefinition,
+  concat,
 } from "viem"
+
 import {
   DEFAULT_ENTRYPOINT_ADDRESS,
+  ENTRYPOINT_ADDRESS_V07_TYPE,
+  isSmartAccountDeployed,
+  SignTransactionNotSupportedBySmartAccount,
   type UserOperationStruct
 } from "../../common/index.js"
-import { type BiconomySmartAccountConfig } from "./types.js"
+
+import { SmartAccount, type BiconomySmartAccountConfig } from "./types.js"
+
+import { toAccount } from "viem/accounts"
+
+const MAGIC_BYTES =
+  "0x6492649264926492649264926492649264926492649264926492649264926492"
 
 export const validateConfig = (config: BiconomySmartAccountConfig): void => {
   if (!config) {
@@ -80,3 +99,146 @@ export const packUserOp = (
     ]
   )
 }
+
+export function toSmartAccount<
+  TAccountSource extends CustomSource,
+  TEntryPoint extends ENTRYPOINT_ADDRESS_V07_TYPE,
+  TSource extends string = string,
+  transport extends Transport = Transport,
+  chain extends Chain | undefined = Chain | undefined,
+  TAbi extends Abi | readonly unknown[] = Abi
+>({
+  address,
+  client,
+  source,
+  entryPoint,
+  getNonce,
+  getInitCode,
+  getFactory,
+  getFactoryData,
+  encodeCallData,
+  getDummySignature,
+  encodeDeployCallData,
+  signUserOperation,
+  signMessage,
+  signTypedData
+}: TAccountSource & {
+  source: TSource
+  client: Client<transport, chain>
+  entryPoint: TEntryPoint
+  getNonce: () => Promise<bigint>
+  getInitCode: () => Promise<Hex>
+  getFactory: () => Promise<Address | undefined>
+  getFactoryData: () => Promise<Hex | undefined>
+  encodeCallData: (
+      args:
+          | {
+                to: Address
+                value: bigint
+                data: Hex
+            }
+          | {
+                to: Address
+                value: bigint
+                data: Hex
+            }[]
+  ) => Promise<Hex>
+  getDummySignature(
+      userOperation: UserOperationStruct
+  ): Promise<Hex>
+  encodeDeployCallData: ({
+      abi,
+      args,
+      bytecode
+  }: EncodeDeployDataParameters<TAbi>) => Promise<Hex>
+  signUserOperation: (
+      userOperation: UserOperationStruct
+  ) => Promise<Hex>
+}): SmartAccount<TEntryPoint, TSource, transport, chain, TAbi> {
+  const account = toAccount({
+      address: address,
+      signMessage: async ({ message }: { message: SignableMessage }) => {
+          const isDeployed = await isSmartAccountDeployed(client, address)
+          const signature = await signMessage({ message })
+
+          if (isDeployed) return signature
+
+          const abiEncodedMessage = encodeAbiParameters(
+              [
+                  {
+                      type: "address",
+                      name: "create2Factory"
+                  },
+                  {
+                      type: "bytes",
+                      name: "factoryCalldata"
+                  },
+                  {
+                      type: "bytes",
+                      name: "originalERC1271Signature"
+                  }
+              ],
+              [
+                  (await getFactory()) ?? "0x", // "0x should never happen if it's deployed"
+                  (await getFactoryData()) ?? "0x", // "0x should never happen if it's deployed"
+                  signature
+              ]
+          )
+
+          return concat([abiEncodedMessage, MAGIC_BYTES])
+      },
+      signTypedData: async (typedData) => {
+          const isDeployed = await isSmartAccountDeployed(client, address)
+          const signature = await signTypedData(
+              typedData as TypedDataDefinition
+          )
+
+          if (isDeployed) return signature
+
+          const abiEncodedMessage = encodeAbiParameters(
+              [
+                  {
+                      type: "address",
+                      name: "create2Factory"
+                  },
+                  {
+                      type: "bytes",
+                      name: "factoryCalldata"
+                  },
+                  {
+                      type: "bytes",
+                      name: "originalERC1271Signature"
+                  }
+              ],
+              [
+                  (await getFactory()) ?? "0x", // "0x should never happen if it's deployed"
+                  (await getFactoryData()) ?? "0x", // "0x should never happen if it's deployed"
+                  signature
+              ]
+          )
+
+          return concat([abiEncodedMessage, MAGIC_BYTES])
+      },
+      async signTransaction(_, __) {
+          throw new SignTransactionNotSupportedBySmartAccount()
+      }
+  })
+
+  return {
+      ...account,
+      source,
+      client,
+      type: "local",
+      entryPoint,
+      publicKey: address,
+      getNonce,
+      getInitCode,
+      getFactory,
+      getFactoryData,
+      encodeCallData,
+      getDummySignature,
+      encodeDeployCallData,
+      signUserOperation
+  } as SmartAccount<TEntryPoint, TSource, transport, chain, TAbi>
+}
+

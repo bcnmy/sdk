@@ -38,7 +38,7 @@ export type BiconomySmartAccountConfig = {
   bundlerUrl: string
   accountIndex?: number
   entryPointAddress?: string
-  defaultValidationModule: BaseValidationModule
+  defaultValidationModule?: BaseValidationModule
 }
 
 export type SmartAccount<

@@ -20,7 +20,6 @@ import {
 export const createECDSAOwnershipModule = async (
   moduleConfig: ECDSAOwnershipValidationModuleConfig
 ): Promise<BaseValidationModule> => {
-  let signer: SmartAccountSigner
   let moduleAddress!: Hex
 
   if (moduleConfig.moduleAddress) {
@@ -53,7 +52,7 @@ export const createECDSAOwnershipModule = async (
      * @returns {Promise<SmartAccountSigner>} A promise that resolves to the signer of the smart account.
      */
     async getSigner(): Promise<SmartAccountSigner> {
-      return Promise.resolve(signer)
+      return Promise.resolve(moduleConfig.signer)
     },
 
     /**
@@ -70,7 +69,7 @@ export const createECDSAOwnershipModule = async (
      * @returns {Promise<Hex>} A promise that resolves to the initialization data for the ECDSA ownership module.
      */
     async getInitData(): Promise<Hex> {
-      const ecdsaOwnerAddress = signer.address
+      const ecdsaOwnerAddress = moduleConfig.signer.address
       const moduleRegistryParsedAbi = parseAbi([
         "function initForSmartAccount(address owner)"
       ])
