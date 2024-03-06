@@ -13,7 +13,7 @@
     "format": "biome format . --write",
     "lint": "biome check .",
     "lint:fix": "bun run lint --apply",
-    "build": "bun run clean && bun run build:cjs && bun run build:esm && bun run build:types",
+    "build": "bun run clean && bun run build:cjs && bun run format && bun run lint:fix && bun run build:esm && bun run build:types",
     "build:cjs": "tsc --project ./tsconfig/tsconfig.cjs.json && tsc-alias -p ./tsconfig/tsconfig.cjs.json && echo > ./packages/core/_cjs/package.json '{\"type\":\"commonjs\"}'",
     "build:esm": "tsc --project ./tsconfig/tsconfig.esm.json && tsc-alias -p ./tsconfig/tsconfig.esm.json && echo > ./packages/core/_esm/package.json '{\"type\": \"module\",\"sideEffects\":false}'",
     "build:types": "tsc --project ./tsconfig/tsconfig.types.json && tsc-alias -p ./tsconfig/tsconfig.types.json",
@@ -49,7 +49,7 @@
     ]
   },
   "simple-git-hooks": {
-    "pre-commit": "bun run size && bun run format && bun run lint:fix",
+    "pre-commit": "bun run size && bun run build",
     "commit-msg": "npx --no -- commitlint --edit ${1}"
   },
   "size-limit": [

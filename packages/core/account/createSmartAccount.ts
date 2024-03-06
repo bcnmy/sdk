@@ -22,13 +22,13 @@ import {
   DEFAULT_ECDSA_OWNERSHIP_MODULE,
   DEFAULT_ENTRYPOINT_ADDRESS,
   type ENTRYPOINT_ADDRESS_V07_TYPE,
+  type Prettify,
   SignTransactionNotSupportedBySmartAccount,
   type TChain,
   type UserOperationStruct,
   extractChainIdFromBundlerUrl,
   getNonce,
-  isSmartAccountDeployed,
-  type Prettify
+  isSmartAccountDeployed
 } from "../common/index.js"
 
 import { createECDSAOwnershipModule } from "../modules/index.js"

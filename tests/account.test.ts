@@ -42,7 +42,6 @@ describe("Biconomy Smart Account core tests", () => {
       signer: walletClientToSmartAccountSigner(walletClient),
       bundlerUrl: bundlerUrlMumbai
     })
-
   })
 
   test("Should get account address + nonce", async () => {
@@ -82,8 +81,8 @@ describe("Biconomy Smart Account core tests", () => {
       signer: walletClientToSmartAccountSigner(walletClient),
       bundlerUrl: wrongBundlerUrl
     }
-    await expect(
-      createSmartAccount(publicClient, config)
-    ).rejects.toThrow("ChainId from bundler and client do not match")
+    await expect(createSmartAccount(publicClient, config)).rejects.toThrow(
+      "ChainId from bundler and client do not match"
+    )
   })
 })
