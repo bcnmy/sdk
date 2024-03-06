@@ -20,17 +20,21 @@ import {
   DEFAULT_ECDSA_OWNERSHIP_MODULE,
   DEFAULT_ENTRYPOINT_ADDRESS,
   type ENTRYPOINT_ADDRESS_V07_TYPE,
+  SignTransactionNotSupportedBySmartAccount,
   type TChain,
   type UserOperationStruct,
   extractChainIdFromBundlerUrl,
   getNonce,
-  isSmartAccountDeployed,
-  SignTransactionNotSupportedBySmartAccount
+  isSmartAccountDeployed
 } from "../common/index.js"
 
 import { createECDSAOwnershipModule } from "../modules/index.js"
 
-import { getUserOperationHash, toSmartAccount, validateConfig } from "./utils/helpers.js"
+import {
+  getUserOperationHash,
+  toSmartAccount,
+  validateConfig
+} from "./utils/helpers.js"
 import type { BiconomySmartAccountConfig, SmartAccount } from "./utils/types.js"
 
 import { getAccountAddress } from "./actions/getAccountAddress.js"
@@ -92,7 +96,7 @@ export const createBiconomySmartAccount = async (
   const viemSigner: LocalAccount = {
     ...config.signer,
     signTransaction: (_, __) => {
-      throw SignTransactionNotSupportedBySmartAccount;
+      throw SignTransactionNotSupportedBySmartAccount
     }
   } as LocalAccount
 
@@ -116,9 +120,9 @@ export const createBiconomySmartAccount = async (
   // Helper to generate the init code for the smart account
   const generateInitCode = () =>
     getAccountInitCode({
-        owner: viemSigner.address,
-        index: BigInt(config.accountIndex ?? 0n),
-        moduleAddress: defaultValidationModule.getModuleAddress()
+      owner: viemSigner.address,
+      index: BigInt(config.accountIndex ?? 0n),
+      moduleAddress: defaultValidationModule.getModuleAddress()
     })
 
   if (!accountAddress) throw new Error("Account address not found")
@@ -131,24 +135,22 @@ export const createBiconomySmartAccount = async (
   return toSmartAccount({
     address: accountAddress,
     async signMessage({ message }) {
-        return signMessage(client, { account: viemSigner, message })
+      return signMessage(client, { account: viemSigner, message })
     },
     async signTransaction(_, __) {
-        throw new SignTransactionNotSupportedBySmartAccount()
+      throw new SignTransactionNotSupportedBySmartAccount()
     },
     async signTypedData<
-        const TTypedData extends TypedData | Record<string, unknown>,
-        TPrimaryType extends
-            | keyof TTypedData
-            | "EIP712Domain" = keyof TTypedData
+      const TTypedData extends TypedData | Record<string, unknown>,
+      TPrimaryType extends keyof TTypedData | "EIP712Domain" = keyof TTypedData
     >(typedData: TypedDataDefinition<TTypedData, TPrimaryType>) {
-        return signTypedData<TTypedData, TPrimaryType, TChain, undefined>(
-            client,
-            {
-                account: viemSigner,
-                ...typedData
-            }
-        )
+      return signTypedData<TTypedData, TPrimaryType, TChain, undefined>(
+        client,
+        {
+          account: viemSigner,
+          ...typedData
+        }
+      )
     },
     client: client,
     publicKey: accountAddress,
@@ -197,25 +199,25 @@ export const createBiconomySmartAccount = async (
       if (smartAccountDeployed) return undefined
 
       smartAccountDeployed = await isSmartAccountDeployed(
-          client,
-          accountAddress
+        client,
+        accountAddress
       )
 
       if (smartAccountDeployed) return undefined
 
-      return config.factoryAddress;
+      return config.factoryAddress
     },
     async getFactoryData() {
-        if (smartAccountDeployed) return undefined
+      if (smartAccountDeployed) return undefined
 
-        smartAccountDeployed = await isSmartAccountDeployed(
-            client,
-            accountAddress
-        )
+      smartAccountDeployed = await isSmartAccountDeployed(
+        client,
+        accountAddress
+      )
 
-        if (smartAccountDeployed) return undefined
+      if (smartAccountDeployed) return undefined
 
-        return generateInitCode();
+      return generateInitCode()
     },
     async encodeDeployCallData(_) {
       throw new Error("Simple account doesn't support account deployment")
@@ -255,4 +257,4 @@ export const createBiconomySmartAccount = async (
       return "0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c"
     }
   })
-};
+}

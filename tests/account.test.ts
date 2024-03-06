@@ -10,7 +10,11 @@ import { type PublicClient } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { polygonMumbai } from "viem/chains"
 
-import { UserOperationStruct, createBiconomySmartAccount, walletClientToSmartAccountSigner } from "../packages/core/account/index.js"
+import {
+  UserOperationStruct,
+  createBiconomySmartAccount,
+  walletClientToSmartAccountSigner
+} from "../packages/core/account/index.js"
 
 describe("Biconomy Smart Account core tests", () => {
   let smartAccount: Awaited<ReturnType<typeof createBiconomySmartAccount>>
@@ -20,13 +24,14 @@ describe("Biconomy Smart Account core tests", () => {
     "https://bundler.biconomy.io/api/v2/80001/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44"
 
   beforeAll(async () => {
-    if(!process.env.PRIVATE_KEY) throw new Error("PRIVATE_KEY env variable is not set")
+    if (!process.env.PRIVATE_KEY)
+      throw new Error("PRIVATE_KEY env variable is not set")
     const wallet = privateKeyToAccount(`0x${process.env.PRIVATE_KEY}`)
 
     // @ts-ignore
     publicClient = createPublicClient({
       transport: http(polygonMumbai.rpcUrls.default.http[0])
-    });
+    })
 
     walletClient = createWalletClient({
       account: wallet,
