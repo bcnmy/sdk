@@ -11,6 +11,6 @@
     "compilerOptions": {
         "moduleResolution": "node",
         "sourceMap": true,
-        "rootDir": "../packages/"
+        "rootDir": "../packages/core"
     }
 }

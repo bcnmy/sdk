@@ -1,0 +1,19 @@
+[
+  {
+    "name": "core (esm)",
+    "path": "./packages/core/_esm/index.js",
+    "limit": "50 kB",
+    "import": "*"
+  },
+  {
+    "name": "core (cjs)",
+    "path": "./packages/core/_cjs/index.js",
+    "limit": "150 kB"
+  },
+  {
+    "name": "core (tree-shaking)",
+    "path": "./packages/core/_esm/index.js",
+    "limit": "50 kB",
+    "import": "{ createBiconomySmartAccount }"
+  }
+]
