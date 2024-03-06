@@ -87,7 +87,7 @@ export const createECDSAOwnershipModule = async (
      * @returns {Promise<Hex>} A promise that resolves to the signature of the user operation hash.
      */
     async signUserOpHash(userOpHash: string): Promise<Hex> {
-      const sig = await signer.signMessage({ message: userOpHash })
+      const sig = await moduleConfig.signer.signMessage({ message: userOpHash })
       return sig
     },
 
@@ -99,7 +99,7 @@ export const createECDSAOwnershipModule = async (
     async signMessage(_message: Uint8Array | string): Promise<string> {
       const message =
         typeof _message === "string" ? _message : { raw: _message }
-      let signature = await signer.signMessage({ message })
+      let signature = await moduleConfig.signer.signMessage({ message })
 
       const potentiallyIncorrectV = parseInt(signature.slice(-2), 16)
       if (![27, 28].includes(potentiallyIncorrectV)) {

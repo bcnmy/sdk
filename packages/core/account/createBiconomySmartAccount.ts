@@ -7,7 +7,9 @@ import {
   type TypedData,
   type TypedDataDefinition,
   concatHex,
-  encodeFunctionData
+  encodeFunctionData,
+  encodeAbiParameters,
+  parseAbiParameters
 } from "viem"
 import { getChainId, signMessage, signTypedData } from "viem/actions"
 
@@ -170,11 +172,18 @@ export const createBiconomySmartAccount = async (
     //   })
     // },
     async signUserOperation(userOperation: UserOperationStruct) {
-      return signMessage({
+      const signature = await signMessage(client,{
+        account: viemSigner,
         message: {
           raw: getUserOperationHash(userOperation, chainId)
         }
       })
+
+      const signatureWithModuleAddress = encodeAbiParameters(
+        parseAbiParameters("bytes, address"),
+        [signature, defaultValidationModule.getModuleAddress()]
+      )
+      return signatureWithModuleAddress
     },
     async getInitCode() {
       if (smartAccountDeployed) return "0x"

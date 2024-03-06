@@ -17,13 +17,13 @@ import {
 
 import {
   DEFAULT_ENTRYPOINT_ADDRESS,
-  ENTRYPOINT_ADDRESS_V07_TYPE,
+  type ENTRYPOINT_ADDRESS_V07_TYPE,
   SignTransactionNotSupportedBySmartAccount,
   type UserOperationStruct,
   isSmartAccountDeployed
 } from "../../common/index.js"
 
-import { type BiconomySmartAccountConfig, SmartAccount } from "./types.js"
+import { type BiconomySmartAccountConfig, type SmartAccount } from "./types.js"
 
 import { toAccount } from "viem/accounts"
 
