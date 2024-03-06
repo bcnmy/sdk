@@ -1,15 +1,20 @@
-import { beforeAll, describe, expect, test } from "vitest"
+import { beforeAll, describe, expect, expectTypeOf, test } from "vitest"
 
 import {
   http,
   WalletClient,
   createPublicClient,
-  createWalletClient
+  createWalletClient,
+  zeroAddress
 } from "viem"
 import { type PublicClient } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { polygonMumbai } from "viem/chains"
 
+import {
+  DEFAULT_ECDSA_OWNERSHIP_MODULE,
+  SignTransactionNotSupportedBySmartAccount
+} from "~@biconomy/core/common/index.js"
 import {
   UserOperationStruct,
   createSmartAccount,
@@ -71,7 +76,17 @@ describe("Biconomy Smart Account core tests", () => {
     }
 
     const sig = await smartAccount.signUserOperation(userOp)
-    console.log("User Operation Signature: ", sig)
+    expect(sig).toBeDefined()
+  })
+
+  test("Client signMessage", async () => {
+    const response = await smartAccount.signMessage({
+      message: "hello world"
+    })
+
+    expect(response).toBeTypeOf("string")
+    expect(response).toHaveLength(132)
+    expect(response).toMatch(/^0x[0-9a-fA-F]{130}$/)
   })
 
   test("should throw error if chainId from bundler and client do not match", async () => {
@@ -84,5 +99,47 @@ describe("Biconomy Smart Account core tests", () => {
     await expect(createSmartAccount(publicClient, config)).rejects.toThrow(
       "ChainId from bundler and client do not match"
     )
+  })
+
+  test("smart account should have ECDSA as default validation module", async () => {
+    const defaultValidationModule = smartAccount.defaultValidationModule
+    expect(defaultValidationModule.getModuleAddress()).toBe(
+      DEFAULT_ECDSA_OWNERSHIP_MODULE
+    )
+  })
+
+  test("Smart account client signTypedData", async () => {
+    const response = await smartAccount.signTypedData({
+      domain: {
+        chainId: 1,
+        name: "Test",
+        verifyingContract: zeroAddress
+      },
+      primaryType: "Test",
+      types: {
+        Test: [
+          {
+            name: "test",
+            type: "string"
+          }
+        ]
+      },
+      message: {
+        test: "hello world"
+      }
+    })
+
+    expect(response).toBeTypeOf("string")
+    expect(response).toHaveLength(132)
+    expect(response).toMatch(/^0x[0-9a-fA-F]{130}$/)
+  })
+
+  test("should throw with custom error SignTransactionNotSupportedBySmartAccount", async () => {
+    const response = smartAccount.signTransaction({
+      to: zeroAddress,
+      value: 0n,
+      data: "0x"
+    })
+    expect(response).rejects.toThrow(SignTransactionNotSupportedBySmartAccount)
   })
 })

@@ -38,6 +38,13 @@ export const validateConfig = (config: BiconomySmartAccountConfig): void => {
   // validate config and throw meaningful errors if something is missing
 }
 
+/**
+ * Calculates the hash of a user operation.
+ * @param userOp - The user operation struct.
+ * @param chainId - The chain ID.
+ * @param entryPointAddress - The entry point address (optional).
+ * @returns The hash of the user operation.
+ */
 export const getUserOperationHash = (
   userOp: UserOperationStruct,
   chainId: number,
@@ -55,6 +62,14 @@ export const getUserOperationHash = (
   return keccak256(enc)
 }
 
+/**
+ * Packs the user operation into a string format.
+ *
+ * @param op - The user operation to pack.
+ * @param forSignature - Optional parameter indicating whether the pack will include op.signature or not.
+ * @returns The packed user operation as a string.
+ * @throws Error if any of the required properties are missing in the user operation.
+ */
 export const packUserOp = (
   op: UserOperationStruct,
   forSignature = true
@@ -101,6 +116,47 @@ export const packUserOp = (
   )
 }
 
+/**
+ * Converts a custom source account into a smart account.
+ *
+ * @template TAccountSource - The type of the custom source account.
+ * @template TEntryPoint - The type of the entry point address.
+ * @template TSource - The type of the source.
+ * @template transport - The transport type.
+ * @template chain - The chain type.
+ * @template TAbi - The ABI type.
+ * @param {TAccountSource & {
+ *   source: TSource;
+ *   defaultValidationModule: BaseValidationModule;
+ *   client: Client<transport, chain>;
+ *   entryPoint: TEntryPoint;
+ *   getNonce: () => Promise<bigint>;
+ *   getInitCode: () => Promise<Hex>;
+ *   getFactory: () => Promise<Address | undefined>;
+ *   getFactoryData: () => Promise<Hex | undefined>;
+ *   encodeCallData: (
+ *     args:
+ *       | {
+ *           to: Address;
+ *           value: bigint;
+ *           data: Hex;
+ *         }
+ *       | {
+ *           to: Address;
+ *           value: bigint;
+ *           data: Hex;
+ *         }[]
+ *   ) => Promise<Hex>;
+ *   getDummySignature: (userOperation: UserOperationStruct) => Promise<Hex>;
+ *   encodeDeployCallData: ({
+ *     abi,
+ *     args,
+ *     bytecode
+ *   }: EncodeDeployDataParameters<TAbi>) => Promise<Hex>;
+ *   signUserOperation: (userOperation: UserOperationStruct) => Promise<Hex>;
+ * }} options - The options for converting to a smart account.
+ * @returns {SmartAccount<TEntryPoint, TSource, transport, chain, TAbi>} - The converted smart account.
+ */
 export function toSmartAccount<
   TAccountSource extends CustomSource,
   TEntryPoint extends ENTRYPOINT_ADDRESS_V07_TYPE,

@@ -22,14 +22,61 @@ export type IValidationModule = {
   getDummySignature(): Promise<Hex>
 }
 
+/**
+ * Represents a base validation module.
+ */
 export type BaseValidationModule = IValidationModule & {
+  /**
+   * The entry point address.
+   */
   entryPointAddress: Hex
+
+  /**
+   * Retrieves the module address.
+   * @returns The module address.
+   */
   getModuleAddress(): Hex
+
+  /**
+   * Retrieves the initialization data.
+   * @returns A promise that resolves to the initialization data.
+   */
   getInitData(): Promise<Hex>
+
+  /**
+   * Retrieves a dummy signature.
+   * @param _params - The module information.
+   * @returns A promise that resolves to the dummy signature.
+   */
   getDummySignature(_params?: ModuleInfo): Promise<Hex>
+
+  /**
+   * Retrieves the signer.
+   * @returns A promise that resolves to the smart account signer.
+   */
   getSigner(): Promise<SmartAccountSigner>
+
+  /**
+   * Signs a user operation hash.
+   * @param _userOpHash - The user operation hash.
+   * @param _params - The module information.
+   * @returns A promise that resolves to the signature.
+   */
   signUserOpHash(_userOpHash: string, _params?: ModuleInfo): Promise<Hex>
+
+  /**
+   * Signs a message.
+   * @param _message - The message to sign.
+   * @returns A promise that resolves to the signature.
+   */
   signMessage(_message: Uint8Array | string): Promise<string>
+
+  /**
+   * Signs a message using a smart account signer.
+   * @param message - The message to sign.
+   * @param signer - The local account signer.
+   * @returns A promise that resolves to the signature.
+   */
   signMessageSmartAccountSigner(
     message: string | Uint8Array,
     signer: LocalAccount
@@ -59,5 +106,6 @@ export type ECDSAOwnershipValidationModuleConfig =
     version?: ModuleVersion
     /** Signer: viemWallet or ethers signer. Ingested when passed into smartAccount */
     signer: SmartAccountSigner
+    /** entryPointAddress: address of the entry point contract */
     entryPointAddress?: Address
   }

@@ -6,25 +6,31 @@ import {
   hexToBigInt,
   keccak256
 } from "viem"
+import { type Prettify } from "viem/chains"
 import {
   BICONOMY_PROXY_CREATION_CODE,
   BiconomyInitAbi
 } from "../../common/index.js"
-import { type BaseValidationModule } from "../../modules/index.js"
+import { type GetAccountAddressParams } from "../utils/types.js"
 
+/**
+ * Retrieves the counterfactual address for a new account.
+ *
+ * @param factoryAddress The address of the factory contract.
+ * @param accountLogicAddress The address of the account logic contract.
+ * @param fallbackHandlerAddress The address of the fallback handler contract.
+ * @param validationModule The validation module for the account.
+ * @param index The index of the account (optional, default is 0).
+ * @returns The counterfactual address of the new account.
+ * @throws Error if failed to get the counterfactual address.
+ */
 export const getAccountAddress = async ({
   factoryAddress,
   accountLogicAddress,
   fallbackHandlerAddress,
   validationModule,
   index = 0n
-}: {
-  factoryAddress: Address
-  accountLogicAddress: Address
-  fallbackHandlerAddress: Address
-  validationModule: BaseValidationModule
-  index?: bigint
-}): Promise<Address> => {
+}: Prettify<GetAccountAddressParams>): Promise<Address> => {
   const validationModuleInitData = await validationModule.getInitData()
 
   try {

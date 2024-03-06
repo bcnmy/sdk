@@ -35,3 +35,9 @@ export type ENTRYPOINT_ADDRESS_V07_TYPE =
 export type Prettify<T> = {
   [K in keyof T]: T[K]
 } & {}
+
+export type Transaction = {
+  to: Address
+  value?: bigint | 0n
+  data?: Hex | "0x"
+}

@@ -7,6 +7,7 @@ import {
   type SmartAccountSigner
 } from "../../common/index.js"
 
+import { type Prettify } from "viem/chains"
 import {
   type BaseValidationModule,
   type ECDSAOwnershipValidationModuleConfig
@@ -19,7 +20,7 @@ import {
  */
 export const createECDSAOwnershipModule = async (
   moduleConfig: ECDSAOwnershipValidationModuleConfig
-): Promise<BaseValidationModule> => {
+): Promise<Prettify<BaseValidationModule>> => {
   let moduleAddress!: Hex
 
   if (moduleConfig.moduleAddress) {

@@ -12,6 +12,7 @@ import {
   parseAbiParameters
 } from "viem"
 import { getChainId, signMessage, signTypedData } from "viem/actions"
+import { type Prettify } from "viem/chains"
 
 import {
   ACCOUNT_V2_0_LOGIC,
@@ -22,9 +23,9 @@ import {
   DEFAULT_ECDSA_OWNERSHIP_MODULE,
   DEFAULT_ENTRYPOINT_ADDRESS,
   type ENTRYPOINT_ADDRESS_V07_TYPE,
-  type Prettify,
   SignTransactionNotSupportedBySmartAccount,
   type TChain,
+  type Transaction,
   type UserOperationStruct,
   extractChainIdFromBundlerUrl,
   getNonce,
@@ -48,6 +49,11 @@ export const DEFAULT_FALLBACK_HANDLER_ADDRESS =
 /**
  * Return the value to put into the "initCode" field, if the account is not yet deployed.
  * This value holds the "factory" address, followed by this account's information
+ *
+ * @param owner - The owner account address
+ * @param index - The index of the account
+ * @param moduleAddress - The module address
+ * @returns The init code for the account
  */
 const getAccountInitCode = async ({
   owner,
@@ -75,6 +81,36 @@ const getAccountInitCode = async ({
   })
 }
 
+/**
+ * Creates a smart account object using the provided client and configuration.
+ *
+ * This function is useful for gaining access to basic smart account functionality.
+ *
+ * @param client - The client used to interact with the blockchain.
+ * @param config - The configuration for the smart account.
+ * @returns A promise that resolves to the created smart account.
+ * @throws An error if the chainId from the bundler and client do not match, or if the account address is not found.
+ *
+ * @example
+ * ```typescript
+ *
+ *  publicClient = createPublicClient({
+ *    transport: http(polygonMumbai.rpcUrls.default.http[0])
+ *  })
+ *
+ *  walletClient = createWalletClient({
+ *   account: wallet,
+ *     transport: http(polygonMumbai.rpcUrls.default.http[0])
+ *   })
+ *
+ *  Using a Wallet Client
+ *  smartAccount = await createSmartAccount(publicClient, {
+ *    signer: walletClientToSmartAccountSigner(walletClient),
+ *    bundlerUrl: "your bundler url from https://dashboard.biconomy.io/"
+ *  })
+ *
+ * ```
+ */
 export const createSmartAccount = async (
   client: Client<Transport, TChain, undefined>,
   config: BiconomySmartAccountConfig
@@ -115,6 +151,7 @@ export const createSmartAccount = async (
     (await createECDSAOwnershipModule({
       signer: viemSigner
     }))
+  // TODO* Do we still need both defaultValidationModule and activeValidationModule?
   // activeValidationModule =
   //   config.activeValidationModule ?? defaultValidationModule
 
@@ -126,7 +163,6 @@ export const createSmartAccount = async (
     index: config.accountIndex ? BigInt(config.accountIndex) : 0n
   })
 
-  // Helper to generate the init code for the smart account
   const generateInitCode = () =>
     getAccountInitCode({
       owner: viemSigner.address,
@@ -169,6 +205,11 @@ export const createSmartAccount = async (
     async getNonce() {
       return getNonce(client, accountAddress)
     },
+    /**
+     * Signs a user operation using the provided user operation struct.
+     * @param userOperation The user operation struct to be signed.
+     * @returns The signature with module address.
+     */
     async signUserOperation(userOperation: UserOperationStruct) {
       const signature = await signMessage(client, {
         account: viemSigner,
@@ -183,6 +224,12 @@ export const createSmartAccount = async (
       )
       return signatureWithModuleAddress
     },
+    /**
+     * Retrieves the initialization code for creating a smart account.
+     * If the smart account has already been deployed, it returns "0x".
+     * Otherwise, it concatenates the factory address and the account initialization code.
+     * @returns The initialization code for creating a smart account.
+     */
     async getInitCode() {
       if (smartAccountDeployed) return "0x"
 
@@ -202,6 +249,10 @@ export const createSmartAccount = async (
         })
       ])
     },
+    /**
+     * Retrieves the factory address if the smart account is not deployed.
+     * @returns The factory address if the smart account is not deployed, otherwise undefined.
+     */
     async getFactory() {
       if (smartAccountDeployed) return undefined
 
@@ -214,6 +265,12 @@ export const createSmartAccount = async (
 
       return config.factoryAddress
     },
+    /**
+     * Retrieves the factory data for creating a smart account.
+     * If the smart account is already deployed, returns undefined.
+     * Otherwise, generates the initialization code for the smart account.
+     * @returns The initialization code if the smart account is not deployed, otherwise undefined.
+     */
     async getFactoryData() {
       if (smartAccountDeployed) return undefined
 
@@ -229,7 +286,14 @@ export const createSmartAccount = async (
     async encodeDeployCallData(_) {
       throw new Error("Simple account doesn't support account deployment")
     },
-    async encodeCallData(args) {
+    /**
+     * Encodes the call data for a transaction or an array of transactions.
+     * If the input is an array, it encodes a batched call.
+     * If the input is a single transaction, it encodes a simple call.
+     * @param args The transaction(s) to encode.
+     * @returns The encoded call data.
+     */
+    async encodeCallData(args: Transaction | Transaction[]) {
       if (Array.isArray(args)) {
         // Encode a batched call
         const argsArray = args as {

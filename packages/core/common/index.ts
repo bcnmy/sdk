@@ -11,7 +11,7 @@ export type {
   TChain,
   SmartAccountSigner,
   ENTRYPOINT_ADDRESS_V07_TYPE,
-  Prettify
+  Transaction
 } from "./utils/types.js"
 
 export * from "./utils/constants.js"
