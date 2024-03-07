@@ -2,6 +2,7 @@ import type {
   Account,
   Address,
   Chain,
+  Client,
   Hex,
   SignableMessage,
   Transport,
@@ -10,6 +11,12 @@ import type {
   WalletClient
 } from "viem"
 
+/**
+ * Extracts the chain ID from a bundler URL.
+ * @param url - The bundler URL.
+ * @returns The extracted chain ID.
+ * @throws Error if the chain ID cannot be extracted or is invalid.
+ */
 export const extractChainIdFromBundlerUrl = (url: string): number => {
   try {
     const regex = /\/api\/v2\/(\d+)\/[a-zA-Z0-9.-]+$/
@@ -23,9 +30,15 @@ export const extractChainIdFromBundlerUrl = (url: string): number => {
   }
 }
 
-import { signTypedData } from "viem/actions"
+import { getBytecode, signTypedData } from "viem/actions"
 import type { SmartAccountSigner } from "./types.js"
 
+/**
+ * Converts a wallet client to a smart account signer.
+ * @template TChain - The type of chain.
+ * @param {WalletClient<Transport, TChain, Account>} walletClient - The wallet client to convert.
+ * @returns {SmartAccountSigner<"custom", Address>} - The converted smart account signer.
+ */
 export function walletClientToSmartAccountSigner<
   TChain extends Chain | undefined = Chain | undefined
 >(
@@ -56,4 +69,24 @@ export function walletClientToSmartAccountSigner<
       )
     }
   }
+}
+
+/**
+ * Checks if a smart account is deployed at the given address.
+ * @param client - The client object used to interact with the blockchain.
+ * @param address - The address of the smart account.
+ * @returns A promise that resolves to a boolean indicating whether the smart account is deployed or not.
+ */
+export const isSmartAccountDeployed = async (
+  client: Client,
+  address: Address
+): Promise<boolean> => {
+  const contractCode = await getBytecode(client, {
+    address: address
+  })
+
+  if ((contractCode?.length ?? 0) > 2) {
+    return true
+  }
+  return false
 }

@@ -1,14 +1,6 @@
+// Entrypoint V7
 export const DEFAULT_ENTRYPOINT_ADDRESS =
-  "0x5ff137d4b0fdcd49dca30c7cf57e578a026d2789"
-export const ENTRYPOINT_ADDRESSES = {
-  "0x27a4db290b89ae3373ce4313cbeae72112ae7da9": "V0_0_5",
-  "0x5ff137d4b0fdcd49dca30c7cf57e578a026d2789": "V0_0_6"
-}
-
-export const ENTRYPOINT_ADDRESSES_BY_VERSION = {
-  V0_0_5: "0x27a4db290b89ae3373ce4313cbeae72112ae7da9",
-  V0_0_6: "0x5ff137d4b0fdcd49dca30c7cf57e578a026d2789"
-}
+  "0x0000000071727De22E5E9d8BAf0edAc6f37da032"
 
 // Note: we could append these defaults with ADDRESS suffix
 export const DEFAULT_ECDSA_OWNERSHIP_MODULE =

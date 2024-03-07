@@ -1,5 +1,5 @@
 export {
-  createBiconomySmartAccount,
+  createSmartAccount,
   walletClientToSmartAccountSigner
 } from "./account/index.js"
 
