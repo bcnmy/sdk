@@ -6,12 +6,12 @@ import {
   hexToBigInt,
   keccak256
 } from "viem"
-import { type Prettify } from "viem/chains"
+import type { Prettify } from "viem/chains"
 import {
   BICONOMY_PROXY_CREATION_CODE,
   BiconomyInitAbi
 } from "../../common/index.js"
-import { type GetAccountAddressParams } from "../utils/types.js"
+import type { GetAccountAddressParams } from "../utils/types.js"
 
 /**
  * Retrieves the counterfactual address for a new account.

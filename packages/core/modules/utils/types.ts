@@ -1,6 +1,6 @@
-import { type Address, type Hex, type LocalAccount } from "viem"
+import type { Address, Hex, LocalAccount } from "viem"
 
-import { type SmartAccountSigner } from "../../common/index.js"
+import type { SmartAccountSigner } from "../../common/index.js"
 
 export type BaseValidationModuleConfig = {
   /** entryPointAddress: address of the entry point */

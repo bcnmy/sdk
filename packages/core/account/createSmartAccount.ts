@@ -12,8 +12,9 @@ import {
   parseAbiParameters
 } from "viem"
 import { getChainId, signMessage, signTypedData } from "viem/actions"
-import { type Prettify } from "viem/chains"
+import type { Prettify } from "viem/chains"
 
+import { extractChainIdFromBundlerUrl } from "../bundler/utils/helpers.js"
 import {
   ACCOUNT_V2_0_LOGIC,
   BiconomyExecuteAbi,
@@ -27,11 +28,9 @@ import {
   type TChain,
   type Transaction,
   type UserOperationStruct,
-  extractChainIdFromBundlerUrl,
   getNonce,
   isSmartAccountDeployed
 } from "../common/index.js"
-
 import { createECDSAOwnershipModule } from "../modules/index.js"
 
 import {

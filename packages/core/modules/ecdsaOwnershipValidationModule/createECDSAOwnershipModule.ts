@@ -7,10 +7,10 @@ import {
   type SmartAccountSigner
 } from "../../common/index.js"
 
-import { type Prettify } from "viem/chains"
-import {
-  type BaseValidationModule,
-  type ECDSAOwnershipValidationModuleConfig
+import type { Prettify } from "viem/chains"
+import type {
+  BaseValidationModule,
+  ECDSAOwnershipValidationModuleConfig
 } from "../utils/types.js"
 
 /**
@@ -102,7 +102,7 @@ export const createECDSAOwnershipModule = async (
         typeof _message === "string" ? _message : { raw: _message }
       let signature = await moduleConfig.signer.signMessage({ message })
 
-      const potentiallyIncorrectV = parseInt(signature.slice(-2), 16)
+      const potentiallyIncorrectV = Number.parseInt(signature.slice(-2), 16)
       if (![27, 28].includes(potentiallyIncorrectV)) {
         const correctV = potentiallyIncorrectV + 27
         signature = signature.slice(0, -2) + correctV.toString(16)
@@ -117,7 +117,7 @@ export const createECDSAOwnershipModule = async (
         typeof _message === "string" ? _message : { raw: _message }
       let signature: `0x${string}` = await signer.signMessage({ message })
 
-      const potentiallyIncorrectV = parseInt(signature.slice(-2), 16)
+      const potentiallyIncorrectV = Number.parseInt(signature.slice(-2), 16)
       if (![27, 28].includes(potentiallyIncorrectV)) {
         const correctV = potentiallyIncorrectV + 27
         signature = `0x${signature.slice(0, -2) + correctV.toString(16)}`

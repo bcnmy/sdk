@@ -9,11 +9,11 @@ import type {
   Transport
 } from "viem"
 
-import {
-  type ENTRYPOINT_ADDRESS_V07_TYPE,
-  type SmartAccountSigner,
-  type Transaction,
-  type UserOperationStruct
+import type {
+  ENTRYPOINT_ADDRESS_V07_TYPE,
+  SmartAccountSigner,
+  Transaction,
+  UserOperationStruct
 } from "../../common/index.js"
 
 import type { BaseValidationModule } from "../../modules/index.js"

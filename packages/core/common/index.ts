@@ -1,6 +1,5 @@
 export {
   walletClientToSmartAccountSigner,
-  extractChainIdFromBundlerUrl,
   isSmartAccountDeployed
 } from "./utils/helpers.js"
 
@@ -14,7 +13,22 @@ export type {
   Transaction
 } from "./utils/types.js"
 
-export * from "./utils/constants.js"
+export {
+  DEFAULT_BATCHED_SESSION_ROUTER_MODULE,
+  DEFAULT_BICONOMY_FACTORY_ADDRESS,
+  DEFAULT_ECDSA_OWNERSHIP_MODULE,
+  DEFAULT_ENTRYPOINT_ADDRESS,
+  DEFAULT_MULTICHAIN_MODULE,
+  DEFAULT_SESSION_KEY_MANAGER_MODULE,
+  BICONOMY_PROXY_CREATION_CODE,
+  DEFAULT_ERC20_MODULE,
+  ECDSA_OWNERSHIP_MODULE_ADDRESSES_BY_VERSION,
+  SESSION_MANAGER_MODULE_ADDRESSES_BY_VERSION,
+  BATCHED_SESSION_ROUTER_MODULE_ADDRESSES_BY_VERSION,
+  MULTICHAIN_VALIDATION_MODULE_ADDRESSES_BY_VERSION,
+  ERC20_ABI,
+  ACCOUNT_V2_0_LOGIC
+} from "./utils/constants.js"
 
 export {
   BiconomyInitAbi,
@@ -22,4 +36,4 @@ export {
   BiconomyExecuteAbi
 } from "./utils/abis.js"
 
-export * from "./utils/errors.js"
+export { SignTransactionNotSupportedBySmartAccount } from "./utils/errors.js"

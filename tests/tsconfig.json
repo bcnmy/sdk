@@ -1,12 +1,13 @@
 {
+    "extends": "../tsconfig/tsconfig.json",
     "compilerOptions": {
-      "module": "nodenext",
-      "moduleResolution": "nodenext",
-      "target": "ESNext",
-      "types": ["bun-types"],
-      "baseUrl": ".",
-      "paths": {
-        "~@biconomy/*": ["../packages/*"]
-      }
+        "module": "NodeNext",
+        "moduleResolution": "NodeNext",
+        "target": "ESNext",
+        "types": ["bun-types"],
+        "baseUrl": ".",
+        "paths": {
+          "~@biconomy/*": ["../packages/*"]
+        }
     }
-  }
+}

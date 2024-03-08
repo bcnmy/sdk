@@ -14,6 +14,7 @@ import {
   keccak256,
   parseAbiParameters
 } from "viem"
+import * as chains from "viem/chains"
 
 import {
   DEFAULT_ENTRYPOINT_ADDRESS,
@@ -23,10 +24,10 @@ import {
   isSmartAccountDeployed
 } from "../../common/index.js"
 
-import { type BiconomySmartAccountConfig, type SmartAccount } from "./types.js"
+import type { BiconomySmartAccountConfig, SmartAccount } from "./types.js"
 
 import { toAccount } from "viem/accounts"
-import { type BaseValidationModule } from "../../modules/index.js"
+import type { BaseValidationModule } from "../../modules/index.js"
 
 const MAGIC_BYTES =
   "0x6492649264926492649264926492649264926492649264926492649264926492"
@@ -294,4 +295,21 @@ export function toSmartAccount<
     encodeDeployCallData,
     signUserOperation
   } as SmartAccount<TEntryPoint, TSource, transport, chain, TAbi>
+}
+
+/**
+ * Utility method for converting a chainId to a {@link Chain} object
+ *
+ * @param chainId
+ * @returns a {@link Chain} object for the given chainId
+ * @throws if the chainId is not found
+ */
+export const getChain = (chainId: number): Chain => {
+  for (const chain of Object.values(chains)) {
+    // @ts-ignore
+    if (chain.id === chainId) {
+      return chain as Chain
+    }
+  }
+  throw new Error("could not find chain")
 }
