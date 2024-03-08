@@ -13,34 +13,37 @@ import {
 } from "viem"
 import { getChainId, signMessage, signTypedData } from "viem/actions"
 import type { Prettify } from "viem/chains"
-
 import { extractChainIdFromBundlerUrl } from "../bundler/utils/helpers.js"
+import { createECDSAOwnershipModule } from "../modules/index.js"
 import {
-  ACCOUNT_V2_0_LOGIC,
   BiconomyExecuteAbi,
   BiconomyFactoryAbi,
-  BiconomyInitAbi,
-  DEFAULT_BICONOMY_FACTORY_ADDRESS,
-  DEFAULT_ECDSA_OWNERSHIP_MODULE,
-  DEFAULT_ENTRYPOINT_ADDRESS,
-  type ENTRYPOINT_ADDRESS_V07_TYPE,
-  SignTransactionNotSupportedBySmartAccount,
-  type TChain,
-  type Transaction,
-  type UserOperationStruct,
-  getNonce,
-  isSmartAccountDeployed
-} from "../common/index.js"
-import { createECDSAOwnershipModule } from "../modules/index.js"
-
+  BiconomyInitAbi
+} from "./utils/abis.js"
+import { SignTransactionNotSupportedBySmartAccount } from "./utils/errors.js"
 import {
+  getNonce,
   getUserOperationHash,
+  isSmartAccountDeployed,
   toSmartAccount,
   validateConfig
 } from "./utils/helpers.js"
-import type { BiconomySmartAccountConfig, SmartAccount } from "./utils/types.js"
+import type {
+  BiconomySmartAccountConfig,
+  ENTRYPOINT_ADDRESS_V07_TYPE,
+  SmartAccount,
+  TChain,
+  Transaction,
+  UserOperationStruct
+} from "./utils/types.js"
 
 import { getAccountAddress } from "./actions/getAccountAddress.js"
+import {
+  ACCOUNT_V2_0_LOGIC,
+  DEFAULT_BICONOMY_FACTORY_ADDRESS,
+  DEFAULT_ECDSA_OWNERSHIP_MODULE,
+  DEFAULT_ENTRYPOINT_ADDRESS
+} from "./utils/constants.js"
 
 export const DEFAULT_FALLBACK_HANDLER_ADDRESS =
   "0x0bBa6d96BD616BedC6BFaa341742FD43c60b83C1"
