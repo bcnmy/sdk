@@ -1,11 +1,11 @@
-import { join } from "node:path"
-import { defineConfig } from "vitest/config"
+import { join } from "node:path";
+import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
     alias: {
       "~@biconomy": join(__dirname, "../packages"),
-      "~tests": join(__dirname, ".")
+      "~tests": join(__dirname, "."),
     },
     coverage: {
       all: false,
@@ -17,20 +17,20 @@ export default defineConfig({
         "**/_esm/**",
         "**/_types/**",
         "**/*.test.ts",
-        "**/test/**"
+        "**/test/**",
       ],
       thresholds: {
         lines: 40,
         functions: 40,
         branches: 40,
-        statements: 40
-      }
+        statements: 40,
+      },
     },
     environment: "node",
     include: ["tests/**/*.test.ts"],
     // setupFiles: [join(__dirname, "./setup.ts")],
-    // globalSetup: [join(__dirname, "./globalSetup.ts")],
+    globalSetup: [join(__dirname, "./globalSetup.ts")],
     // hookTimeout: 20_000,
-    testTimeout: 20_000
-  }
-})
+    testTimeout: 20_000,
+  },
+});
