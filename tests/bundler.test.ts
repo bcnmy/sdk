@@ -7,8 +7,8 @@ import { createBundlerClient } from "../packages/core/bundler/createBundlerClien
 import { extractChainIdFromBundlerUrl } from "../packages/core/bundler/utils/helpers.js"
 
 describe("Bundler tests", () => {
-  const bundlerUrl = process.env.BUNDLER_URL
-  const chainId = extractChainIdFromBundlerUrl(bundlerUrl ?? "")
+  const bundlerUrl = process.env.BUNDLER_URL ?? ""
+  const chainId = extractChainIdFromBundlerUrl(bundlerUrl)
   const chain = getChain(chainId)
   const account = privateKeyToAccount(`0x${process.env.PRIVATE_KEY}`)
 

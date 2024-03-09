@@ -1,6 +1,5 @@
 export { createSmartAccount } from "./createSmartAccount.js"
 
-export {
-  walletClientToSmartAccountSigner,
-  type UserOperationStruct
-} from "../common/index.js"
+export { type UserOperationStruct } from "./utils/types.js"
+
+export { walletClientToSmartAccountSigner } from "./utils/helpers.js"

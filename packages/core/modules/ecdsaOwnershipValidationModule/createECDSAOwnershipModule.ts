@@ -1,13 +1,12 @@
 import { type Hex, encodeFunctionData, parseAbi } from "viem"
 
+import type { Prettify } from "viem/chains"
 import {
   DEFAULT_ECDSA_OWNERSHIP_MODULE,
   DEFAULT_ENTRYPOINT_ADDRESS,
-  ECDSA_OWNERSHIP_MODULE_ADDRESSES_BY_VERSION,
-  type SmartAccountSigner
-} from "../../common/index.js"
-
-import type { Prettify } from "viem/chains"
+  ECDSA_OWNERSHIP_MODULE_ADDRESSES_BY_VERSION
+} from "../../account/utils/constants.js"
+import type { SmartAccountSigner } from "../../account/utils/types.js"
 import type {
   BaseValidationModule,
   ECDSAOwnershipValidationModuleConfig

@@ -9,6 +9,9 @@ export type BundlerRpcSchema = [
   }
 ]
 
-export const bundlerActions = () => (client: Client) => ({
-  chainId: () => chainId(client)
-})
+export type BundlerActions = Record<"chainId", () => Promise<number>>
+export const bundlerActions =
+  () =>
+  (client: Client): BundlerActions => ({
+    chainId: () => chainId(client)
+  })

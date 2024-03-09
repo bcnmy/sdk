@@ -7,9 +7,12 @@ import type {
 } from "viem"
 import { createClient } from "viem"
 import type { Prettify } from "viem/chains"
-import { type BundlerRpcSchema, bundlerActions } from "./actions/index.js"
+import {
+  type BundlerActions,
+  type BundlerRpcSchema,
+  bundlerActions
+} from "./actions/index.js"
 
-export type BundlerActions = ReturnType<ReturnType<typeof bundlerActions>>
 export type BundlerClient<
   TChain extends Chain | undefined = Chain | undefined
 > = Client<

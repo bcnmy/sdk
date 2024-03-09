@@ -8,14 +8,13 @@ import {
 } from "viem"
 import type { PublicClient } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
-
-import { getChain } from "~@biconomy/core/account/utils/helpers.js"
-import { extractChainIdFromBundlerUrl } from "~@biconomy/core/bundler/utils/helpers.js"
-import { DEFAULT_ECDSA_OWNERSHIP_MODULE } from "~@biconomy/core/common/index.js"
 import {
   createSmartAccount,
   walletClientToSmartAccountSigner
 } from "../../packages/core/account/index.js"
+import { DEFAULT_ECDSA_OWNERSHIP_MODULE } from "../../packages/core/account/utils/constants.js"
+import { getChain } from "../../packages/core/account/utils/helpers.js"
+import { extractChainIdFromBundlerUrl } from "../../packages/core/bundler/utils/helpers.js"
 
 describe("Biconomy Smart Account core tests", () => {
   let smartAccount: Awaited<ReturnType<typeof createSmartAccount>>
@@ -23,8 +22,8 @@ describe("Biconomy Smart Account core tests", () => {
   let publicClient: PublicClient
 
   const account = privateKeyToAccount(`0x${process.env.PRIVATE_KEY}`)
-  const bundlerUrl = process.env.BUNDLER_URL
-  const chainId = extractChainIdFromBundlerUrl(bundlerUrl ?? "")
+  const bundlerUrl = process.env.BUNDLER_URL ?? ""
+  const chainId = extractChainIdFromBundlerUrl(bundlerUrl)
   const chain = getChain(chainId)
 
   beforeAll(async () => {
@@ -63,6 +62,7 @@ describe("Biconomy Smart Account core tests", () => {
   test("should get validation module signer", async () => {
     const response = await smartAccount.defaultValidationModule.getSigner()
     console.log("Validation Module signer: ", response)
-    expect(response.address).toBe(walletClient.account.address)
+    walletClient.account &&
+      expect(response.address).toBe(walletClient.account.address)
   })
 })

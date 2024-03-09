@@ -7,10 +7,8 @@ import {
   keccak256
 } from "viem"
 import type { Prettify } from "viem/chains"
-import {
-  BICONOMY_PROXY_CREATION_CODE,
-  BiconomyInitAbi
-} from "../../common/index.js"
+import { BiconomyInitAbi } from "../utils/abis.js"
+import { BICONOMY_PROXY_CREATION_CODE } from "../utils/constants.js"
 import type { GetAccountAddressParams } from "../utils/types.js"
 
 /**
