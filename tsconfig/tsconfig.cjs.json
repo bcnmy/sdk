@@ -5,5 +5,6 @@
         "outDir": "../dist/_cjs",
         "removeComments": true,
         "verbatimModuleSyntax": false,
+        "noEmit": false
     }
 }

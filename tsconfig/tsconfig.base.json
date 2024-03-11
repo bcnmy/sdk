@@ -2,7 +2,6 @@
   "include": [],
   "compilerOptions": {
     "incremental": false,
-    "strict": true,
     "useDefineForClassFields": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitReturns": true,
@@ -25,7 +24,11 @@
       "DOM"
     ],
     "skipLibCheck": true,
-    "noErrorTruncation": true
+    "noErrorTruncation": true,
+    "moduleDetection": "force",
+    "jsx": "react-jsx",
+    "noEmit": true,
+    "strict": true
   },
   "tsc-alias": {
     "resolveFullPaths": true,
