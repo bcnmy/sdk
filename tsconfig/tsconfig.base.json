@@ -19,14 +19,9 @@
     "moduleResolution": "NodeNext",
     "module": "NodeNext",
     "target": "ES2021",
-    "lib": [
-      "ES2022",
-      "DOM"
-    ],
+    "lib": ["ES2022"],
     "skipLibCheck": true,
     "noErrorTruncation": true,
-    "moduleDetection": "force",
-    "jsx": "react-jsx",
     "noEmit": true,
     "strict": true
   },
