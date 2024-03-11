@@ -1,1 +1,4 @@
-export * from "./createSmartAccountClient.js"
+export {
+  type SmartAccountClient,
+  createSmartAccountClient
+} from "./createSmartAccountClient.js"
