@@ -1,19 +1,19 @@
 [
   {
     "name": "core (esm)",
-    "path": "./packages/core/_esm/index.js",
-    "limit": "100 kB",
+    "path": "./dist/_esm/index.js",
+    "limit": "5 kB",
     "import": "*"
   },
   {
     "name": "core (cjs)",
-    "path": "./packages/core/_cjs/index.js",
-    "limit": "200 kB"
+    "path": "./dist/_cjs/index.js",
+    "limit": "10 kB"
   },
   {
     "name": "core (tree-shaking)",
-    "path": "./packages/core/_esm/index.js",
-    "limit": "100 kB",
+    "path": "./dist/_esm/index.js",
+    "limit": "5 kB",
     "import": "{ createSmartAccount }"
   }
 ]
