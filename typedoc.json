@@ -1,8 +1,8 @@
 {
   "$schema": "https://typedoc.org/schema.json",
-  "entryPoints": ["packages/core/index.ts"],
-  "basePath": "packages",
-  "includes": "packages",
+  "entryPoints": ["src/index.ts"],
+  "basePath": "src",
+  "includes": "src",
   "out": "docs",
   "gitRevision": "main"
 }
