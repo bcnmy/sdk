@@ -2,9 +2,9 @@ import { http } from "viem"
 import { describe, expect, it } from "vitest"
 
 import { privateKeyToAccount } from "viem/accounts"
-import { getChain } from "../packages/core/account/utils/helpers.js"
-import { createBundlerClient } from "../packages/core/bundler/createBundlerClient.js"
-import { extractChainIdFromBundlerUrl } from "../packages/core/bundler/utils/helpers.js"
+import { getChain } from "../src/account/utils/helpers.js"
+import { createBundlerClient } from "../src/bundler/createBundlerClient.js"
+import { extractChainIdFromBundlerUrl } from "../src/bundler/utils/helpers.js"
 
 describe("Bundler tests", () => {
   const bundlerUrl = process.env.BUNDLER_URL ?? ""

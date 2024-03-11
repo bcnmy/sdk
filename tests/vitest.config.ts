@@ -3,10 +3,6 @@ import { defineConfig } from "vitest/config"
 
 export default defineConfig({
   test: {
-    alias: {
-      "../packages": join(__dirname, "../packages"),
-      "~tests": join(__dirname, ".")
-    },
     coverage: {
       all: false,
       provider: "v8",

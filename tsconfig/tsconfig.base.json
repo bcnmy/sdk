@@ -2,7 +2,6 @@
   "include": [],
   "compilerOptions": {
     "incremental": false,
-    "strict": true,
     "useDefineForClassFields": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitReturns": true,
@@ -20,12 +19,11 @@
     "moduleResolution": "NodeNext",
     "module": "NodeNext",
     "target": "ES2021",
-    "lib": [
-      "ES2022",
-      "DOM"
-    ],
+    "lib": ["ES2022"],
     "skipLibCheck": true,
-    "noErrorTruncation": true
+    "noErrorTruncation": true,
+    "noEmit": true,
+    "strict": true
   },
   "tsc-alias": {
     "resolveFullPaths": true,

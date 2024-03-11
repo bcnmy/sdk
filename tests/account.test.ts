@@ -14,11 +14,11 @@ import {
   type UserOperationStruct,
   createSmartAccount,
   walletClientToSmartAccountSigner
-} from "../packages/core/account/index.js"
-import { DEFAULT_ECDSA_OWNERSHIP_MODULE } from "../packages/core/account/utils/constants.js"
-import { SignTransactionNotSupportedBySmartAccount } from "../packages/core/account/utils/errors.js"
-import { getChain } from "../packages/core/account/utils/helpers.js"
-import { extractChainIdFromBundlerUrl } from "../packages/core/bundler/utils/helpers.js"
+} from "../src/account/index.js"
+import { DEFAULT_ECDSA_OWNERSHIP_MODULE } from "../src/account/utils/constants.js"
+import { SignTransactionNotSupportedBySmartAccount } from "../src/account/utils/errors.js"
+import { getChain } from "../src/account/utils/helpers.js"
+import { extractChainIdFromBundlerUrl } from "../src/bundler/utils/helpers.js"
 
 describe("Biconomy Smart Account core tests", () => {
   let smartAccount: Awaited<ReturnType<typeof createSmartAccount>>
