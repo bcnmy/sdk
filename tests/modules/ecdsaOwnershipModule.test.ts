@@ -1,48 +1,47 @@
-import { beforeAll, describe, expect, expectTypeOf, test } from "vitest"
+import { beforeAll, describe, expect, test } from "vitest"
 
 import {
   http,
-  WalletClient,
+  type WalletClient,
   createPublicClient,
-  createWalletClient,
-  zeroAddress
+  createWalletClient
 } from "viem"
-import { type PublicClient } from "viem"
+import type { PublicClient } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
-import { polygonMumbai } from "viem/chains"
-
-import { DEFAULT_ECDSA_OWNERSHIP_MODULE } from "~@biconomy/core/common/index.js"
 import {
-  UserOperationStruct,
   createSmartAccount,
   walletClientToSmartAccountSigner
 } from "../../packages/core/account/index.js"
+import { DEFAULT_ECDSA_OWNERSHIP_MODULE } from "../../packages/core/account/utils/constants.js"
+import { getChain } from "../../packages/core/account/utils/helpers.js"
+import { extractChainIdFromBundlerUrl } from "../../packages/core/bundler/utils/helpers.js"
 
 describe("Biconomy Smart Account core tests", () => {
   let smartAccount: Awaited<ReturnType<typeof createSmartAccount>>
   let walletClient: WalletClient
   let publicClient: PublicClient
-  const bundlerUrlMumbai =
-    "https://bundler.biconomy.io/api/v2/80001/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44"
+
+  const account = privateKeyToAccount(`0x${process.env.PRIVATE_KEY}`)
+  const bundlerUrl = process.env.BUNDLER_URL ?? ""
+  const chainId = extractChainIdFromBundlerUrl(bundlerUrl)
+  const chain = getChain(chainId)
 
   beforeAll(async () => {
-    if (!process.env.PRIVATE_KEY)
-      throw new Error("PRIVATE_KEY env variable is not set")
-    const wallet = privateKeyToAccount(`0x${process.env.PRIVATE_KEY}`)
-
     // @ts-ignore
     publicClient = createPublicClient({
-      transport: http(polygonMumbai.rpcUrls.default.http[0])
+      chain,
+      transport: http()
     })
 
     walletClient = createWalletClient({
-      account: wallet,
-      transport: http(polygonMumbai.rpcUrls.default.http[0])
+      account,
+      chain,
+      transport: http()
     })
 
     smartAccount = await createSmartAccount(publicClient, {
       signer: walletClientToSmartAccountSigner(walletClient),
-      bundlerUrl: bundlerUrlMumbai
+      bundlerUrl: bundlerUrl
     })
   })
 
@@ -63,6 +62,7 @@ describe("Biconomy Smart Account core tests", () => {
   test("should get validation module signer", async () => {
     const response = await smartAccount.defaultValidationModule.getSigner()
     console.log("Validation Module signer: ", response)
-    expect(response.address).toBe(walletClient.account.address)
+    walletClient.account &&
+      expect(response.address).toBe(walletClient.account.address)
   })
 })

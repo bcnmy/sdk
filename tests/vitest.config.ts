@@ -4,7 +4,7 @@ import { defineConfig } from "vitest/config"
 export default defineConfig({
   test: {
     alias: {
-      "~@biconomy": join(__dirname, "../packages"),
+      "../packages": join(__dirname, "../packages"),
       "~tests": join(__dirname, ".")
     },
     coverage: {
@@ -29,7 +29,7 @@ export default defineConfig({
     environment: "node",
     include: ["tests/**/*.test.ts"],
     // setupFiles: [join(__dirname, "./setup.ts")],
-    // globalSetup: [join(__dirname, "./globalSetup.ts")],
+    globalSetup: [join(__dirname, "./globalSetup.ts")],
     // hookTimeout: 20_000,
     testTimeout: 20_000
   }
