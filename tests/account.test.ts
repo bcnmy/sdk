@@ -11,10 +11,12 @@ import { type PublicClient } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { polygonMumbai } from "viem/chains"
 
+import { SmartAccountClient } from "~@biconomy/core/client/createSmartAccountClient.js"
 import {
   DEFAULT_ECDSA_OWNERSHIP_MODULE,
-  SignTransactionNotSupportedBySmartAccount
-} from "~@biconomy/core/common/index.js"
+  SignTransactionNotSupportedBySmartAccount,
+  createSmartAccountClient
+} from "~@biconomy/core/index.js"
 import {
   UserOperationStruct,
   createSmartAccount,
@@ -47,6 +49,17 @@ describe("Biconomy Smart Account core tests", () => {
       signer: walletClientToSmartAccountSigner(walletClient),
       bundlerUrl: bundlerUrlMumbai
     })
+  })
+
+  test("Should create a smart account client", async () => {
+    const smartAccountClient: SmartAccountClient = createSmartAccountClient({
+      account: smartAccount,
+      entryPoint: "0x0000000071727De22E5E9d8BAf0edAc6f37da032",
+      chain: polygonMumbai,
+      bundlerTransport: http(bundlerUrlMumbai)
+    })
+
+    console.log(smartAccountClient, "CLIENT")
   })
 
   test("Should get account address + nonce", async () => {
