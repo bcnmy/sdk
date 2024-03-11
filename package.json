@@ -21,14 +21,29 @@
   "repository": "github:bcnmy/sdk",
   "exports": {
     ".": {
-      "types": "./_types/index.d.ts",
-      "import": "./_esm/index.js",
-      "default": "./_cjs/index.js"
+      "types": "./dist/_types/index.d.ts",
+      "import": "./dist/_esm/index.js",
+      "default": "./dist/_cjs/index.js"
     },
-    "./core": {
-      "types": "./_types/core/index.d.ts",
-      "import": "./_esm/core/index.js",
-      "default": "./_cjs/core/index.js"
+    "./account": {
+      "types": "./_types/account/index.d.ts",
+      "import": "./_esm/account/index.js",
+      "default": "./_cjs/account/index.js"
+    },
+    "./bundler": {
+      "types": "./_types/bundler/index.d.ts",
+      "import": "./_esm/bundler/index.js",
+      "default": "./_cjs/bundler/index.js"
+    },
+    "./paymaster": {
+      "types": "./_types/paymaster/index.d.ts",
+      "import": "./_esm/paymaster/index.js",
+      "default": "./_cjs/paymaster/index.js"
+    },
+    "./modules": {
+      "types": "./_types/modules/index.d.ts",
+      "import": "./_esm/modules/index.js",
+      "default": "./_cjs/modules/index.js"
     }
   },
   "scripts": {
@@ -67,7 +82,7 @@
     "vitest": "^1.3.1"
   },
   "peerDependencies": {
-    "typescript": "^5.0.0",
+    "typescript": "^5",
     "viem": "^2"
   },
   "commitlint": {
