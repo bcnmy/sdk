@@ -60,7 +60,7 @@ export type BiconomySmartAccountConfig = {
  * @template TAbi - The type of the ABI.
  */
 export type SmartAccount<
-  entryPoint extends ENTRYPOINT_ADDRESS_V07_TYPE,
+  entryPoint = ENTRYPOINT_ADDRESS_V07_TYPE,
   Name extends string = string,
   transport extends Transport = Transport,
   chain extends Chain | undefined = Chain | undefined,
