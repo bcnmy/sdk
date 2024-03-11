@@ -5,13 +5,13 @@ import {
 } from "permissionless"
 
 import { type Chain, type Client, type Transport, createClient } from "viem"
-import { type Prettify } from "viem/chains"
+import type { Prettify } from "viem/chains"
 
-import {
-  type ENTRYPOINT_ADDRESS_V07_TYPE,
-  type SmartAccount
+import type {
+  ENTRYPOINT_ADDRESS_V07_TYPE,
+  SmartAccount
 } from "../account/utils/types.js"
-import { type BundlerRpcSchema } from "../bundler/utils/types.js"
+import type { BundlerRpcSchema } from "../bundler/utils/types.js"
 
 export type SmartAccountClient<
   entryPoint extends ENTRYPOINT_ADDRESS_V07_TYPE,

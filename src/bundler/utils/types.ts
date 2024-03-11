@@ -1,6 +1,6 @@
 import type { Address, Hash, Hex } from "viem"
-import { type PartialBy } from "viem/chains"
-import { type ENTRYPOINT_ADDRESS_V07_TYPE } from "../../account/utils/types"
+import type { PartialBy } from "viem/chains"
+import type { ENTRYPOINT_ADDRESS_V07_TYPE } from "../../account/utils/types"
 
 export type UserOperationWithBigIntAsHex = {
   sender: Address
