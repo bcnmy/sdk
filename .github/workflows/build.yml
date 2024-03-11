@@ -1,0 +1,13 @@
+name: deploy docs
+on:
+  pull_request:
+
+jobs:
+  coverage:
+    name: coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install dependencies
+        uses: ./.github/actions/build
