@@ -1,3 +1,4 @@
+import { baseSepolia } from "viem/chains"
 import { beforeAll, describe, expect, test } from "vitest"
 
 import {
@@ -10,7 +11,6 @@ import {
 import type { PublicClient } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 
-import { SmartAccountClient } from "~@biconomy/core/client/createSmartAccountClient.js"
 import {
   type UserOperationStruct,
   createSmartAccount,
@@ -20,6 +20,7 @@ import { DEFAULT_ECDSA_OWNERSHIP_MODULE } from "../src/account/utils/constants.j
 import { SignTransactionNotSupportedBySmartAccount } from "../src/account/utils/errors.js"
 import { getChain } from "../src/account/utils/helpers.js"
 import { extractChainIdFromBundlerUrl } from "../src/bundler/utils/helpers.js"
+import { createSmartAccountClient } from "../src/client/createSmartAccountClient.js"
 
 describe("Biconomy Smart Account core tests", () => {
   let smartAccount: Awaited<ReturnType<typeof createSmartAccount>>
@@ -51,11 +52,11 @@ describe("Biconomy Smart Account core tests", () => {
   })
 
   test("Should create a smart account client", async () => {
-    const smartAccountClient: SmartAccountClient = createSmartAccountClient({
+    const smartAccountClient = createSmartAccountClient({
       account: smartAccount,
       entryPoint: "0x0000000071727De22E5E9d8BAf0edAc6f37da032",
-      chain: polygonMumbai,
-      bundlerTransport: http(bundlerUrlMumbai)
+      chain: baseSepolia,
+      bundlerTransport: http(bundlerUrl)
     })
 
     console.log(smartAccountClient, "CLIENT")

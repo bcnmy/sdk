@@ -7,9 +7,11 @@ import {
 import { type Chain, type Client, type Transport, createClient } from "viem"
 import { type Prettify } from "viem/chains"
 
-import { type SmartAccount } from "../account/utils/types.js"
+import {
+  type ENTRYPOINT_ADDRESS_V07_TYPE,
+  type SmartAccount
+} from "../account/utils/types.js"
 import { type BundlerRpcSchema } from "../bundler/utils/types.js"
-import { type ENTRYPOINT_ADDRESS_V07_TYPE } from "../index.js"
 
 export type SmartAccountClient<
   entryPoint extends ENTRYPOINT_ADDRESS_V07_TYPE,
