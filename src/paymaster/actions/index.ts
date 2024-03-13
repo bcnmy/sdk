@@ -1,4 +1,3 @@
-import type { Client } from "viem"
 import { sponsorUserOperation } from "./sponsorUserOperation.js"
 
 export type PaymasterRpcSchema = [
@@ -15,6 +14,6 @@ export type PaymasterActions = Record<
 >
 export const paymasterActions =
   () =>
-  (client: Client): PaymasterActions => ({
-    sponsorUserOperation: () => sponsorUserOperation(client)
+  (): PaymasterActions => ({
+    sponsorUserOperation: () => sponsorUserOperation()
   })
