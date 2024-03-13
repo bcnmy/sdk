@@ -6,7 +6,9 @@ export default defineConfig({
     coverage: {
       all: false,
       provider: "v8",
-      reporter: process.env.CI ? ["lcov"] : ["text", "json", "html"],
+      reporter: process.env.CI
+        ? ["json-summary", "json"]
+        : ["text", "json", "html"],
       exclude: [
         "**/errors/utils.ts",
         "**/_cjs/**",
@@ -15,11 +17,12 @@ export default defineConfig({
         "**/*.test.ts",
         "**/test/**"
       ],
+      include: ["src/**/*.ts"],
       thresholds: {
-        lines: 40,
-        functions: 40,
-        branches: 40,
-        statements: 40
+        lines: 80,
+        functions: 70,
+        branches: 60,
+        statements: 80
       }
     },
     environment: "node",

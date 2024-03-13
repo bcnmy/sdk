@@ -5,7 +5,10 @@ on:
 jobs:
   coverage:
     name: coverage
+    permissions: write-all
     runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
     steps:
       - uses: actions/checkout@v3
 
@@ -18,3 +21,11 @@ jobs:
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
           BUNDLER_URL: ${{ secrets.BUNDLER_URL }}
           PAYMASTER_URL: ${{ secrets.PAYMASTER_URL }}
+
+      - name: report coverage
+        uses:  davelosert/vitest-coverage-report-action@v2
+        with:
+          json-summary-path	: ./coverage/coverage-summary.json
+          json-final-path: './coverage/coverage-final.json'
+          vite-config-path: ./tests/vitest.config.ts
+          github-token: ${{ secrets.GITHUB_TOKEN }}
