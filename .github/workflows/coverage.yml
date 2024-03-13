@@ -23,7 +23,6 @@ jobs:
           PAYMASTER_URL: ${{ secrets.PAYMASTER_URL }}
 
       - name: report coverage
-        if: always() 
         uses:  davelosert/vitest-coverage-report-action@v2
         with:
           json-summary-path	: ./coverage/coverage-summary.json
