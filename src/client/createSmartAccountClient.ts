@@ -3,18 +3,16 @@ import {
   type SmartAccountClientConfig,
   smartAccountActions
 } from "permissionless"
+import type { SmartAccount } from "permissionless/accounts"
 
 import { type Chain, type Client, type Transport, createClient } from "viem"
 import type { Prettify } from "viem/chains"
 
-import type {
-  ENTRYPOINT_ADDRESS_V07_TYPE,
-  SmartAccount
-} from "../account/utils/types.js"
+import type { ENTRYPOINT_ADDRESS_V06_TYPE } from "permissionless/types/entrypoint.js"
 import type { BundlerRpcSchema } from "../bundler/utils/types.js"
 
 export type SmartAccountClient<
-  entryPoint extends ENTRYPOINT_ADDRESS_V07_TYPE,
+  entryPoint extends ENTRYPOINT_ADDRESS_V06_TYPE,
   transport extends Transport = Transport,
   chain extends Chain | undefined = Chain | undefined,
   account extends SmartAccount<entryPoint> | undefined =
@@ -33,6 +31,8 @@ export type SmartAccountClient<
 /**
  * Creates a EIP-4337 compliant Bundler Client with a given [Transport](https://viem.sh/docs/clients/intro.html) configured for a [Chain](https://viem.sh/docs/clients/chains.html).
  *
+ * - Docs: https://docs.pimlico.io/permissionless/reference/clients/smartAccountClient
+ *
  * A Bundler Client is an interface to "erc 4337" [JSON-RPC API](https://eips.ethereum.org/EIPS/eip-4337#rpc-methods-eth-namespace) methods such as sending user operation, estimating gas for a user operation, get user operation receipt, etc through Bundler Actions.
  *
  * @param parameters - {@link WalletClientConfig}
@@ -49,18 +49,18 @@ export type SmartAccountClient<
  */
 
 export function createSmartAccountClient<
-  TSmartAccount extends SmartAccount<ENTRYPOINT_ADDRESS_V07_TYPE>,
+  TSmartAccount extends SmartAccount<ENTRYPOINT_ADDRESS_V06_TYPE>,
   TTransport extends Transport = Transport,
   TChain extends Chain = Chain
 >(
   parameters: SmartAccountClientConfig<
-    ENTRYPOINT_ADDRESS_V07_TYPE,
+    ENTRYPOINT_ADDRESS_V06_TYPE,
     TTransport,
     TChain,
     TSmartAccount
   >
 ): SmartAccountClient<
-  ENTRYPOINT_ADDRESS_V07_TYPE,
+  ENTRYPOINT_ADDRESS_V06_TYPE,
   TTransport,
   TChain,
   TSmartAccount
@@ -83,7 +83,7 @@ export function createSmartAccountClient<
       middleware: parameters.middleware
     })
   ) as SmartAccountClient<
-    ENTRYPOINT_ADDRESS_V07_TYPE,
+    ENTRYPOINT_ADDRESS_V06_TYPE,
     TTransport,
     TChain,
     TSmartAccount

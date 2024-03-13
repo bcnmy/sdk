@@ -1,16 +1,17 @@
 import { type Hex, encodeFunctionData, parseAbi } from "viem"
-
 import type { Prettify } from "viem/chains"
+
 import {
   DEFAULT_ECDSA_OWNERSHIP_MODULE,
-  DEFAULT_ENTRYPOINT_ADDRESS,
   ECDSA_OWNERSHIP_MODULE_ADDRESSES_BY_VERSION
-} from "../../account/utils/constants.js"
-import type { SmartAccountSigner } from "../../account/utils/types.js"
+} from "../../accounts/utils/constants.js"
+import type { SmartAccountSigner } from "../../accounts/utils/types.js"
 import type {
   BaseValidationModule,
   ECDSAOwnershipValidationModuleConfig
 } from "../utils/types.js"
+
+import { ENTRYPOINT_ADDRESS_V06 } from "permissionless"
 
 /**
  * Creates an ECDSA Ownership Module.
@@ -38,8 +39,7 @@ export const createECDSAOwnershipModule = async (
   }
 
   return {
-    entryPointAddress:
-      moduleConfig.entryPointAddress ?? DEFAULT_ENTRYPOINT_ADDRESS,
+    entryPointAddress: moduleConfig.entryPointAddress ?? ENTRYPOINT_ADDRESS_V06,
     /**
      * Returns the address of the module.
      * @returns {Hex} The address of the module.
@@ -108,6 +108,7 @@ export const createECDSAOwnershipModule = async (
       }
       return signature
     },
+
     async signMessageSmartAccountSigner(
       _message: string | Uint8Array,
       signer: SmartAccountSigner

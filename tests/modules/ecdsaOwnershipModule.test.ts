@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, test } from "vitest"
 
+import { walletClientToSmartAccountSigner } from "permissionless"
 import {
   http,
   type WalletClient,
@@ -8,16 +9,13 @@ import {
 } from "viem"
 import type { PublicClient } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
-import {
-  createSmartAccount,
-  walletClientToSmartAccountSigner
-} from "../../src/account/index.js"
-import { DEFAULT_ECDSA_OWNERSHIP_MODULE } from "../../src/account/utils/constants.js"
-import { getChain } from "../../src/account/utils/helpers.js"
+import { DEFAULT_ECDSA_OWNERSHIP_MODULE } from "../../src/accounts/utils/constants.js"
+import { getChain } from "../../src/accounts/utils/helpers.js"
 import { extractChainIdFromBundlerUrl } from "../../src/bundler/utils/helpers.js"
+import { signerToSmartAccount } from "../../src/index.js"
 
 describe("Biconomy Smart Account core tests", () => {
-  let smartAccount: Awaited<ReturnType<typeof createSmartAccount>>
+  let smartAccount: Awaited<ReturnType<typeof signerToSmartAccount>>
   let walletClient: WalletClient
   let publicClient: PublicClient
 
@@ -39,9 +37,8 @@ describe("Biconomy Smart Account core tests", () => {
       transport: http()
     })
 
-    smartAccount = await createSmartAccount(publicClient, {
-      signer: walletClientToSmartAccountSigner(walletClient),
-      bundlerUrl: bundlerUrl
+    smartAccount = await signerToSmartAccount(publicClient, {
+      signer: walletClientToSmartAccountSigner(walletClient)
     })
   })
 

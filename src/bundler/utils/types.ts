@@ -1,6 +1,6 @@
+import type { ENTRYPOINT_ADDRESS_V06_TYPE } from "permissionless/types/entrypoint"
 import type { Address, Hash, Hex } from "viem"
 import type { PartialBy } from "viem/chains"
-import type { ENTRYPOINT_ADDRESS_V07_TYPE } from "../../account/utils/types"
 
 export type UserOperationWithBigIntAsHex = {
   sender: Address
@@ -22,7 +22,7 @@ export type UserOperationWithBigIntAsHex = {
   paymasterAndData?: never
 }
 
-export type BundlerRpcSchema<entryPoint extends ENTRYPOINT_ADDRESS_V07_TYPE> = [
+export type BundlerRpcSchema<entryPoint extends ENTRYPOINT_ADDRESS_V06_TYPE> = [
   {
     Method: "eth_sendUserOperation"
     Parameters: [

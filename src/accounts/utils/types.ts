@@ -49,38 +49,6 @@ export type Transaction = {
 }
 
 /**
- * Configuration options for Biconomy Smart Account.
- */
-export type BiconomySmartAccountConfig = {
-  /** Factory address of Biconomy factory contract or some other contract you have deployed on chain */
-  factoryAddress?: Hex
-  /** Sender address: If you want to override the Signer address with some other address and get counterfactual address can use this to pass the EOA and get SA address */
-  senderAddress?: Hex
-  /** Implementation of smart contract address or some other contract you have deployed and want to override */
-  implementationAddress?: Hex
-  /** Default fallback handler: override the default fallback contract address */
-  defaultFallbackHandler?: Hex
-  /** Rpc url, optional, we set default rpc url if not passed */
-  rpcUrl?: string
-  /** The paymasterUrl retrieved from the Biconomy dashboard */
-  paymasterUrl?: string
-  /** The active validation module. Will default to the defaultValidationModule */
-  activeValidationModule?: BaseValidationModule
-  /** The index of SA the EOA have generated and till which indexes the upgraded SA should scan */
-  maxIndexForScan?: number
-  /** The signer for the Smart Account */
-  signer: SmartAccountSigner
-  /** The bundler URL you get from the dashboard */
-  bundlerUrl: string
-  /** The account index, each index represents a different smart account from the same EOA address */
-  accountIndex?: number
-  /** The entry point address */
-  entryPointAddress?: string
-  /** The default validation module, if not provided this is ECDSA Validation Module */
-  defaultValidationModule?: BaseValidationModule
-}
-
-/**
  * Represents a smart account.
  *
  * @template entryPoint - The type of the entry point address.
@@ -174,30 +142,4 @@ export type SmartAccount<
    * @returns A promise that resolves to the signed user operation as a Hex string.
    */
   signUserOperation: (userOperation: UserOperationStruct) => Promise<Hex>
-}
-
-/**
- * Represents the parameters for getting an account address.
- */
-export type GetAccountAddressParams = {
-  /**
-   * The address of the factory.
-   */
-  factoryAddress: Address
-  /**
-   * The address of the account logic.
-   */
-  accountLogicAddress: Address
-  /**
-   * The address of the fallback handler.
-   */
-  fallbackHandlerAddress: Address
-  /**
-   * The validation module for the account.
-   */
-  validationModule: BaseValidationModule
-  /**
-   * The index of the account (optional).
-   */
-  index?: bigint
 }
