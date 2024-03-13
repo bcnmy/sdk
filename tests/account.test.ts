@@ -51,10 +51,8 @@ describe("Biconomy Smart Account core tests", () => {
 
   test("Should get account address + nonce", async () => {
     const address = smartAccount.address
-    console.log("Smart Account Address: ", address)
-
     const nonce = await smartAccount.getNonce()
-    console.log("Smart Account Nonce: ", nonce)
+    expect(address).toBeTypeOf("string")
   })
 
   test("Should sign a user operation", async () => {

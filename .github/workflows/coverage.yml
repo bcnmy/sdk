@@ -1,6 +1,7 @@
 name: coverage
 on:
   pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
 jobs:
   coverage:
     name: coverage
@@ -16,3 +17,4 @@ jobs:
         env:
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
           BUNDLER_URL: ${{ secrets.BUNDLER_URL }}
+          PAYMASTER_URL: ${{ secrets.PAYMASTER_URL }}

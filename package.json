@@ -6,7 +6,7 @@
   "typings": "./dist/_types/index.d.ts",
   "homepage": "https://biconomy.io",
   "sideEffects": false,
-  "name": "@biconomy/core",
+  "name": "@biconomy/sdk",
   "author": "Biconomy",
   "version": "0.0.1",
   "description": "sdk for account abstraction, smart accounts, erc-4337 and erc-7579.",

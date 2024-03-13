@@ -1,5 +1,5 @@
 export const envCheck = () => {
-  const fields = ["BUNDLER_URL", "PRIVATE_KEY"]
+  const fields = ["BUNDLER_URL", "PRIVATE_KEY", "PAYMASTER_URL"]
   const errorFields = fields.filter((field) => !process.env[field])
   if (errorFields.length) {
     throw new Error(
