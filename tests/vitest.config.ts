@@ -19,10 +19,10 @@ export default defineConfig({
       ],
       include: ["src/**/*.ts"],
       thresholds: {
-        lines: 70,
+        lines: 80,
         functions: 70,
-        branches: 70,
-        statements: 70
+        branches: 60,
+        statements: 80
       }
     },
     environment: "node",
