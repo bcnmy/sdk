@@ -1,7 +1,4 @@
-export {
-  createSmartAccount,
-  walletClientToSmartAccountSigner
-} from "./account/index.js"
+export { signerToSmartAccount } from "./accounts/index.js"
 
 export { createSmartAccountClient } from "./client/index.js"
 

@@ -1,0 +1,7 @@
+// Note: we could append these defaults with ADDRESS suffix
+export const DEFAULT_ECDSA_OWNERSHIP_MODULE =
+  "0x0000001c5b32F37F5beA87BDD5374eB2aC54eA8e"
+
+export const ECDSA_OWNERSHIP_MODULE_ADDRESSES_BY_VERSION = {
+  V1_0_0: "0x0000001c5b32F37F5beA87BDD5374eB2aC54eA8e"
+}
