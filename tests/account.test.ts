@@ -99,7 +99,7 @@ describe("Biconomy Smart Account V2 EP v6 tests", () => {
     console.log("Transaction Hash for NFT Mint: ", txHash)
   }, 50000)
 
-  test("Should build a user operation manually and send it", async () => {
+  test("Should build a user operation manually and validate it", async () => {
     const mintNftData = encodeFunctionData({
       abi: parseAbi(["function safeMint(address to) public"]),
       functionName: "safeMint",
@@ -119,13 +119,7 @@ describe("Biconomy Smart Account V2 EP v6 tests", () => {
     const isValid = validateUserOp(userOp)
 
     expect(isValid).toBe(true)
-
-    const txHash = await smartAccountClient.sendUserOperation({
-      userOperation: userOp
-    })
-
-    console.log("Transaction Hash for NFT Mint: ", txHash)
-  }, 50000)
+  }, 15000)
 
   test("Should send a batch of user ops", async () => {
     const encodedCall1 = encodeFunctionData({
@@ -262,4 +256,32 @@ describe("Biconomy Smart Account V2 EP v6 tests", () => {
     })
     expect(response).rejects.toThrow(SignTransactionNotSupportedBySmartAccount)
   })
+
+  test("Should build a user operation manually and send it", async () => {
+    const mintNftData = encodeFunctionData({
+      abi: parseAbi(["function safeMint(address to) public"]),
+      functionName: "safeMint",
+      args: [smartAccount.address]
+    })
+
+    const userOp = await smartAccountClient.prepareUserOperationRequest({
+      userOperation: {
+        callData: await smartAccountClient.account.encodeCallData({
+          to: zeroAddress,
+          value: 0n,
+          data: mintNftData
+        })
+      }
+    })
+
+    const isValid = validateUserOp(userOp)
+
+    expect(isValid).toBe(true)
+
+    const txHash = await smartAccountClient.sendUserOperation({
+      userOperation: userOp
+    })
+
+    console.log("Transaction Hash for NFT Mint: ", txHash)
+  }, 50000)
 })
