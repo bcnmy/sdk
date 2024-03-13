@@ -47,21 +47,17 @@ describe("Biconomy Smart Account core tests", () => {
 
   test("Should get account address + nonce", async () => {
     const address = smartAccount.address
-    console.log("Smart Account Address: ", address)
 
     const nonce = await smartAccount.getNonce()
-    console.log("Smart Account Nonce: ", nonce)
   })
 
   test("should get validation module address", async () => {
     const response = smartAccount.defaultValidationModule.getModuleAddress()
-    console.log("Validation Module Address: ", response)
     expect(response).toBe(DEFAULT_ECDSA_OWNERSHIP_MODULE)
   })
 
   test("should get validation module signer", async () => {
     const response = await smartAccount.defaultValidationModule.getSigner()
-    console.log("Validation Module signer: ", response)
     walletClient.account &&
       expect(response.address).toBe(walletClient.account.address)
   })

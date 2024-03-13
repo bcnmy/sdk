@@ -59,7 +59,6 @@ describe("Biconomy Smart Account core tests", () => {
       bundlerTransport: http(bundlerUrl)
     })
 
-    console.log(smartAccountClient, "CLIENT")
   })
 
   test("Should get account address + nonce", async () => {

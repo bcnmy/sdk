@@ -6,7 +6,7 @@ export default defineConfig({
     coverage: {
       all: false,
       provider: "v8",
-      reporter: process.env.CI ? ["json-summary"] : ["text", "json", "html"],
+      reporter: process.env.CI ? ["json-summary", "json"] : ["text", "json", "html"],
       exclude: [
         "**/errors/utils.ts",
         "**/_cjs/**",
