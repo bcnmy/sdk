@@ -1,4 +1,3 @@
-import { createPimlicoBundlerClient } from "permissionless/clients/pimlico"
 import { baseSepolia } from "viem/chains"
 import { beforeAll, describe, expect, test } from "vitest"
 
@@ -7,7 +6,6 @@ import {
   createPublicClient,
   createWalletClient,
   encodeFunctionData,
-  getContract,
   parseAbi,
   zeroAddress
 } from "viem"
@@ -16,10 +14,7 @@ import { privateKeyToAccount } from "viem/accounts"
 
 import {
   ENTRYPOINT_ADDRESS_V06,
-  SmartAccountClient,
-  UserOperation,
-  createBundlerClient,
-  waitForUserOperationReceipt,
+  type UserOperation,
   walletClientToSmartAccountSigner
 } from "permissionless"
 import { SignTransactionNotSupportedBySmartAccount } from "permissionless/accounts"
@@ -81,11 +76,6 @@ describe("Biconomy Smart Account V2 EP v6 tests", () => {
   })
 
   test("Should send an empty tx", async () => {
-    const bundlerClient = createBundlerClient({
-      transport: http(bundlerUrl),
-      entryPoint
-    })
-
     const txHash = await smartAccountClient.sendTransaction({
       to: "0xd3C85Fdd3695Aee3f0A12B3376aCD8DC54020549",
       data: "0x1234"
@@ -150,29 +140,45 @@ describe("Biconomy Smart Account V2 EP v6 tests", () => {
       args: ["0xfCF6Eb210E5Fd84D679b14fe170f9aB05C9B21e7"]
     })
 
-    const balanceBefore1 = await checkBalance(publicClient, smartAccount.address, nftAddress);
-    const balanceBefore2 = await checkBalance(publicClient, "0xfCF6Eb210E5Fd84D679b14fe170f9aB05C9B21e7", nftAddress);
+    const balanceBefore1 = await checkBalance(
+      publicClient,
+      smartAccount.address,
+      nftAddress
+    )
+    const balanceBefore2 = await checkBalance(
+      publicClient,
+      "0xfCF6Eb210E5Fd84D679b14fe170f9aB05C9B21e7",
+      nftAddress
+    )
 
     const txHash = await smartAccountClient.sendTransactions({
       transactions: [
-          {
-            to: nftAddress,
-            data: encodedCall1,
-            value: 0n
-          },
-          {
-            to: nftAddress,
-            data: encodedCall2,
-            value: 0n
-          }
+        {
+          to: nftAddress,
+          data: encodedCall1,
+          value: 0n
+        },
+        {
+          to: nftAddress,
+          data: encodedCall2,
+          value: 0n
+        }
       ]
     })
 
-    const balanceAfter1 = await checkBalance(publicClient, smartAccount.address, nftAddress);
-    const balanceAfter2 = await checkBalance(publicClient, "0xfCF6Eb210E5Fd84D679b14fe170f9aB05C9B21e7", nftAddress);
+    const balanceAfter1 = await checkBalance(
+      publicClient,
+      smartAccount.address,
+      nftAddress
+    )
+    const balanceAfter2 = await checkBalance(
+      publicClient,
+      "0xfCF6Eb210E5Fd84D679b14fe170f9aB05C9B21e7",
+      nftAddress
+    )
 
-    expect(balanceAfter1).toBeGreaterThan(balanceBefore1);
-    expect(balanceAfter2).toBeGreaterThan(balanceBefore2);
+    expect(balanceAfter1).toBeGreaterThan(balanceBefore1)
+    expect(balanceAfter2).toBeGreaterThan(balanceBefore2)
   }, 50000)
 
   test("Should sign a user operation", async () => {
