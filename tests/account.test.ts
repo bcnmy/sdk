@@ -58,7 +58,6 @@ describe("Biconomy Smart Account core tests", () => {
       chain: baseSepolia,
       bundlerTransport: http(bundlerUrl)
     })
-
   })
 
   test("Should get account address + nonce", async () => {
