@@ -22,22 +22,7 @@ jobs:
           BUNDLER_URL: ${{ secrets.BUNDLER_URL }}
           PAYMASTER_URL: ${{ secrets.PAYMASTER_URL }}
 
-      - name: Create Coverage Badges
-        uses: jaywcjlove/coverage-badges-cli@main
-        with:
-          style: flat
-          source: coverage/coverage-summary.json
-          output: coverage/badges.svg
-          jsonPath: total.lines.pct
-    
-      - name: Deploy
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./build
-          publish_branch: chore/gh-pages-badges
-
-      - name: 'Report Coverage'
+      - name: report coverage
         if: always() 
         uses:  davelosert/vitest-coverage-report-action@v2
         with:
