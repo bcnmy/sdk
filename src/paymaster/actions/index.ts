@@ -12,8 +12,6 @@ export type PaymasterActions = Record<
   "sponsorUserOperation",
   () => Promise<number>
 >
-export const paymasterActions =
-  () =>
-  (): PaymasterActions => ({
-    sponsorUserOperation: () => sponsorUserOperation()
-  })
+export const paymasterActions = () => (): PaymasterActions => ({
+  sponsorUserOperation: () => sponsorUserOperation()
+})
