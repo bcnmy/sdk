@@ -13,15 +13,17 @@ import type { Client, PublicClient } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 
 import {
-  ENTRYPOINT_ADDRESS_V06,
   type UserOperation,
   walletClientToSmartAccountSigner
 } from "permissionless"
 import { SignTransactionNotSupportedBySmartAccount } from "permissionless/accounts"
-import { DEFAULT_ECDSA_OWNERSHIP_MODULE } from "../src/accounts/utils/constants.js"
-import { validateUserOp } from "../src/accounts/utils/helpers.js"
-import { createSmartAccountClient, signerToSmartAccount } from "../src/index.js"
-import { checkBalance } from "./utils.js"
+import { DEFAULT_ECDSA_OWNERSHIP_MODULE } from "../../src/accounts/utils/constants.js"
+import { validateUserOp } from "../../src/accounts/utils/helpers.js"
+import {
+  createSmartAccountClient,
+  signerToSmartAccount
+} from "../../src/index.js"
+import { checkBalance } from "../utils.js"
 
 describe("Biconomy Smart Account V2 EP v6 tests", () => {
   let smartAccount: Awaited<ReturnType<typeof signerToSmartAccount>>
@@ -30,11 +32,8 @@ describe("Biconomy Smart Account V2 EP v6 tests", () => {
   let smartAccountClient: Awaited<ReturnType<typeof createSmartAccountClient>>
 
   const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
-  const privateKey =
-    "0x2e5d78c6f2e6dca5fcbb22cca841d6c43465c483f59cbd6839a24d4ec89b977b"
-  const account = privateKeyToAccount(privateKey)
+  const account = privateKeyToAccount(`0x${process.env.PRIVATE_KEY}`)
   const bundlerUrl = process.env.BUNDLER_URL ?? ""
-  const entryPoint = ENTRYPOINT_ADDRESS_V06
   // const chainId = extractChainIdFromBundlerUrl(bundlerUrl)
   // const chain = getChain(baseSepolia.id)
   const chain = baseSepolia

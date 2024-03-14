@@ -1,9 +1,9 @@
 import { http } from "viem"
 import { describe, expect, it } from "vitest"
 
-import { getChain } from "../src/accounts/utils/helpers.js"
-import { createPaymasterClient } from "../src/paymaster/createPaymasterClient.js"
-import { extractChainIdFromPaymasterUrl } from "../src/paymaster/utils/helpers.js"
+import { getChain } from "../../src/accounts/utils/helpers.js"
+import { createPaymasterClient } from "../../src/paymaster/createPaymasterClient.js"
+import { extractChainIdFromPaymasterUrl } from "../../src/paymaster/utils/helpers.js"
 
 describe("Paymaster tests", () => {
   const paymasterUrl = process.env.PAYMASTER_URL ?? ""
