@@ -19,7 +19,10 @@ import {
 import { SignTransactionNotSupportedBySmartAccount } from "permissionless/accounts"
 import { DEFAULT_ECDSA_OWNERSHIP_MODULE } from "../../src/accounts/utils/constants.js"
 import { validateUserOp } from "../../src/accounts/utils/helpers.js"
-import { createSmartAccountClient, signerToSmartAccount } from "../../src/index.js"
+import {
+  createSmartAccountClient,
+  signerToSmartAccount
+} from "../../src/index.js"
 import { checkBalance } from "../utils.js"
 
 describe("Biconomy Smart Account V2 EP v6 tests", () => {
