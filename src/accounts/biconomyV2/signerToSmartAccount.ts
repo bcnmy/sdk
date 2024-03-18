@@ -212,9 +212,7 @@ export async function signerToSmartAccount<
     defaultValidationModule,
     activeValidationModule
   }: SignerToBiconomySmartAccountParameters<TSource, TAddress>
-): Promise<
-  BiconomySmartAccount
-> {
+): Promise<BiconomySmartAccount> {
   // const entryPointVersion = getEntryPointVersion(entryPointAddress)
 
   // if (entryPointVersion !== "v0.6") {
@@ -258,8 +256,8 @@ export async function signerToSmartAccount<
 
   if (!accountAddress) throw new Error("Account address not found")
 
-  console.log(chainId, "chainId");
-  console.log(accountAddress, "accountAddress");
+  console.log(chainId, "chainId")
+  console.log(accountAddress, "accountAddress")
 
   let smartAccountDeployed = await isSmartAccountDeployed(
     client,
@@ -399,8 +397,8 @@ export async function signerToSmartAccount<
     // Encode the init code
     async getInitCode() {
       if (smartAccountDeployed) return "0x"
-      console.log(smartAccountDeployed, "is smartAccountDeployed");
-      
+      console.log(smartAccountDeployed, "is smartAccountDeployed")
+
       smartAccountDeployed = await isSmartAccountDeployed(
         client,
         accountAddress

@@ -4,7 +4,7 @@ import type {
   Client,
   EncodeDeployDataParameters,
   Hex,
-  LocalAccount,
+  LocalAccount
 } from "viem"
 
 import type { BaseValidationModule } from "../../modules/index.js"

@@ -42,9 +42,9 @@ export function toSmartAccount({
   signTypedData,
   setActiveValidationModule
 }: CustomSource & {
-  source: string,
-  client: Client,
-  entryPoint: ENTRYPOINT_ADDRESS_V06_TYPE,
+  source: string
+  client: Client
+  entryPoint: ENTRYPOINT_ADDRESS_V06_TYPE
   defaultValidationModule: BaseValidationModule
   activeValidationModule: BaseValidationModule
   getNonce: () => Promise<bigint>
