@@ -1,34 +1,26 @@
 import type {
-  Abi,
   Address,
   Chain,
   Client,
   EncodeDeployDataParameters,
   Hex,
   LocalAccount,
-  Transport
 } from "viem"
 
 import type { BaseValidationModule } from "../../modules/index.js"
 
-export type UserOperationStruct = {
+export type UserOperation = {
   sender: Address
   nonce: bigint
-  factory?: Address
-  factoryData?: Hex
+  initCode: Hex
   callData: Hex
   callGasLimit: bigint
   verificationGasLimit: bigint
   preVerificationGas: bigint
   maxFeePerGas: bigint
   maxPriorityFeePerGas: bigint
-  paymaster?: Address
-  paymasterVerificationGasLimit?: bigint
-  paymasterPostOpGasLimit?: bigint
-  paymasterData?: Hex
+  paymasterAndData: Hex
   signature: Hex
-  initCode?: Hex
-  paymasterAndData?: Hex
 }
 
 export type SmartAccountSigner<
@@ -41,6 +33,8 @@ export type TChain = Chain | undefined
 export type EntryPointVersion = "v0.6" | "v0.7"
 export type ENTRYPOINT_ADDRESS_V07_TYPE =
   "0x0000000071727De22E5E9d8BAf0edAc6f37da032"
+export type ENTRYPOINT_ADDRESS_V06_TYPE =
+  "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789"
 
 export type Transaction = {
   to: Address
@@ -57,22 +51,16 @@ export type Transaction = {
  * @template chain - The type of the chain.
  * @template TAbi - The type of the ABI.
  */
-export type SmartAccount<
-  entryPoint = ENTRYPOINT_ADDRESS_V07_TYPE,
-  Name extends string = string,
-  transport extends Transport = Transport,
-  chain extends Chain | undefined = Chain | undefined,
-  TAbi extends Abi | readonly unknown[] = Abi
-> = LocalAccount<Name> & {
+export type SmartAccount = LocalAccount & {
   /**
    * The client associated with the smart account.
    */
-  client: Client<transport, chain>
+  client: Client
 
   /**
    * The entry point address of the smart account.
    */
-  entryPoint: entryPoint
+  entryPoint: ENTRYPOINT_ADDRESS_V06_TYPE
 
   /**
    * The default validation module of the smart account.
@@ -121,7 +109,7 @@ export type SmartAccount<
    * @param userOperation - The user operation.
    * @returns A promise that resolves to the dummy signature as a Hex string.
    */
-  getDummySignature(userOperation: UserOperationStruct): Promise<Hex>
+  getDummySignature(userOperation: UserOperation): Promise<Hex>
 
   /**
    * Encodes the deploy call data for a smart contract.
@@ -133,7 +121,7 @@ export type SmartAccount<
     abi,
     args,
     bytecode
-  }: EncodeDeployDataParameters<TAbi>) => Promise<Hex>
+  }: EncodeDeployDataParameters) => Promise<Hex>
 
   /**
    * Signs a user operation.
@@ -141,5 +129,5 @@ export type SmartAccount<
    * @param userOperation - The user operation to sign.
    * @returns A promise that resolves to the signed user operation as a Hex string.
    */
-  signUserOperation: (userOperation: UserOperationStruct) => Promise<Hex>
+  signUserOperation: (userOperation: UserOperation) => Promise<Hex>
 }

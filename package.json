@@ -84,7 +84,8 @@
   },
   "peerDependencies": {
     "typescript": "^5",
-    "viem": "^2"
+    "viem": "^2",
+    "wagmi": "latest"
   },
   "commitlint": {
     "extends": ["@commitlint/config-conventional"]

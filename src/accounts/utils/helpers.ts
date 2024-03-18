@@ -1,5 +1,4 @@
 import {
-  type Abi,
   type Address,
   type Chain,
   type Client,
@@ -7,7 +6,6 @@ import {
   type EncodeDeployDataParameters,
   type Hex,
   type SignableMessage,
-  type Transport,
   type TypedDataDefinition,
   concat,
   encodeAbiParameters
@@ -19,21 +17,13 @@ import type { BaseValidationModule } from "../../modules/index.js"
 
 import { type UserOperation, isSmartAccountDeployed } from "permissionless"
 import { SignTransactionNotSupportedBySmartAccount } from "permissionless/accounts"
-import type { ENTRYPOINT_ADDRESS_V06_TYPE } from "permissionless/types/entrypoint.js"
 
-import type { SmartAccount } from "./types.js"
+import type { ENTRYPOINT_ADDRESS_V06_TYPE, SmartAccount } from "./types.js"
 
 const MAGIC_BYTES =
   "0x6492649264926492649264926492649264926492649264926492649264926492"
 
-export function toSmartAccount<
-  TAccountSource extends CustomSource,
-  TEntryPoint extends ENTRYPOINT_ADDRESS_V06_TYPE,
-  TSource extends string = string,
-  transport extends Transport = Transport,
-  chain extends Chain | undefined = Chain | undefined,
-  TAbi extends Abi | readonly unknown[] = Abi
->({
+export function toSmartAccount({
   address,
   defaultValidationModule,
   activeValidationModule,
@@ -51,10 +41,10 @@ export function toSmartAccount<
   signMessage,
   signTypedData,
   setActiveValidationModule
-}: TAccountSource & {
-  source: TSource
-  client: Client<transport, chain>
-  entryPoint: TEntryPoint
+}: CustomSource & {
+  source: string,
+  client: Client,
+  entryPoint: ENTRYPOINT_ADDRESS_V06_TYPE,
   defaultValidationModule: BaseValidationModule
   activeValidationModule: BaseValidationModule
   getNonce: () => Promise<bigint>
@@ -79,12 +69,12 @@ export function toSmartAccount<
     abi,
     args,
     bytecode
-  }: EncodeDeployDataParameters<TAbi>) => Promise<Hex>
+  }: EncodeDeployDataParameters) => Promise<Hex>
   signUserOperation: (userOperation: UserOperation<"v0.6">) => Promise<Hex>
   setActiveValidationModule: (
     validationModule: BaseValidationModule
   ) => BaseValidationModule
-}): SmartAccount<TEntryPoint, TSource, transport, chain, TAbi> & {
+}): SmartAccount & {
   defaultValidationModule: BaseValidationModule
   activeValidationModule: BaseValidationModule
   setActiveValidationModule: (
@@ -176,7 +166,7 @@ export function toSmartAccount<
     encodeDeployCallData,
     signUserOperation,
     setActiveValidationModule
-  } as SmartAccount<TEntryPoint, TSource, transport, chain, TAbi> & {
+  } as SmartAccount & {
     defaultValidationModule: BaseValidationModule
     activeValidationModule: BaseValidationModule
     setActiveValidationModule: (

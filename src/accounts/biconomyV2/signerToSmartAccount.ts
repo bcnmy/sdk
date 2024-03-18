@@ -28,7 +28,6 @@ import {
   SignTransactionNotSupportedBySmartAccount,
   type SmartAccountSigner
 } from "permissionless/accounts"
-import type { ENTRYPOINT_ADDRESS_V06_TYPE } from "permissionless/types/entrypoint"
 
 import {
   type BaseValidationModule,
@@ -38,11 +37,7 @@ import { BiconomyExecuteAbi, BiconomyInitAbi } from "../utils/abis"
 import { toSmartAccount, validateUserOp } from "../utils/helpers.js"
 import type { SmartAccount } from "../utils/types.js"
 
-export type BiconomySmartAccount<
-  entryPoint extends ENTRYPOINT_ADDRESS_V06_TYPE,
-  transport extends Transport = Transport,
-  chain extends Chain | undefined = Chain | undefined
-> = SmartAccount<entryPoint, "biconomySmartAccount", transport, chain> & {
+export type BiconomySmartAccount = SmartAccount & {
   defaultValidationModule: BaseValidationModule
   activeValidationModule: BaseValidationModule
   setActiveValidationModule: (
@@ -218,7 +213,7 @@ export async function signerToSmartAccount<
     activeValidationModule
   }: SignerToBiconomySmartAccountParameters<TSource, TAddress>
 ): Promise<
-  BiconomySmartAccount<ENTRYPOINT_ADDRESS_V06_TYPE, TTransport, TChain>
+  BiconomySmartAccount
 > {
   // const entryPointVersion = getEntryPointVersion(entryPointAddress)
 
@@ -262,6 +257,9 @@ export async function signerToSmartAccount<
   ])
 
   if (!accountAddress) throw new Error("Account address not found")
+
+  console.log(chainId, "chainId");
+  console.log(accountAddress, "accountAddress");
 
   let smartAccountDeployed = await isSmartAccountDeployed(
     client,
@@ -314,7 +312,6 @@ export async function signerToSmartAccount<
       )
     },
     client: client,
-    publicKey: accountAddress,
     entryPoint: ENTRYPOINT_ADDRESS_V06,
     source: "biconomySmartAccount",
 
@@ -402,7 +399,8 @@ export async function signerToSmartAccount<
     // Encode the init code
     async getInitCode() {
       if (smartAccountDeployed) return "0x"
-
+      console.log(smartAccountDeployed, "is smartAccountDeployed");
+      
       smartAccountDeployed = await isSmartAccountDeployed(
         client,
         accountAddress
