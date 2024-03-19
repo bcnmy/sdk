@@ -1,6 +1,5 @@
 import type {
   Abi,
-  Account,
   Address,
   Chain,
   Client,
@@ -177,12 +176,14 @@ export type Middleware = {
 }
 
 export type GetAccountParameter<
-  TAccount extends Account | undefined = Account | undefined
+  TAccount extends SmartAccount | undefined = SmartAccount | undefined
 > = IsUndefined<TAccount> extends true
-  ? { account: Account }
-  : { account?: Account }
+  ? { account?: SmartAccount }
+  : { account?: SmartAccount }
 
-export type PrepareUserOperationRequestParameters = {
+export type PrepareUserOperationRequestParameters<
+  TAccount extends SmartAccount | undefined = SmartAccount | undefined
+> = {
   userOperation: PartialBy<
     UserOperationStruct,
     | "sender"
@@ -196,7 +197,7 @@ export type PrepareUserOperationRequestParameters = {
     | "paymasterAndData"
     | "signature"
   >
-} & GetAccountParameter &
+} & GetAccountParameter<TAccount> &
   Middleware
 
 export type GetUserOperationHashParams = {
@@ -206,7 +207,7 @@ export type GetUserOperationHashParams = {
 
 export type SendTransactionParameters<
   TChain extends Chain | undefined = Chain | undefined,
-  TAccount extends Account | undefined = Account | undefined,
+  TAccount extends SmartAccount | undefined = SmartAccount | undefined,
   TChainOverride extends Chain | undefined = Chain | undefined,
   ///
   derivedChain extends Chain | undefined = DeriveChain<TChain, TChainOverride>

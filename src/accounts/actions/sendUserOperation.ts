@@ -11,7 +11,9 @@ import type {
 } from "../utils/types"
 import { prepareUserOperationRequest } from "./prepareUserOperationRequest"
 
-export type SendUserOperationParameters = {
+export type SendUserOperationParameters<
+  TAccount extends SmartAccount | undefined = SmartAccount | undefined
+> = {
   userOperation: PartialBy<
     UserOperationStruct,
     | "sender"
@@ -25,7 +27,7 @@ export type SendUserOperationParameters = {
     | "paymasterAndData"
     | "signature"
   >
-} & GetAccountParameter &
+} & GetAccountParameter<TAccount> &
   Middleware
 
 export async function sendUserOperation<

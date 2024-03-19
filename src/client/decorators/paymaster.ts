@@ -1,5 +1,4 @@
 import type { Client } from "viem"
-import type { ENTRYPOINT_ADDRESS_V06_TYPE } from "../../accounts/utils/types"
 import { sponsorUserOperation } from "../../paymaster/actions/sponsorUserOperation"
 import type { PaymasterClient } from "../../paymaster/createPaymasterClient"
 import type {
@@ -61,14 +60,11 @@ export type PaymasterClientActions = {
 }
 
 export const paymasterActions =
-  <entryPoint extends ENTRYPOINT_ADDRESS_V06_TYPE>(
-    entryPointAddress: entryPoint
-  ) =>
+  () =>
   (client: Client): PaymasterClientActions => ({
     sponsorUserOperation: async (args) =>
       sponsorUserOperation(client as PaymasterClient, {
-        ...args,
-        entryPoint: entryPointAddress
+        ...args
       })
     // accounts: async (args) =>
     // accounts(client as PaymasterClient, args)

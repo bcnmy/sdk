@@ -46,3 +46,7 @@ export function deepHexlify(obj: any): any {
     {}
   )
 }
+
+export const getTimestampInSeconds = (): number => {
+  return Math.floor(Date.now() / 1000)
+}

@@ -1,11 +1,4 @@
-import {
-  http,
-  Hex,
-  createPublicClient,
-  createWalletClient,
-  toHex,
-  zeroAddress
-} from "viem"
+import { http, createPublicClient, createWalletClient, zeroAddress } from "viem"
 import { describe, expect, it } from "vitest"
 
 import { walletClientToSmartAccountSigner } from "permissionless"
@@ -69,15 +62,14 @@ describe("Paymaster tests", async () => {
           value: 0n,
           data: "0x"
         })
-      },
-      account: smartAccount
+      }
     })
 
     const result = await paymasterClient.sponsorUserOperation({
       userOperation: userOp,
-      entryPoint: "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789",
       mode: PaymasterMode.SPONSORED
     })
+
     expect(result).toBeTruthy()
   })
 })

@@ -14,8 +14,22 @@ export const sponsorUserOperation = async (
 
   const response = await client.request({
     method: "pm_sponsorUserOperation",
-    params: [deepHexlify(args.userOperation), args.entryPoint, args.mode]
+    params: [
+      deepHexlify(args.userOperation),
+      {
+        mode: args.mode,
+        calculateGasLimits: true,
+        sponsorshipInfo: {
+          smartAccountInfo: {
+            name: "BICONOMY",
+            version: "2.0.0"
+          }
+        }
+      }
+    ]
   })
+
+  console.log(response, "response")
 
   const responseV06 = response as {
     paymasterAndData: Hex

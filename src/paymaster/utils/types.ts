@@ -1,9 +1,6 @@
 import type { Address, Hex } from "viem"
 import type { PartialBy } from "viem/chains"
-import type {
-  ENTRYPOINT_ADDRESS_V06_TYPE,
-  UserOperationStruct
-} from "../../accounts/utils/types"
+import type { UserOperationStruct } from "../../accounts/utils/types"
 
 export type SponsorUserOperationReturnType = {
   callGasLimit: Hex
@@ -14,13 +11,23 @@ export type SponsorUserOperationReturnType = {
 
 export type SponsorUserOperationParameters = {
   userOperation: UserOperationStruct
-  entryPoint: ENTRYPOINT_ADDRESS_V06_TYPE
   mode: PaymasterMode
 }
 
 export enum PaymasterMode {
   ERC20 = "ERC20",
   SPONSORED = "SPONSORED"
+}
+
+export type PaymasterContext = {
+  mode: PaymasterMode
+  calculateGasLimits: boolean
+  sponsorshipInfo: {
+    smartAccountInfo: {
+      name: string
+      version: string
+    }
+  }
 }
 
 export type PaymasterRpcSchema = [
@@ -31,8 +38,7 @@ export type PaymasterRpcSchema = [
         UserOperationStruct,
         "callGasLimit" | "preVerificationGas" | "verificationGasLimit"
       >,
-      entryPoint: ENTRYPOINT_ADDRESS_V06_TYPE,
-      context: PaymasterMode
+      context: PaymasterContext
     ]
     ReturnType: {
       paymasterAndData: Hex
