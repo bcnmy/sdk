@@ -3,7 +3,6 @@ import {} from "permissionless"
 import { type Chain, type Client, type Transport, createClient } from "viem"
 import type { Prettify } from "viem/chains"
 
-import type { ENTRYPOINT_ADDRESS_V06_TYPE } from "permissionless/types/entrypoint.js"
 import type { SmartAccount } from "../accounts/utils/types.js"
 import type { BundlerRpcSchema } from "../bundler/utils/types.js"
 import {
@@ -47,7 +46,7 @@ export type SmartAccountClient<
  */
 
 export function createSmartAccountClient<
-  TSmartAccount extends SmartAccount<ENTRYPOINT_ADDRESS_V06_TYPE>,
+  TSmartAccount extends SmartAccount,
   TTransport extends Transport = Transport,
   TChain extends Chain = Chain
 >(

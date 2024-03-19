@@ -65,7 +65,6 @@ export type Transaction = {
  * @template TAbi - The type of the ABI.
  */
 export type SmartAccount<
-  entryPoint = ENTRYPOINT_ADDRESS_V06_TYPE,
   Name extends string = string,
   transport extends Transport = Transport,
   chain extends Chain | undefined = Chain | undefined,
@@ -79,7 +78,7 @@ export type SmartAccount<
   /**
    * The entry point address of the smart account.
    */
-  entryPoint: entryPoint
+  entryPoint: ENTRYPOINT_ADDRESS_V06_TYPE
 
   /**
    * The default validation module of the smart account.

@@ -24,7 +24,6 @@ import {
   SignTransactionNotSupportedBySmartAccount,
   type SmartAccountSigner
 } from "permissionless/accounts"
-import type { ENTRYPOINT_ADDRESS_V06_TYPE } from "permissionless/types/entrypoint"
 
 import {
   type BaseValidationModule,
@@ -40,10 +39,9 @@ import {
 import type { SmartAccount } from "../utils/types.js"
 
 export type BiconomySmartAccount<
-  entryPoint extends ENTRYPOINT_ADDRESS_V06_TYPE,
   transport extends Transport = Transport,
   chain extends Chain | undefined = Chain | undefined
-> = SmartAccount<entryPoint, "biconomySmartAccount", transport, chain> & {
+> = SmartAccount<"biconomySmartAccount", transport, chain> & {
   defaultValidationModule: BaseValidationModule
   activeValidationModule: BaseValidationModule
   setActiveValidationModule: (
@@ -218,9 +216,7 @@ export async function signerToSmartAccount<
     defaultValidationModule,
     activeValidationModule
   }: SignerToBiconomySmartAccountParameters<TSource, TAddress>
-): Promise<
-  BiconomySmartAccount<ENTRYPOINT_ADDRESS_V06_TYPE, TTransport, TChain>
-> {
+): Promise<BiconomySmartAccount<TTransport, TChain>> {
   // const entryPointVersion = getEntryPointVersion(entryPointAddress)
 
   // if (entryPointVersion !== "v0.6") {

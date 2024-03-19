@@ -62,7 +62,7 @@ export async function signMessage<
   {
     account: account_ = client.account,
     message
-  }: SignMessageParameters<TAccount>
+  }: SignMessageParameters<SmartAccount>
 ): Promise<SignMessageReturnType> {
   if (!account_)
     throw new AccountOrClientNotFoundError({

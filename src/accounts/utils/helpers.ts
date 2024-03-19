@@ -92,7 +92,7 @@ export function toSmartAccount<
   setActiveValidationModule: (
     validationModule: BaseValidationModule
   ) => BaseValidationModule
-}): SmartAccount<TEntryPoint, TSource, transport, chain, TAbi> & {
+}): SmartAccount<TSource, transport, chain, TAbi> & {
   defaultValidationModule: BaseValidationModule
   activeValidationModule: BaseValidationModule
   setActiveValidationModule: (
@@ -184,7 +184,7 @@ export function toSmartAccount<
     encodeDeployCallData,
     signUserOperation,
     setActiveValidationModule
-  } as SmartAccount<TEntryPoint, TSource, transport, chain, TAbi> & {
+  } as SmartAccount<TSource, transport, chain, TAbi> & {
     defaultValidationModule: BaseValidationModule
     activeValidationModule: BaseValidationModule
     setActiveValidationModule: (

@@ -5,6 +5,7 @@ import type {
   Hash,
   SendTransactionParameters,
   Transport,
+  TypedData,
   WriteContractParameters
 } from "viem"
 // import { signTypedData } from "../../accounts/actions/sygnTypedData"
@@ -19,6 +20,7 @@ import {
   sendUserOperation
 } from "../../accounts/actions/sendUserOperation"
 import { signMessage } from "../../accounts/actions/signMessage"
+import { signTypedData } from "../../accounts/actions/sygnTypedData"
 import type {
   Middleware,
   SmartAccount,
@@ -218,26 +220,16 @@ export type SmartAccountActions<
    *   },
    * })
    */
-  // signTypedData: <
-  //     const TTypedData extends TypedData | { [key: string]: unknown },
-  //     TPrimaryType extends string
-  // >(
-  //     args: Parameters<
-  //         typeof signTypedData<
-  //             TTypedData,
-  //             TPrimaryType,
-  //             TChain,
-  //             TSmartAccount
-  //         >
-  //     >[1]
-  // ) => ReturnType<
-  //     typeof signTypedData<
-  //         TTypedData,
-  //         TPrimaryType,
-  //         TChain,
-  //         TSmartAccount
-  //     >
-  // >
+  signTypedData: <
+    const TTypedData extends TypedData | { [key: string]: unknown },
+    TPrimaryType extends string
+  >(
+    args: Parameters<
+      typeof signTypedData<TTypedData, TPrimaryType, TChain, TSmartAccount>
+    >[1]
+  ) => ReturnType<
+    typeof signTypedData<TTypedData, TPrimaryType, TChain, TSmartAccount>
+  >
   /**
    * Deploys a contract to the network, given bytecode and constructor arguments.
    * This function also allows you to sponsor this transaction if sender is a smartAccount
@@ -463,20 +455,14 @@ export function smartAccountActions({ middleware }: Middleware) {
         ...args,
         middleware
       } as SendUserOperationParameters),
-    signMessage: (args) => signMessage<TChain, TSmartAccount>(client, args)
-    // signTypedData: <
-    //     const TTypedData extends TypedData | { [key: string]: unknown },
-    //     TPrimaryType extends string
-    // >(
-    //     args: Parameters<
-    //         typeof signTypedData<
-    //             TTypedData,
-    //             TPrimaryType,
-    //             TChain,
-    //             TSmartAccount
-    //         >
-    //     >[1]
-    // ) =>
-    //     signTypedData(client, args),
+    signMessage: (args) => signMessage<TChain, TSmartAccount>(client, args),
+    signTypedData: <
+      const TTypedData extends TypedData | { [key: string]: unknown },
+      TPrimaryType extends string
+    >(
+      args: Parameters<
+        typeof signTypedData<TTypedData, TPrimaryType, TChain, TSmartAccount>
+      >[1]
+    ) => signTypedData(client, args)
   })
 }
