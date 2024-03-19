@@ -22,6 +22,13 @@ export type UserOperationWithBigIntAsHex = {
   paymasterAndData?: never
 }
 
+/**
+ * @description SimulationType
+ * "validation_and_execution" is recommended during development for improved debugging & devEx, but will add some additional latency to calls.
+ * "validation" can be used in production mode to remove this latency after flows have been tested.
+ */
+export type SimulationType = "validation" | "validation_and_execution"
+
 export type BundlerRpcSchema<entryPoint extends ENTRYPOINT_ADDRESS_V06_TYPE> = [
   {
     Method: "eth_sendUserOperation"
@@ -126,4 +133,21 @@ export type StateOverrides = {
       [x: Hex]: Hex
     }
   }
+}
+
+export type JsonRpcError = {
+  code: string
+  message: string
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+  data: any
+}
+
+export type SendUserOpResponse = {
+  /** The JSON-RPC url */
+  jsonrpc: string
+  /** Request id */
+  id: number
+  result: string
+  /** The error if the request failed */
+  error?: JsonRpcError
 }
