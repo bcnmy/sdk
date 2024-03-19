@@ -6,11 +6,12 @@ import {
   type Transport,
   createClient
 } from "viem"
+
 import {
-  type PaymasterActions,
-  type PaymasterRpcSchema,
+  type PaymasterClientActions,
   paymasterActions
-} from "./actions"
+} from "../client/decorators/paymaster.js"
+import type { PaymasterRpcSchema } from "./utils/types.js"
 
 export type PaymasterClient<
   TChain extends Chain | undefined = Chain | undefined
@@ -19,7 +20,7 @@ export type PaymasterClient<
   TChain,
   Account | undefined,
   PaymasterRpcSchema,
-  PaymasterActions
+  PaymasterClientActions
 >
 
 /**
@@ -52,5 +53,7 @@ export const createPaymasterClient = <
     name,
     type: "PaymasterClient"
   })
-  return client.extend(paymasterActions())
+  return client.extend(
+    paymasterActions("0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789")
+  )
 }

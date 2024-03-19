@@ -1,6 +1,7 @@
 import type { ENTRYPOINT_ADDRESS_V06_TYPE } from "permissionless/types/entrypoint"
 import type { Address, Hash, Hex } from "viem"
 import type { PartialBy } from "viem/chains"
+import type { UserOperationStruct } from "../../accounts"
 
 export type UserOperationWithBigIntAsHex = {
   sender: Address
@@ -18,16 +19,16 @@ export type UserOperationWithBigIntAsHex = {
   paymasterPostOpGasLimit: Hex
   paymasterData: Hex
   signature: Hex
-  initCode?: never
+  initCode: Hex
   paymasterAndData?: never
 }
 
-export type BundlerRpcSchema<entryPoint extends ENTRYPOINT_ADDRESS_V06_TYPE> = [
+export type BundlerRpcSchema = [
   {
     Method: "eth_sendUserOperation"
     Parameters: [
       userOperation: UserOperationWithBigIntAsHex,
-      entryPoint: entryPoint
+      entryPoint: ENTRYPOINT_ADDRESS_V06_TYPE
     ]
     ReturnType: Hash
   },
@@ -42,7 +43,7 @@ export type BundlerRpcSchema<entryPoint extends ENTRYPOINT_ADDRESS_V06_TYPE> = [
         | "paymasterVerificationGasLimit"
         | "paymasterPostOpGasLimit"
       >,
-      entryPoint: entryPoint,
+      entryPoint: ENTRYPOINT_ADDRESS_V06_TYPE,
       stateOverrides?: StateOverrides
     ]
     ReturnType: {
@@ -68,7 +69,7 @@ export type BundlerRpcSchema<entryPoint extends ENTRYPOINT_ADDRESS_V06_TYPE> = [
     Parameters: [hash: Hash]
     ReturnType: {
       userOperation: UserOperationWithBigIntAsHex
-      entryPoint: entryPoint
+      entryPoint: ENTRYPOINT_ADDRESS_V06_TYPE
       transactionHash: Hash
       blockHash: Hash
       blockNumber: Hex
@@ -126,4 +127,62 @@ export type StateOverrides = {
       [x: Hex]: Hex
     }
   }
+}
+
+export type EstimateUserOperationGasParameters = {
+  userOperation: PartialBy<
+    UserOperationStruct,
+    "callGasLimit" | "preVerificationGas" | "verificationGasLimit"
+  >
+}
+
+export type WaitForUserOperationReceiptParameters = {
+  /** The hash of the transaction. */
+  hash: Hash
+  /**
+   * Polling frequency (in ms). Defaults to the client's pollingInterval config.
+   * @default client.pollingInterval
+   */
+  pollingInterval?: number
+  /** Optional timeout (in milliseconds) to wait before stopping polling. */
+  timeout?: number
+}
+
+export type TStatus = "success" | "reverted"
+
+export type GetUserOperationReceiptReturnType = {
+  userOpHash: Hash
+  sender: Address
+  nonce: bigint
+  actualGasUsed: bigint
+  actualGasCost: bigint
+  success: boolean
+  receipt: {
+    transactionHash: Hex
+    transactionIndex: bigint
+    blockHash: Hash
+    blockNumber: bigint
+    from: Address
+    to: Address | null
+    cumulativeGasUsed: bigint
+    status: TStatus
+    gasUsed: bigint
+    contractAddress: Address | null
+    logsBloom: Hex
+    effectiveGasPrice: bigint
+  }
+  logs: {
+    data: Hex
+    blockNumber: bigint
+    blockHash: Hash
+    transactionHash: Hash
+    logIndex: bigint
+    transactionIndex: bigint
+    address: Address
+    topics: Hex[]
+  }[]
+}
+
+export type GetUserOperationByHashParameters = {
+  hash: Hash
 }

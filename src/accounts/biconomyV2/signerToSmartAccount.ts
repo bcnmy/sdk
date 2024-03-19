@@ -19,11 +19,7 @@ import {
 import { getChainId, signMessage, signTypedData } from "viem/actions"
 import type { Prettify } from "viem/chains"
 
-import {
-  ENTRYPOINT_ADDRESS_V06,
-  getUserOperationHash,
-  isSmartAccountDeployed
-} from "permissionless"
+import { isSmartAccountDeployed } from "permissionless"
 import {
   SignTransactionNotSupportedBySmartAccount,
   type SmartAccountSigner
@@ -35,7 +31,12 @@ import {
   createECDSAOwnershipModule
 } from "../../modules/index.js"
 import { BiconomyExecuteAbi, BiconomyInitAbi } from "../utils/abis"
-import { toSmartAccount, validateUserOp } from "../utils/helpers.js"
+import { ENTRYPOINT_ADDRESS_V06 } from "../utils/constants.js"
+import {
+  getUserOperationHash,
+  toSmartAccount,
+  validateUserOp
+} from "../utils/helpers.js"
 import type { SmartAccount } from "../utils/types.js"
 
 export type BiconomySmartAccount<
@@ -359,7 +360,6 @@ export async function signerToSmartAccount<
           ...userOperation,
           signature: "0x"
         },
-        entryPoint: ENTRYPOINT_ADDRESS_V06,
         chainId: chainId
       })
       const signature = await signMessage(client, {

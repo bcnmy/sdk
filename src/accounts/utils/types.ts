@@ -1,33 +1,39 @@
 import type {
   Abi,
+  Account,
   Address,
   Chain,
   Client,
+  DeriveChain,
   EncodeDeployDataParameters,
+  FormattedTransactionRequest,
+  GetChainParameter,
   Hex,
   LocalAccount,
   Transport
 } from "viem"
 
+import type { PartialBy } from "viem/chains"
+import type { IsUndefined, UnionOmit } from "viem/types/utils.js"
 import type { BaseValidationModule } from "../../modules/index.js"
 
 export type UserOperationStruct = {
   sender: Address
-  nonce: bigint
+  nonce: bigint | Hex
   factory?: Address
   factoryData?: Hex
   callData: Hex
-  callGasLimit: bigint
-  verificationGasLimit: bigint
-  preVerificationGas: bigint
-  maxFeePerGas: bigint
-  maxPriorityFeePerGas: bigint
+  callGasLimit?: Hex
+  verificationGasLimit?: Hex
+  preVerificationGas?: Hex
+  maxFeePerGas?: Hex
+  maxPriorityFeePerGas?: Hex
   paymaster?: Address
-  paymasterVerificationGasLimit?: bigint
-  paymasterPostOpGasLimit?: bigint
+  paymasterVerificationGasLimit?: Hex
+  paymasterPostOpGasLimit?: Hex
   paymasterData?: Hex
   signature: Hex
-  initCode?: Hex
+  initCode: Hex
   paymasterAndData?: Hex
 }
 
@@ -41,6 +47,8 @@ export type TChain = Chain | undefined
 export type EntryPointVersion = "v0.6" | "v0.7"
 export type ENTRYPOINT_ADDRESS_V07_TYPE =
   "0x0000000071727De22E5E9d8BAf0edAc6f37da032"
+export type ENTRYPOINT_ADDRESS_V06_TYPE =
+  "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789"
 
 export type Transaction = {
   to: Address
@@ -58,7 +66,7 @@ export type Transaction = {
  * @template TAbi - The type of the ABI.
  */
 export type SmartAccount<
-  entryPoint = ENTRYPOINT_ADDRESS_V07_TYPE,
+  entryPoint = ENTRYPOINT_ADDRESS_V06_TYPE,
   Name extends string = string,
   transport extends Transport = Transport,
   chain extends Chain | undefined = Chain | undefined,
@@ -143,3 +151,65 @@ export type SmartAccount<
    */
   signUserOperation: (userOperation: UserOperationStruct) => Promise<Hex>
 }
+
+export type Middleware = {
+  middleware?:
+    | ((args: {
+        userOperation: UserOperationStruct
+      }) => Promise<UserOperationStruct>)
+    | {
+        gasPrice?: () => Promise<{
+          maxFeePerGas: bigint
+          maxPriorityFeePerGas: bigint
+        }>
+        sponsorUserOperation?: (args: {
+          userOperation: UserOperationStruct
+        }) => Promise<
+          Pick<
+            UserOperationStruct,
+            | "callGasLimit"
+            | "verificationGasLimit"
+            | "preVerificationGas"
+            | "paymasterAndData"
+          >
+        >
+      }
+}
+
+export type GetAccountParameter<
+  TAccount extends Account | undefined = Account | undefined
+> = IsUndefined<TAccount> extends true
+  ? { account: Account }
+  : { account?: Account }
+
+export type PrepareUserOperationRequestParameters = {
+  userOperation: PartialBy<
+    UserOperationStruct,
+    | "sender"
+    | "nonce"
+    | "initCode"
+    | "callGasLimit"
+    | "verificationGasLimit"
+    | "preVerificationGas"
+    | "maxFeePerGas"
+    | "maxPriorityFeePerGas"
+    | "paymasterAndData"
+    | "signature"
+  >
+} & GetAccountParameter &
+  Middleware
+
+export type GetUserOperationHashParams = {
+  userOperation: UserOperationStruct
+  chainId: number
+}
+
+export type SendTransactionParameters<
+  TChain extends Chain | undefined = Chain | undefined,
+  TAccount extends Account | undefined = Account | undefined,
+  TChainOverride extends Chain | undefined = Chain | undefined,
+  ///
+  derivedChain extends Chain | undefined = DeriveChain<TChain, TChainOverride>
+> = UnionOmit<FormattedTransactionRequest<derivedChain>, "from"> &
+  GetAccountParameter<TAccount> &
+  GetChainParameter<TChain, TChainOverride>

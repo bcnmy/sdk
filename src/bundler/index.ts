@@ -1,4 +1,4 @@
-export type { BundlerRpcSchema, BundlerActions } from "./actions/index.js"
-export { bundlerActions } from "./actions/index.js"
+export { sendUserOperation } from "./actions/sendUserOperation.js"
+export { estimateUserOperationGas } from "./actions/estimateUserOperationGas.js"
 export { extractChainIdFromBundlerUrl } from "./utils/helpers.js"
 export { createBundlerClient } from "./createBundlerClient.js"
