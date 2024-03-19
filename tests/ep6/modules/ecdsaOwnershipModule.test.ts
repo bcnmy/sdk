@@ -10,9 +10,8 @@ import {
 import type { PublicClient } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { DEFAULT_ECDSA_OWNERSHIP_MODULE } from "../../../src/accounts/utils/constants.js"
-import { getChain } from "../../../src/accounts/utils/helpers.js"
-import { extractChainIdFromBundlerUrl } from "../../../src/bundler/utils/helpers.js"
 import { signerToSmartAccount } from "../../../src/index.js"
+import { getChainConfig } from "../../utils.js"
 
 describe("Biconomy Smart Account core tests", () => {
   let smartAccount: Awaited<ReturnType<typeof signerToSmartAccount>>
@@ -20,9 +19,8 @@ describe("Biconomy Smart Account core tests", () => {
   let publicClient: PublicClient
 
   const account = privateKeyToAccount(`0x${process.env.PRIVATE_KEY}`)
-  const bundlerUrl = process.env.BUNDLER_URL ?? ""
-  const chainId = extractChainIdFromBundlerUrl(bundlerUrl)
-  const chain = getChain(chainId)
+
+  const { chain } = getChainConfig()
 
   beforeAll(async () => {
     // @ts-ignore

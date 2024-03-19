@@ -1,4 +1,3 @@
-import { baseSepolia } from "viem/chains"
 import { beforeAll, describe, expect, test } from "vitest"
 
 import {
@@ -9,7 +8,6 @@ import {
   parseAbi,
   zeroAddress
 } from "viem"
-import type { Client, PublicClient } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 
 import {
@@ -23,32 +21,25 @@ import {
   createSmartAccountClient,
   signerToSmartAccount
 } from "../../src/index.js"
-import { checkBalance } from "../utils.js"
+import { checkBalance, getChainConfig } from "../utils.js"
 
 describe("Biconomy Smart Account V2 EP v6 tests", () => {
-  let smartAccount: Awaited<ReturnType<typeof signerToSmartAccount>>
-  let walletClient: Client
-  let publicClient: PublicClient
-  let smartAccountClient: Awaited<ReturnType<typeof createSmartAccountClient>>
-
-  const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
+  const { bundlerUrl, chain } = getChainConfig()
   const account = privateKeyToAccount(`0x${process.env.PRIVATE_KEY}`)
-  const bundlerUrl = process.env.BUNDLER_URL ?? ""
-  // const chainId = extractChainIdFromBundlerUrl(bundlerUrl)
-  // const chain = getChain(baseSepolia.id)
-  const chain = baseSepolia
+  const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
+  const walletClient = createWalletClient({
+    account,
+    chain,
+    transport: http()
+  })
+  const publicClient = createPublicClient({
+    chain,
+    transport: http()
+  })
+  let smartAccount: Awaited<ReturnType<typeof signerToSmartAccount>>
+  let smartAccountClient: ReturnType<typeof createSmartAccountClient>
 
   beforeAll(async () => {
-    publicClient = createPublicClient({
-      transport: http("https://public.stackup.sh/api/v1/node/base-sepolia")
-    })
-
-    walletClient = createWalletClient({
-      account,
-      chain,
-      transport: http("https://public.stackup.sh/api/v1/node/base-sepolia")
-    })
-
     smartAccount = await signerToSmartAccount(publicClient, {
       signer: walletClientToSmartAccountSigner(walletClient)
     })
