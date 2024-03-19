@@ -126,3 +126,20 @@ export type GasFeeValues = {
   maxPriorityFeePerGas: string
   maxFeePerGas: string
 }
+
+export type JsonRpcError = {
+  code: string
+  message: string
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+  data: any
+}
+
+export type SendUserOpResponse = {
+  /** The JSON-RPC url */
+  jsonrpc: string
+  /** Request id */
+  id: number
+  result: string
+  /** The error if the request failed */
+  error?: JsonRpcError
+}

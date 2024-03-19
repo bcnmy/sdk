@@ -1,14 +1,12 @@
 import { http } from "viem"
 import { describe, expect, it } from "vitest"
 
-import { getChain } from "../../src/accounts/utils/helpers.js"
+import { privateKeyToAccount } from "viem/accounts"
 import { createBundlerClient } from "../../src/bundler/createBundlerClient.js"
-import { extractChainIdFromBundlerUrl } from "../../src/bundler/utils/helpers.js"
+import { getChainConfig } from "../utils.js"
 
 describe("Bundler tests", () => {
-  const bundlerUrl = process.env.BUNDLER_URL ?? ""
-  const chainId = extractChainIdFromBundlerUrl(bundlerUrl)
-  const chain = getChain(chainId)
+  const { bundlerUrl, chainId, chain } = getChainConfig()
 
   it("Should have the properties of a viem client", async () => {
     const bundlerClient = createBundlerClient({
