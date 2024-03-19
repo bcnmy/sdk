@@ -1,5 +1,5 @@
 import { AccountOrClientNotFoundError, parseAccount } from "permissionless"
-import { type Chain, type Client, type Hex, type Transport, toHex } from "viem"
+import { type Chain, type Client, type Transport, toHex } from "viem"
 import { estimateFeesPerGas } from "viem/actions"
 import type { Prettify } from "viem/chains"
 import { estimateUserOperationGas } from "../../bundler/actions/estimateUserOperationGas"
@@ -46,13 +46,11 @@ async function prepareUserOperationRequestForEntryPointV06<
     callData,
     paymasterAndData: "0x",
     signature: partialUserOperation.signature || "0x",
-    maxFeePerGas: partialUserOperation.maxFeePerGas || ("0" as Hex),
-    maxPriorityFeePerGas:
-      partialUserOperation.maxPriorityFeePerGas || ("0" as Hex),
-    callGasLimit: partialUserOperation.callGasLimit || ("0" as Hex),
-    verificationGasLimit:
-      partialUserOperation.verificationGasLimit || ("0" as Hex),
-    preVerificationGas: partialUserOperation.preVerificationGas || ("0" as Hex)
+    maxFeePerGas: partialUserOperation.maxFeePerGas,
+    maxPriorityFeePerGas: partialUserOperation.maxPriorityFeePerGas,
+    callGasLimit: partialUserOperation.callGasLimit,
+    verificationGasLimit: partialUserOperation.verificationGasLimit,
+    preVerificationGas: partialUserOperation.preVerificationGas
   }
 
   if (userOperation.signature === "0x") {
@@ -121,7 +119,8 @@ async function prepareUserOperationRequestForEntryPointV06<
       stateOverrides
     )
 
-    userOperation.callGasLimit = toHex(gasParameters.callGasLimit)
+    userOperation.callGasLimit =
+      userOperation.callGasLimit || toHex(gasParameters.callGasLimit)
     userOperation.verificationGasLimit =
       userOperation.verificationGasLimit ||
       toHex(gasParameters.verificationGasLimit)

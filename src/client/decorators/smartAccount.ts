@@ -16,6 +16,10 @@ import {
   sendTransaction
 } from "../../accounts/actions/sendTransaction"
 import {
+  type SendTransactionsWithPaymasterParameters,
+  sendTransactions
+} from "../../accounts/actions/sendTransactions"
+import {
   type SendUserOperationParameters,
   sendUserOperation
 } from "../../accounts/actions/sendUserOperation"
@@ -411,11 +415,9 @@ export type SmartAccountActions<
    *   value: 10000000000000000n
    * }])
    */
-  // sendTransactions: (
-  //     args: Prettify<
-  //         SendTransactionsWithPaymasterParameters<entryPoint, TSmartAccount>
-  //     >
-  // ) => ReturnType<typeof sendTransactions<TChain, TSmartAccount, entryPoint>>
+  sendTransactions: (
+    args: Prettify<SendTransactionsWithPaymasterParameters<TSmartAccount>>
+  ) => ReturnType<typeof sendTransactions<TChain, TSmartAccount>>
 }
 
 export function smartAccountActions({ middleware }: Middleware) {
@@ -445,11 +447,11 @@ export function smartAccountActions({ middleware }: Middleware) {
         ...args,
         middleware
       } as SendTransactionWithPaymasterParameters<TChain, TSmartAccount>),
-    // sendTransactions: (args) =>
-    //     sendTransactions<TChain, TSmartAccount, entryPoint>(client, {
-    //         ...args,
-    //         middleware
-    //     }),
+    sendTransactions: (args) =>
+      sendTransactions<TChain, TSmartAccount>(client, {
+        ...args,
+        middleware
+      }),
     sendUserOperation: (args) =>
       sendUserOperation<TTransport, TChain, TSmartAccount>(client, {
         ...args,

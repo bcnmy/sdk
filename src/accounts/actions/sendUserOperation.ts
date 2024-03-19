@@ -52,6 +52,8 @@ export async function sendUserOperation<
     userOperation as UserOperationStruct
   )
 
+  console.log(userOperation, "userOperation BEFORE BUNDLER")
+
   return sendUserOperationBundler(client, {
     userOperation: userOperation as UserOperationStruct
   })

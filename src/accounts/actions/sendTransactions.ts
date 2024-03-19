@@ -1,34 +1,38 @@
 import { AccountOrClientNotFoundError, parseAccount } from "permissionless"
 import {
+  type Address,
   type Chain,
   type Client,
   type Hash,
+  type Hex,
   type SendTransactionParameters,
   type Transport,
   toHex
 } from "viem"
 import type { Prettify } from "viem/chains"
 import { waitForUserOperationReceipt } from "../../bundler/actions/waitForUserOperationRceipt"
-import type { GetUserOperationReceiptReturnType } from "../../bundler/utils/types"
 import { getAction } from "../utils/helpers"
-import type { Middleware, SmartAccount } from "../utils/types"
+import type {
+  GetAccountParameter,
+  Middleware,
+  SmartAccount
+} from "../utils/types"
 import { sendUserOperation } from "./sendUserOperation"
 
-export type SendTransactionWithPaymasterParameters<
-  TChain extends Chain | undefined = Chain | undefined,
-  TAccount extends SmartAccount | undefined = SmartAccount | undefined,
-  TChainOverride extends Chain | undefined = Chain | undefined
-> = SendTransactionParameters<TChain, TAccount, TChainOverride> & Middleware
+export type SendTransactionsWithPaymasterParameters<
+  TAccount extends SmartAccount | undefined = SmartAccount | undefined
+> = {
+  transactions: { to: Address; value: bigint; data: Hex }[]
+} & GetAccountParameter<TAccount> &
+  Middleware & {
+    maxFeePerGas?: Hex
+    maxPriorityFeePerGas?: Hex
+    nonce?: Hex
+  }
 
 /**
- * Creates, signs, and sends a new transaction to the network.
+ * Creates, signs, and sends a new transactions to the network.
  * This function also allows you to sponsor this transaction if sender is a smartAccount
- *
- * - Docs: https://viem.sh/docs/actions/wallet/sendTransaction.html
- * - Examples: https://stackblitz.com/github/wagmi-dev/viem/tree/main/examples/transactions/sending-transactions
- * - JSON-RPC Methods:
- *   - JSON-RPC Accounts: [`eth_sendTransaction`](https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_sendtransaction)
- *   - Local Accounts: [`eth_sendRawTransaction`](https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_sendrawtransaction)
  *
  * @param client - Client to use
  * @param parameters - {@link SendTransactionParameters}
@@ -43,11 +47,14 @@ export type SendTransactionWithPaymasterParameters<
  *   chain: mainnet,
  *   transport: custom(window.ethereum),
  * })
- * const hash = await sendTransaction(client, {
+ * const hash = await sendTransaction(client, [{
  *   account: '0xA0Cf798816D4b9b9866b5330EEa46a18382f251e',
  *   to: '0x70997970c51812dc3a010c7d01b50e0d17dc79c8',
  *   value: 1000000000000000000n,
- * })
+ * }, {
+ *   to: '0x61897970c51812dc3a010c7d01b50e0d17dc1234',
+ *   value: 10000000000000000n,
+ * }])
  *
  * @example
  * // Account Hoisting
@@ -61,30 +68,28 @@ export type SendTransactionWithPaymasterParameters<
  *   chain: mainnet,
  *   transport: http(),
  * })
- * const hash = await sendTransaction(client, {
+ * const hash = await sendTransactions(client, [{
  *   to: '0x70997970c51812dc3a010c7d01b50e0d17dc79c8',
  *   value: 1000000000000000000n,
- * })
+ * }, {
+ *   to: '0x61897970c51812dc3a010c7d01b50e0d17dc1234',
+ *   value: 10000000000000000n,
+ * }])
  */
-export async function sendTransaction<
+export async function sendTransactions<
   TChain extends Chain | undefined,
-  TAccount extends SmartAccount | undefined,
-  TChainOverride extends Chain | undefined = Chain | undefined
+  TAccount extends SmartAccount | undefined
 >(
   client: Client<Transport, TChain, TAccount>,
-  args: Prettify<
-    SendTransactionWithPaymasterParameters<TChain, SmartAccount, TChainOverride>
-  >
+  args: Prettify<SendTransactionsWithPaymasterParameters<TAccount>>
 ): Promise<Hash> {
   const {
     account: account_ = client.account,
-    data,
+    transactions,
+    middleware,
     maxFeePerGas,
     maxPriorityFeePerGas,
-    to,
-    value,
-    nonce,
-    middleware
+    nonce
   } = args
 
   if (!account_) {
@@ -95,17 +100,20 @@ export async function sendTransaction<
 
   const account = parseAccount(account_) as SmartAccount
 
-  if (!to) throw new Error("Missing to address")
-
   if (account.type !== "local") {
     throw new Error("RPC account type not supported")
   }
 
-  const callData = await account.encodeCallData({
-    to,
-    value: value || 0n,
-    data: data || "0x"
-  })
+  const callData = await account.encodeCallData(
+    transactions.map(({ to, value, data }) => {
+      if (!to) throw new Error("Missing to address")
+      return {
+        to,
+        value: value || 0n,
+        data: data || "0x"
+      }
+    })
+  )
 
   const userOpHash = await getAction(
     client,
@@ -122,13 +130,12 @@ export async function sendTransaction<
     middleware
   })
 
-  const userOperationReceipt: GetUserOperationReceiptReturnType =
-    await getAction(
-      client,
-      waitForUserOperationReceipt
-    )({
-      hash: userOpHash
-    })
+  const userOperationReceipt = await getAction(
+    client,
+    waitForUserOperationReceipt
+  )({
+    hash: userOpHash
+  })
 
   return userOperationReceipt?.receipt.transactionHash
 }
