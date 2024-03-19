@@ -9,7 +9,7 @@ import {
 } from "viem"
 import type { Prettify } from "viem/chains"
 import { waitForUserOperationReceipt } from "../../bundler/actions/waitForUserOperationRceipt"
-import type { GetUserOperationReceiptReturnType } from "../../bundler/utils/types"
+import type { UserOpReceipt } from "../../bundler/utils/types"
 import { getAction } from "../utils/helpers"
 import type { Middleware, SmartAccount } from "../utils/types"
 import { sendUserOperation } from "./sendUserOperation"
@@ -73,7 +73,7 @@ export async function sendTransaction<
 >(
   client: Client<Transport, TChain, TAccount>,
   args: Prettify<
-    SendTransactionWithPaymasterParameters<TChain, SmartAccount, TChainOverride>
+    SendTransactionWithPaymasterParameters<TChain, TAccount, TChainOverride>
   >
 ): Promise<Hash> {
   const {
@@ -122,13 +122,12 @@ export async function sendTransaction<
     middleware
   })
 
-  const userOperationReceipt: GetUserOperationReceiptReturnType =
-    await getAction(
-      client,
-      waitForUserOperationReceipt
-    )({
-      hash: userOpHash
-    })
+  const userOperationReceipt: UserOpReceipt = await getAction(
+    client,
+    waitForUserOperationReceipt
+  )({
+    hash: userOpHash
+  })
 
   return userOperationReceipt?.receipt.transactionHash
 }

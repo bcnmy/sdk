@@ -1,4 +1,4 @@
-import type { Account, Chain, Client, Hex, Transport } from "viem"
+import type { Account, Chain, Client, Transport } from "viem"
 import type { Prettify } from "viem/chains"
 import { ENTRYPOINT_ADDRESS_V06 } from "../../accounts/utils/constants"
 import { deepHexlify } from "../../paymaster/utils/helpers"
@@ -17,9 +17,11 @@ export const estimateUserOperationGas = async <
   args: Prettify<EstimateUserOperationGasParameters>,
   stateOverrides?: StateOverrides
 ): Promise<{
-  preVerificationGas: bigint
-  verificationGasLimit: bigint
-  callGasLimit: bigint
+  preVerificationGas: string
+  verificationGasLimit: string
+  callGasLimit: string
+  maxPriorityFeePerGas: string
+  maxFeePerGas: string
 }> => {
   const { userOperation } = args
 
@@ -39,19 +41,25 @@ export const estimateUserOperationGas = async <
     })
 
     const responseV06 = response as {
-      preVerificationGas: Hex
-      verificationGasLimit: Hex
-      callGasLimit: Hex
+      preVerificationGas: string
+      verificationGasLimit: string
+      callGasLimit: string
+      maxPriorityFeePerGas: string
+      maxFeePerGas: string
     }
 
     return {
-      preVerificationGas: BigInt(responseV06.preVerificationGas || 0),
-      verificationGasLimit: BigInt(responseV06.verificationGasLimit || 0),
-      callGasLimit: BigInt(responseV06.callGasLimit || 0)
+      preVerificationGas: responseV06.preVerificationGas.toString() || "0",
+      verificationGasLimit: responseV06.verificationGasLimit.toString() || "0",
+      callGasLimit: responseV06.callGasLimit.toString() || "0",
+      maxPriorityFeePerGas: responseV06.maxPriorityFeePerGas.toString() || "0",
+      maxFeePerGas: responseV06.maxFeePerGas.toString() || "0"
     } as {
-      preVerificationGas: bigint
-      verificationGasLimit: bigint
-      callGasLimit: bigint
+      preVerificationGas: string
+      verificationGasLimit: string
+      callGasLimit: string
+      maxPriorityFeePerGas: string
+      maxFeePerGas: string
     }
   } catch (err) {
     throw new Error("Error estimating user operation gas. ")

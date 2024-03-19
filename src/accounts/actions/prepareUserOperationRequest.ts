@@ -1,9 +1,10 @@
 import { AccountOrClientNotFoundError, parseAccount } from "permissionless"
-import { type Chain, type Client, type Transport, toHex } from "viem"
+import type { Chain, Client, Transport } from "viem"
 import { estimateFeesPerGas } from "viem/actions"
 import type { Prettify } from "viem/chains"
 import { estimateUserOperationGas } from "../../bundler/actions/estimateUserOperationGas"
 import type { StateOverrides } from "../../bundler/utils/types"
+import { PaymasterMode } from "../../paymaster/utils/types"
 import { getAction } from "../utils/helpers"
 import type {
   ENTRYPOINT_ADDRESS_V06_TYPE,
@@ -63,17 +64,18 @@ async function prepareUserOperationRequestForEntryPointV06<
 
   if (middleware && typeof middleware !== "function" && middleware.gasPrice) {
     const gasPrice = await middleware.gasPrice()
-    userOperation.maxFeePerGas = toHex(gasPrice.maxFeePerGas)
-    userOperation.maxPriorityFeePerGas = toHex(gasPrice.maxPriorityFeePerGas)
+    userOperation.maxFeePerGas = gasPrice.maxFeePerGas?.toString()
+    userOperation.maxPriorityFeePerGas =
+      gasPrice.maxPriorityFeePerGas?.toString()
   }
 
   if (!userOperation.maxFeePerGas || !userOperation.maxPriorityFeePerGas) {
     const estimateGas = await estimateFeesPerGas(account.client)
     userOperation.maxFeePerGas =
-      userOperation.maxFeePerGas || toHex(estimateGas.maxFeePerGas)
+      userOperation.maxFeePerGas || estimateGas.maxFeePerGas.toString()
     userOperation.maxPriorityFeePerGas =
       userOperation.maxPriorityFeePerGas ||
-      toHex(estimateGas.maxPriorityFeePerGas)
+      estimateGas.maxPriorityFeePerGas.toString()
   }
 
   if (
@@ -83,10 +85,10 @@ async function prepareUserOperationRequestForEntryPointV06<
   ) {
     const sponsorUserOperationData = (await middleware.sponsorUserOperation({
       userOperation,
-      entryPoint: account.entryPoint
+      mode: PaymasterMode.SPONSORED
     } as {
       userOperation: UserOperationStruct
-      entryPoint: ENTRYPOINT_ADDRESS_V06_TYPE
+      mode: PaymasterMode
     })) as Pick<
       UserOperationStruct,
       | "callGasLimit"
@@ -95,11 +97,12 @@ async function prepareUserOperationRequestForEntryPointV06<
       | "paymasterAndData"
     >
 
-    userOperation.callGasLimit = sponsorUserOperationData.callGasLimit
+    userOperation.callGasLimit =
+      sponsorUserOperationData.callGasLimit?.toString()
     userOperation.verificationGasLimit =
-      sponsorUserOperationData.verificationGasLimit
+      sponsorUserOperationData.verificationGasLimit?.toString()
     userOperation.preVerificationGas =
-      sponsorUserOperationData.preVerificationGas
+      sponsorUserOperationData.preVerificationGas?.toString()
     userOperation.paymasterAndData = sponsorUserOperationData.paymasterAndData
   }
 
@@ -120,13 +123,13 @@ async function prepareUserOperationRequestForEntryPointV06<
     )
 
     userOperation.callGasLimit =
-      userOperation.callGasLimit || toHex(gasParameters.callGasLimit)
+      userOperation.callGasLimit || gasParameters.callGasLimit.toString()
     userOperation.verificationGasLimit =
       userOperation.verificationGasLimit ||
-      toHex(gasParameters.verificationGasLimit)
+      gasParameters.verificationGasLimit.toString()
     userOperation.preVerificationGas =
       userOperation.preVerificationGas ||
-      toHex(gasParameters.preVerificationGas)
+      gasParameters.preVerificationGas.toString()
   }
 
   return userOperation as UserOperationStruct

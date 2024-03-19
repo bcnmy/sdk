@@ -3,32 +3,12 @@ import type { Address, Hash, Hex } from "viem"
 import type { PartialBy } from "viem/chains"
 import type { UserOperationStruct } from "../../accounts"
 
-export type UserOperationWithBigIntAsHex = {
-  sender: Address
-  nonce: Hex
-  factory: Address
-  factoryData: Hex
-  callData: Hex
-  callGasLimit: Hex
-  verificationGasLimit: Hex
-  preVerificationGas: Hex
-  maxFeePerGas: Hex
-  maxPriorityFeePerGas: Hex
-  paymaster: Address
-  paymasterVerificationGasLimit: Hex
-  paymasterPostOpGasLimit: Hex
-  paymasterData: Hex
-  signature: Hex
-  initCode: Hex
-  paymasterAndData?: never
-}
-
 export type BundlerRpcSchema = [
   {
     Method: "eth_sendUserOperation"
     Parameters: [
-      userOperation: UserOperationWithBigIntAsHex,
-      entryPoint: ENTRYPOINT_ADDRESS_V06_TYPE
+      userOperation: UserOperationStruct,
+      entryPointAddress: ENTRYPOINT_ADDRESS_V06_TYPE
     ]
     ReturnType: Hash
   },
@@ -36,22 +16,18 @@ export type BundlerRpcSchema = [
     Method: "eth_estimateUserOperationGas"
     Parameters: [
       userOperation: PartialBy<
-        UserOperationWithBigIntAsHex,
-        | "callGasLimit"
-        | "preVerificationGas"
-        | "verificationGasLimit"
-        | "paymasterVerificationGasLimit"
-        | "paymasterPostOpGasLimit"
+        UserOperationStruct,
+        "callGasLimit" | "preVerificationGas" | "verificationGasLimit"
       >,
-      entryPoint: ENTRYPOINT_ADDRESS_V06_TYPE,
+      entryPointAddress: ENTRYPOINT_ADDRESS_V06_TYPE,
       stateOverrides?: StateOverrides
     ]
     ReturnType: {
-      preVerificationGas: Hex
-      verificationGasLimit: Hex
-      callGasLimit?: Hex | null
-      paymasterVerificationGasLimit?: Hex | null
-      paymasterPostOpGasLimit?: Hex | null
+      preVerificationGas: string
+      verificationGasLimit: string
+      callGasLimit?: string
+      maxPriorityFeePerGas: string
+      maxFeePerGas: string
     }
   },
   {
@@ -68,7 +44,7 @@ export type BundlerRpcSchema = [
     Method: "eth_getUserOperationByHash"
     Parameters: [hash: Hash]
     ReturnType: {
-      userOperation: UserOperationWithBigIntAsHex
+      userOperation: UserOperationStruct
       entryPoint: ENTRYPOINT_ADDRESS_V06_TYPE
       transactionHash: Hash
       blockHash: Hash
@@ -78,42 +54,14 @@ export type BundlerRpcSchema = [
   {
     Method: "eth_getUserOperationReceipt"
     Parameters: [hash: Hash]
-    ReturnType: UserOperationReceiptWithBigIntAsHex
+    ReturnType: UserOpReceipt
+  },
+  {
+    Method: "biconomy_getGasFeeValues"
+    Parameters: []
+    ReturnType: GasFeeValues
   }
 ]
-
-type UserOperationReceiptWithBigIntAsHex = {
-  userOpHash: Hash
-  sender: Address
-  nonce: Hex
-  actualGasUsed: Hex
-  actualGasCost: Hex
-  success: boolean
-  receipt: {
-    transactionHash: Hex
-    transactionIndex: Hex
-    blockHash: Hash
-    blockNumber: Hex
-    from: Address
-    to: Address | null
-    cumulativeGasUsed: Hex
-    status: "0x0" | "0x1"
-    gasUsed: Hex
-    contractAddress: Address | null
-    logsBloom: Hex
-    effectiveGasPrice: Hex
-  }
-  logs: {
-    data: Hex
-    blockNumber: Hex
-    blockHash: Hash
-    transactionHash: Hash
-    logIndex: Hex
-    transactionIndex: Hex
-    address: Address
-    topics: Hex[]
-  }[]
-}
 
 export type StateOverrides = {
   [x: string]: {
@@ -130,10 +78,7 @@ export type StateOverrides = {
 }
 
 export type EstimateUserOperationGasParameters = {
-  userOperation: PartialBy<
-    UserOperationStruct,
-    "callGasLimit" | "preVerificationGas" | "verificationGasLimit"
-  >
+  userOperation: UserOperationStruct
 }
 
 export type WaitForUserOperationReceiptParameters = {
@@ -150,39 +95,34 @@ export type WaitForUserOperationReceiptParameters = {
 
 export type TStatus = "success" | "reverted"
 
-export type GetUserOperationReceiptReturnType = {
-  userOpHash: Hash
-  sender: Address
-  nonce: bigint
-  actualGasUsed: bigint
-  actualGasCost: bigint
-  success: boolean
-  receipt: {
-    transactionHash: Hex
-    transactionIndex: bigint
-    blockHash: Hash
-    blockNumber: bigint
-    from: Address
-    to: Address | null
-    cumulativeGasUsed: bigint
-    status: TStatus
-    gasUsed: bigint
-    contractAddress: Address | null
-    logsBloom: Hex
-    effectiveGasPrice: bigint
-  }
-  logs: {
-    data: Hex
-    blockNumber: bigint
-    blockHash: Hash
-    transactionHash: Hash
-    logIndex: bigint
-    transactionIndex: bigint
-    address: Address
-    topics: Hex[]
-  }[]
+export type UserOpReceipt = {
+  /* The request hash of the UserOperation. */
+  userOpHash: string
+  /* The entry point address used for the UserOperation. */
+  entryPoint: string
+  /* The paymaster used for this UserOperation (or empty). */
+  paymaster: string
+  /* The actual amount paid (by account or paymaster) for this UserOperation. */
+  actualGasCost: Hex
+  /* The total gas used by this UserOperation (including preVerification, creation, validation, and execution). */
+  actualGasUsed: Hex
+  /* Indicates whether the execution completed without reverting. */
+  success: "true" | "false"
+  /* In case of revert, this is the revert reason. */
+  reason: string
+  /* The logs generated by this UserOperation (not including logs of other UserOperations in the same bundle). */
+  logs: Array<any> // The logs generated by this UserOperation (not including logs of other UserOperations in the same bundle)
+  /* The TransactionReceipt object for the entire bundle, not only for this UserOperation. */
+  receipt: any
 }
 
 export type GetUserOperationByHashParameters = {
   hash: Hash
+}
+
+export type GetGasFeeValuesReturnType = GasFeeValues
+
+export type GasFeeValues = {
+  maxPriorityFeePerGas: string
+  maxFeePerGas: string
 }

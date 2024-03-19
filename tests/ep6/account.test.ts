@@ -76,8 +76,7 @@ describe("Biconomy Smart Account V2 EP v6 tests", () => {
   test("Should send an empty tx", async () => {
     const txHash = await smartAccountClient.sendTransaction({
       to: "0xd3C85Fdd3695Aee3f0A12B3376aCD8DC54020549",
-      data: "0x1234",
-      account: smartAccount
+      data: "0x1234"
     })
 
     console.log("Transaction Hash: ", txHash)
@@ -92,8 +91,7 @@ describe("Biconomy Smart Account V2 EP v6 tests", () => {
 
     const txHash = await smartAccountClient.sendTransaction({
       to: nftAddress,
-      data: encodedCall,
-      account: smartAccount
+      data: encodedCall
     })
 
     console.log("Transaction Hash for NFT Mint: ", txHash)
@@ -275,8 +273,7 @@ describe("Biconomy Smart Account V2 EP v6 tests", () => {
           value: 0n,
           data: mintNftData
         })
-      },
-      account: smartAccount
+      }
     })
 
     const isValid = validateUserOp(userOp)

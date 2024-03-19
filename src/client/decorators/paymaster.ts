@@ -31,7 +31,7 @@ export type PaymasterClientActions = {
    *
    */
   sponsorUserOperation: (
-    args: Omit<SponsorUserOperationParameters, "entrypoint">
+    args: SponsorUserOperationParameters
   ) => Promise<SponsorUserOperationReturnType>
 
   /**

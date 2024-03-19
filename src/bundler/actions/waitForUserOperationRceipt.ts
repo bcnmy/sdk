@@ -8,9 +8,10 @@ import {
   stringify
 } from "viem"
 import type { Prettify } from "viem/chains"
+
 import { getAction } from "../../accounts/utils/helpers"
 import { observe } from "../utils/helpers"
-import type { GetUserOperationReceiptReturnType } from "../utils/types"
+import type { UserOpReceipt } from "../utils/types"
 import { getUserOperationReceipt } from "./getUserOperationReceipt"
 
 export class WaitForUserOperationReceiptTimeoutError extends BaseError {
@@ -66,14 +67,14 @@ export const waitForUserOperationReceipt = <
     pollingInterval = bundlerClient.pollingInterval,
     timeout
   }: Prettify<WaitForUserOperationReceiptParameters>
-): Promise<Prettify<GetUserOperationReceiptReturnType>> => {
+): Promise<Prettify<UserOpReceipt>> => {
   const observerId = stringify([
     "waitForUserOperationReceipt",
     bundlerClient.uid,
     hash
   ])
 
-  let userOperationReceipt: GetUserOperationReceiptReturnType
+  let userOperationReceipt: UserOpReceipt
 
   return new Promise((resolve, reject) => {
     const unobserve = observe(observerId, { resolve, reject }, async (emit) => {

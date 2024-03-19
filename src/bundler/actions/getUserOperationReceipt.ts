@@ -1,10 +1,6 @@
 import type { Account, Chain, Client, Hash, Transport } from "viem"
 import type { Prettify } from "viem/chains"
-import { transactionReceiptStatus } from "../utils/helpers"
-import type {
-  BundlerRpcSchema,
-  GetUserOperationReceiptReturnType
-} from "../utils/types"
+import type { BundlerRpcSchema, UserOpReceipt } from "../utils/types"
 
 export type GetUserOperationReceiptParameters = {
   hash: Hash
@@ -39,7 +35,7 @@ export const getUserOperationReceipt = async <
 >(
   client: Client<TTransport, TChain, TAccount, BundlerRpcSchema>,
   { hash }: Prettify<GetUserOperationReceiptParameters>
-): Promise<Prettify<GetUserOperationReceiptReturnType> | null> => {
+): Promise<Prettify<UserOpReceipt> | null> => {
   const params: [Hash] = [hash]
 
   const response = await client.request({
@@ -49,37 +45,16 @@ export const getUserOperationReceipt = async <
 
   if (!response) return null
 
-  const userOperationReceipt: GetUserOperationReceiptReturnType = {
+  const userOperationReceipt: UserOpReceipt = {
     userOpHash: response.userOpHash,
-    sender: response.sender,
-    nonce: BigInt(response.nonce),
-    actualGasUsed: BigInt(response.actualGasUsed),
-    actualGasCost: BigInt(response.actualGasCost),
+    entryPoint: response.entryPoint,
+    paymaster: response.paymaster,
+    actualGasCost: response.actualGasCost,
+    actualGasUsed: response.actualGasUsed,
     success: response.success,
-    receipt: {
-      transactionHash: response.receipt.transactionHash,
-      transactionIndex: BigInt(response.receipt.transactionIndex),
-      blockHash: response.receipt.blockHash,
-      blockNumber: BigInt(response.receipt.blockNumber),
-      from: response.receipt.from,
-      to: response.receipt.to,
-      cumulativeGasUsed: BigInt(response.receipt.cumulativeGasUsed),
-      status: transactionReceiptStatus[response.receipt.status],
-      gasUsed: BigInt(response.receipt.gasUsed),
-      contractAddress: response.receipt.contractAddress,
-      logsBloom: response.receipt.logsBloom,
-      effectiveGasPrice: BigInt(response.receipt.effectiveGasPrice)
-    },
-    logs: response.logs.map((log) => ({
-      data: log.data,
-      blockNumber: BigInt(log.blockNumber),
-      blockHash: log.blockHash,
-      transactionHash: log.transactionHash,
-      logIndex: BigInt(log.logIndex),
-      transactionIndex: BigInt(log.transactionIndex),
-      address: log.address,
-      topics: log.topics
-    }))
+    reason: response.reason,
+    logs: response.logs,
+    receipt: response.receipt
   }
 
   return userOperationReceipt

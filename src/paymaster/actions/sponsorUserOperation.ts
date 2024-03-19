@@ -1,4 +1,4 @@
-import type { Hex } from "viem"
+import type { BytesLike } from "../../accounts/utils/types"
 import type { PaymasterClient } from "../createPaymasterClient"
 import { deepHexlify } from "../utils/helpers"
 import type {
@@ -10,8 +10,6 @@ export const sponsorUserOperation = async (
   client: PaymasterClient,
   args: SponsorUserOperationParameters
 ): Promise<SponsorUserOperationReturnType> => {
-  console.log(deepHexlify(args.userOperation), "args.userOperation")
-
   const response = await client.request({
     method: "pm_sponsorUserOperation",
     params: [
@@ -29,18 +27,13 @@ export const sponsorUserOperation = async (
     ]
   })
 
-  console.log(response, "response")
-
   const responseV06 = response as {
-    paymasterAndData: Hex
-    preVerificationGas: Hex
-    verificationGasLimit: Hex
-    callGasLimit: Hex
-    paymaster?: never
-    paymasterVerificationGasLimit?: never
-    paymasterPostOpGasLimit?: never
-    paymasterData?: never
+    paymasterAndData: BytesLike
+    preVerificationGas: string
+    verificationGasLimit: string
+    callGasLimit: string
   }
+
   return {
     paymasterAndData: responseV06.paymasterAndData,
     preVerificationGas: responseV06.preVerificationGas,

@@ -2,11 +2,7 @@ import type { Account, Chain, Client, Hash, Transport } from "viem"
 import type { Prettify } from "viem/chains"
 import type { UserOperationStruct } from "../../accounts"
 import { ENTRYPOINT_ADDRESS_V06 } from "../../accounts/utils/constants"
-import { deepHexlify } from "../../paymaster/utils/helpers"
-import type {
-  BundlerRpcSchema,
-  UserOperationWithBigIntAsHex
-} from "../utils/types"
+import type { BundlerRpcSchema } from "../utils/types"
 
 export type SendUserOperationParameters = {
   userOperation: UserOperationStruct
@@ -50,10 +46,7 @@ export const sendUserOperation = async <
   try {
     const userOperationHash = await client.request({
       method: "eth_sendUserOperation",
-      params: [
-        deepHexlify(userOperation) as UserOperationWithBigIntAsHex,
-        ENTRYPOINT_ADDRESS_V06
-      ]
+      params: [userOperation as UserOperationStruct, ENTRYPOINT_ADDRESS_V06]
     })
 
     return userOperationHash

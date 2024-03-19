@@ -1,5 +1,3 @@
-import {} from "permissionless"
-
 import { type Chain, type Client, type Transport, createClient } from "viem"
 import type { Prettify } from "viem/chains"
 
@@ -21,7 +19,7 @@ export type SmartAccountClient<
     chain,
     account,
     BundlerRpcSchema,
-    SmartAccountActions<chain>
+    SmartAccountActions<chain, account>
   >
 >
 

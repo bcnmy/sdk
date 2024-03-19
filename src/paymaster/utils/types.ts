@@ -1,12 +1,12 @@
-import type { Address, Hex } from "viem"
+import type { Address } from "viem"
 import type { PartialBy } from "viem/chains"
-import type { UserOperationStruct } from "../../accounts/utils/types"
+import type { BytesLike, UserOperationStruct } from "../../accounts/utils/types"
 
 export type SponsorUserOperationReturnType = {
-  callGasLimit: Hex
-  verificationGasLimit: Hex
-  preVerificationGas: Hex
-  paymasterAndData: Hex
+  callGasLimit: string
+  verificationGasLimit: string
+  preVerificationGas: string
+  paymasterAndData: BytesLike
 }
 
 export type SponsorUserOperationParameters = {
@@ -41,14 +41,10 @@ export type PaymasterRpcSchema = [
       context: PaymasterContext
     ]
     ReturnType: {
-      paymasterAndData: Hex
-      preVerificationGas: Hex
-      verificationGasLimit: Hex
-      callGasLimit: Hex
-      paymaster?: never
-      paymasterVerificationGasLimit?: never
-      paymasterPostOpGasLimit?: never
-      paymasterData?: never
+      paymasterAndData: BytesLike
+      preVerificationGas: string
+      verificationGasLimit: string
+      callGasLimit: string
     }
   },
   {

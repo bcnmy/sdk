@@ -4,6 +4,7 @@ import { ENTRYPOINT_ADDRESS_V06 } from "../../accounts/utils/constants"
 import type { ENTRYPOINT_ADDRESS_V06_TYPE } from "../../accounts/utils/types"
 import { estimateUserOperationGas } from "../../bundler"
 import { chainId } from "../../bundler/actions/chainId"
+import { getGasFeeValues } from "../../bundler/actions/getGasFeeValues"
 import {
   type GetUserOperationByHashReturnType,
   getUserOperationByHash
@@ -20,9 +21,10 @@ import { waitForUserOperationReceipt } from "../../bundler/actions/waitForUserOp
 import type { BundlerClient } from "../../bundler/createBundlerClient"
 import type {
   EstimateUserOperationGasParameters,
+  GetGasFeeValuesReturnType,
   GetUserOperationByHashParameters,
-  GetUserOperationReceiptReturnType,
   StateOverrides,
+  UserOpReceipt,
   WaitForUserOperationReceiptParameters
 } from "../../bundler/utils/types"
 
@@ -85,9 +87,11 @@ export type BundlerActions = {
     stateOverrides?: StateOverrides
   ) => Promise<
     Prettify<{
-      preVerificationGas: bigint
-      verificationGasLimit: bigint
-      callGasLimit: bigint
+      preVerificationGas: string
+      verificationGasLimit: string
+      callGasLimit: string
+      maxPriorityFeePerGas: string
+      maxFeePerGas: string
     }>
   >
   /**
@@ -180,7 +184,7 @@ export type BundlerActions = {
    */
   getUserOperationReceipt: (
     args: Prettify<{ hash: Hash }>
-  ) => Promise<Prettify<GetUserOperationReceiptReturnType> | null>
+  ) => Promise<Prettify<UserOpReceipt> | null>
 
   /**
    * Waits for the User Operation to be included on a [Block](https://viem.sh/docs/glossary/terms.html#block) (one confirmation), and then returns the [User Operation Receipt](https://docs.pimlico.io/permissionless/reference/bundler-actions/getUserOperationReceipt).
@@ -205,7 +209,9 @@ export type BundlerActions = {
    */
   waitForUserOperationReceipt: (
     args: Prettify<WaitForUserOperationReceiptParameters>
-  ) => Promise<Prettify<GetUserOperationReceiptReturnType>>
+  ) => Promise<Prettify<UserOpReceipt>>
+
+  getGasFeeValues: () => Promise<GetGasFeeValuesReturnType>
 }
 
 const bundlerActions =
@@ -218,7 +224,7 @@ const bundlerActions =
         ...args
       }),
     estimateUserOperationGas: (
-      args: Omit<EstimateUserOperationGasParameters, "entryPoint">,
+      args: EstimateUserOperationGasParameters,
       stateOverrides?: StateOverrides
     ) =>
       estimateUserOperationGas(
@@ -235,7 +241,8 @@ const bundlerActions =
       getUserOperationReceipt(client as BundlerClient, args),
     waitForUserOperationReceipt: (
       args: WaitForUserOperationReceiptParameters
-    ) => waitForUserOperationReceipt(client as BundlerClient, args)
+    ) => waitForUserOperationReceipt(client as BundlerClient, args),
+    getGasFeeValues: () => getGasFeeValues(client as BundlerClient)
   })
 
 export { bundlerActions }
