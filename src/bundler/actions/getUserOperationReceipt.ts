@@ -9,7 +9,7 @@ export type GetUserOperationReceiptParameters = {
 /**
  * Returns the user operation receipt from userOpHash
  *
- * - Docs: https://docs.pimlico.io/permissionless/reference/bundler-actions/getUserOperationReceipt
+ * - Docs: https://docs.biconomy.io/ ... // TODO
  *
  * @param client {@link BundlerClient} that you created using viem's createClient and extended it with bundlerActions.
  * @param args {@link GetUserOperationReceiptParameters} UserOpHash that was returned by {@link sendUserOperation}
@@ -18,7 +18,7 @@ export type GetUserOperationReceiptParameters = {
  *
  * @example
  * import { createClient } from "viem"
- * import { getUserOperationReceipt } from "permissionless/actions"
+ * import { getUserOperationReceipt } from "@biconomy/sdk"
  *
  * const bundlerClient = createClient({
  *      chain: goerli,

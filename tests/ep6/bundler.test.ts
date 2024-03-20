@@ -25,4 +25,13 @@ describe("Bundler tests", () => {
     })
     expect(await bundlerClient.chainId()).toBe(chainId)
   })
+
+  it("Should get user operation status", async () => {
+    const bundlerClient = createBundlerClient({
+      chain,
+      transport: http(bundlerUrl)
+    })
+
+    expect(await bundlerClient.chainId()).toBe(chainId)
+  })
 })

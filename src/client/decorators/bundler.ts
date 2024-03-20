@@ -13,6 +13,7 @@ import {
   type GetUserOperationReceiptParameters,
   getUserOperationReceipt
 } from "../../bundler/actions/getUserOperationReceipt"
+import { getUserOpStatus } from "../../bundler/actions/getUserOperationStatus"
 import {
   type SendUserOperationParameters,
   sendUserOperation
@@ -25,6 +26,7 @@ import type {
   GetUserOperationByHashParameters,
   StateOverrides,
   UserOpReceipt,
+  UserOpStatus,
   WaitForUserOperationReceiptParameters
 } from "../../bundler/utils/types"
 
@@ -186,7 +188,7 @@ export type BundlerActions = {
   ) => Promise<Prettify<UserOpReceipt> | null>
 
   /**
-   * Waits for the User Operation to be included on a [Block](https://viem.sh/docs/glossary/terms.html#block) (one confirmation), and then returns the [User Operation Receipt](https://docs.pimlico.io/permissionless/reference/bundler-actions/getUserOperationReceipt).
+   * Waits for the User Operation to be included on a [Block](https://viem.sh/docs/glossary/terms.html#block) (one confirmation), and then returns the [User Operation Receipt]
    *
    * - Docs: https://docs.biconomy.io/... // TODO
    *
@@ -212,6 +214,7 @@ export type BundlerActions = {
   ) => Promise<Prettify<UserOpReceipt>>
 
   getGasFeeValues: () => Promise<GetGasFeeValuesReturnType>
+  getUserOpStatus: (userOpHash: Hash) => Promise<UserOpStatus>
 }
 
 const bundlerActions =
@@ -242,7 +245,9 @@ const bundlerActions =
     waitForUserOperationReceipt: (
       args: WaitForUserOperationReceiptParameters
     ) => waitForUserOperationReceipt(client as BundlerClient, args),
-    getGasFeeValues: () => getGasFeeValues(client as BundlerClient)
+    getGasFeeValues: () => getGasFeeValues(client as BundlerClient),
+    getUserOpStatus: (userOpHash: Hash) =>
+      getUserOpStatus(client as BundlerClient, userOpHash)
   })
 
 export { bundlerActions }

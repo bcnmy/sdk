@@ -36,16 +36,17 @@ export type WaitForUserOperationReceiptParameters = {
 }
 
 /**
- * Waits for the User Operation to be included on a [Block](https://viem.sh/docs/glossary/terms.html#block) (one confirmation), and then returns the [User Operation Receipt](https://docs.pimlico.io/permissionless/reference/bundler-actions/getUserOperationReceipt).
+ * Waits for the User Operation to be included on a [Block](https://viem.sh/docs/glossary/terms.html#block) (one confirmation), and then returns the [User Operation Receipt].
  *
- * - Docs: https://docs.pimlico.io/permissionless/reference/bundler-actions/waitForUserOperationReceipt
+ * - Docs: https://docs.biconomy.io/ ... // TODO
  *
  * @param client - Bundler Client to use
  * @param parameters - {@link WaitForUserOperationReceiptParameters}
  * @returns The transaction receipt. {@link GetUserOperationReceiptReturnType}
  *
  * @example
- * import { createBundlerClient, waitForUserOperationReceipt, http } from 'viem'
+ * import { waitForUserOperationReceipt, http } from 'viem'
+ * import { createBundlerClient } from "@biconomy/sdk" // TODO
  * import { mainnet } from 'viem/chains'
  *
  * const client = createBundlerClient({

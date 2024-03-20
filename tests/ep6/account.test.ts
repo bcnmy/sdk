@@ -12,7 +12,6 @@ import {
 import type { Client, Hex, PublicClient } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 
-import { SignTransactionNotSupportedBySmartAccount } from "permissionless/accounts"
 import type { UserOperationStruct } from "../../src/accounts/index.js"
 import { DEFAULT_ECDSA_OWNERSHIP_MODULE } from "../../src/accounts/utils/constants.js"
 import {
@@ -248,7 +247,9 @@ describe("Biconomy Smart Account V2 EP v6 tests", () => {
       value: 0n,
       data: "0x"
     })
-    expect(response).rejects.toThrow(SignTransactionNotSupportedBySmartAccount)
+    expect(response).rejects.toThrow(
+      "Sign transaction not supported by smart account"
+    )
   })
 
   test("Should build a user operation manually and send it", async () => {

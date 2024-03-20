@@ -1,7 +1,7 @@
-import type { ENTRYPOINT_ADDRESS_V06_TYPE } from "permissionless/types/entrypoint"
 import type { Address, Hash, Hex } from "viem"
 import type { PartialBy } from "viem/chains"
 import type { UserOperationStruct } from "../../accounts"
+import type { ENTRYPOINT_ADDRESS_V06_TYPE } from "../../accounts/utils/types"
 
 export type BundlerRpcSchema = [
   {
@@ -60,6 +60,11 @@ export type BundlerRpcSchema = [
     Method: "biconomy_getGasFeeValues"
     Parameters: []
     ReturnType: GasFeeValues
+  },
+  {
+    Method: "biconomy_getUserOperationStatus"
+    Parameters: [userOpHash: Hash]
+    ReturnType: UserOpStatus
   }
 ]
 
@@ -142,4 +147,10 @@ export type SendUserOpResponse = {
   result: string
   /** The error if the request failed */
   error?: JsonRpcError
+}
+
+export type UserOpStatus = {
+  state: string // for now // could be an enum
+  transactionHash?: string
+  userOperationReceipt?: UserOpReceipt
 }

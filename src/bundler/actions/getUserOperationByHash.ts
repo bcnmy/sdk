@@ -18,7 +18,7 @@ export type GetUserOperationByHashReturnType = {
 /**
  * Returns the user operation from userOpHash
  *
- * - Docs: https://docs.pimlico.io/permissionless/reference/bundler-actions/getUserOperationByHash
+ * - Docs: https://docs.biconomy.io/ ... // TODO
  *
  * @param client {@link BundlerClient} that you created using viem's createClient and extended it with bundlerActions.
  * @param args {@link GetUserOperationByHashParameters} UserOpHash that was returned by {@link sendUserOperation}
@@ -27,7 +27,7 @@ export type GetUserOperationByHashReturnType = {
  *
  * @example
  * import { createClient } from "viem"
- * import { getUserOperationByHash } from "permissionless/actions"
+ * import { getUserOperationByHash } from "@biconomy/sdk" // TODO
  *
  * const bundlerClient = createClient({
  *      chain: goerli,

@@ -11,7 +11,7 @@ export type SendUserOperationParameters = {
 /**
  * Sends user operation to the bundler
  *
- * - Docs: https://docs.pimlico.io/permissionless/reference/bundler-actions/sendUserOperation
+ * - Docs: https://docs.biconomy.io/ ... // TODO
  *
  * @param client {@link BundlerClient} that you created using viem's createClient and extended it with bundlerActions.
  * @param args {@link SendUserOperationParameters}.
@@ -19,7 +19,7 @@ export type SendUserOperationParameters = {
  *
  * @example
  * import { createClient } from "viem"
- * import { sendUserOperation } from "permissionless/actions"
+ * import { sendUserOperation } from "@biconomy/sdk" // TODO
  *
  * const bundlerClient = createClient({
  *      chain: goerli,
