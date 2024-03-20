@@ -1,4 +1,3 @@
-import { AccountOrClientNotFoundError, parseAccount } from "permissionless"
 import {
   type Chain,
   type Client,
@@ -10,7 +9,7 @@ import {
 import type { Prettify } from "viem/chains"
 import { waitForUserOperationReceipt } from "../../bundler/actions/waitForUserOperationRceipt"
 import type { UserOpReceipt } from "../../bundler/utils/types"
-import { getAction } from "../utils/helpers"
+import { getAction, parseAccount } from "../utils/helpers"
 import type { Middleware, SmartAccount } from "../utils/types"
 import { sendUserOperation } from "./sendUserOperation"
 
@@ -88,9 +87,7 @@ export async function sendTransaction<
   } = args
 
   if (!account_) {
-    throw new AccountOrClientNotFoundError({
-      docsPath: "/docs/actions/wallet/sendTransaction"
-    })
+    throw new Error("No account found.")
   }
 
   const account = parseAccount(account_) as SmartAccount

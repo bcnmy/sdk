@@ -1,5 +1,6 @@
 import {
   type Abi,
+  type Account,
   type Address,
   type Chain,
   type Client,
@@ -9,7 +10,9 @@ import {
   type Hex,
   type SignableMessage,
   type Transport,
+  type TypedData,
   type TypedDataDefinition,
+  type WalletClient,
   concat,
   encodeAbiParameters,
   keccak256,
@@ -20,14 +23,14 @@ import * as chains from "viem/chains"
 import { toAccount } from "viem/accounts"
 import type { BaseValidationModule } from "../../modules/index.js"
 
-import { isSmartAccountDeployed } from "permissionless"
-import { SignTransactionNotSupportedBySmartAccount } from "permissionless/accounts"
-import type { ENTRYPOINT_ADDRESS_V06_TYPE } from "permissionless/types/entrypoint.js"
-
+import { signTypedData } from "viem/actions"
+import { isSmartAccountDeployed } from "../biconomyV2/signerToSmartAccount.js"
 import { ENTRYPOINT_ADDRESS_V06 } from "./constants.js"
 import type {
+  ENTRYPOINT_ADDRESS_V06_TYPE,
   GetUserOperationHashParams,
   SmartAccount,
+  SmartAccountSigner,
   UserOperationStruct
 } from "./types.js"
 
@@ -162,7 +165,7 @@ export function toSmartAccount<
       return concat([abiEncodedMessage, MAGIC_BYTES])
     },
     async signTransaction(_, __) {
-      throw new SignTransactionNotSupportedBySmartAccount()
+      throw new Error("Sign transaction not supported by smart account")
     }
   })
 
@@ -312,4 +315,39 @@ export function getAction<params extends any[], returnType extends {}>(
         [key: string]: (...params: params) => returnType
       }
     )[actionName]?.(...params) ?? action(client, ...params)
+}
+
+export function parseAccount(account: Address | Account): Account {
+  if (typeof account === "string") return { address: account, type: "json-rpc" }
+  return account
+}
+
+export function walletClientToSmartAccountSigner<
+  TChain extends Chain | undefined = Chain | undefined
+>(
+  walletClient: WalletClient<Transport, TChain, Account>
+): SmartAccountSigner<"custom", Address> {
+  return {
+    address: walletClient.account.address,
+    type: "local",
+    source: "custom",
+    publicKey: walletClient.account.address,
+    signMessage: async ({
+      message
+    }: { message: SignableMessage }): Promise<Hex> => {
+      return walletClient.signMessage({ message })
+    },
+    async signTypedData<
+      const TTypedData extends TypedData | Record<string, unknown>,
+      TPrimaryType extends keyof TTypedData | "EIP712Domain" = keyof TTypedData
+    >(typedData: TypedDataDefinition<TTypedData, TPrimaryType>) {
+      return signTypedData<TTypedData, TPrimaryType, TChain, Account>(
+        walletClient,
+        {
+          account: walletClient.account,
+          ...typedData
+        }
+      )
+    }
+  }
 }

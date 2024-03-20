@@ -24,7 +24,7 @@ import {
   sendUserOperation
 } from "../../accounts/actions/sendUserOperation"
 import { signMessage } from "../../accounts/actions/signMessage"
-import { signTypedData } from "../../accounts/actions/sygnTypedData"
+import { signTypedData } from "../../accounts/actions/signTypedData"
 import type {
   Middleware,
   SmartAccount,

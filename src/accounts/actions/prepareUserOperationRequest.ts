@@ -1,11 +1,10 @@
-import { AccountOrClientNotFoundError, parseAccount } from "permissionless"
 import type { Chain, Client, Transport } from "viem"
 import { estimateFeesPerGas } from "viem/actions"
 import type { Prettify } from "viem/chains"
 import { estimateUserOperationGas } from "../../bundler/actions/estimateUserOperationGas"
 import type { StateOverrides } from "../../bundler/utils/types"
 import { PaymasterMode } from "../../paymaster/utils/types"
-import { getAction } from "../utils/helpers"
+import { getAction, parseAccount } from "../utils/helpers"
 import type {
   ENTRYPOINT_ADDRESS_V06_TYPE,
   PrepareUserOperationRequestParameters,
@@ -27,7 +26,7 @@ async function prepareUserOperationRequestForEntryPointV06<
     userOperation: partialUserOperation,
     middleware
   } = args
-  if (!account_) throw new AccountOrClientNotFoundError()
+  if (!account_) throw new Error("No account found")
 
   const account = parseAccount(
     account_
@@ -145,7 +144,7 @@ export async function prepareUserOperationRequest<
   stateOverrides?: StateOverrides
 ): Promise<UserOperationStruct> {
   const { account: account_ = client.account } = args
-  if (!account_) throw new AccountOrClientNotFoundError()
+  if (!account_) throw new Error("No account found.")
 
   return prepareUserOperationRequestForEntryPointV06(
     client,

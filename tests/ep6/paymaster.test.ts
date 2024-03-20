@@ -8,10 +8,12 @@ import {
 } from "viem"
 import { describe, expect, it } from "vitest"
 
-import { walletClientToSmartAccountSigner } from "permissionless"
 import { privateKeyToAccount } from "viem/accounts"
 import { base, baseSepolia } from "viem/chains"
-import { getChain } from "../../src/accounts/utils/helpers.js"
+import {
+  getChain,
+  walletClientToSmartAccountSigner
+} from "../../src/accounts/utils/helpers.js"
 import { createBundlerClient } from "../../src/bundler/createBundlerClient.js"
 import {
   createSmartAccountClient,

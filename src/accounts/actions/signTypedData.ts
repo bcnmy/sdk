@@ -1,4 +1,3 @@
-import { AccountOrClientNotFoundError, parseAccount } from "permissionless"
 import {
   type Chain,
   type Client,
@@ -10,6 +9,7 @@ import {
   getTypesForEIP712Domain,
   validateTypedData
 } from "viem"
+import { parseAccount } from "../utils/helpers"
 import type { SmartAccount } from "../utils/types"
 
 /**
@@ -126,9 +126,7 @@ export async function signTypedData<
   }: SignTypedDataParameters<TTypedData, TPrimaryType, SmartAccount>
 ): Promise<SignTypedDataReturnType> {
   if (!account_) {
-    throw new AccountOrClientNotFoundError({
-      docsPath: "/docs/actions/wallet/signMessage"
-    })
+    throw new Error("No account found.")
   }
 
   const account = parseAccount(account_)

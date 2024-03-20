@@ -2,7 +2,7 @@ import { http, createPublicClient, createWalletClient } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { beforeAll, describe, expect, test } from "vitest"
 
-import { walletClientToSmartAccountSigner } from "permissionless"
+import { walletClientToSmartAccountSigner } from "../../src/accounts/utils/helpers.js"
 import {
   createSmartAccountClient,
   signerToSmartAccount

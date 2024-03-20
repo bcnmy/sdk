@@ -33,26 +33,25 @@ export type BundlerActions = {
    *
    * Sends user operation to the bundler
    *
-   * - Docs: https://docs.pimlico.io/permissionless/reference/bundler-actions/sendUserOperation
+   * - Docs: https://docs.biconomy.io/... // TODO
    *
    * @param args {@link SendUserOperationParameters}.
    * @returns UserOpHash that you can use to track user operation as {@link Hash}.
    *
    * @example
    * import { createClient } from "viem"
-   * import { bundlerActions } from "permissionless"
+   * import { bundlerActions } from "@biconomy/sdk" // TODO
    *
    * const bundlerClient = createClient({
    *      chain: goerli,
-   *      transport: http("https://api.pimlico.io/v2/goerli/rpc?apikey=YOUR_API_KEY_HERE")
+   *      transport: http(bundlerUrl)
    * }).extend(bundlerActions)
    *
    * const userOpHash = await bundlerClient.sendUserOperation({
-   *      userOperation: signedUserOperation,
-   *      entryPoint: entryPoint
+   *      userOperation: signedUserOperation
    * })
    *
-   * // Return '0xe9fad2cd67f9ca1d0b7a6513b2a42066784c8df938518da2b51bb8cc9a89ea34'
+   * Return "0x...hash"
    */
   sendUserOperation: (
     args: Prettify<Omit<SendUserOperationParameters, "entryPoint">>
@@ -61,14 +60,14 @@ export type BundlerActions = {
    *
    * Estimates preVerificationGas, verificationGasLimit and callGasLimit for user operation
    *
-   * - Docs: https://docs.pimlico.io/permissionless/reference/bundler-actions/estimateUserOperationGas
+   * - Docs: https://docs.biconomy.io/... // TODO
    *
    * @param args {@link EstimateUserOperationGasParameters}
    * @returns preVerificationGas, verificationGasLimit and callGasLimit as {@link EstimateUserOperationGasReturnType}
    *
    * @example
    * import { createClient } from "viem"
-   * import { bundlerActions } from "permissionless"
+   * import { bundlerActions } from "@biconomy/sdk" // TODO
    *
    * const bundlerClient = createClient({
    *      chain: goerli,
@@ -98,13 +97,13 @@ export type BundlerActions = {
    *
    * Returns the supported entrypoints by the bundler service
    *
-   * - Docs: https://docs.pimlico.io/permissionless/reference/bundler-actions/supportedEntryPoints
+   * - Docs: https://docs.biconomy.io/... // TODO
    *
    * @returns Supported entryPoints
    *
    * @example
    * import { createClient } from "viem"
-   * import { bundlerActions } from "permissionless"
+   * import { bundlerActions } from "@biconomy/sdk" // TODO
    *
    * const bundlerClient = createClient({
    *      chain: goerli,
@@ -120,13 +119,13 @@ export type BundlerActions = {
    *
    * Returns the supported chain id by the bundler service
    *
-   * - Docs: https://docs.pimlico.io/permissionless/reference/bundler-actions/chainId
+   * - Docs: https://docs.biconomy.io/... // TODO
    *
    * @returns Supported chain id
    *
    * @example
    * import { createClient } from "viem"
-   * import { bundlerActions } from "permissionless"
+   * import { bundlerActions } from "@biconomy/sdk" // TODO
    *
    * const bundlerClient = createClient({
    *      chain: goerli,
@@ -141,14 +140,14 @@ export type BundlerActions = {
    *
    * Returns the user operation from userOpHash
    *
-   * - Docs: https://docs.pimlico.io/permissionless/reference/bundler-actions/getUserOperationByHash
+   * - Docs: https://docs.biconomy.io/... // TODO
    *
    * @param args {@link GetUserOperationByHash} UserOpHash that was returned by {@link sendUserOperation}
    * @returns userOperation along with entryPoint, transactionHash, blockHash, blockNumber if found or null
    *
    * @example
    * import { createClient } from "viem"
-   * import { bundlerActions } from "permissionless"
+   * import { bundlerActions } from "@biconomy/sdk" // TODO
    *
    * const bundlerClient = createClient({
    *      chain: goerli,
@@ -165,14 +164,14 @@ export type BundlerActions = {
    *
    * Returns the user operation receipt from userOpHash
    *
-   * - Docs: https://docs.pimlico.io/permissionless/reference/bundler-actions/getUserOperationReceipt
+   * - Docs: https://docs.biconomy.io/... // TODO
    *
    * @param args {@link GetUserOperationReceiptParameters} UserOpHash that was returned by {@link sendUserOperation}
    * @returns user operation receipt {@link GetUserOperationReceiptReturnType} if found or null
    *
    * @example
    * import { createClient } from "viem"
-   * import { bundlerActions } from "permissionless"
+   * import { bundlerActions } from "@biconomy/sdk" // TODO
    *
    * const bundlerClient = createClient({
    *      chain: goerli,
@@ -189,19 +188,20 @@ export type BundlerActions = {
   /**
    * Waits for the User Operation to be included on a [Block](https://viem.sh/docs/glossary/terms.html#block) (one confirmation), and then returns the [User Operation Receipt](https://docs.pimlico.io/permissionless/reference/bundler-actions/getUserOperationReceipt).
    *
-   * - Docs: https://docs.pimlico.io/permissionless/reference/bundler-actions/waitForUserOperationReceipt
+   * - Docs: https://docs.biconomy.io/... // TODO
    *
    * @param client - Bundler Client to use
    * @param parameters - {@link WaitForUserOperationReceiptParameters}
    * @returns The transaction receipt. {@link GetUserOperationReceiptReturnType}
    *
    * @example
-   * import { createBundlerClient, waitForUserOperationReceipt, http } from 'viem'
+   * import { waitForUserOperationReceipt, http } from 'viem'
+   * import { createBundlerClient } from "@biconomy/sdk" // TODO
    * import { mainnet } from 'viem/chains'
    *
    * const bundlerClient = createBundlerClient({
    *   chain: mainnet,
-   *   transport: http(),
+   *   transport: http(bundlerUrl),
    * })
    * const userOperationReceipt = await bundlerClient.waitForUserOperationReceipt({
    *   hash: '0x4ca7ee652d57678f26e887c149ab0735f41de37bcad58c9f6d3ed5824f15b74d',

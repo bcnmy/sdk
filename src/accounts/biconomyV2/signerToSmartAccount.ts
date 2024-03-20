@@ -16,14 +16,13 @@ import {
   keccak256,
   parseAbiParameters
 } from "viem"
-import { getChainId, signMessage, signTypedData } from "viem/actions"
-import type { Prettify } from "viem/chains"
-
-import { isSmartAccountDeployed } from "permissionless"
 import {
-  SignTransactionNotSupportedBySmartAccount,
-  type SmartAccountSigner
-} from "permissionless/accounts"
+  getBytecode,
+  getChainId,
+  signMessage,
+  signTypedData
+} from "viem/actions"
+import type { Prettify } from "viem/chains"
 
 import {
   type BaseValidationModule,
@@ -36,7 +35,7 @@ import {
   toSmartAccount,
   validateUserOp
 } from "../utils/helpers.js"
-import type { SmartAccount } from "../utils/types.js"
+import type { SmartAccount, SmartAccountSigner } from "../utils/types.js"
 
 export type BiconomySmartAccount<
   transport extends Transport = Transport,
@@ -129,6 +128,20 @@ const getAccountInitCode = async ({
       index
     ]
   })
+}
+
+export const isSmartAccountDeployed = async (
+  client: Client,
+  address: Address
+): Promise<boolean> => {
+  const contractCode = await getBytecode(client, {
+    address: address
+  })
+
+  if ((contractCode?.length ?? 0) > 2) {
+    return true
+  }
+  return false
 }
 
 const getAccountAddress = async ({
@@ -227,7 +240,7 @@ export async function signerToSmartAccount<
   const viemSigner: LocalAccount = {
     ...signer,
     signTransaction: (_, __) => {
-      throw new SignTransactionNotSupportedBySmartAccount()
+      throw new Error("Sign transaction not supported by smart account.")
     }
   } as LocalAccount
 
@@ -285,7 +298,7 @@ export async function signerToSmartAccount<
       )
     },
     async signTransaction(_, __) {
-      throw new SignTransactionNotSupportedBySmartAccount()
+      throw new Error("Sign transaction not supported by smart account.")
     },
     async signTypedData<
       const TTypedData extends TypedData | Record<string, unknown>,

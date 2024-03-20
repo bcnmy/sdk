@@ -12,11 +12,13 @@ import {
 import type { Client, Hex, PublicClient } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 
-import { walletClientToSmartAccountSigner } from "permissionless"
 import { SignTransactionNotSupportedBySmartAccount } from "permissionless/accounts"
 import type { UserOperationStruct } from "../../src/accounts/index.js"
 import { DEFAULT_ECDSA_OWNERSHIP_MODULE } from "../../src/accounts/utils/constants.js"
-import { validateUserOp } from "../../src/accounts/utils/helpers.js"
+import {
+  validateUserOp,
+  walletClientToSmartAccountSigner
+} from "../../src/accounts/utils/helpers.js"
 import {
   createSmartAccountClient,
   signerToSmartAccount
@@ -134,8 +136,6 @@ describe("Biconomy Smart Account V2 EP v6 tests", () => {
       "0xfCF6Eb210E5Fd84D679b14fe170f9aB05C9B21e7",
       nftAddress
     )
-
-    console.warn(smartAccount.address, "Smart account address")
 
     const txHash = await smartAccountClient.sendTransactions({
       transactions: [

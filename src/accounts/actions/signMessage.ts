@@ -1,4 +1,3 @@
-import { AccountOrClientNotFoundError, parseAccount } from "permissionless"
 import type {
   Chain,
   Client,
@@ -6,6 +5,7 @@ import type {
   SignMessageReturnType,
   Transport
 } from "viem"
+import { parseAccount } from "../utils/helpers"
 import type { SmartAccount } from "../utils/types"
 
 /**
@@ -64,10 +64,7 @@ export async function signMessage<
     message
   }: SignMessageParameters<SmartAccount>
 ): Promise<SignMessageReturnType> {
-  if (!account_)
-    throw new AccountOrClientNotFoundError({
-      docsPath: "/docs/actions/wallet/signMessage"
-    })
+  if (!account_) throw new Error("No account found.")
 
   const account = parseAccount(account_)
   if (account.type === "local") return account.signMessage({ message })

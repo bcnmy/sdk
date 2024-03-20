@@ -1,8 +1,7 @@
-import { AccountOrClientNotFoundError, parseAccount } from "permissionless"
 import type { Chain, Client, Hash, Transport } from "viem"
 import type { PartialBy, Prettify } from "viem/chains"
 import { sendUserOperation as sendUserOperationBundler } from "../../bundler/index"
-import { getAction } from "../utils/helpers"
+import { getAction, parseAccount } from "../utils/helpers"
 import type {
   GetAccountParameter,
   Middleware,
@@ -39,7 +38,7 @@ export async function sendUserOperation<
   args: Prettify<SendUserOperationParameters>
 ): Promise<Hash> {
   const { account: account_ = client.account } = args
-  if (!account_) throw new AccountOrClientNotFoundError()
+  if (!account_) throw new Error("No account found.")
 
   const account = parseAccount(account_) as SmartAccount
 
