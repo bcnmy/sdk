@@ -62,6 +62,6 @@ export const estimateUserOperationGas = async <
       maxFeePerGas: string
     }
   } catch (err) {
-    throw new Error("Error estimating user operation gas. ")
+    throw new Error(`Error estimating user operation gas. ${err}`)
   }
 }

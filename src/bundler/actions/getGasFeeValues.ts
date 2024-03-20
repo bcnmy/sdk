@@ -19,6 +19,6 @@ export const getGasFeeValues = async <
       maxFeePerGas: response.maxFeePerGas || "0"
     } as GasFeeValues
   } catch (err) {
-    throw new Error("Error estimating gas fee values.")
+    throw new Error(`Error estimating gas fee values. ${err}`)
   }
 }

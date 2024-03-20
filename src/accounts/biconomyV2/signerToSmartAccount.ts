@@ -230,12 +230,6 @@ export async function signerToSmartAccount<
     activeValidationModule
   }: SignerToBiconomySmartAccountParameters<TSource, TAddress>
 ): Promise<BiconomySmartAccount<TTransport, TChain>> {
-  // const entryPointVersion = getEntryPointVersion(entryPointAddress)
-
-  // if (entryPointVersion !== "v0.6") {
-  //     throw new Error("Only EntryPoint 0.6 is supported")
-  // }
-
   // Get the private key related account
   const viemSigner: LocalAccount = {
     ...signer,
