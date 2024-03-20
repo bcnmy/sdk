@@ -18,7 +18,7 @@ import {
   type SendUserOperationParameters,
   sendUserOperation
 } from "../../bundler/actions/sendUserOperation"
-import { waitForUserOperationReceipt } from "../../bundler/actions/waitForUserOperationRceipt"
+import { waitForUserOperationReceipt } from "../../bundler/actions/waitForUserOperationReceipt"
 import type { BundlerClient } from "../../bundler/createBundlerClient"
 import type {
   EstimateUserOperationGasParameters,

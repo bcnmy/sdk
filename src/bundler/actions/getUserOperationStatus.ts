@@ -21,6 +21,6 @@ export const getUserOpStatus = async <
       userOperationReceipt: response.userOperationReceipt
     } as UserOpStatus
   } catch (err) {
-    throw new Error("Error estimating gas fee values.")
+    throw new Error(`Error getting user op status. ${err}`)
   }
 }

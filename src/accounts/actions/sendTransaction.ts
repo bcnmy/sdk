@@ -7,7 +7,7 @@ import {
   toHex
 } from "viem"
 import type { Prettify } from "viem/chains"
-import { waitForUserOperationReceipt } from "../../bundler/actions/waitForUserOperationRceipt"
+import { waitForUserOperationReceipt } from "../../bundler/actions/waitForUserOperationReceipt"
 import type { UserOpReceipt } from "../../bundler/utils/types"
 import { getAction, parseAccount } from "../utils/helpers"
 import type { Middleware, SmartAccount } from "../utils/types"
