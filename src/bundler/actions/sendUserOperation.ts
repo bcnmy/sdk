@@ -42,7 +42,6 @@ export const sendUserOperation = async <
   args: Prettify<SendUserOperationParameters>
 ): Promise<Hash> => {
   const { userOperation } = args
-
   try {
     const userOperationHash = await client.request({
       method: "eth_sendUserOperation",

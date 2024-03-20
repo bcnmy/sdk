@@ -43,8 +43,7 @@ export type BundlerRpcSchema = [
   {
     Method: "eth_getUserOperationByHash"
     Parameters: [hash: Hash]
-    ReturnType: {
-      userOperation: UserOperationStruct
+    ReturnType: UserOperationStruct & {
       entryPoint: ENTRYPOINT_ADDRESS_V06_TYPE
       transactionHash: Hash
       blockHash: Hash

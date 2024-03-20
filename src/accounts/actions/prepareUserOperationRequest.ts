@@ -112,11 +112,9 @@ async function prepareUserOperationRequestForEntryPointV06<
   ) {
     const gasParameters = await getAction(client, estimateUserOperationGas)(
       {
-        userOperation,
-        entryPoint: account.entryPoint
+        userOperation
       } as {
         userOperation: UserOperationStruct
-        entryPoint: ENTRYPOINT_ADDRESS_V06_TYPE
       },
       stateOverrides
     )

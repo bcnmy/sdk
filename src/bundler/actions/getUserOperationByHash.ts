@@ -54,27 +54,25 @@ export const getUserOperationByHash = async <
 
   if (!response) return null
 
-  const {
-    userOperation,
-    entryPoint: entryPointAddress,
-    transactionHash,
-    blockHash,
-    blockNumber
-  } = response
+  const userOperation = {
+    sender: response.sender,
+    nonce: response.nonce,
+    initCode: response.initCode,
+    callData: response.callData,
+    callGasLimit: response.callGasLimit,
+    verificationGasLimit: response.verificationGasLimit,
+    preVerificationGas: response.preVerificationGas,
+    maxFeePerGas: response.maxFeePerGas,
+    maxPriorityFeePerGas: response.maxPriorityFeePerGas,
+    paymasterAndData: response.paymasterAndData,
+    signature: response.signature
+  }
 
   return {
-    userOperation: {
-      ...userOperation,
-      nonce: BigInt(userOperation.nonce),
-      callGasLimit: userOperation.callGasLimit,
-      verificationGasLimit: userOperation.verificationGasLimit,
-      preVerificationGas: userOperation.preVerificationGas,
-      maxFeePerGas: userOperation.maxFeePerGas,
-      maxPriorityFeePerGas: userOperation.maxPriorityFeePerGas
-    },
-    entryPoint: entryPointAddress,
-    transactionHash: transactionHash,
-    blockHash: blockHash,
-    blockNumber: BigInt(blockNumber)
+    userOperation: userOperation,
+    entryPoint: response.entryPoint,
+    transactionHash: response.transactionHash,
+    blockHash: response.blockHash,
+    blockNumber: BigInt(response.blockNumber)
   }
 }
