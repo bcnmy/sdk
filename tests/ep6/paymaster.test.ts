@@ -6,7 +6,7 @@ import {
   parseAbi,
   zeroAddress
 } from "viem"
-import { describe, expect, it } from "vitest"
+import { describe, expect, test } from "vitest"
 
 import { privateKeyToAccount } from "viem/accounts"
 import { base, baseSepolia } from "viem/chains"
@@ -55,7 +55,7 @@ describe("Paymaster tests", async () => {
     bundlerTransport: http(bundlerUrl)
   })
 
-  it("Should have the properties of a viem client", async () => {
+  test("Should have the properties of a viem client", async () => {
     const paymasterClient = createPaymasterClient({
       chain,
       transport: http(paymasterUrl)
@@ -65,7 +65,7 @@ describe("Paymaster tests", async () => {
     expect(paymasterClient.pollingInterval).toBeDefined()
   })
 
-  it("Should return sponsored user operation values", async () => {
+  test("Should return sponsored user operation values", async () => {
     const paymasterClient = createPaymasterClient({
       chain,
       transport: http(paymasterUrl)
@@ -89,7 +89,7 @@ describe("Paymaster tests", async () => {
     expect(result).toBeTruthy()
   })
 
-  // it("Should send a sponsored user operation using sendUserOperation", async () => {
+  // test("Should send a sponsored user operation using sendUserOperation", async () => {
   //   const paymasterClient = createPaymasterClient({
   //     transport: http(paymasterUrl)
   //   })
@@ -136,7 +136,7 @@ describe("Paymaster tests", async () => {
   //   expect(userOpHash).toBeTruthy()
   // }, 50000)
 
-  it("Should send a sponsored user operation using sendTransaction", async () => {
+  test("Should send a sponsored user operation using sendTransaction", async () => {
     const paymasterClient = createPaymasterClient({
       transport: http(paymasterUrl)
     })

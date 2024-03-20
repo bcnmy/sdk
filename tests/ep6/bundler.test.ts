@@ -1,5 +1,5 @@
 import { http, createPublicClient, createWalletClient, zeroAddress } from "viem"
-import { describe, expect, it } from "vitest"
+import { describe, expect, test } from "vitest"
 
 import { privateKeyToAccount } from "viem/accounts"
 import { walletClientToSmartAccountSigner } from "../../src/accounts/utils/helpers.js"
@@ -28,25 +28,29 @@ describe("Bundler tests", () => {
     transport: http(bundlerUrl)
   })
 
-  it("Should have the properties of a viem client", async () => {
+  test("Should have the properties of a viem client", async () => {
     expect(bundlerClient.uid).toBeDefined()
     expect(bundlerClient?.chain?.id).toBe(chain.id)
     expect(bundlerClient.pollingInterval).toBeDefined()
   })
 
-  it("Should have a bundler specific action", async () => {
+  test("Should have a bundler specific action", async () => {
     expect(await bundlerClient.chainId()).toBe(chain.id)
   })
 
-  it("Should get user op status", async () => {
+  test("Should get user op status", async () => {
     const userOpHash =
       "0xebea403d4701fe950c4fe4aeb117e457a930b843238430b9cc8c3cf502bb2cb0"
 
     const status = await bundlerClient.getUserOpStatus(userOpHash)
     console.log("User Operation Status: ", status)
+
+    expect(status.state).toBeDefined()
+    expect(status.transactionHash).toBeDefined()
+    expect(status.userOperationReceipt).toBeDefined()
   }, 35000)
 
-  it("Should get user op receipt", async () => {
+  test("Should get user op receipt", async () => {
     const userOpHash =
       "0xebea403d4701fe950c4fe4aeb117e457a930b843238430b9cc8c3cf502bb2cb0"
 
@@ -54,9 +58,11 @@ describe("Bundler tests", () => {
       hash: userOpHash
     })
     console.log("User Operation Receipt: ", receipt)
+
+    expect(receipt).toBeDefined()
   }, 35000)
 
-  it("Should send a user operation using the bundler client and wait for receipt", async () => {
+  test("Should send a user operation using the bundler client and wait for receipt", async () => {
     const smartAccount = await signerToSmartAccount(publicClient, {
       signer: walletClientToSmartAccountSigner(walletClient)
     })
@@ -76,18 +82,20 @@ describe("Bundler tests", () => {
         })
       }
     })
-    console.log("userOp from test", userOp)
 
-    // need to sign the userOp before sending it if we use "bundlerClient.sendUserOperation" directly
+    // need to sign the userOp before sending test if we use "bundlerClient.sendUserOperation" directly
     userOp.signature = await smartAccount.signUserOperation(userOp)
 
     const newUserOpHash = await bundlerClient.sendUserOperation({
       userOperation: userOp
     })
 
+    expect(newUserOpHash).toBeDefined()
+
     const receipt = await bundlerClient.waitForUserOperationReceipt({
       hash: newUserOpHash
     })
-    console.log("User Operation Receipt: ", receipt)
+
+    expect(receipt).toBeDefined()
   }, 35000)
 })
