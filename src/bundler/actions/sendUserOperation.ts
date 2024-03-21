@@ -1,6 +1,6 @@
 import {
-  BaseError,
   type Account,
+  BaseError,
   type Chain,
   type Client,
   type Hash,
