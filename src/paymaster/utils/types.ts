@@ -13,11 +13,6 @@ export type SponsorUserOperationReturnType = {
   paymasterAndData: BytesLike
 }
 
-export type SponsorUserOperationParameters = {
-  userOperation: UserOperationStruct
-  mode: PaymasterMode
-}
-
 export enum PaymasterMode {
   ERC20 = "ERC20",
   SPONSORED = "SPONSORED"
@@ -32,6 +27,16 @@ export type SmartAccountInfo = {
   name: string
   /** version: Version of the smart account */
   version: string
+}
+
+export type SponsorUserOperationParameters = {
+  userOperation: UserOperationStruct
+  mode: PaymasterMode
+  calculateGasLimits?: boolean
+  expiryDuration?: number
+  tokenInfo?: FeeTokenInfo
+  /** Webhooks to be fired after user op is sent */
+  webhookData?: Record<string, any>
 }
 
 export type FeeQuoteOrDataParameters = {
