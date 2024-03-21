@@ -222,7 +222,7 @@ export type SendTransactionParameters<
   GetAccountParameter<TAccount> &
   GetChainParameter<TChain, TChainOverride>
 
-export type ErrorType = {
+export type KnownError = {
   name: string
   regex: string
   description: string

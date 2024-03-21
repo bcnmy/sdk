@@ -7,6 +7,7 @@ import type {
   EstimateUserOperationGasParameters,
   StateOverrides
 } from "../utils/types"
+import { getEstimateUserOperationGasError } from "../../accounts/utils/errors/getters"
 
 export const estimateUserOperationGas = async <
   TTransport extends Transport = Transport,
@@ -62,6 +63,6 @@ export const estimateUserOperationGas = async <
       maxFeePerGas: string
     }
   } catch (err) {
-    throw new Error(`Error estimating user operation gas. ${err}`)
+    throw await getEstimateUserOperationGasError(err, args)
   }
 }

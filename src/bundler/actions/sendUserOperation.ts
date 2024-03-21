@@ -3,6 +3,7 @@ import type { Prettify } from "viem/chains"
 import type { UserOperationStruct } from "../../accounts"
 import { ENTRYPOINT_ADDRESS_V06 } from "../../accounts/utils/constants"
 import type { BundlerRpcSchema } from "../utils/types"
+import { getSendUserOperationError } from "../../accounts/utils/errors/getters"
 
 export type SendUserOperationParameters = {
   userOperation: UserOperationStruct
@@ -49,7 +50,7 @@ export const sendUserOperation = async <
     })
 
     return userOperationHash
-  } catch (err) {
-    throw new Error(`Error sending user operation. ${err}`)
+  } catch (errorFromBundler) {
+    throw await getSendUserOperationError(errorFromBundler, args)
   }
 }

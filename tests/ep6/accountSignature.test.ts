@@ -37,7 +37,7 @@ describe("Biconomy Smart Account V2 EP v6 - Signature tests", () => {
     })
   })
 
-  test("verifySignature of deployed", async () => {
+  test.concurrent("verifySignature of deployed", async () => {
     const message = "hello world"
 
     const signature = await smartAccountClient.signMessage({
@@ -53,7 +53,7 @@ describe("Biconomy Smart Account V2 EP v6 - Signature tests", () => {
     expect(isVerified).toBeTruthy()
   })
 
-  test("should fail because no accounvt", async () => {
+  test.concurrent("should fail because no account", async () => {
     const newSmartAccountClient = createSmartAccountClient({
       account: undefined,
       chain,
@@ -69,7 +69,7 @@ describe("Biconomy Smart Account V2 EP v6 - Signature tests", () => {
     expect(signature).rejects.toThrowError()
   })
 
-  test("verifySignature of not deployed", async () => {
+  test.concurrent("verifySignature of not deployed", async () => {
     const initialEcdsaSmartAccount = await signerToSmartAccount(publicClient, {
       signer: walletClientToSmartAccountSigner(walletClient),
       index: 10000n
@@ -96,7 +96,7 @@ describe("Biconomy Smart Account V2 EP v6 - Signature tests", () => {
     expect(isVerified).toBeTruthy()
   })
 
-  test("verifySignature with signTypedData", async () => {
+  test.concurrent("verifySignature with signTypedData", async () => {
     const initialEcdsaSmartAccount = await signerToSmartAccount(publicClient, {
       signer: walletClientToSmartAccountSigner(walletClient)
     })
@@ -176,83 +176,89 @@ describe("Biconomy Smart Account V2 EP v6 - Signature tests", () => {
     expect(isVerified).toBeTruthy()
   })
 
-  test("verifySignature with signTypedData for not deployed", async () => {
-    const initialEcdsaSmartAccount = await signerToSmartAccount(publicClient, {
-      signer: walletClientToSmartAccountSigner(walletClient)
-    })
+  test.concurrent(
+    "verifySignature with signTypedData for not deployed",
+    async () => {
+      const initialEcdsaSmartAccount = await signerToSmartAccount(
+        publicClient,
+        {
+          signer: walletClientToSmartAccountSigner(walletClient)
+        }
+      )
 
-    const smartAccountClient = createSmartAccountClient({
-      account: initialEcdsaSmartAccount,
-      chain,
-      bundlerTransport: http(bundlerUrl)
-    })
+      const smartAccountClient = createSmartAccountClient({
+        account: initialEcdsaSmartAccount,
+        chain,
+        bundlerTransport: http(bundlerUrl)
+      })
 
-    const signature = await smartAccountClient.signTypedData({
-      domain: {
-        name: "Ether Mail",
-        version: "1",
-        chainId: 1,
-        verifyingContract: "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"
-      },
-      types: {
-        Person: [
-          { name: "name", type: "string" },
-          { name: "wallet", type: "address" }
-        ],
-        Mail: [
-          { name: "from", type: "Person" },
-          { name: "to", type: "Person" },
-          { name: "contents", type: "string" }
-        ]
-      },
-      primaryType: "Mail",
-      message: {
-        from: {
-          name: "Cow",
-          wallet: "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
+      const signature = await smartAccountClient.signTypedData({
+        domain: {
+          name: "Ether Mail",
+          version: "1",
+          chainId: 1,
+          verifyingContract: "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"
         },
-        to: {
-          name: "Bob",
-          wallet: "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"
+        types: {
+          Person: [
+            { name: "name", type: "string" },
+            { name: "wallet", type: "address" }
+          ],
+          Mail: [
+            { name: "from", type: "Person" },
+            { name: "to", type: "Person" },
+            { name: "contents", type: "string" }
+          ]
         },
-        contents: "Hello, Bob!"
-      }
-    })
+        primaryType: "Mail",
+        message: {
+          from: {
+            name: "Cow",
+            wallet: "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
+          },
+          to: {
+            name: "Bob",
+            wallet: "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"
+          },
+          contents: "Hello, Bob!"
+        }
+      })
 
-    const isVerified = await publicClient.verifyTypedData({
-      address: smartAccountClient.account.address,
-      domain: {
-        name: "Ether Mail",
-        version: "1",
-        chainId: 1,
-        verifyingContract: "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"
-      },
-      types: {
-        Person: [
-          { name: "name", type: "string" },
-          { name: "wallet", type: "address" }
-        ],
-        Mail: [
-          { name: "from", type: "Person" },
-          { name: "to", type: "Person" },
-          { name: "contents", type: "string" }
-        ]
-      },
-      primaryType: "Mail",
-      message: {
-        from: {
-          name: "Cow",
-          wallet: "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
+      const isVerified = await publicClient.verifyTypedData({
+        address: smartAccountClient.account.address,
+        domain: {
+          name: "Ether Mail",
+          version: "1",
+          chainId: 1,
+          verifyingContract: "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"
         },
-        to: {
-          name: "Bob",
-          wallet: "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"
+        types: {
+          Person: [
+            { name: "name", type: "string" },
+            { name: "wallet", type: "address" }
+          ],
+          Mail: [
+            { name: "from", type: "Person" },
+            { name: "to", type: "Person" },
+            { name: "contents", type: "string" }
+          ]
         },
-        contents: "Hello, Bob!"
-      },
-      signature
-    })
+        primaryType: "Mail",
+        message: {
+          from: {
+            name: "Cow",
+            wallet: "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
+          },
+          to: {
+            name: "Bob",
+            wallet: "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"
+          },
+          contents: "Hello, Bob!"
+        },
+        signature
+      })
 
-    expect(isVerified).toBeTruthy()
-  })
+      expect(isVerified).toBeTruthy()
+    }
+  )
 })

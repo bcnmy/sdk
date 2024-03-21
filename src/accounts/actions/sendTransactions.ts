@@ -118,8 +118,10 @@ export async function sendTransactions<
   )({
     userOperation: {
       sender: account.address,
-      maxFeePerGas: toHex(maxFeePerGas || 0n),
-      maxPriorityFeePerGas: toHex(maxPriorityFeePerGas || 0n),
+      maxFeePerGas: maxFeePerGas ? toHex(maxFeePerGas) : undefined,
+      maxPriorityFeePerGas: maxPriorityFeePerGas
+        ? toHex(maxPriorityFeePerGas)
+        : undefined,
       callData: callData,
       nonce: nonce ? BigInt(nonce) : undefined
     },
