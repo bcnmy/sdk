@@ -63,6 +63,7 @@ describe("Bundler tests", () => {
   }, 35000)
 
   test("Should send a user operation using the bundler client and wait for receipt", async () => {
+    setTimeout(() => console.log("Waited for 5 seconds."), 5000);
     const smartAccount = await signerToSmartAccount(publicClient, {
       signer: walletClientToSmartAccountSigner(walletClient)
     })
