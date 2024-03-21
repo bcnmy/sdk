@@ -1,4 +1,5 @@
 import type { Account, Chain, Client, Transport } from "viem"
+import type { BaseError } from "viem"
 import type { Prettify } from "viem/chains"
 import { ENTRYPOINT_ADDRESS_V06 } from "../../accounts/utils/constants"
 import { getEstimateUserOperationGasError } from "../../accounts/utils/errors/getters"
@@ -8,7 +9,6 @@ import type {
   EstimateUserOperationGasParameters,
   StateOverrides
 } from "../utils/types"
-import type { BaseError } from "viem"
 
 export const estimateUserOperationGas = async <
   TTransport extends Transport = Transport,
