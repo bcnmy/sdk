@@ -1,10 +1,9 @@
-import {
-  type Chain,
-  type Client,
-  type Hash,
-  type SendTransactionParameters,
-  type Transport,
-  toHex
+import type {
+  Chain,
+  Client,
+  Hash,
+  SendTransactionParameters,
+  Transport
 } from "viem"
 import type { Prettify } from "viem/chains"
 import { waitForUserOperationReceipt } from "../../bundler/actions/waitForUserOperationReceipt"
@@ -110,8 +109,8 @@ export async function sendTransaction<
   )({
     userOperation: {
       sender: account.address,
-      maxFeePerGas: toHex(maxFeePerGas || 0n),
-      maxPriorityFeePerGas: toHex(maxPriorityFeePerGas || 0n),
+      maxFeePerGas: maxFeePerGas,
+      maxPriorityFeePerGas: maxPriorityFeePerGas,
       callData: callData,
       nonce: nonce ? BigInt(nonce) : undefined
     },
