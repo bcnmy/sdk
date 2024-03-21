@@ -1,4 +1,4 @@
-import { type Hex, type Address, getAddress } from "viem"
+import { type Address, type Hex, getAddress } from "viem"
 import type { KnownError } from "../types"
 
 export function getAddressFromInitCodeOrPaymasterAndData(

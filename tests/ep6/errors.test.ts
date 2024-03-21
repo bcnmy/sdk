@@ -1,15 +1,15 @@
 import {
+  http,
   createPublicClient,
   createWalletClient,
   encodeFunctionData,
-  http,
   parseAbi
 } from "viem"
-import { beforeAll, describe, expect, test } from "vitest"
-import { getChainConfig } from "../utils"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
-import { signerToSmartAccount, createSmartAccountClient } from "../../src"
+import { beforeAll, describe, expect, test } from "vitest"
+import { createSmartAccountClient, signerToSmartAccount } from "../../src"
 import { walletClientToSmartAccountSigner } from "../../src/accounts/utils/helpers"
+import { getChainConfig } from "../utils"
 
 describe("Errors", () => {
   const { bundlerUrl, chain } = getChainConfig()

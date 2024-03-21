@@ -1,7 +1,7 @@
 import { type BaseError, UnknownNodeError } from "viem"
+import type { SendUserOperationParameters } from "../../../actions/sendUserOperation"
 import { SendUserOperationError } from "../models"
 import { getBundlerError } from "./getBundlerError"
-import type { SendUserOperationParameters } from "../../../actions/sendUserOperation"
 
 export async function getSendUserOperationError(
   err: BaseError,

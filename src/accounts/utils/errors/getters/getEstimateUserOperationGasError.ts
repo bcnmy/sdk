@@ -1,7 +1,7 @@
 import { type BaseError, UnknownNodeError } from "viem"
+import type { EstimateUserOperationGasParameters } from "../../../../bundler/utils/types"
 import { EstimateUserOperationGasError } from "../models"
 import { getBundlerError } from "./getBundlerError"
-import type { EstimateUserOperationGasParameters } from "../../../../bundler/utils/types"
 
 export async function getEstimateUserOperationGasError(
   err: BaseError,

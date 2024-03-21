@@ -1,13 +1,13 @@
 import type { Account, Chain, Client, Transport } from "viem"
 import type { Prettify } from "viem/chains"
 import { ENTRYPOINT_ADDRESS_V06 } from "../../accounts/utils/constants"
+import { getEstimateUserOperationGasError } from "../../accounts/utils/errors/getters"
 import { deepHexlify } from "../../paymaster/utils/helpers"
 import type {
   BundlerRpcSchema,
   EstimateUserOperationGasParameters,
   StateOverrides
 } from "../utils/types"
-import { getEstimateUserOperationGasError } from "../../accounts/utils/errors/getters"
 
 export const estimateUserOperationGas = async <
   TTransport extends Transport = Transport,
