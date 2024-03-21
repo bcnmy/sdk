@@ -33,7 +33,6 @@ export const getChainConfig = () => {
   const allChainsMatch = chains.every((chain) => chain === chains[0])
 
   if (!allChainsMatch) {
-    console.log({ allChainsMatch, chains })
     throw new Error("Chain IDs do not match")
   }
   const chainId = chains[0]

@@ -236,6 +236,7 @@ export const validateUserOp = (userOp: UserOperationStruct): boolean => {
   return true
 }
 
+// biome-ignore lint/suspicious/noExplicitAny: Can be use on dynamic types
 export const isNullOrUndefined = (value: any): value is undefined => {
   return value === null || value === undefined
 }

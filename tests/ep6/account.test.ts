@@ -54,16 +54,14 @@ describe("Biconomy Smart Account V2 EP v6 tests", () => {
 
   test("Should get the init code", async () => {
     const initCode = await smartAccount.getInitCode()
-    console.log("Init Code: ", initCode)
     expect(initCode).toBeDefined()
   })
 
   test("Should get account address + nonce", async () => {
     const address = smartAccount.address
-    console.log("Smart Account Address: ", address)
-
+    expect(address).toBeDefined()
     const nonce = await smartAccount.getNonce()
-    console.log("Smart Account Nonce: ", nonce)
+    expect(nonce).toBeDefined()
   })
 
   test("Should send an empty tx", async () => {
@@ -72,7 +70,7 @@ describe("Biconomy Smart Account V2 EP v6 tests", () => {
       data: "0x1234"
     })
 
-    console.log("Transaction Hash: ", txHash)
+    expect(txHash).toBeDefined()
   }, 35000)
 
   test("Should mint an NFT and pay for the gas", async () => {
@@ -87,7 +85,7 @@ describe("Biconomy Smart Account V2 EP v6 tests", () => {
       data: encodedCall
     })
 
-    console.log("Transaction Hash for NFT Mint: ", txHash)
+    expect(txHash).toBeDefined()
   }, 50000)
 
   test("Should build a user operation manually and validate it", async () => {
@@ -151,7 +149,7 @@ describe("Biconomy Smart Account V2 EP v6 tests", () => {
       ]
     })
 
-    console.warn("Transaction Hash for NFT Mint: ", txHash)
+    expect(txHash).toBeDefined()
 
     const balanceAfter1 = await checkBalance(
       publicClient,
@@ -277,6 +275,6 @@ describe("Biconomy Smart Account V2 EP v6 tests", () => {
       userOperation: userOp
     })
 
-    console.log("Transaction Hash for NFT Mint: ", txHash)
+    expect(txHash).toBeDefined()
   }, 50000)
 })
