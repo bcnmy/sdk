@@ -9,36 +9,31 @@ import {
 import { describe, expect, test } from "vitest"
 
 import { privateKeyToAccount } from "viem/accounts"
-import { baseSepolia } from "viem/chains"
-import {
-  getChain,
-  walletClientToSmartAccountSigner
-} from "../../src/accounts/utils/helpers.js"
+import { walletClientToSmartAccountSigner } from "../../src/accounts/utils/helpers.js"
 import { createBundlerClient } from "../../src/bundler/createBundlerClient.js"
 import {
   createSmartAccountClient,
   signerToSmartAccount
 } from "../../src/index.js"
 import { createPaymasterClient } from "../../src/paymaster/createPaymasterClient.js"
-import { extractChainIdFromPaymasterUrl } from "../../src/paymaster/utils/helpers.js"
 import { PaymasterMode } from "../../src/paymaster/utils/types.js"
+import { testForBaseSopelia } from "../setupFiles.js"
+import { getChainConfig } from "../utils.js"
 
 describe("Paymaster tests", async () => {
-  const paymasterUrl = process.env.PAYMASTER_URL ?? ""
-  const chainId = extractChainIdFromPaymasterUrl(paymasterUrl)
-  const chain = getChain(chainId)
   const account = privateKeyToAccount(`0x${process.env.PRIVATE_KEY}`)
-  const bundlerUrl = process.env.BUNDLER_URL ?? ""
+
+  const { chain, chainId, paymasterUrl, bundlerUrl } = getChainConfig()
 
   const publicClient = createPublicClient({
     chain,
-    transport: http(baseSepolia.rpcUrls.default.http[0])
+    transport: http()
   })
 
   const walletClient = createWalletClient({
     account,
     chain,
-    transport: http(baseSepolia.rpcUrls.default.http[0])
+    transport: http()
   })
 
   const smartAccount = await signerToSmartAccount(publicClient, {
@@ -65,29 +60,32 @@ describe("Paymaster tests", async () => {
     expect(paymasterClient.pollingInterval).toBeDefined()
   })
 
-  test("Should return sponsored user operation values", async () => {
-    const paymasterClient = createPaymasterClient({
-      chain,
-      transport: http(paymasterUrl)
-    })
+  testForBaseSopelia(
+    "Should return sponsored user operation values",
+    async () => {
+      const paymasterClient = createPaymasterClient({
+        chain,
+        transport: http(paymasterUrl)
+      })
 
-    const userOp = await smartAccountClient.prepareUserOperationRequest({
-      userOperation: {
-        callData: await smartAccountClient.account.encodeCallData({
-          to: zeroAddress,
-          value: 0n,
-          data: "0x"
-        })
-      }
-    })
+      const userOp = await smartAccountClient.prepareUserOperationRequest({
+        userOperation: {
+          callData: await smartAccountClient.account.encodeCallData({
+            to: zeroAddress,
+            value: 0n,
+            data: "0x"
+          })
+        }
+      })
 
-    const result = await paymasterClient.sponsorUserOperation({
-      userOperation: userOp,
-      mode: PaymasterMode.SPONSORED
-    })
+      const result = await paymasterClient.sponsorUserOperation({
+        userOperation: userOp,
+        mode: PaymasterMode.SPONSORED
+      })
 
-    expect(result).toBeTruthy()
-  })
+      expect(result).toBeTruthy()
+    }
+  )
 
   test("Should send a sponsored user operation using sendUserOperation", async () => {
     const paymasterClient = createPaymasterClient({
