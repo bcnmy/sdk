@@ -1,37 +1,32 @@
-import {
-  type SmartAccountActions,
-  type SmartAccountClientConfig,
-  smartAccountActions
-} from "permissionless"
-import type { SmartAccount } from "permissionless/accounts"
-
 import { type Chain, type Client, type Transport, createClient } from "viem"
 import type { Prettify } from "viem/chains"
 
-import type { ENTRYPOINT_ADDRESS_V06_TYPE } from "permissionless/types/entrypoint.js"
+import type { SmartAccount } from "../accounts/utils/types.js"
 import type { BundlerRpcSchema } from "../bundler/utils/types.js"
+import {
+  type SmartAccountActions,
+  smartAccountActions
+} from "./decorators/smartAccount.js"
+import type { SmartAccountClientConfig } from "./utils/types.js"
 
 export type SmartAccountClient<
-  entryPoint extends ENTRYPOINT_ADDRESS_V06_TYPE,
   transport extends Transport = Transport,
   chain extends Chain | undefined = Chain | undefined,
-  account extends SmartAccount<entryPoint> | undefined =
-    | SmartAccount<entryPoint>
-    | undefined
+  account extends SmartAccount | undefined = SmartAccount | undefined
 > = Prettify<
   Client<
     transport,
     chain,
     account,
-    BundlerRpcSchema<entryPoint>,
-    SmartAccountActions<entryPoint, chain, account>
+    BundlerRpcSchema,
+    SmartAccountActions<chain, account>
   >
 >
 
 /**
  * Creates a EIP-4337 compliant Bundler Client with a given [Transport](https://viem.sh/docs/clients/intro.html) configured for a [Chain](https://viem.sh/docs/clients/chains.html).
  *
- * - Docs: https://docs.pimlico.io/permissionless/reference/clients/smartAccountClient
+ * - Docs:
  *
  * A Bundler Client is an interface to "erc 4337" [JSON-RPC API](https://eips.ethereum.org/EIPS/eip-4337#rpc-methods-eth-namespace) methods such as sending user operation, estimating gas for a user operation, get user operation receipt, etc through Bundler Actions.
  *
@@ -49,22 +44,12 @@ export type SmartAccountClient<
  */
 
 export function createSmartAccountClient<
-  TSmartAccount extends SmartAccount<ENTRYPOINT_ADDRESS_V06_TYPE>,
+  TSmartAccount extends SmartAccount,
   TTransport extends Transport = Transport,
   TChain extends Chain = Chain
 >(
-  parameters: SmartAccountClientConfig<
-    ENTRYPOINT_ADDRESS_V06_TYPE,
-    TTransport,
-    TChain,
-    TSmartAccount
-  >
-): SmartAccountClient<
-  ENTRYPOINT_ADDRESS_V06_TYPE,
-  TTransport,
-  TChain,
-  TSmartAccount
-> {
+  parameters: SmartAccountClientConfig<TTransport, TChain>
+): SmartAccountClient<TTransport, TChain, TSmartAccount> {
   const {
     key = "Account",
     name = "Smart Account Client",
@@ -79,13 +64,6 @@ export function createSmartAccountClient<
   })
 
   return client.extend(
-    smartAccountActions({
-      middleware: parameters.middleware
-    })
-  ) as SmartAccountClient<
-    ENTRYPOINT_ADDRESS_V06_TYPE,
-    TTransport,
-    TChain,
-    TSmartAccount
-  >
+    smartAccountActions({ middleware: parameters.middleware })
+  ) as SmartAccountClient<TTransport, TChain, TSmartAccount>
 }

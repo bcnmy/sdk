@@ -9,9 +9,9 @@ import { createClient } from "viem"
 import type { Prettify } from "viem/chains"
 import {
   type BundlerActions,
-  type BundlerRpcSchema,
   bundlerActions
-} from "./actions/index.js"
+} from "../client/decorators/bundler"
+import type { BundlerRpcSchema } from "./utils/types"
 
 export type BundlerClient<
   TChain extends Chain | undefined = Chain | undefined

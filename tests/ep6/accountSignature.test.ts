@@ -2,7 +2,7 @@ import { http, createPublicClient, createWalletClient } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { beforeAll, describe, expect, test } from "vitest"
 
-import { walletClientToSmartAccountSigner } from "permissionless"
+import { walletClientToSmartAccountSigner } from "../../src/accounts/utils/helpers.js"
 import {
   createSmartAccountClient,
   signerToSmartAccount
@@ -51,6 +51,22 @@ describe("Biconomy Smart Account V2 EP v6 - Signature tests", () => {
     })
 
     expect(isVerified).toBeTruthy()
+  })
+
+  test("should fail because no accounvt", async () => {
+    const newSmartAccountClient = createSmartAccountClient({
+      account: undefined,
+      chain,
+      bundlerTransport: http(bundlerUrl)
+    })
+
+    const message = "hello world"
+
+    const signature = newSmartAccountClient.signMessage({
+      message
+    })
+
+    expect(signature).rejects.toThrowError()
   })
 
   test("verifySignature of not deployed", async () => {

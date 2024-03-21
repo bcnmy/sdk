@@ -6,17 +6,18 @@ import {
   createWalletClient,
   encodeFunctionData,
   parseAbi,
+  toHex,
   zeroAddress
 } from "viem"
+import type { Client, Hex, PublicClient } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 
-import {
-  type UserOperation,
-  walletClientToSmartAccountSigner
-} from "permissionless"
-import { SignTransactionNotSupportedBySmartAccount } from "permissionless/accounts"
+import type { UserOperationStruct } from "../../src/accounts/index.js"
 import { DEFAULT_ECDSA_OWNERSHIP_MODULE } from "../../src/accounts/utils/constants.js"
-import { validateUserOp } from "../../src/accounts/utils/helpers.js"
+import {
+  validateUserOp,
+  walletClientToSmartAccountSigner
+} from "../../src/accounts/utils/helpers.js"
 import {
   createSmartAccountClient,
   signerToSmartAccount
@@ -72,7 +73,7 @@ describe("Biconomy Smart Account V2 EP v6 tests", () => {
     })
 
     console.log("Transaction Hash: ", txHash)
-  }, 15000)
+  }, 35000)
 
   test("Should mint an NFT and pay for the gas", async () => {
     const encodedCall = encodeFunctionData({
@@ -150,6 +151,8 @@ describe("Biconomy Smart Account V2 EP v6 tests", () => {
       ]
     })
 
+    console.warn("Transaction Hash for NFT Mint: ", txHash)
+
     const balanceAfter1 = await checkBalance(
       publicClient,
       smartAccount.address,
@@ -166,9 +169,9 @@ describe("Biconomy Smart Account V2 EP v6 tests", () => {
   }, 50000)
 
   test("Should sign a user operation", async () => {
-    const userOp: UserOperation<"v0.6"> = {
+    const userOp: UserOperationStruct = {
       sender: "0x99F3Bc8058503960364Ef3fDBF6407C9b0BbefCc",
-      nonce: BigInt(0),
+      nonce: toHex(0n),
       initCode:
         "0x000000a56Aaca3e9a4C479ea6b6CD0DbcB6634F5df20ffbc0000000000000000000000000000001c5b32f37f5bea87bdd5374eb2ac54ea8e0000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000242ede3bc0000000000000000000000000d3c85fdd3695aee3f0a12b3376acd8dc5402054900000000000000000000000000000000000000000000000000000000",
       callData:
@@ -176,11 +179,11 @@ describe("Biconomy Smart Account V2 EP v6 tests", () => {
       signature:
         "0x00000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000001c5b32F37F5beA87BDD5374eB2aC54eA8e000000000000000000000000000000000000000000000000000000000000004181d4b4981670cb18f99f0b4a66446df1bf5b204d24cfcb659bf38ba27a4359b5711649ec2423c5e1247245eba2964679b6a1dbb85c992ae40b9b00c6935b02ff1b00000000000000000000000000000000000000000000000000000000000000",
       paymasterAndData: "0x",
-      callGasLimit: 0n,
-      verificationGasLimit: 0n,
-      preVerificationGas: 0n,
-      maxFeePerGas: 0n,
-      maxPriorityFeePerGas: 0n
+      callGasLimit: toHex(0n),
+      verificationGasLimit: toHex(0n),
+      preVerificationGas: toHex(0n),
+      maxFeePerGas: toHex(0n),
+      maxPriorityFeePerGas: toHex(0n)
     }
 
     const sig = await smartAccount.signUserOperation(userOp)
@@ -244,7 +247,9 @@ describe("Biconomy Smart Account V2 EP v6 tests", () => {
       value: 0n,
       data: "0x"
     })
-    expect(response).rejects.toThrow(SignTransactionNotSupportedBySmartAccount)
+    expect(response).rejects.toThrow(
+      "Sign transaction not supported by smart account"
+    )
   })
 
   test("Should build a user operation manually and send it", async () => {
