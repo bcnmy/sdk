@@ -1,4 +1,4 @@
-import { type BaseError, UnknownNodeError } from "viem"
+import { type BaseError, UnknownNodeError, type HttpRequestError } from "viem"
 import type { SendUserOperationParameters } from "../../../actions/sendUserOperation"
 import { SendUserOperationError } from "../models"
 import { getBundlerError } from "./getBundlerError"

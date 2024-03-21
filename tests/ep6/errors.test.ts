@@ -34,7 +34,7 @@ describe("Errors", () => {
     })
   })
 
-  test("should fail to mint an NFT and pay for the gas", async () => {
+  test("should fail to mint an NFT", async () => {
     smartAccountClient = createSmartAccountClient({
       account: smartAccount,
       chain,
@@ -47,11 +47,11 @@ describe("Errors", () => {
       args: [smartAccount.address]
     })
 
-    const txHash = await smartAccountClient.sendTransaction({
-      to: nftAddress,
-      data: encodedCall
-    })
-
-    expect(txHash).toBeDefined()
+    await expect(
+      smartAccountClient.sendTransaction({
+        to: nftAddress,
+        data: encodedCall
+      })
+    ).rejects.toThrow("SmartAccountInsufficientFundsError")
   }, 50000)
 })

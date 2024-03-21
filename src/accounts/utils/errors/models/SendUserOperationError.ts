@@ -38,7 +38,7 @@ export class SendUserOperationError extends BaseError {
       docsPath,
       metaMessages: [
         ...(cause.metaMessages ? [...cause.metaMessages, " "] : []),
-        "sendUserOperation Arguments:",
+        "SendUserOperation Arguments:",
         prettyArgs
       ].filter(Boolean) as string[]
     })

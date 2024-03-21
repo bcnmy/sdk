@@ -30,11 +30,11 @@ export function prettyPrint(
 
 export const buildErrorStrings = (error: KnownError): string[] =>
   [
-    error.description,
+    `${error.description}\n`,
     error.causes?.length
-      ? ["\n", "Potential cause(s): \n", ...error.causes].join("\n")
+      ? ["Potential cause(s): \n", ...error.causes, ""].join("\n")
       : "",
     error.solutions?.length
-      ? ["\n", "Potential solution(s): \n", ...error.solutions].join("\n")
+      ? ["Potential solution(s): \n", ...error.solutions].join("\n")
       : ""
   ].filter(Boolean)

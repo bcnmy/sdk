@@ -17,12 +17,12 @@ export const getBundlerError = async (
   args: SendUserOperationParameters
 ) => {
   let errors: KnownError[] = []
+  let message = err.details || ""
 
   try {
     errors = await (await fetch(ERRORS_URL)).json()
+    message = (JSON.parse(err.details)?.message || "").toLowerCase()
   } catch (_) {}
-
-  const message = (err.details || "").toLowerCase()
 
   const executionRevertedError =
     err instanceof BaseError
@@ -45,16 +45,17 @@ export const getBundlerError = async (
     return new UnknownNodeError({ cause: err })
 
   const matchedError: KnownError | undefined = message
-    ? errors.find((error: KnownError) =>
-        new RegExp(message, "i").test(error.regex)
+    ? errors.find(
+        (error: KnownError) => message.toLowerCase().indexOf(error.regex) > -1
       )
     : undefined
 
   if (matchedError) {
-    return new BaseError(matchedError.name, {
+    const title = `${matchedError.regex.toUpperCase()}: ${matchedError.name}`
+    return new BaseError(title, {
       cause: err,
       metaMessages: buildErrorStrings(matchedError),
-      docsPath: DOCS_URL
+      docsSlug: DOCS_URL
     })
   }
 

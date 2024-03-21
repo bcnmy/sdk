@@ -1,4 +1,12 @@
-import type { Account, Chain, Client, Hash, Transport } from "viem"
+import {
+  BaseError,
+  type Account,
+  type Chain,
+  type Client,
+  type Hash,
+  type HttpRequestError,
+  type Transport
+} from "viem"
 import type { Prettify } from "viem/chains"
 import type { UserOperationStruct } from "../../accounts"
 import { ENTRYPOINT_ADDRESS_V06 } from "../../accounts/utils/constants"
