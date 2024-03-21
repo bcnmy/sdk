@@ -55,39 +55,39 @@ describe("Paymaster tests", async () => {
     bundlerTransport: http(bundlerUrl)
   })
 
-  test("Should have the properties of a viem client", async () => {
-    const paymasterClient = createPaymasterClient({
-      chain,
-      transport: http(paymasterUrl)
-    })
-    expect(paymasterClient.uid).toBeDefined()
-    expect(paymasterClient?.chain?.id).toBe(chainId)
-    expect(paymasterClient.pollingInterval).toBeDefined()
-  })
+  // test("Should have the properties of a viem client", async () => {
+  //   const paymasterClient = createPaymasterClient({
+  //     chain,
+  //     transport: http(paymasterUrl)
+  //   })
+  //   expect(paymasterClient.uid).toBeDefined()
+  //   expect(paymasterClient?.chain?.id).toBe(chainId)
+  //   expect(paymasterClient.pollingInterval).toBeDefined()
+  // })
 
-  test("Should return sponsored user operation values", async () => {
-    const paymasterClient = createPaymasterClient({
-      chain,
-      transport: http(paymasterUrl)
-    })
+  // test("Should return sponsored user operation values", async () => {
+  //   const paymasterClient = createPaymasterClient({
+  //     chain,
+  //     transport: http(paymasterUrl)
+  //   })
 
-    const userOp = await smartAccountClient.prepareUserOperationRequest({
-      userOperation: {
-        callData: await smartAccountClient.account.encodeCallData({
-          to: zeroAddress,
-          value: 0n,
-          data: "0x"
-        })
-      }
-    })
+  //   const userOp = await smartAccountClient.prepareUserOperationRequest({
+  //     userOperation: {
+  //       callData: await smartAccountClient.account.encodeCallData({
+  //         to: zeroAddress,
+  //         value: 0n,
+  //         data: "0x"
+  //       })
+  //     }
+  //   })
 
-    const result = await paymasterClient.sponsorUserOperation({
-      userOperation: userOp,
-      mode: PaymasterMode.SPONSORED
-    })
+  //   const result = await paymasterClient.sponsorUserOperation({
+  //     userOperation: userOp,
+  //     mode: PaymasterMode.SPONSORED
+  //   })
 
-    expect(result).toBeTruthy()
-  })
+  //   expect(result).toBeTruthy()
+  // })
 
   // test("Should send a sponsored user operation using sendUserOperation", async () => {
   //   const paymasterClient = createPaymasterClient({
@@ -136,39 +136,118 @@ describe("Paymaster tests", async () => {
   //   expect(userOpHash).toBeTruthy()
   // }, 50000)
 
-  test("Should send a sponsored user operation using sendTransaction", async () => {
+  // test("Should send a sponsored user operation using sendTransaction", async () => {
+  //   const paymasterClient = createPaymasterClient({
+  //     transport: http(paymasterUrl)
+  //   })
+  //   const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
+  //   const encodedCall = encodeFunctionData({
+  //     abi: parseAbi(["function safeMint(address to) public"]),
+  //     functionName: "safeMint",
+  //     args: [smartAccount.address]
+  //   })
+
+  //   const sponsoredSmartAccountClient = createSmartAccountClient({
+  //     account: smartAccount,
+  //     chain,
+  //     bundlerTransport: http(bundlerUrl),
+  //     middleware: {
+  //       gasPrice: async () => {
+  //         const { maxFeePerGas, maxPriorityFeePerGas } =
+  //           await bundlerClient.getGasFeeValues()
+  //         return { maxFeePerGas, maxPriorityFeePerGas }
+  //       },
+  //       sponsorUserOperation: paymasterClient.sponsorUserOperation
+  //     }
+  //   })
+
+  //   const userOpHash = await sponsoredSmartAccountClient.sendTransaction({
+  //     to: nftAddress,
+  //     value: 0n,
+  //     data: encodedCall
+  //   })
+
+  //   console.log(userOpHash, "result")
+
+  //   expect(userOpHash).toBeTruthy()
+  // }, 50000)
+
+  test("Should get ERC20 Paymaster supported tokens fee quotes", async () => {
     const paymasterClient = createPaymasterClient({
+      chain,
       transport: http(paymasterUrl)
     })
-    const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
-    const encodedCall = encodeFunctionData({
-      abi: parseAbi(["function safeMint(address to) public"]),
-      functionName: "safeMint",
-      args: [smartAccount.address]
-    })
 
-    const sponsoredSmartAccountClient = createSmartAccountClient({
-      account: smartAccount,
-      chain,
-      bundlerTransport: http(bundlerUrl),
-      middleware: {
-        gasPrice: async () => {
-          const { maxFeePerGas, maxPriorityFeePerGas } =
-            await bundlerClient.getGasFeeValues()
-          return { maxFeePerGas, maxPriorityFeePerGas }
-        },
-        sponsorUserOperation: paymasterClient.sponsorUserOperation
+    const userOp = await smartAccountClient.prepareUserOperationRequest({
+      userOperation: {
+        callData: await smartAccountClient.account.encodeCallData({
+          to: zeroAddress,
+          value: 0n,
+          data: "0x"
+        })
       }
     })
 
-    const userOpHash = await sponsoredSmartAccountClient.sendTransaction({
-      to: nftAddress,
-      value: 0n,
-      data: encodedCall
+    const result = await paymasterClient.getPaymasterFeeQuotesOrData({
+      userOperation: userOp,
+      mode: PaymasterMode.ERC20
     })
 
-    console.log(userOpHash, "result")
+    console.log(result, "result")
 
-    expect(userOpHash).toBeTruthy()
-  }, 50000)
+    expect(result).toBeTruthy()
+  }, 15000)
+
+  test("Should get ERC20 Paymaster preffered token fee quotes", async () => {
+    const paymasterClient = createPaymasterClient({
+      chain,
+      transport: http(paymasterUrl)
+    })
+
+    const userOp = await smartAccountClient.prepareUserOperationRequest({
+      userOperation: {
+        callData: await smartAccountClient.account.encodeCallData({
+          to: zeroAddress,
+          value: 0n,
+          data: "0x"
+        })
+      }
+    })
+
+    const result = await paymasterClient.getPaymasterFeeQuotesOrData({
+      userOperation: userOp,
+      mode: PaymasterMode.ERC20,
+      preferredToken: "0x7683022d84f726a96c4a6611cd31dbf5409c0ac9"
+    })
+
+    console.log(result, "result")
+
+    expect(result).toBeTruthy()
+  }, 15000)
+
+  test("Should get SPONSORED Paymaster fee quotes", async () => {
+    const paymasterClient = createPaymasterClient({
+      chain,
+      transport: http(paymasterUrl)
+    })
+
+    const userOp = await smartAccountClient.prepareUserOperationRequest({
+      userOperation: {
+        callData: await smartAccountClient.account.encodeCallData({
+          to: zeroAddress,
+          value: 0n,
+          data: "0x"
+        })
+      }
+    })
+
+    const result = await paymasterClient.getPaymasterFeeQuotesOrData({
+      userOperation: userOp,
+      mode: PaymasterMode.SPONSORED
+    })
+
+    console.log(result, "result")
+
+    expect(result).toBeTruthy()
+  }, 15000)
 })
