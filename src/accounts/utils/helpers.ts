@@ -15,7 +15,6 @@ import {
   type WalletClient,
   concat,
   encodeAbiParameters,
-  getAddress,
   keccak256,
   parseAbiParameters
 } from "viem"

@@ -1,17 +1,10 @@
-import {
-  type Account,
-  BaseError,
-  type Chain,
-  type Client,
-  type Hash,
-  type HttpRequestError,
-  type Transport
-} from "viem"
+import type { Account, Chain, Client, Hash, Transport } from "viem"
 import type { Prettify } from "viem/chains"
 import type { UserOperationStruct } from "../../accounts"
 import { ENTRYPOINT_ADDRESS_V06 } from "../../accounts/utils/constants"
 import { getSendUserOperationError } from "../../accounts/utils/errors/getters"
 import type { BundlerRpcSchema } from "../utils/types"
+import type { BaseError } from "viem"
 
 export type SendUserOperationParameters = {
   userOperation: UserOperationStruct
@@ -58,7 +51,7 @@ export const sendUserOperation = async <
     })
 
     return userOperationHash
-  } catch (errorFromBundler) {
-    throw await getSendUserOperationError(errorFromBundler, args)
+  } catch (err) {
+    throw await getSendUserOperationError(err as BaseError, args)
   }
 }

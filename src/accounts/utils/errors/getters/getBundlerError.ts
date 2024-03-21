@@ -9,8 +9,8 @@ import {
   type UnknownNodeErrorType
 } from "../models"
 
-const ERRORS_URL = "https://bcnmy.github.io/aa-errors/errors.json"
-const DOCS_URL = "https://docs.biconomy.io/troubleshooting/commonerrors"
+export const ERRORS_URL = "https://bcnmy.github.io/aa-errors/errors.json"
+export const DOCS_URL = "https://docs.biconomy.io/troubleshooting/commonerrors"
 
 export const getBundlerError = async (
   err: BaseError,
@@ -20,7 +20,7 @@ export const getBundlerError = async (
   let message = err.details || ""
 
   try {
-    errors = await (await fetch(ERRORS_URL)).json()
+    errors = (await (await fetch(ERRORS_URL)).json()) as KnownError[]
     message = (JSON.parse(err.details)?.message || "").toLowerCase()
   } catch (_) {}
 

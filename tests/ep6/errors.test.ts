@@ -8,7 +8,9 @@ import {
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { beforeAll, describe, expect, test } from "vitest"
 import { createSmartAccountClient, signerToSmartAccount } from "../../src"
+import { ERRORS_URL } from "../../src/accounts/utils/errors/getters/getBundlerError"
 import { walletClientToSmartAccountSigner } from "../../src/accounts/utils/helpers"
+import type { KnownError } from "../../src/accounts/utils/types"
 import { getChainConfig } from "../utils"
 
 describe("Errors", () => {
@@ -16,6 +18,8 @@ describe("Errors", () => {
   const randomPrivateKey = generatePrivateKey()
   const account = privateKeyToAccount(randomPrivateKey)
   const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
+  const errors: KnownError[] = []
+
   const walletClient = createWalletClient({
     account,
     chain,
@@ -32,9 +36,15 @@ describe("Errors", () => {
     smartAccount = await signerToSmartAccount(publicClient, {
       signer: walletClientToSmartAccountSigner(walletClient)
     })
+    const _errors = await (await fetch(ERRORS_URL)).json()
+    errors.push(..._errors)
   })
 
-  test("should fail to mint an NFT", async () => {
+  test("should fail and give advice", async () => {
+    const relevantError = errors.find(
+      (error: KnownError) => error.regex === "aa21"
+    )
+
     smartAccountClient = createSmartAccountClient({
       account: smartAccount,
       chain,
@@ -52,6 +62,13 @@ describe("Errors", () => {
         to: nftAddress,
         data: encodedCall
       })
-    ).rejects.toThrow("SmartAccountInsufficientFundsError")
+    ).rejects.toThrowError("AA21: SmartAccountInsufficientFundsError")
+
+    await expect(
+      smartAccountClient.sendTransaction({
+        to: nftAddress,
+        data: encodedCall
+      })
+    ).rejects.toThrowError(relevantError?.solutions[0])
   }, 50000)
 })

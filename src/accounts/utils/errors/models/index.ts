@@ -1,19 +1,19 @@
 export {
   ExecutionRevertedError,
-  ExecutionRevertedErrorType
+  type ExecutionRevertedErrorType
 } from "./ExecutionRevertedError"
 
 export {
   UnknownNodeError,
-  UnknownNodeErrorType
+  type UnknownNodeErrorType
 } from "./UnknownNodeError"
 
 export {
   SendUserOperationError,
-  SendUserOperationErrorType
+  type SendUserOperationErrorType
 } from "./SendUserOperationError"
 
 export {
   EstimateUserOperationGasError,
-  EstimateUserOperationGasErrorType
+  type EstimateUserOperationGasErrorType
 } from "./EstimateUserOperationGasError"

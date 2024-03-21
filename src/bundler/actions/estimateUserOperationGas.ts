@@ -8,6 +8,7 @@ import type {
   EstimateUserOperationGasParameters,
   StateOverrides
 } from "../utils/types"
+import type { BaseError } from "viem"
 
 export const estimateUserOperationGas = async <
   TTransport extends Transport = Transport,
@@ -63,6 +64,6 @@ export const estimateUserOperationGas = async <
       maxFeePerGas: string
     }
   } catch (err) {
-    throw await getEstimateUserOperationGasError(err, args)
+    throw await getEstimateUserOperationGasError(err as BaseError, args)
   }
 }
