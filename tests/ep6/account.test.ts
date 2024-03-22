@@ -12,12 +12,14 @@ import {
 import type { Client, Hex, PublicClient } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 
+import { waitForTransactionReceipt } from "viem/actions"
 import type { UserOperationStruct } from "../../src/accounts/index.js"
 import { DEFAULT_ECDSA_OWNERSHIP_MODULE } from "../../src/accounts/utils/constants.js"
 import {
   validateUserOp,
   walletClientToSmartAccountSigner
 } from "../../src/accounts/utils/helpers.js"
+import { bundlerActions } from "../../src/client/decorators/bundler.js"
 import {
   createSmartAccountClient,
   signerToSmartAccount
@@ -54,16 +56,14 @@ describe("Biconomy Smart Account V2 EP v6 tests", () => {
 
   test("Should get the init code", async () => {
     const initCode = await smartAccount.getInitCode()
-    console.log("Init Code: ", initCode)
     expect(initCode).toBeDefined()
   })
 
   test("Should get account address + nonce", async () => {
     const address = smartAccount.address
-    console.log("Smart Account Address: ", address)
-
+    expect(address).toBeDefined()
     const nonce = await smartAccount.getNonce()
-    console.log("Smart Account Nonce: ", nonce)
+    expect(nonce).toBeDefined()
   })
 
   test("Should send an empty tx", async () => {
@@ -72,8 +72,13 @@ describe("Biconomy Smart Account V2 EP v6 tests", () => {
       data: "0x1234"
     })
 
-    console.log("Transaction Hash: ", txHash)
-  }, 35000)
+    const receipt = await waitForTransactionReceipt(publicClient, {
+      hash: txHash
+    })
+
+    expect(receipt).toBeDefined()
+    expect(txHash).toBeDefined()
+  }, 50000)
 
   test("Should mint an NFT and pay for the gas", async () => {
     const encodedCall = encodeFunctionData({
@@ -87,7 +92,10 @@ describe("Biconomy Smart Account V2 EP v6 tests", () => {
       data: encodedCall
     })
 
-    console.log("Transaction Hash for NFT Mint: ", txHash)
+    const receipt = waitForTransactionReceipt(publicClient, { hash: txHash })
+
+    expect(receipt).toBeDefined()
+    expect(txHash).toBeDefined()
   }, 50000)
 
   test("Should build a user operation manually and validate it", async () => {
@@ -151,7 +159,9 @@ describe("Biconomy Smart Account V2 EP v6 tests", () => {
       ]
     })
 
-    console.warn("Transaction Hash for NFT Mint: ", txHash)
+    const receipt = waitForTransactionReceipt(publicClient, { hash: txHash })
+
+    expect(txHash).toBeDefined()
 
     const balanceAfter1 = await checkBalance(
       publicClient,
@@ -273,10 +283,15 @@ describe("Biconomy Smart Account V2 EP v6 tests", () => {
 
     expect(isValid).toBe(true)
 
-    const txHash = await smartAccountClient.sendUserOperation({
+    const userOpHash = await smartAccountClient.sendUserOperation({
       userOperation: userOp
     })
 
-    console.log("Transaction Hash for NFT Mint: ", txHash)
+    const receipt = await smartAccountClient
+      .extend(bundlerActions())
+      .waitForUserOperationReceipt({ hash: userOpHash })
+
+    expect(receipt).toBeDefined()
+    expect(userOpHash).toBeDefined()
   }, 50000)
 })

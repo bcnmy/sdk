@@ -19,6 +19,7 @@ export const extractChainIdFromPaymasterUrl = (url: string): number => {
   }
 }
 
+// biome-ignore lint/suspicious/noExplicitAny: Difficult to type
 export function deepHexlify(obj: any): any {
   if (typeof obj === "function") {
     return undefined
