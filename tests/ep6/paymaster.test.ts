@@ -116,11 +116,6 @@ describe("Paymaster tests", async () => {
         gasPrice: async () => {
           const { maxFeePerGas, maxPriorityFeePerGas } =
             await bundlerClient.getGasFeeValues()
-          console.log(
-            maxFeePerGas,
-            maxPriorityFeePerGas,
-            "maxFeePerGas, maxPriorityFeePerGas"
-          )
           return { maxFeePerGas, maxPriorityFeePerGas }
         },
         sponsorUserOperation: paymasterClient.sponsorUserOperation

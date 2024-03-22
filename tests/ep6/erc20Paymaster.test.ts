@@ -79,8 +79,6 @@ describe("ERC20 Paymaster tests", async () => {
       mode: PaymasterMode.ERC20
     })
 
-    console.log(result, "result")
-
     expect(result).toBeTruthy()
   }, 15000)
 
@@ -106,8 +104,6 @@ describe("ERC20 Paymaster tests", async () => {
       preferredToken: "0x7683022d84f726a96c4a6611cd31dbf5409c0ac9"
     })
 
-    console.log(result, "result")
-
     expect(result).toBeTruthy()
   }, 15000)
 
@@ -131,8 +127,6 @@ describe("ERC20 Paymaster tests", async () => {
       userOperation: userOp,
       mode: PaymasterMode.SPONSORED
     })
-
-    console.log(result, "result")
 
     expect(result).toBeTruthy()
   }, 15000)
@@ -180,24 +174,9 @@ describe("ERC20 Paymaster tests", async () => {
       }
     })
 
-    // const approveData = encodeFunctionData({
-    //     abi: parseAbi(["function approve(address spender, uint256 value) external returns (bool)"]),
-    //     functionName: "approve",
-    //     args: ["0x00000f7365cA6C59A2C93719ad53d567ed49c14C", maxUint256],
-    // });
-
-    // const approveTxHash = await smartAccountClient.sendTransaction({
-    //     to: "0x7683022d84f726a96c4a6611cd31dbf5409c0ac9",
-    //     data: approveData
-    // });
-
-    // console.log(approveTxHash, "approveTxHash");
-
     const userOpHash = await sponsoredSmartAccountClient.sendUserOperation({
       userOperation: userOp
     })
-
-    console.log(userOpHash, "userOpHash")
 
     expect(userOpHash).toBeTruthy()
   }, 50000)
