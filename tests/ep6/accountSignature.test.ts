@@ -66,7 +66,7 @@ describe("Biconomy Smart Account V2 EP v6 - Signature tests", () => {
       message
     })
 
-    expect(signature).rejects.toThrowError()
+    expect(signature).rejects.toThrow()
   })
 
   test.concurrent("verifySignature of not deployed", async () => {

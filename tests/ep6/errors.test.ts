@@ -3,7 +3,9 @@ import {
   createPublicClient,
   createWalletClient,
   encodeFunctionData,
-  parseAbi
+  parseAbi,
+  zeroAddress,
+  type Hex
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { beforeAll, describe, expect, test } from "vitest"
@@ -12,63 +14,119 @@ import { walletClientToSmartAccountSigner } from "../../src/accounts/utils/helpe
 import type { KnownError } from "../../src/accounts/utils/types"
 import { ERRORS_URL } from "../../src/errors/getters/getBundlerError"
 import { getChainConfig } from "../utils"
+import { createBundlerClient } from "../../src/bundler"
 
 describe("Errors", () => {
   const { bundlerUrl, chain } = getChainConfig()
   const randomPrivateKey = generatePrivateKey()
-  const account = privateKeyToAccount(randomPrivateKey)
+  const fundedPrivateKey: Hex = `0x${process.env.PRIVATE_KEY}`
+  const unfundedAccount = privateKeyToAccount(randomPrivateKey)
+  const fundedAccount = privateKeyToAccount(fundedPrivateKey)
   const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
   const errors: KnownError[] = []
 
-  const walletClient = createWalletClient({
-    account,
+  const unfundedWalletClient = createWalletClient({
+    account: unfundedAccount,
     chain,
     transport: http()
   })
+
+  const fundedWalletClient = createWalletClient({
+    account: fundedAccount,
+    chain,
+    transport: http()
+  })
+
   const publicClient = createPublicClient({
     chain,
     transport: http()
   })
-  let smartAccount: Awaited<ReturnType<typeof signerToSmartAccount>>
-  let smartAccountClient: ReturnType<typeof createSmartAccountClient>
+  let unfundedSmartAccount: Awaited<ReturnType<typeof signerToSmartAccount>>
+  let unfundedSmartAccountClient: ReturnType<typeof createSmartAccountClient>
 
   beforeAll(async () => {
-    smartAccount = await signerToSmartAccount(publicClient, {
-      signer: walletClientToSmartAccountSigner(walletClient)
+    unfundedSmartAccount = await signerToSmartAccount(publicClient, {
+      signer: walletClientToSmartAccountSigner(unfundedWalletClient)
     })
+
+    unfundedSmartAccountClient = createSmartAccountClient({
+      account: unfundedSmartAccount,
+      chain,
+      bundlerTransport: http(bundlerUrl)
+    })
+
     const _errors = await (await fetch(ERRORS_URL)).json()
     errors.push(..._errors)
   })
 
-  test("should fail and give advice", async () => {
-    const relevantError = errors.find(
+  test("should fail with SmartAccountInsufficientFundsError", async () => {
+    const encodedCall = encodeFunctionData({
+      abi: parseAbi(["function safeMint(address to) public"]),
+      functionName: "safeMint",
+      args: [unfundedSmartAccount.address]
+    })
+
+    await expect(
+      unfundedSmartAccountClient.sendTransaction({
+        to: nftAddress,
+        data: encodedCall
+      })
+    ).rejects.toThrow("SmartAccountInsufficientFundsError")
+  }, 50000)
+
+  test("should give advice on insufficient funds", async () => {
+    const relevantErrorFromRequest = errors.find(
       (error: KnownError) => error.regex === "aa21"
     )
 
-    smartAccountClient = createSmartAccountClient({
+    const encodedCall = encodeFunctionData({
+      abi: parseAbi(["function safeMint(address to) public"]),
+      functionName: "safeMint",
+      args: [unfundedSmartAccount.address]
+    })
+
+    const adviceFromRequest = relevantErrorFromRequest?.solutions[1]
+    const adviceString =
+      "Send some native tokens in your smart wallet to be able to resolve the error."
+
+    expect(adviceFromRequest).toBe(adviceString)
+
+    await expect(
+      unfundedSmartAccountClient.sendTransaction({
+        to: nftAddress,
+        data: encodedCall
+      })
+    ).rejects.toThrow(adviceString)
+  }, 50000)
+
+  test("should fail with an incorrect nonce", async () => {
+    const INCORRECT_NONCE = 1n
+    const smartAccount = await signerToSmartAccount(publicClient, {
+      signer: walletClientToSmartAccountSigner(fundedWalletClient)
+    })
+
+    const smartAccountClient = createSmartAccountClient({
       account: smartAccount,
       chain,
       bundlerTransport: http(bundlerUrl)
     })
 
-    const encodedCall = encodeFunctionData({
-      abi: parseAbi(["function safeMint(address to) public"]),
-      functionName: "safeMint",
-      args: [smartAccount.address]
+    const bundlerClient = createBundlerClient({
+      chain,
+      transport: http(bundlerUrl)
     })
 
     await expect(
-      smartAccountClient.sendTransaction({
-        to: nftAddress,
-        data: encodedCall
+      smartAccountClient.prepareUserOperationRequest({
+        userOperation: {
+          nonce: INCORRECT_NONCE,
+          callData: await smartAccount.encodeCallData({
+            to: zeroAddress,
+            value: 0n,
+            data: "0x1234"
+          })
+        }
       })
-    ).rejects.toThrowError("AA21: SmartAccountInsufficientFundsError")
-
-    await expect(
-      smartAccountClient.sendTransaction({
-        to: nftAddress,
-        data: encodedCall
-      })
-    ).rejects.toThrowError(relevantError?.solutions[0])
-  }, 50000)
+    ).rejects.toThrow("AA25: InvalidSmartAccountNonceError")
+  }, 35000)
 })
