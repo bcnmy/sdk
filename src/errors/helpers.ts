@@ -1,4 +1,4 @@
-import type { KnownError } from "../types"
+import type { KnownError } from "../accounts/utils/types"
 
 export function prettyPrint(
   args: Record<string, bigint | number | string | undefined | false | unknown>

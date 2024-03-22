@@ -8,9 +8,9 @@ import {
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { beforeAll, describe, expect, test } from "vitest"
 import { createSmartAccountClient, signerToSmartAccount } from "../../src"
-import { ERRORS_URL } from "../../src/accounts/utils/errors/getters/getBundlerError"
 import { walletClientToSmartAccountSigner } from "../../src/accounts/utils/helpers"
 import type { KnownError } from "../../src/accounts/utils/types"
+import { ERRORS_URL } from "../../src/errors/getters/getBundlerError"
 import { getChainConfig } from "../utils"
 
 describe("Errors", () => {

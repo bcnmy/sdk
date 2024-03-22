@@ -1,5 +1,5 @@
 import { type BaseError, UnknownNodeError } from "viem"
-import type { EstimateUserOperationGasParameters } from "../../../../bundler/utils/types"
+import type { EstimateUserOperationGasParameters } from "../../bundler/utils/types"
 import { EstimateUserOperationGasError } from "../models"
 import { getBundlerError } from "./getBundlerError"
 

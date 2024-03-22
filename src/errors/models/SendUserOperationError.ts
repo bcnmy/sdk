@@ -1,15 +1,14 @@
 import { BaseError } from "viem"
-import type { SendUserOperationParameters } from "../../../actions/sendUserOperation"
+import type { SendUserOperationParameters } from "../../accounts/actions/sendUserOperation"
 import { prettyPrint } from "../helpers"
 
-export type EstimateUserOperationGasErrorType =
-  EstimateUserOperationGasError & {
-    name: "EstimateUserOperationGasError"
-  }
-export class EstimateUserOperationGasError extends BaseError {
+export type SendUserOperationErrorType = SendUserOperationError & {
+  name: "SendUserOperationError"
+}
+export class SendUserOperationError extends BaseError {
   override cause: BaseError
 
-  override name = "EstimateUserOperationGasError"
+  override name = "SendUserOperationError"
 
   constructor(
     cause: BaseError,
@@ -39,7 +38,7 @@ export class EstimateUserOperationGasError extends BaseError {
       docsPath,
       metaMessages: [
         ...(cause.metaMessages ? [...cause.metaMessages, " "] : []),
-        "Estimate Gas Arguments:",
+        "SendUserOperation Arguments:",
         prettyArgs
       ].filter(Boolean) as string[]
     })

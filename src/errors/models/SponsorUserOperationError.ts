@@ -1,21 +1,21 @@
 import { BaseError } from "viem"
-import type { SendUserOperationParameters } from "../../../actions/sendUserOperation"
+import type { SponsorUserOperationParameters } from "../../paymaster/utils/types"
 import { prettyPrint } from "../helpers"
 
-export type SendUserOperationErrorType = SendUserOperationError & {
-  name: "SendUserOperationError"
+export type SponsorUserOperationErrorType = SponsorUserOperationError & {
+  name: "SponsorUserOperationError"
 }
-export class SendUserOperationError extends BaseError {
+export class SponsorUserOperationError extends BaseError {
   override cause: BaseError
 
-  override name = "SendUserOperationError"
+  override name = "SponsorUserOperationError"
 
   constructor(
     cause: BaseError,
     {
       userOperation,
       docsPath
-    }: SendUserOperationParameters & {
+    }: SponsorUserOperationParameters & {
       docsPath?: string
     }
   ) {
@@ -38,7 +38,7 @@ export class SendUserOperationError extends BaseError {
       docsPath,
       metaMessages: [
         ...(cause.metaMessages ? [...cause.metaMessages, " "] : []),
-        "SendUserOperation Arguments:",
+        "SponsorUserOperation Arguments:",
         prettyArgs
       ].filter(Boolean) as string[]
     })

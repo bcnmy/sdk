@@ -1,6 +1,6 @@
 import { BaseError } from "viem"
-import type { SendUserOperationParameters } from "../../../actions/sendUserOperation"
-import type { KnownError } from "../../types"
+import type { SendUserOperationParameters } from "../../accounts/actions/sendUserOperation"
+import type { KnownError } from "../../accounts/utils/types"
 import { buildErrorStrings } from "../helpers"
 import {
   ExecutionRevertedError,
