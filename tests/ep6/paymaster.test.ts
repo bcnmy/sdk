@@ -50,7 +50,7 @@ describe("Paymaster tests", async () => {
     bundlerTransport: http(bundlerUrl)
   })
 
-  test.concurrent("Should have the properties of a viem client", async () => {
+  test("Should have the properties of a viem client", async () => {
     const paymasterClient = createPaymasterClient({
       chain,
       transport: http(paymasterUrl)

@@ -28,17 +28,17 @@ describe("Bundler tests", () => {
     transport: http(bundlerUrl)
   })
 
-  test.concurrent("Should have the properties of a viem client", async () => {
+  test("Should have the properties of a viem client", async () => {
     expect(bundlerClient.uid).toBeDefined()
     expect(bundlerClient?.chain?.id).toBe(chain.id)
     expect(bundlerClient.pollingInterval).toBeDefined()
   })
 
-  test.concurrent("Should have a bundler specific action", async () => {
+  test("Should have a bundler specific action", async () => {
     expect(await bundlerClient.chainId()).toBe(chain.id)
   })
 
-  testForBaseSopelia.concurrent(
+  testForBaseSopelia(
     "Should get user op status",
     async () => {
       const userOpHash =
@@ -53,19 +53,15 @@ describe("Bundler tests", () => {
     35000
   )
 
-  test.concurrent(
-    "Should get user op receipt",
-    async () => {
-      const userOpHash =
-        "0xebea403d4701fe950c4fe4aeb117e457a930b843238430b9cc8c3cf502bb2cb0"
+  test("Should get user op receipt", async () => {
+    const userOpHash =
+      "0xebea403d4701fe950c4fe4aeb117e457a930b843238430b9cc8c3cf502bb2cb0"
 
-      const receipt = await bundlerClient.getUserOperationReceipt({
-        hash: userOpHash
-      })
-      expect(receipt).toBeDefined()
-    },
-    35000
-  )
+    const receipt = await bundlerClient.getUserOperationReceipt({
+      hash: userOpHash
+    })
+    expect(receipt).toBeDefined()
+  }, 35000)
 
   test("Should send a user operation using the bundler client and wait for receipt", async () => {
     const smartAccount = await signerToSmartAccount(publicClient, {
