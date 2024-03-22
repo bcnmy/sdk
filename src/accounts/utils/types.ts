@@ -226,3 +226,11 @@ export type SendTransactionParameters<
 > = UnionOmit<FormattedTransactionRequest<derivedChain>, "from"> &
   GetAccountParameter<TAccount> &
   GetChainParameter<TChain, TChainOverride>
+
+export type KnownError = {
+  name: string
+  regex: string
+  description: string
+  causes: string[]
+  solutions: string[]
+}

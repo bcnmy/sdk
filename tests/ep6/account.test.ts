@@ -9,7 +9,6 @@ import {
   toHex,
   zeroAddress
 } from "viem"
-import type { Client, Hex, PublicClient } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 
 import { waitForTransactionReceipt } from "viem/actions"
@@ -54,12 +53,12 @@ describe("Biconomy Smart Account V2 EP v6 tests", () => {
     })
   })
 
-  test("Should get the init code", async () => {
+  test.concurrent("Should get the init code", async () => {
     const initCode = await smartAccount.getInitCode()
     expect(initCode).toBeDefined()
   })
 
-  test("Should get account address + nonce", async () => {
+  test.concurrent("Should get account address + nonce", async () => {
     const address = smartAccount.address
     expect(address).toBeDefined()
     const nonce = await smartAccount.getNonce()
@@ -98,27 +97,31 @@ describe("Biconomy Smart Account V2 EP v6 tests", () => {
     expect(txHash).toBeDefined()
   }, 50000)
 
-  test("Should build a user operation manually and validate it", async () => {
-    const mintNftData = encodeFunctionData({
-      abi: parseAbi(["function safeMint(address to) public"]),
-      functionName: "safeMint",
-      args: [smartAccount.address]
-    })
+  test.concurrent(
+    "Should build a user operation manually and validate it",
+    async () => {
+      const mintNftData = encodeFunctionData({
+        abi: parseAbi(["function safeMint(address to) public"]),
+        functionName: "safeMint",
+        args: [smartAccount.address]
+      })
 
-    const userOp = await smartAccountClient.prepareUserOperationRequest({
-      userOperation: {
-        callData: await smartAccountClient.account.encodeCallData({
-          to: zeroAddress,
-          value: 0n,
-          data: mintNftData
-        })
-      }
-    })
+      const userOp = await smartAccountClient.prepareUserOperationRequest({
+        userOperation: {
+          callData: await smartAccountClient.account.encodeCallData({
+            to: zeroAddress,
+            value: 0n,
+            data: mintNftData
+          })
+        }
+      })
 
-    const isValid = validateUserOp(userOp)
+      const isValid = validateUserOp(userOp)
 
-    expect(isValid).toBe(true)
-  }, 15000)
+      expect(isValid).toBe(true)
+    },
+    15000
+  )
 
   test("Should send a batch of user ops", async () => {
     const encodedCall1 = encodeFunctionData({
@@ -178,7 +181,7 @@ describe("Biconomy Smart Account V2 EP v6 tests", () => {
     expect(balanceAfter2).toBeGreaterThan(balanceBefore2)
   }, 50000)
 
-  test("Should sign a user operation", async () => {
+  test.concurrent("Should sign a user operation", async () => {
     const userOp: UserOperationStruct = {
       sender: "0x99F3Bc8058503960364Ef3fDBF6407C9b0BbefCc",
       nonce: toHex(0n),
@@ -200,7 +203,7 @@ describe("Biconomy Smart Account V2 EP v6 tests", () => {
     expect(sig).toBeDefined()
   })
 
-  test("Client signMessage", async () => {
+  test.concurrent("Client signMessage", async () => {
     const response = await smartAccount.signMessage({
       message: "hello world"
     })
@@ -209,24 +212,27 @@ describe("Biconomy Smart Account V2 EP v6 tests", () => {
     expect(response).toHaveLength(386)
   })
 
-  test("smart account should have ECDSA as default & active validation module", async () => {
-    const defaultValidationModule = smartAccount.defaultValidationModule
-    const activeValidationModule = smartAccount.activeValidationModule
-    expect(defaultValidationModule.getModuleAddress()).toBe(
-      DEFAULT_ECDSA_OWNERSHIP_MODULE
-    )
-    expect(activeValidationModule.getModuleAddress()).toBe(
-      DEFAULT_ECDSA_OWNERSHIP_MODULE
-    )
-  })
+  test.concurrent(
+    "smart account should have ECDSA as default & active validation module",
+    async () => {
+      const defaultValidationModule = smartAccount.defaultValidationModule
+      const activeValidationModule = smartAccount.activeValidationModule
+      expect(defaultValidationModule.getModuleAddress()).toBe(
+        DEFAULT_ECDSA_OWNERSHIP_MODULE
+      )
+      expect(activeValidationModule.getModuleAddress()).toBe(
+        DEFAULT_ECDSA_OWNERSHIP_MODULE
+      )
+    }
+  )
 
-  test("should check active module", async () => {
+  test.concurrent("should check active module", async () => {
     const activeValidationModule = smartAccount.activeValidationModule
     const signer = await activeValidationModule.getSigner()
     expect(signer.address).toEqual(walletClient.account?.address)
   })
 
-  test("Smart account client signTypedData", async () => {
+  test.concurrent("Smart account client signTypedData", async () => {
     const response = await smartAccount.signTypedData({
       domain: {
         chainId: 1,
@@ -251,47 +257,54 @@ describe("Biconomy Smart Account V2 EP v6 tests", () => {
     expect(response).toHaveLength(386)
   })
 
-  test("should throw with custom error SignTransactionNotSupportedBySmartAccount", async () => {
-    const response = smartAccount.signTransaction({
-      to: zeroAddress,
-      value: 0n,
-      data: "0x"
-    })
-    expect(response).rejects.toThrow(
-      "Sign transaction not supported by smart account"
-    )
-  })
+  test.concurrent(
+    "should throw with custom error SignTransactionNotSupportedBySmartAccount",
+    async () => {
+      const response = smartAccount.signTransaction({
+        to: zeroAddress,
+        value: 0n,
+        data: "0x"
+      })
+      expect(response).rejects.toThrow(
+        "Sign transaction not supported by smart account"
+      )
+    }
+  )
 
-  test("Should build a user operation manually and send it", async () => {
-    const mintNftData = encodeFunctionData({
-      abi: parseAbi(["function safeMint(address to) public"]),
-      functionName: "safeMint",
-      args: [smartAccount.address]
-    })
+  test.concurrent(
+    "Should build a user operation manually and send it",
+    async () => {
+      const mintNftData = encodeFunctionData({
+        abi: parseAbi(["function safeMint(address to) public"]),
+        functionName: "safeMint",
+        args: [smartAccount.address]
+      })
 
-    const userOp = await smartAccountClient.prepareUserOperationRequest({
-      userOperation: {
-        callData: await smartAccountClient.account.encodeCallData({
-          to: zeroAddress,
-          value: 0n,
-          data: mintNftData
-        })
-      }
-    })
+      const userOp = await smartAccountClient.prepareUserOperationRequest({
+        userOperation: {
+          callData: await smartAccountClient.account.encodeCallData({
+            to: zeroAddress,
+            value: 0n,
+            data: mintNftData
+          })
+        }
+      })
 
-    const isValid = validateUserOp(userOp)
+      const isValid = validateUserOp(userOp)
 
-    expect(isValid).toBe(true)
+      expect(isValid).toBe(true)
 
-    const userOpHash = await smartAccountClient.sendUserOperation({
-      userOperation: userOp
-    })
+      const userOpHash = await smartAccountClient.sendUserOperation({
+        userOperation: userOp
+      })
 
-    const receipt = await smartAccountClient
-      .extend(bundlerActions())
-      .waitForUserOperationReceipt({ hash: userOpHash })
+      const receipt = await smartAccountClient
+        .extend(bundlerActions())
+        .waitForUserOperationReceipt({ hash: userOpHash })
 
-    expect(receipt).toBeDefined()
-    expect(userOpHash).toBeDefined()
-  }, 50000)
+      expect(receipt).toBeDefined()
+      expect(userOpHash).toBeDefined()
+    },
+    50000
+  )
 })
