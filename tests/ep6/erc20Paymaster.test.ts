@@ -131,7 +131,7 @@ describe("ERC20 Paymaster tests", async () => {
     expect(result).toBeTruthy()
   }, 15000)
 
-  test("Should send a ERC20 sponsored user operation using sendTransaction", async () => {
+  test("Should send a ERC20 sponsored user operation using sendUserOperation", async () => {
     const paymasterClient = createPaymasterClient({
       transport: http(paymasterUrl)
     })
@@ -178,6 +178,11 @@ describe("ERC20 Paymaster tests", async () => {
       userOperation: userOp
     })
 
+    const receipt = await bundlerClient.waitForUserOperationReceipt({
+      hash: userOpHash
+    })
+
+    expect(receipt).toBeTruthy()
     expect(userOpHash).toBeTruthy()
   }, 50000)
 

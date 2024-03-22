@@ -7,7 +7,6 @@ import {
   createSmartAccountClient,
   signerToSmartAccount
 } from "../../src/index.js"
-import { testForBaseSopelia } from "../setupFiles.js"
 import { getChainConfig } from "../utils.js"
 
 describe("Bundler tests", () => {
@@ -38,20 +37,16 @@ describe("Bundler tests", () => {
     expect(await bundlerClient.chainId()).toBe(chain.id)
   })
 
-  testForBaseSopelia(
-    "Should get user op status",
-    async () => {
-      const userOpHash =
-        "0xebea403d4701fe950c4fe4aeb117e457a930b843238430b9cc8c3cf502bb2cb0"
+  test("Should get user op status", async () => {
+    const userOpHash =
+      "0xebea403d4701fe950c4fe4aeb117e457a930b843238430b9cc8c3cf502bb2cb0"
 
-      const status = await bundlerClient.getUserOpStatus(userOpHash)
-      expect(status).toBeDefined()
-      expect(status.state).toBeDefined()
-      expect(status.transactionHash).toBeDefined()
-      expect(status.userOperationReceipt).toBeDefined()
-    },
-    35000
-  )
+    const status = await bundlerClient.getUserOpStatus(userOpHash)
+    expect(status).toBeDefined()
+    expect(status.state).toBeDefined()
+    expect(status.transactionHash).toBeDefined()
+    expect(status.userOperationReceipt).toBeDefined()
+  }, 35000)
 
   test("Should get user op receipt", async () => {
     const userOpHash =

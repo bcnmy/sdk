@@ -9,6 +9,7 @@ import {
 import { describe, expect, test } from "vitest"
 
 import { privateKeyToAccount } from "viem/accounts"
+import { waitForTransactionReceipt } from "viem/actions"
 import { walletClientToSmartAccountSigner } from "../../src/accounts/utils/helpers.js"
 import { createBundlerClient } from "../../src/bundler/createBundlerClient.js"
 import {
@@ -17,7 +18,6 @@ import {
 } from "../../src/index.js"
 import { createPaymasterClient } from "../../src/paymaster/createPaymasterClient.js"
 import { PaymasterMode } from "../../src/paymaster/utils/types.js"
-import { testForBaseSopelia } from "../setupFiles.js"
 import { getChainConfig } from "../utils.js"
 
 describe("Paymaster tests", async () => {
@@ -60,32 +60,29 @@ describe("Paymaster tests", async () => {
     expect(paymasterClient.pollingInterval).toBeDefined()
   })
 
-  testForBaseSopelia(
-    "Should return sponsored user operation values",
-    async () => {
-      const paymasterClient = createPaymasterClient({
-        chain,
-        transport: http(paymasterUrl)
-      })
+  test("Should return sponsored user operation values", async () => {
+    const paymasterClient = createPaymasterClient({
+      chain,
+      transport: http(paymasterUrl)
+    })
 
-      const userOp = await smartAccountClient.prepareUserOperationRequest({
-        userOperation: {
-          callData: await smartAccountClient.account.encodeCallData({
-            to: zeroAddress,
-            value: 0n,
-            data: "0x"
-          })
-        }
-      })
+    const userOp = await smartAccountClient.prepareUserOperationRequest({
+      userOperation: {
+        callData: await smartAccountClient.account.encodeCallData({
+          to: zeroAddress,
+          value: 0n,
+          data: "0x"
+        })
+      }
+    })
 
-      const result = await paymasterClient.sponsorUserOperation({
-        userOperation: userOp,
-        mode: PaymasterMode.SPONSORED
-      })
+    const result = await paymasterClient.sponsorUserOperation({
+      userOperation: userOp,
+      mode: PaymasterMode.SPONSORED
+    })
 
-      expect(result).toBeTruthy()
-    }
-  )
+    expect(result).toBeTruthy()
+  })
 
   test("Should send a sponsored user operation using sendUserOperation", async () => {
     const paymasterClient = createPaymasterClient({
@@ -126,6 +123,11 @@ describe("Paymaster tests", async () => {
       userOperation: userOp
     })
 
+    const receipt = await bundlerClient.waitForUserOperationReceipt({
+      hash: userOpHash
+    })
+
+    expect(receipt).toBeTruthy()
     expect(userOpHash).toBeTruthy()
   }, 50000)
 
@@ -154,14 +156,17 @@ describe("Paymaster tests", async () => {
       }
     })
 
-    const userOpHash = await sponsoredSmartAccountClient.sendTransaction({
+    const txHash = await sponsoredSmartAccountClient.sendTransaction({
       to: nftAddress,
       value: 0n,
       data: encodedCall
     })
 
-    console.log(userOpHash, "result")
+    const receipt = await waitForTransactionReceipt(publicClient, {
+      hash: txHash
+    })
 
-    expect(userOpHash).toBeTruthy()
+    expect(receipt).toBeTruthy()
+    expect(txHash).toBeTruthy()
   }, 50000)
 })
