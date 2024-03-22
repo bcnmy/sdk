@@ -61,6 +61,77 @@ describe("Paymaster tests", async () => {
     expect(paymasterClient.pollingInterval).toBeDefined()
   })
 
+  test.concurrent("Should return sponsored user operation values", async () => {
+    const paymasterClient = createPaymasterClient({
+      chain,
+      transport: http(paymasterUrl)
+    })
+
+    const userOp = await smartAccountClient.prepareUserOperationRequest({
+      userOperation: {
+        callData: await smartAccountClient.account.encodeCallData({
+          to: zeroAddress,
+          value: 0n,
+          data: "0x"
+        })
+      }
+    })
+
+    const result = await paymasterClient.sponsorUserOperation({
+      userOperation: userOp,
+      mode: PaymasterMode.SPONSORED
+    })
+
+    expect(result).toBeTruthy()
+  })
+
+  test("Should send a sponsored user operation using sendUserOperation", async () => {
+    const paymasterClient = createPaymasterClient({
+      transport: http(paymasterUrl)
+    })
+    const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
+    const encodedCall = encodeFunctionData({
+      abi: parseAbi(["function safeMint(address to) public"]),
+      functionName: "safeMint",
+      args: [smartAccount.address]
+    })
+
+    const userOp = await smartAccountClient.prepareUserOperationRequest({
+      userOperation: {
+        callData: await smartAccountClient.account.encodeCallData({
+          to: nftAddress,
+          value: 0n,
+          data: encodedCall
+        })
+      }
+    })
+
+    const sponsoredSmartAccountClient = createSmartAccountClient({
+      account: smartAccount,
+      chain,
+      bundlerTransport: http(bundlerUrl),
+      middleware: {
+        gasPrice: async () => {
+          const { maxFeePerGas, maxPriorityFeePerGas } =
+            await bundlerClient.getGasFeeValues()
+          return { maxFeePerGas, maxPriorityFeePerGas }
+        },
+        sponsorUserOperation: paymasterClient.sponsorUserOperation
+      }
+    })
+
+    const userOpHash = await sponsoredSmartAccountClient.sendUserOperation({
+      userOperation: userOp
+    })
+
+    const receipt = await bundlerClient.waitForUserOperationReceipt({
+      hash: userOpHash
+    })
+
+    expect(receipt).toBeTruthy()
+    expect(userOpHash).toBeTruthy()
+  }, 50000)
+
   testForBaseSopelia(
     "Should return sponsored user operation values",
     async () => {
