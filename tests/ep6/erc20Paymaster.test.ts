@@ -58,179 +58,199 @@ describe("ERC20 Paymaster tests", async () => {
     bundlerTransport: http(bundlerUrl)
   })
 
-  test("Should get ERC20 Paymaster supported tokens fee quotes", async () => {
-    const paymasterClient = createPaymasterClient({
-      chain,
-      transport: http(paymasterUrl)
-    })
+  test.concurrent(
+    "Should get ERC20 Paymaster supported tokens fee quotes",
+    async () => {
+      const paymasterClient = createPaymasterClient({
+        chain,
+        transport: http(paymasterUrl)
+      })
 
-    const userOp = await smartAccountClient.prepareUserOperationRequest({
-      userOperation: {
-        callData: await smartAccountClient.account.encodeCallData({
-          to: zeroAddress,
-          value: 0n,
-          data: "0x"
-        })
-      }
-    })
+      const userOp = await smartAccountClient.prepareUserOperationRequest({
+        userOperation: {
+          callData: await smartAccountClient.account.encodeCallData({
+            to: zeroAddress,
+            value: 0n,
+            data: "0x"
+          })
+        }
+      })
 
-    const result = await paymasterClient.getPaymasterFeeQuotesOrData({
-      userOperation: userOp,
-      mode: PaymasterMode.ERC20
-    })
-
-    expect(result).toBeTruthy()
-  }, 15000)
-
-  test("Should get ERC20 Paymaster preffered token fee quotes", async () => {
-    const paymasterClient = createPaymasterClient({
-      chain,
-      transport: http(paymasterUrl)
-    })
-
-    const userOp = await smartAccountClient.prepareUserOperationRequest({
-      userOperation: {
-        callData: await smartAccountClient.account.encodeCallData({
-          to: zeroAddress,
-          value: 0n,
-          data: "0x"
-        })
-      }
-    })
-
-    const result = await paymasterClient.getPaymasterFeeQuotesOrData({
-      userOperation: userOp,
-      mode: PaymasterMode.ERC20,
-      preferredToken: "0x7683022d84f726a96c4a6611cd31dbf5409c0ac9"
-    })
-
-    expect(result).toBeTruthy()
-  }, 50000)
-
-  test("Should get SPONSORED Paymaster fee quotes", async () => {
-    const paymasterClient = createPaymasterClient({
-      chain,
-      transport: http(paymasterUrl)
-    })
-
-    const userOp = await smartAccountClient.prepareUserOperationRequest({
-      userOperation: {
-        callData: await smartAccountClient.account.encodeCallData({
-          to: zeroAddress,
-          value: 0n,
-          data: "0x"
-        })
-      }
-    })
-
-    const result = await paymasterClient.getPaymasterFeeQuotesOrData({
-      userOperation: userOp,
-      mode: PaymasterMode.SPONSORED
-    })
-
-    expect(result).toBeTruthy()
-  }, 50000)
-
-  test("Should send a ERC20 sponsored user operation using sendUserOperation", async () => {
-    const paymasterClient = createPaymasterClient({
-      transport: http(paymasterUrl)
-    })
-    const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
-    const encodedCall = encodeFunctionData({
-      abi: parseAbi(["function safeMint(address to) public"]),
-      functionName: "safeMint",
-      args: [smartAccount.address]
-    })
-
-    const userOp = await smartAccountClient.prepareUserOperationRequest({
-      userOperation: {
-        callData: await smartAccountClient.account.encodeCallData({
-          to: nftAddress,
-          value: 0n,
-          data: encodedCall
-        })
-      }
-    })
-
-    const response: FeeQuotesOrDataERC20Response =
-      await paymasterClient.getPaymasterFeeQuotesOrData({
+      const result = await paymasterClient.getPaymasterFeeQuotesOrData({
         userOperation: userOp,
         mode: PaymasterMode.ERC20
       })
 
-    const sponsoredSmartAccountClient = createSmartAccountClient({
-      account: smartAccount,
-      chain,
-      bundlerTransport: http(bundlerUrl),
-      middleware: {
-        gasPrice: async () => {
-          const { maxFeePerGas, maxPriorityFeePerGas } =
-            await bundlerClient.getGasFeeValues()
-          return { maxFeePerGas, maxPriorityFeePerGas }
-        },
-        sponsorUserOperation: paymasterClient.sponsorUserOperation,
-        paymasterMode: PaymasterMode.ERC20,
-        feeQuote: response.feeQuotes?.[0]
-      }
-    })
+      expect(result).toBeTruthy()
+    },
+    15000
+  )
 
-    const userOpHash = await sponsoredSmartAccountClient.sendUserOperation({
-      userOperation: userOp
-    })
-
-    const receipt = await bundlerClient.waitForUserOperationReceipt({
-      hash: userOpHash
-    })
-
-    expect(receipt).toBeTruthy()
-    expect(userOpHash).toBeTruthy()
-  }, 50000)
-
-  test("Should throw error if no feeQuote passed for ERC20 mode", async () => {
-    const paymasterClient = createPaymasterClient({
-      transport: http(paymasterUrl)
-    })
-    const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
-    const encodedCall = encodeFunctionData({
-      abi: parseAbi(["function safeMint(address to) public"]),
-      functionName: "safeMint",
-      args: [smartAccount.address]
-    })
-
-    const userOp = await smartAccountClient.prepareUserOperationRequest({
-      userOperation: {
-        callData: await smartAccountClient.account.encodeCallData({
-          to: nftAddress,
-          value: 0n,
-          data: encodedCall
-        })
-      }
-    })
-
-    const response: FeeQuotesOrDataERC20Response =
-      await paymasterClient.getPaymasterFeeQuotesOrData({
-        userOperation: userOp,
-        mode: PaymasterMode.ERC20
+  test.concurrent(
+    "Should get ERC20 Paymaster preffered token fee quotes",
+    async () => {
+      const paymasterClient = createPaymasterClient({
+        chain,
+        transport: http(paymasterUrl)
       })
 
-    const sponsoredSmartAccountClient = createSmartAccountClient({
-      account: smartAccount,
-      chain,
-      bundlerTransport: http(bundlerUrl),
-      middleware: {
-        gasPrice: async () => {
-          const { maxFeePerGas, maxPriorityFeePerGas } =
-            await bundlerClient.getGasFeeValues()
-          return { maxFeePerGas, maxPriorityFeePerGas }
-        },
-        sponsorUserOperation: paymasterClient.sponsorUserOperation,
-        paymasterMode: PaymasterMode.ERC20
-        // feeQuote: response.feeQuotes![0],
-      }
-    })
+      const userOp = await smartAccountClient.prepareUserOperationRequest({
+        userOperation: {
+          callData: await smartAccountClient.account.encodeCallData({
+            to: zeroAddress,
+            value: 0n,
+            data: "0x"
+          })
+        }
+      })
 
-    await expect(
-      sponsoredSmartAccountClient.sendUserOperation({ userOperation: userOp })
-    ).rejects.toThrowError("No fee quote found for ERC20 Paymaster")
-  }, 50000)
+      const result = await paymasterClient.getPaymasterFeeQuotesOrData({
+        userOperation: userOp,
+        mode: PaymasterMode.ERC20,
+        preferredToken: "0x7683022d84f726a96c4a6611cd31dbf5409c0ac9"
+      })
+
+      expect(result).toBeTruthy()
+    },
+    50000
+  )
+
+  test.concurrent(
+    "Should get SPONSORED Paymaster fee quotes",
+    async () => {
+      const paymasterClient = createPaymasterClient({
+        chain,
+        transport: http(paymasterUrl)
+      })
+
+      const userOp = await smartAccountClient.prepareUserOperationRequest({
+        userOperation: {
+          callData: await smartAccountClient.account.encodeCallData({
+            to: zeroAddress,
+            value: 0n,
+            data: "0x"
+          })
+        }
+      })
+
+      const result = await paymasterClient.getPaymasterFeeQuotesOrData({
+        userOperation: userOp,
+        mode: PaymasterMode.SPONSORED
+      })
+
+      expect(result).toBeTruthy()
+    },
+    50000
+  )
+
+  test.concurrent(
+    "Should send a ERC20 sponsored user operation using sendUserOperation",
+    async () => {
+      const paymasterClient = createPaymasterClient({
+        transport: http(paymasterUrl)
+      })
+      const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
+      const encodedCall = encodeFunctionData({
+        abi: parseAbi(["function safeMint(address to) public"]),
+        functionName: "safeMint",
+        args: [smartAccount.address]
+      })
+
+      const userOp = await smartAccountClient.prepareUserOperationRequest({
+        userOperation: {
+          callData: await smartAccountClient.account.encodeCallData({
+            to: nftAddress,
+            value: 0n,
+            data: encodedCall
+          })
+        }
+      })
+
+      const response: FeeQuotesOrDataERC20Response =
+        await paymasterClient.getPaymasterFeeQuotesOrData({
+          userOperation: userOp,
+          mode: PaymasterMode.ERC20
+        })
+
+      const sponsoredSmartAccountClient = createSmartAccountClient({
+        account: smartAccount,
+        chain,
+        bundlerTransport: http(bundlerUrl),
+        middleware: {
+          gasPrice: async () => {
+            const { maxFeePerGas, maxPriorityFeePerGas } =
+              await bundlerClient.getGasFeeValues()
+            return { maxFeePerGas, maxPriorityFeePerGas }
+          },
+          sponsorUserOperation: paymasterClient.sponsorUserOperation,
+          paymasterMode: PaymasterMode.ERC20,
+          feeQuote: response.feeQuotes?.[0]
+        }
+      })
+
+      const userOpHash = await sponsoredSmartAccountClient.sendUserOperation({
+        userOperation: userOp
+      })
+
+      const receipt = await bundlerClient.waitForUserOperationReceipt({
+        hash: userOpHash
+      })
+
+      expect(receipt).toBeTruthy()
+      expect(userOpHash).toBeTruthy()
+    },
+    50000
+  )
+
+  test.concurrent(
+    "Should throw error if no feeQuote passed for ERC20 mode",
+    async () => {
+      const paymasterClient = createPaymasterClient({
+        transport: http(paymasterUrl)
+      })
+      const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
+      const encodedCall = encodeFunctionData({
+        abi: parseAbi(["function safeMint(address to) public"]),
+        functionName: "safeMint",
+        args: [smartAccount.address]
+      })
+
+      const userOp = await smartAccountClient.prepareUserOperationRequest({
+        userOperation: {
+          callData: await smartAccountClient.account.encodeCallData({
+            to: nftAddress,
+            value: 0n,
+            data: encodedCall
+          })
+        }
+      })
+
+      const response: FeeQuotesOrDataERC20Response =
+        await paymasterClient.getPaymasterFeeQuotesOrData({
+          userOperation: userOp,
+          mode: PaymasterMode.ERC20
+        })
+
+      const sponsoredSmartAccountClient = createSmartAccountClient({
+        account: smartAccount,
+        chain,
+        bundlerTransport: http(bundlerUrl),
+        middleware: {
+          gasPrice: async () => {
+            const { maxFeePerGas, maxPriorityFeePerGas } =
+              await bundlerClient.getGasFeeValues()
+            return { maxFeePerGas, maxPriorityFeePerGas }
+          },
+          sponsorUserOperation: paymasterClient.sponsorUserOperation,
+          paymasterMode: PaymasterMode.ERC20
+          // feeQuote: response.feeQuotes![0],
+        }
+      })
+
+      await expect(
+        sponsoredSmartAccountClient.sendUserOperation({ userOperation: userOp })
+      ).rejects.toThrow("No fee quote found for ERC20 Paymaster")
+    },
+    50000
+  )
 })

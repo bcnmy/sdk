@@ -59,74 +59,86 @@ describe("Errors", () => {
     errors.push(..._errors)
   })
 
-  test("should fail with SmartAccountInsufficientFundsError", async () => {
-    const encodedCall = encodeFunctionData({
-      abi: parseAbi(["function safeMint(address to) public"]),
-      functionName: "safeMint",
-      args: [unfundedSmartAccount.address]
-    })
-
-    await expect(
-      unfundedSmartAccountClient.sendTransaction({
-        to: nftAddress,
-        data: encodedCall
+  test.concurrent(
+    "should fail with SmartAccountInsufficientFundsError",
+    async () => {
+      const encodedCall = encodeFunctionData({
+        abi: parseAbi(["function safeMint(address to) public"]),
+        functionName: "safeMint",
+        args: [unfundedSmartAccount.address]
       })
-    ).rejects.toThrow("SmartAccountInsufficientFundsError")
-  }, 50000)
 
-  test("should give advice on insufficient funds", async () => {
-    const relevantErrorFromRequest = errors.find(
-      (error: KnownError) => error.regex === "aa21"
-    )
+      await expect(
+        unfundedSmartAccountClient.sendTransaction({
+          to: nftAddress,
+          data: encodedCall
+        })
+      ).rejects.toThrow("SmartAccountInsufficientFundsError")
+    },
+    50000
+  )
 
-    const encodedCall = encodeFunctionData({
-      abi: parseAbi(["function safeMint(address to) public"]),
-      functionName: "safeMint",
-      args: [unfundedSmartAccount.address]
-    })
+  test.concurrent(
+    "should give advice on insufficient funds",
+    async () => {
+      const relevantErrorFromRequest = errors.find(
+        (error: KnownError) => error.regex === "aa21"
+      )
 
-    const adviceFromRequest = relevantErrorFromRequest?.solutions[1]
-    const adviceString =
-      "Send some native tokens in your smart wallet to be able to resolve the error."
-
-    expect(adviceFromRequest).toBe(adviceString)
-
-    await expect(
-      unfundedSmartAccountClient.sendTransaction({
-        to: nftAddress,
-        data: encodedCall
+      const encodedCall = encodeFunctionData({
+        abi: parseAbi(["function safeMint(address to) public"]),
+        functionName: "safeMint",
+        args: [unfundedSmartAccount.address]
       })
-    ).rejects.toThrow(adviceString)
-  }, 50000)
 
-  test("should fail with an incorrect nonce", async () => {
-    const INCORRECT_NONCE = 1n
-    const smartAccount = await signerToSmartAccount(publicClient, {
-      signer: walletClientToSmartAccountSigner(fundedWalletClient)
-    })
+      const adviceFromRequest = relevantErrorFromRequest?.solutions[1]
+      const adviceString =
+        "Send some native tokens in your smart wallet to be able to resolve the error."
 
-    const smartAccountClient = createSmartAccountClient({
-      account: smartAccount,
-      chain,
-      bundlerTransport: http(bundlerUrl)
-    })
+      expect(adviceFromRequest).toBe(adviceString)
 
-    const bundlerClient = createBundlerClient({
-      chain,
-      transport: http(bundlerUrl)
-    })
+      await expect(
+        unfundedSmartAccountClient.sendTransaction({
+          to: nftAddress,
+          data: encodedCall
+        })
+      ).rejects.toThrow(adviceString)
+    },
+    50000
+  )
 
-    await expect(
-      smartAccountClient.prepareUserOperationRequest({
-        userOperation: {
-          nonce: INCORRECT_NONCE,
-          callData: await smartAccount.encodeCallData({
-            to: zeroAddress,
-            value: 0n,
-            data: "0x1234"
-          })
-        }
+  test.concurrent(
+    "should fail with an incorrect nonce",
+    async () => {
+      const INCORRECT_NONCE = 1n
+      const smartAccount = await signerToSmartAccount(publicClient, {
+        signer: walletClientToSmartAccountSigner(fundedWalletClient)
       })
-    ).rejects.toThrow("AA25: InvalidSmartAccountNonceError")
-  }, 35000)
+
+      const smartAccountClient = createSmartAccountClient({
+        account: smartAccount,
+        chain,
+        bundlerTransport: http(bundlerUrl)
+      })
+
+      const bundlerClient = createBundlerClient({
+        chain,
+        transport: http(bundlerUrl)
+      })
+
+      await expect(
+        smartAccountClient.prepareUserOperationRequest({
+          userOperation: {
+            nonce: INCORRECT_NONCE,
+            callData: await smartAccount.encodeCallData({
+              to: zeroAddress,
+              value: 0n,
+              data: "0x1234"
+            })
+          }
+        })
+      ).rejects.toThrow("AA25: InvalidSmartAccountNonceError")
+    },
+    35000
+  )
 })
