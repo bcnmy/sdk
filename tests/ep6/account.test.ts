@@ -78,7 +78,7 @@ describe("Biconomy Smart Account V2 EP v6 tests", () => {
 
     expect(receipt).toBeDefined()
     expect(txHash).toBeDefined()
-  }, 100000)
+  }, 50000)
 
   test("Should mint an NFT and pay for the gas", async () => {
     const encodedCall = encodeFunctionData({

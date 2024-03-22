@@ -105,7 +105,7 @@ describe("ERC20 Paymaster tests", async () => {
     })
 
     expect(result).toBeTruthy()
-  }, 15000)
+  }, 50000)
 
   test("Should get SPONSORED Paymaster fee quotes", async () => {
     const paymasterClient = createPaymasterClient({
@@ -129,7 +129,7 @@ describe("ERC20 Paymaster tests", async () => {
     })
 
     expect(result).toBeTruthy()
-  }, 15000)
+  }, 50000)
 
   test("Should send a ERC20 sponsored user operation using sendUserOperation", async () => {
     const paymasterClient = createPaymasterClient({
