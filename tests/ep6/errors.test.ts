@@ -1,20 +1,20 @@
 import {
   http,
+  type Hex,
   createPublicClient,
   createWalletClient,
   encodeFunctionData,
   parseAbi,
-  zeroAddress,
-  type Hex
+  zeroAddress
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { beforeAll, describe, expect, test } from "vitest"
 import { createSmartAccountClient, signerToSmartAccount } from "../../src"
 import { walletClientToSmartAccountSigner } from "../../src/accounts/utils/helpers"
 import type { KnownError } from "../../src/accounts/utils/types"
+import { createBundlerClient } from "../../src/bundler"
 import { ERRORS_URL } from "../../src/errors/getters/getBundlerError"
 import { getChainConfig } from "../utils"
-import { createBundlerClient } from "../../src/bundler"
 
 describe("Errors", () => {
   const { bundlerUrl, chain } = getChainConfig()
