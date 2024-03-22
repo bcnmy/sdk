@@ -12,12 +12,14 @@ import {
 import type { Client, Hex, PublicClient } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 
+import { waitForTransactionReceipt } from "viem/actions"
 import type { UserOperationStruct } from "../../src/accounts/index.js"
 import { DEFAULT_ECDSA_OWNERSHIP_MODULE } from "../../src/accounts/utils/constants.js"
 import {
   validateUserOp,
   walletClientToSmartAccountSigner
 } from "../../src/accounts/utils/helpers.js"
+import { bundlerActions } from "../../src/client/decorators/bundler.js"
 import {
   createSmartAccountClient,
   signerToSmartAccount
@@ -70,8 +72,13 @@ describe("Biconomy Smart Account V2 EP v6 tests", () => {
       data: "0x1234"
     })
 
+    const receipt = await waitForTransactionReceipt(publicClient, {
+      hash: txHash
+    })
+
+    expect(receipt).toBeDefined()
     expect(txHash).toBeDefined()
-  }, 35000)
+  }, 50000)
 
   test("Should mint an NFT and pay for the gas", async () => {
     const encodedCall = encodeFunctionData({
@@ -85,6 +92,9 @@ describe("Biconomy Smart Account V2 EP v6 tests", () => {
       data: encodedCall
     })
 
+    const receipt = waitForTransactionReceipt(publicClient, { hash: txHash })
+
+    expect(receipt).toBeDefined()
     expect(txHash).toBeDefined()
   }, 50000)
 
@@ -148,6 +158,8 @@ describe("Biconomy Smart Account V2 EP v6 tests", () => {
         }
       ]
     })
+
+    const receipt = waitForTransactionReceipt(publicClient, { hash: txHash })
 
     expect(txHash).toBeDefined()
 
@@ -271,10 +283,15 @@ describe("Biconomy Smart Account V2 EP v6 tests", () => {
 
     expect(isValid).toBe(true)
 
-    const txHash = await smartAccountClient.sendUserOperation({
+    const userOpHash = await smartAccountClient.sendUserOperation({
       userOperation: userOp
     })
 
-    expect(txHash).toBeDefined()
+    const receipt = await smartAccountClient
+      .extend(bundlerActions())
+      .waitForUserOperationReceipt({ hash: userOpHash })
+
+    expect(receipt).toBeDefined()
+    expect(userOpHash).toBeDefined()
   }, 50000)
 })
