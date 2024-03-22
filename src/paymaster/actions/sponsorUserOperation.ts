@@ -19,8 +19,11 @@ export const sponsorUserOperation = async (
         deepHexlify(args.userOperation),
         {
           mode: args.mode,
-          calculateGasLimits: true,
+          calculateGasLimits: args.calculateGasLimits ?? true,
+          expiryDuration: args.expiryDuration,
+          tokenInfo: args.tokenInfo,
           sponsorshipInfo: {
+            webhookData: args.webhookData,
             smartAccountInfo: {
               name: "BICONOMY",
               version: "2.0.0"

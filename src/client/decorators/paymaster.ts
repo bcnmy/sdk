@@ -1,7 +1,11 @@
 import type { Client } from "viem"
+import { getPaymasterFeeQuotesOrData } from "../../paymaster/actions/getPaymasterFeeQuotesOrData"
 import { sponsorUserOperation } from "../../paymaster/actions/sponsorUserOperation"
 import type { PaymasterClient } from "../../paymaster/createPaymasterClient"
 import type {
+  FeeQuoteOrDataParameters,
+  FeeQuotesOrDataERC20Response,
+  FeeQuotesOrDataSponsoredResponse,
   SponsorUserOperationParameters,
   SponsorUserOperationReturnType
 } from "../../paymaster/utils/types"
@@ -33,6 +37,10 @@ export type PaymasterClientActions = {
     args: SponsorUserOperationParameters
   ) => Promise<SponsorUserOperationReturnType>
 
+  getPaymasterFeeQuotesOrData: (
+    args: FeeQuoteOrDataParameters
+  ) => Promise<FeeQuotesOrDataERC20Response | FeeQuotesOrDataSponsoredResponse>
+
   /**
    * Returns all the Paymaster addresses associated with an EntryPoint that’s owned by this service.
    *
@@ -63,7 +71,9 @@ export const paymasterActions =
     sponsorUserOperation: async (args) =>
       sponsorUserOperation(client as PaymasterClient, {
         ...args
-      })
+      }),
+    getPaymasterFeeQuotesOrData: async (args) =>
+      getPaymasterFeeQuotesOrData(client as PaymasterClient, args)
     // accounts: async (args) =>
     // accounts(client as PaymasterClient, args)
   })

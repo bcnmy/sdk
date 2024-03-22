@@ -82,27 +82,61 @@ async function prepareUserOperationRequestForEntryPointV06<
     typeof middleware !== "function" &&
     middleware.sponsorUserOperation
   ) {
-    const sponsorUserOperationData = (await middleware.sponsorUserOperation({
-      userOperation,
-      mode: PaymasterMode.SPONSORED
-    } as {
-      userOperation: UserOperationStruct
-      mode: PaymasterMode
-    })) as Pick<
-      UserOperationStruct,
-      | "callGasLimit"
-      | "verificationGasLimit"
-      | "preVerificationGas"
-      | "paymasterAndData"
-    >
+    if (middleware.paymasterMode === PaymasterMode.ERC20) {
+      if (middleware.feeQuote) {
+        const sponsorUserOperationData = (await middleware.sponsorUserOperation(
+          {
+            userOperation,
+            mode: PaymasterMode.ERC20,
+            tokenInfo: {
+              feeTokenAddress: middleware.feeQuote.tokenAddress
+            }
+          } as {
+            userOperation: UserOperationStruct
+            mode: PaymasterMode
+          }
+        )) as Pick<
+          UserOperationStruct,
+          | "callGasLimit"
+          | "verificationGasLimit"
+          | "preVerificationGas"
+          | "paymasterAndData"
+        >
 
-    userOperation.callGasLimit =
-      sponsorUserOperationData.callGasLimit?.toString()
-    userOperation.verificationGasLimit =
-      sponsorUserOperationData.verificationGasLimit?.toString()
-    userOperation.preVerificationGas =
-      sponsorUserOperationData.preVerificationGas?.toString()
-    userOperation.paymasterAndData = sponsorUserOperationData.paymasterAndData
+        userOperation.callGasLimit =
+          sponsorUserOperationData.callGasLimit?.toString()
+        userOperation.verificationGasLimit =
+          sponsorUserOperationData.verificationGasLimit?.toString()
+        userOperation.preVerificationGas =
+          sponsorUserOperationData.preVerificationGas?.toString()
+        userOperation.paymasterAndData =
+          sponsorUserOperationData.paymasterAndData
+      } else {
+        throw new Error("No fee quote found for ERC20 Paymaster")
+      }
+    } else {
+      const sponsorUserOperationData = (await middleware.sponsorUserOperation({
+        userOperation,
+        mode: PaymasterMode.SPONSORED
+      } as {
+        userOperation: UserOperationStruct
+        mode: PaymasterMode
+      })) as Pick<
+        UserOperationStruct,
+        | "callGasLimit"
+        | "verificationGasLimit"
+        | "preVerificationGas"
+        | "paymasterAndData"
+      >
+
+      userOperation.callGasLimit =
+        sponsorUserOperationData.callGasLimit?.toString()
+      userOperation.verificationGasLimit =
+        sponsorUserOperationData.verificationGasLimit?.toString()
+      userOperation.preVerificationGas =
+        sponsorUserOperationData.preVerificationGas?.toString()
+      userOperation.paymasterAndData = sponsorUserOperationData.paymasterAndData
+    }
   }
 
   if (

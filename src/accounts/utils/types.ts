@@ -15,7 +15,11 @@ import type {
 import type { PartialBy } from "viem/chains"
 import type { IsUndefined, UnionOmit } from "viem/types/utils.js"
 import type { BaseValidationModule } from "../../modules/index.js"
-import type { PaymasterMode } from "../../paymaster/utils/types.js"
+import type {
+  PaymasterFeeQuote,
+  PaymasterMode,
+  SponsorUserOperationParameters
+} from "../../paymaster/utils/types.js"
 
 export type BigNumberish = number | string | bigint
 export type BytesLike = `0x${string}` | Uint8Array
@@ -167,10 +171,9 @@ export type Middleware = {
           maxPriorityFeePerGas: bigint | string | undefined
           maxFeePerGas: bigint | string | undefined
         }>
-        sponsorUserOperation?: (args: {
-          userOperation: UserOperationStruct
-          mode: PaymasterMode
-        }) => Promise<
+        sponsorUserOperation?: (
+          args: SponsorUserOperationParameters
+        ) => Promise<
           Pick<
             UserOperationStruct,
             | "callGasLimit"
@@ -179,6 +182,8 @@ export type Middleware = {
             | "paymasterAndData"
           >
         >
+        paymasterMode?: PaymasterMode
+        feeQuote?: PaymasterFeeQuote
       }
 }
 
