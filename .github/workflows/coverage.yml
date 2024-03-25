@@ -30,3 +30,10 @@ jobs:
           json-final-path: './coverage/coverage-final.json'
           vite-config-path: ./tests/vitest.config.ts
           github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4.0.1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          verbose: true
+          slug: bcnmy/sdk
