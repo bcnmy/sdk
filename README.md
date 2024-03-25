@@ -8,20 +8,20 @@ This repository serves as a comprehensive foundation for typescript account abst
 
 ## 📚 Table of Contents
 
-- [SDK 🚀](#sdk-🚀)
-  - [📚 Table of Contents](#-📚-table-of-contents)
+- [SDK 🚀](#sdk)
+  - [📚 Table of Contents](#-table-of-contents)
   - [Getting Started](#getting-started)
     - [Prerequisites](#prerequisites)
     - [Installation](#installation)
-  - [🛠️ Essential Scripts](#-🛠️-essential-scripts)
-    - [🧪 Run Tests](#-🧪-run-tests)
-    - [📊 Coverage Report](#-📊-coverage-report)
+  - [🛠️ Essential Scripts](#-essential-scripts)
+    - [🧪 Run Tests](#-run-tests)
+    - [📊 Coverage Report](#-coverage-report)
     - [📄 Documentation](https://bcnmy.github.io/sdk)
-    - [🎨 Lint Code](#-🖌️-auto-fix-linting-issues)
+    - [🎨 Lint Code](#-auto-fix-linting-issues)
     - [🖌️ Auto-fix Linting Issues](#️-auto-fix-linting-issues)
   - [Documentation and Resources](#-documentation-and-resources)
   - [License](#license)
-  - [Connect with Biconomy 🍊](#connect-with-biconomy-🍊)
+  - [Connect with Biconomy 🍊](#connect-with-biconomy)
 
 ## Getting Started
 

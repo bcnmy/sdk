@@ -1,12 +1,4 @@
-import type {
-  Address,
-  Chain,
-  Client,
-  Hash,
-  Hex,
-  SendTransactionParameters,
-  Transport
-} from "viem"
+import type { Address, Chain, Client, Hash, Hex, Transport } from "viem"
 import type { Prettify } from "viem/chains"
 import { waitForUserOperationReceipt } from "../../bundler/actions/waitForUserOperationReceipt"
 import { getAction, parseAccount } from "../utils/helpers"
@@ -33,7 +25,6 @@ export type SendTransactionsWithPaymasterParameters<
  * This function also allows you to sponsor this transaction if sender is a smartAccount
  *
  * @param client - Client to use
- * @param parameters - {@link SendTransactionParameters}
  * @returns The [Transaction](https://viem.sh/docs/glossary/terms.html#transaction) hash.
  *
  * @example
