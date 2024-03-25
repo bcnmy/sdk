@@ -1,6 +1,5 @@
 import { beforeAll, describe, expect, test } from "vitest"
 
-import { walletClientToSmartAccountSigner } from "permissionless"
 import {
   http,
   type WalletClient,
@@ -10,6 +9,7 @@ import {
 import type { PublicClient } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { DEFAULT_ECDSA_OWNERSHIP_MODULE } from "../../../src/accounts/utils/constants.js"
+import { walletClientToSmartAccountSigner } from "../../../src/accounts/utils/helpers.js"
 import { signerToSmartAccount } from "../../../src/index.js"
 import { getChainConfig } from "../../utils.js"
 

@@ -16,33 +16,31 @@ import {
   keccak256,
   parseAbiParameters
 } from "viem"
-import { getChainId, signMessage, signTypedData } from "viem/actions"
+import {
+  getBytecode,
+  getChainId,
+  signMessage,
+  signTypedData
+} from "viem/actions"
 import type { Prettify } from "viem/chains"
-
-import {
-  ENTRYPOINT_ADDRESS_V06,
-  getUserOperationHash,
-  isSmartAccountDeployed
-} from "permissionless"
-import {
-  SignTransactionNotSupportedBySmartAccount,
-  type SmartAccountSigner
-} from "permissionless/accounts"
-import type { ENTRYPOINT_ADDRESS_V06_TYPE } from "permissionless/types/entrypoint"
 
 import {
   type BaseValidationModule,
   createECDSAOwnershipModule
 } from "../../modules/index.js"
 import { BiconomyExecuteAbi, BiconomyInitAbi } from "../utils/abis"
-import { toSmartAccount, validateUserOp } from "../utils/helpers.js"
-import type { SmartAccount } from "../utils/types.js"
+import { ENTRYPOINT_ADDRESS_V06 } from "../utils/constants.js"
+import {
+  getUserOperationHash,
+  toSmartAccount,
+  validateUserOp
+} from "../utils/helpers.js"
+import type { SmartAccount, SmartAccountSigner } from "../utils/types.js"
 
 export type BiconomySmartAccount<
-  entryPoint extends ENTRYPOINT_ADDRESS_V06_TYPE,
   transport extends Transport = Transport,
   chain extends Chain | undefined = Chain | undefined
-> = SmartAccount<entryPoint, "biconomySmartAccount", transport, chain> & {
+> = SmartAccount<"biconomySmartAccount", transport, chain> & {
   defaultValidationModule: BaseValidationModule
   activeValidationModule: BaseValidationModule
   setActiveValidationModule: (
@@ -132,6 +130,20 @@ const getAccountInitCode = async ({
   })
 }
 
+export const isSmartAccountDeployed = async (
+  client: Client,
+  address: Address
+): Promise<boolean> => {
+  const contractCode = await getBytecode(client, {
+    address: address
+  })
+
+  if ((contractCode?.length ?? 0) > 2) {
+    return true
+  }
+  return false
+}
+
 const getAccountAddress = async ({
   factoryAddress,
   accountLogicAddress,
@@ -217,20 +229,12 @@ export async function signerToSmartAccount<
     defaultValidationModule,
     activeValidationModule
   }: SignerToBiconomySmartAccountParameters<TSource, TAddress>
-): Promise<
-  BiconomySmartAccount<ENTRYPOINT_ADDRESS_V06_TYPE, TTransport, TChain>
-> {
-  // const entryPointVersion = getEntryPointVersion(entryPointAddress)
-
-  // if (entryPointVersion !== "v0.6") {
-  //     throw new Error("Only EntryPoint 0.6 is supported")
-  // }
-
+): Promise<BiconomySmartAccount<TTransport, TChain>> {
   // Get the private key related account
   const viemSigner: LocalAccount = {
     ...signer,
     signTransaction: (_, __) => {
-      throw new SignTransactionNotSupportedBySmartAccount()
+      throw new Error("Sign transaction not supported by smart account.")
     }
   } as LocalAccount
 
@@ -288,7 +292,7 @@ export async function signerToSmartAccount<
       )
     },
     async signTransaction(_, __) {
-      throw new SignTransactionNotSupportedBySmartAccount()
+      throw new Error("Sign transaction not supported by smart account.")
     },
     async signTypedData<
       const TTypedData extends TypedData | Record<string, unknown>,
@@ -359,7 +363,6 @@ export async function signerToSmartAccount<
           ...userOperation,
           signature: "0x"
         },
-        entryPoint: ENTRYPOINT_ADDRESS_V06,
         chainId: chainId
       })
       const signature = await signMessage(client, {

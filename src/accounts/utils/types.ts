@@ -3,32 +3,50 @@ import type {
   Address,
   Chain,
   Client,
+  DeriveChain,
   EncodeDeployDataParameters,
+  FormattedTransactionRequest,
+  GetChainParameter,
   Hex,
   LocalAccount,
   Transport
 } from "viem"
 
+import type { PartialBy } from "viem/chains"
+import type { IsUndefined, UnionOmit } from "viem/types/utils.js"
 import type { BaseValidationModule } from "../../modules/index.js"
+import type {
+  PaymasterFeeQuote,
+  PaymasterMode,
+  SponsorUserOperationParameters
+} from "../../paymaster/utils/types.js"
+
+export type BigNumberish = number | string | bigint
+export type BytesLike = `0x${string}` | Uint8Array
 
 export type UserOperationStruct = {
-  sender: Address
-  nonce: bigint
-  factory?: Address
-  factoryData?: Hex
-  callData: Hex
-  callGasLimit: bigint
-  verificationGasLimit: bigint
-  preVerificationGas: bigint
-  maxFeePerGas: bigint
-  maxPriorityFeePerGas: bigint
-  paymaster?: Address
-  paymasterVerificationGasLimit?: bigint
-  paymasterPostOpGasLimit?: bigint
-  paymasterData?: Hex
-  signature: Hex
-  initCode?: Hex
-  paymasterAndData?: Hex
+  /* the origin of the request */
+  sender: string
+  /* nonce of the transaction, returned from the entry point for this Address */
+  nonce: BigNumberish
+  /* the initCode for creating the sender if it does not exist yet, otherwise "0x" */
+  initCode: BytesLike
+  /* the callData passed to the target */
+  callData: BytesLike
+  /* Value used by inner account execution */
+  callGasLimit?: BigNumberish
+  /* Actual gas used by the validation of this UserOperation */
+  verificationGasLimit?: BigNumberish
+  /* Gas overhead of this UserOperation */
+  preVerificationGas?: BigNumberish
+  /* Maximum fee per gas (similar to EIP-1559 max_fee_per_gas) */
+  maxFeePerGas?: BigNumberish
+  /* Maximum priority fee per gas (similar to EIP-1559 max_priority_fee_per_gas) */
+  maxPriorityFeePerGas?: BigNumberish
+  /* Address of paymaster sponsoring the transaction, followed by extra data to send to the paymaster ("0x" for self-sponsored transaction) */
+  paymasterAndData: BytesLike | "0x"
+  /* Data passed into the account along with the nonce during the verification step */
+  signature: BytesLike
 }
 
 export type SmartAccountSigner<
@@ -39,8 +57,8 @@ export type SmartAccountSigner<
 export type TChain = Chain | undefined
 
 export type EntryPointVersion = "v0.6" | "v0.7"
-export type ENTRYPOINT_ADDRESS_V07_TYPE =
-  "0x0000000071727De22E5E9d8BAf0edAc6f37da032"
+export type ENTRYPOINT_ADDRESS_V06_TYPE =
+  "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789"
 
 export type Transaction = {
   to: Address
@@ -58,7 +76,6 @@ export type Transaction = {
  * @template TAbi - The type of the ABI.
  */
 export type SmartAccount<
-  entryPoint = ENTRYPOINT_ADDRESS_V07_TYPE,
   Name extends string = string,
   transport extends Transport = Transport,
   chain extends Chain | undefined = Chain | undefined,
@@ -72,7 +89,7 @@ export type SmartAccount<
   /**
    * The entry point address of the smart account.
    */
-  entryPoint: entryPoint
+  entryPoint: ENTRYPOINT_ADDRESS_V06_TYPE
 
   /**
    * The default validation module of the smart account.
@@ -142,4 +159,78 @@ export type SmartAccount<
    * @returns A promise that resolves to the signed user operation as a Hex string.
    */
   signUserOperation: (userOperation: UserOperationStruct) => Promise<Hex>
+}
+
+export type Middleware = {
+  middleware?:
+    | ((args: {
+        userOperation: UserOperationStruct
+      }) => Promise<UserOperationStruct>)
+    | {
+        gasPrice?: () => Promise<{
+          maxPriorityFeePerGas: bigint | string | undefined
+          maxFeePerGas: bigint | string | undefined
+        }>
+        sponsorUserOperation?: (
+          args: SponsorUserOperationParameters
+        ) => Promise<
+          Pick<
+            UserOperationStruct,
+            | "callGasLimit"
+            | "verificationGasLimit"
+            | "preVerificationGas"
+            | "paymasterAndData"
+          >
+        >
+        paymasterMode?: PaymasterMode
+        feeQuote?: PaymasterFeeQuote
+      }
+}
+
+export type GetAccountParameter<
+  TAccount extends SmartAccount | undefined = SmartAccount | undefined
+> = IsUndefined<TAccount> extends true
+  ? { account?: SmartAccount }
+  : { account?: SmartAccount }
+
+export type PrepareUserOperationRequestParameters<
+  TAccount extends SmartAccount | undefined = SmartAccount | undefined
+> = {
+  userOperation: PartialBy<
+    UserOperationStruct,
+    | "sender"
+    | "nonce"
+    | "initCode"
+    | "callGasLimit"
+    | "verificationGasLimit"
+    | "preVerificationGas"
+    | "maxFeePerGas"
+    | "maxPriorityFeePerGas"
+    | "paymasterAndData"
+    | "signature"
+  >
+} & GetAccountParameter<TAccount> &
+  Middleware
+
+export type GetUserOperationHashParams = {
+  userOperation: UserOperationStruct
+  chainId: number
+}
+
+export type SendTransactionParameters<
+  TChain extends Chain | undefined = Chain | undefined,
+  TAccount extends SmartAccount | undefined = SmartAccount | undefined,
+  TChainOverride extends Chain | undefined = Chain | undefined,
+  ///
+  derivedChain extends Chain | undefined = DeriveChain<TChain, TChainOverride>
+> = UnionOmit<FormattedTransactionRequest<derivedChain>, "from"> &
+  GetAccountParameter<TAccount> &
+  GetChainParameter<TChain, TChainOverride>
+
+export type KnownError = {
+  name: string
+  regex: string
+  description: string
+  causes: string[]
+  solutions: string[]
 }

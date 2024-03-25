@@ -3,15 +3,14 @@ import type { Prettify } from "viem/chains"
 
 import {
   DEFAULT_ECDSA_OWNERSHIP_MODULE,
-  ECDSA_OWNERSHIP_MODULE_ADDRESSES_BY_VERSION
+  ECDSA_OWNERSHIP_MODULE_ADDRESSES_BY_VERSION,
+  ENTRYPOINT_ADDRESS_V06
 } from "../../accounts/utils/constants.js"
 import type { SmartAccountSigner } from "../../accounts/utils/types.js"
 import type {
   BaseValidationModule,
   ECDSAOwnershipValidationModuleConfig
 } from "../utils/types.js"
-
-import { ENTRYPOINT_ADDRESS_V06 } from "permissionless"
 
 /**
  * Creates an ECDSA Ownership Module.

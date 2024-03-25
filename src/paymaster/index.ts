@@ -1,3 +1,3 @@
-export type { PaymasterRpcSchema, PaymasterActions } from "./actions/index.js"
-export { paymasterActions } from "./actions/index.js"
+export type { PaymasterRpcSchema } from "./utils/types.js"
+export { type PaymasterClientActions } from "../client/decorators/paymaster.js"
 export { createPaymasterClient } from "./createPaymasterClient.js"
