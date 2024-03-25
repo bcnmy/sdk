@@ -50,8 +50,6 @@ To be eligible for a bounty, researchers must:
 
 - Issues in third-party components unless they directly affect our smart contracts.
 
-- Basic economic and governance attacks, e.g., 51% attacks.
-
 ## Legal Notice
 
 By submitting a vulnerability report, you agree to comply with our responsible disclosure process. Public disclosure of the vulnerability without consent from us will render the vulnerability ineligible for a bounty.
