@@ -1,14 +1,15 @@
 import type { Client, Hash } from "viem"
 import type { Prettify } from "viem/chains"
+import type { SendUserOperationParameters } from "../../accounts/actions/sendUserOperation"
 import { ENTRYPOINT_ADDRESS_V06 } from "../../accounts/utils/constants"
 import type { ENTRYPOINT_ADDRESS_V06_TYPE } from "../../accounts/utils/types"
 import { estimateUserOperationGas } from "../../bundler"
 import { chainId } from "../../bundler/actions/chainId"
 import { getGasFeeValues } from "../../bundler/actions/getGasFeeValues"
 import {
+  type GetUserOperationByHashParameters,
   type GetUserOperationByHashReturnType,
-  getUserOperationByHash,
-  type GetUserOperationByHashParameters
+  getUserOperationByHash
 } from "../../bundler/actions/getUserOperationByHash"
 import {
   type GetUserOperationReceiptParameters,
@@ -28,7 +29,6 @@ import type {
   UserOpReceipt,
   UserOpStatus
 } from "../../bundler/utils/types"
-import type { SendUserOperationParameters } from "../../accounts/actions/sendUserOperation"
 
 export type BundlerActions = {
   /**
