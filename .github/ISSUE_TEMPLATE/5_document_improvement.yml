@@ -10,7 +10,7 @@ body:
     attributes:
       label: Documentation Page/Section
       description: Which page or section are you referring to?
-      placeholder: "e.g., README.md, NatSpec guidelines."
+      placeholder: "e.g., README.md, TSDoc guidelines."
     validations:
       required: true
   - type: textarea

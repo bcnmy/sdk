@@ -1,14 +1,14 @@
-[![Biconomy](https://img.shields.io/badge/Made_with_%F0%9F%8D%8A_by-Biconomy-ff4e17?style=flat)](https://biconomy.io) [![License MIT](https://img.shields.io/badge/License-MIT-blue?&style=flat)](./LICENSE) ![Coverage](https://img.shields.io/codecov/c/github/bcnmy/sdk?token=oyX38XKbO9&flag=hardhat&label=Hardhat%20Coverage&logo=codecov)
+[![Biconomy](https://img.shields.io/badge/Made_with_%F0%9F%8D%8A_by-Biconomy-ff4e17?style=flat)](https://biconomy.io) [![License MIT](https://img.shields.io/badge/License-MIT-blue?&style=flat)](./LICENSE) [![codecov](https://codecov.io/gh/bcnmy/sdk/graph/badge.svg?token=DTdIR5aBDA)](https://codecov.io/gh/bcnmy/sdk)
 
-# ERC-7579 SDK 🚀
+# SDK 🚀
 
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/bcnmy/sdk)
 
-This repository serves as a comprehensive foundation for smart contract projects, streamlining the development process with a focus on best practices, security, and efficiency.
+This repository serves as a comprehensive foundation for typescript account abstraction projects, streamlining the development process with a focus on best practices, security, and efficiency.
 
 ## 📚 Table of Contents
 
-- [ERC-7579 Modular Smart Account Base 🚀](#erc-7579-sdk)
+- [SDK 🚀](#sdk)
   - [📚 Table of Contents](#-table-of-contents)
   - [Getting Started](#getting-started)
     - [Prerequisites](#prerequisites)

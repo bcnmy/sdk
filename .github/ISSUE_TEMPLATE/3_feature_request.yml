@@ -10,14 +10,14 @@ body:
     attributes:
       label: Feature or Improvement Description
       description: Describe the feature or improvement you're suggesting.
-      placeholder: "e.g., Optimize gas usage in function Z."
+      placeholder: "e.g., Add support for platform Z."
     validations:
       required: true
   - type: textarea
     attributes:
       label: Benefits & Outcomes
       description: Explain the benefits of your suggestion and the expected outcomes.
-      placeholder: "This improvement will reduce gas costs by 30%..."
+      placeholder: "This improvement will improve performance by 30%..."
   - type: input
     attributes:
       label: Any References?
