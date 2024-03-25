@@ -20,7 +20,7 @@ body:
     attributes:
       label: Package Version
       description: What version of the SDK are you using?
-      placeholder: 0.1.0
+      placeholder: 4.1.0
     validations:
       required: true
 
@@ -56,7 +56,7 @@ body:
     attributes:
       label: Link to Minimal Reproducible Example (StackBlitz, CodeSandbox, GitHub repo etc.)
       description: |
-        This makes investigating issues and helping you out significantly easier! For most issues, you will likely get asked to provide one so why not add one now :)
+        [Please provide by forking this project](https://stackblitz.com/~/github.com/bcnmy/sdk-examples) and making relevant changes to the boilerplate. This makes investigating issues and helping you out significantly easier! For most issues, you will likely get asked to provide one so why not add one now :)
     validations:
       required: false
 
