@@ -1,6 +1,6 @@
 import type { Chain, Client, Hash, Transport } from "viem"
 import type { PartialBy, Prettify } from "viem/chains"
-import { sendUserOperation as sendUserOperationBundler } from "../../bundler/index"
+import { sendUserOperationWithBundler } from "../../bundler"
 import { getAction, parseAccount } from "../utils/helpers"
 import type {
   GetAccountParameter,
@@ -51,7 +51,7 @@ export async function sendUserOperation<
     userOperation as UserOperationStruct
   )
 
-  return sendUserOperationBundler(client, {
+  return sendUserOperationWithBundler(client, {
     userOperation: userOperation as UserOperationStruct
   })
 }

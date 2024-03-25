@@ -4,9 +4,15 @@ import type {
   DeployContractParameters,
   Hash,
   SendTransactionParameters,
+  SendTransactionReturnType,
+  SignMessageParameters,
+  SignMessageReturnType,
+  SignTypedDataParameters,
+  SignTypedDataReturnType,
   Transport,
   TypedData,
-  WriteContractParameters
+  WriteContractParameters,
+  WriteContractReturnType
 } from "viem"
 // import { signTypedData } from "../../accounts/actions/sygnTypedData"
 import type { Prettify } from "viem/chains"

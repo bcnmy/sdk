@@ -85,18 +85,6 @@ export type EstimateUserOperationGasParameters = {
   userOperation: UserOperationStruct
 }
 
-export type WaitForUserOperationReceiptParameters = {
-  /** The hash of the transaction. */
-  hash: Hash
-  /**
-   * Polling frequency (in ms). Defaults to the client's pollingInterval config.
-   * @default client.pollingInterval
-   */
-  pollingInterval?: number
-  /** Optional timeout (in milliseconds) to wait before stopping polling. */
-  timeout?: number
-}
-
 export type TStatus = "success" | "reverted"
 
 export type UserOpReceipt = {
@@ -120,10 +108,6 @@ export type UserOpReceipt = {
   /* The TransactionReceipt object for the entire bundle, not only for this UserOperation. */
   // biome-ignore lint/suspicious/noExplicitAny: difficult to type
   receipt: any
-}
-
-export type GetUserOperationByHashParameters = {
-  hash: Hash
 }
 
 export type GetGasFeeValuesReturnType = GasFeeValues

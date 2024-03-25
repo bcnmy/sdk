@@ -25,8 +25,8 @@ export const transactionReceiptStatus = {
 } as const
 
 // biome-ignore lint/suspicious/noExplicitAny: it's a recursive function, so it's hard to type
-type Callback = ((...args: any[]) => any) | undefined
-type Callbacks = Record<string, Callback>
+export type Callback = ((...args: any[]) => any) | undefined
+export type Callbacks = Record<string, Callback>
 
 export const listenersCache = /*#__PURE__*/ new Map<
   string,
@@ -34,7 +34,7 @@ export const listenersCache = /*#__PURE__*/ new Map<
 >()
 export const cleanupCache = /*#__PURE__*/ new Map<string, () => void>()
 
-type EmitFunction<TCallbacks extends Callbacks> = (
+export type EmitFunction<TCallbacks extends Callbacks> = (
   emit: TCallbacks
   // biome-ignore lint/suspicious/noConfusingVoidType: <explanation>
 ) => MaybePromise<void | (() => void)>

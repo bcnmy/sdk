@@ -202,16 +202,6 @@ export type SignerToBiconomySmartAccountParameters<
   activeValidationModule?: BaseValidationModule
 }>
 
-/**
- * Build a Biconomy modular smart account from a private key, that use the ECDSA signer behind the scene
- * @param client
- * @param privateKey
- * @param index
- * @param factoryAddress
- * @param accountLogicAddress
- * @param defaultValidationModule
- * @param activeValidationModule
- */
 export async function signerToSmartAccount<
   TTransport extends Transport = Transport,
   TChain extends Chain | undefined = Chain | undefined,

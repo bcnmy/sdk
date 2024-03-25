@@ -1,14 +1,13 @@
 import type { Account, Chain, Client, Hash, Transport } from "viem"
 import type { BaseError } from "viem"
 import type { Prettify } from "viem/chains"
-import type { UserOperationStruct } from "../../accounts"
+import type {
+  SendUserOperationParameters,
+  UserOperationStruct
+} from "../../accounts"
 import { ENTRYPOINT_ADDRESS_V06 } from "../../accounts/utils/constants"
 import { getSendUserOperationError } from "../../errors/getters"
 import type { BundlerRpcSchema } from "../utils/types"
-
-export type SendUserOperationParameters = {
-  userOperation: UserOperationStruct
-}
 
 /**
  * Sends user operation to the bundler

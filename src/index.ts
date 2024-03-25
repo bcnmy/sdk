@@ -1,5 +1,6 @@
-export { signerToSmartAccount } from "./accounts/index.js"
-
-export { createSmartAccountClient } from "./client/index.js"
-
-// TODO import from the rest of the files in the core package
+export * from "./accounts"
+export * from "./errors"
+export * from "./bundler"
+export * from "./paymaster"
+export * from "./client"
+export * from "./modules"

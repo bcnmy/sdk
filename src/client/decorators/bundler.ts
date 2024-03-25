@@ -1,11 +1,13 @@
 import type { Client, Hash } from "viem"
 import type { Prettify } from "viem/chains"
+import type { SendUserOperationParameters } from "../../accounts/actions/sendUserOperation"
 import { ENTRYPOINT_ADDRESS_V06 } from "../../accounts/utils/constants"
 import type { ENTRYPOINT_ADDRESS_V06_TYPE } from "../../accounts/utils/types"
 import { estimateUserOperationGas } from "../../bundler"
 import { chainId } from "../../bundler/actions/chainId"
 import { getGasFeeValues } from "../../bundler/actions/getGasFeeValues"
 import {
+  type GetUserOperationByHashParameters,
   type GetUserOperationByHashReturnType,
   getUserOperationByHash
 } from "../../bundler/actions/getUserOperationByHash"
@@ -14,20 +16,18 @@ import {
   getUserOperationReceipt
 } from "../../bundler/actions/getUserOperationReceipt"
 import { getUserOpStatus } from "../../bundler/actions/getUserOperationStatus"
+import { sendUserOperation } from "../../bundler/actions/sendUserOperation"
 import {
-  type SendUserOperationParameters,
-  sendUserOperation
-} from "../../bundler/actions/sendUserOperation"
-import { waitForUserOperationReceipt } from "../../bundler/actions/waitForUserOperationReceipt"
+  type WaitForUserOperationReceiptParameters,
+  waitForUserOperationReceipt
+} from "../../bundler/actions/waitForUserOperationReceipt"
 import type { BundlerClient } from "../../bundler/createBundlerClient"
 import type {
   EstimateUserOperationGasParameters,
   GetGasFeeValuesReturnType,
-  GetUserOperationByHashParameters,
   StateOverrides,
   UserOpReceipt,
-  UserOpStatus,
-  WaitForUserOperationReceiptParameters
+  UserOpStatus
 } from "../../bundler/utils/types"
 
 export type BundlerActions = {
@@ -144,7 +144,7 @@ export type BundlerActions = {
    *
    * - Docs: https://docs.biconomy.io/... // TODO
    *
-   * @param args {@link GetUserOperationByHash} UserOpHash that was returned by {@link sendUserOperation}
+   * @param args  UserOpHash that was returned by {@link sendUserOperation}
    * @returns userOperation along with entryPoint, transactionHash, blockHash, blockNumber if found or null
    *
    * @example

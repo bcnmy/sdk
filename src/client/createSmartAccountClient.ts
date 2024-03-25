@@ -1,4 +1,10 @@
-import { type Chain, type Client, type Transport, createClient } from "viem"
+import {
+  type Chain,
+  type Client,
+  type Transport,
+  type WalletClientConfig,
+  createClient
+} from "viem"
 import type { Prettify } from "viem/chains"
 
 import type { SmartAccount } from "../accounts/utils/types.js"
