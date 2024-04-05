@@ -1,3 +1,7 @@
+**@biconomy/sdk** • Readme \| [API](globals.md)
+
+***
+
 [![Biconomy](https://img.shields.io/badge/Made_with_%F0%9F%8D%8A_by-Biconomy-ff4e17?style=flat)](https://biconomy.io) [![License MIT](https://img.shields.io/badge/License-MIT-blue?&style=flat)](./LICENSE) [![codecov](https://codecov.io/gh/bcnmy/sdk/graph/badge.svg?token=DTdIR5aBDA)](https://codecov.io/gh/bcnmy/sdk)
 
 # SDK 🚀
