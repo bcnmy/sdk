@@ -13,7 +13,7 @@ import {
 } from "../../src/account"
 import { PaymasterMode } from "../../src/paymaster"
 import { testOnlyOnOptimism } from "../setupFiles"
-import { checkBalance, getBundlerUrl, getConfig } from "../utils"
+import { checkBalance, getConfig } from "../utils"
 
 describe("Account: Write", () => {
   const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
