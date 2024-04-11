@@ -14,18 +14,18 @@
     "name": "smartAccount (tree-shaking)",
     "path": "./dist/_esm/index.js",
     "limit": "5 kB",
-    "import": "{ signerToSmartAccount }"
+    "import": "{ createSmartAccountClient }"
   },
   {
     "name": "bundler (tree-shaking)",
     "path": "./dist/_esm/bundler/index.js",
     "limit": "5 kB",
-    "import": "{ createBundlerClient }"
+    "import": "{ createBundler }"
   },
   {
     "name": "paymaster (tree-shaking)",
     "path": "./dist/_esm/paymaster/index.js",
     "limit": "5 kB",
-    "import": "{ createPaymasterClient }"
+    "import": "{ createPaymaster }"
   }
 ]

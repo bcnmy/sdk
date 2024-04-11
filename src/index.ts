@@ -1,6 +1,4 @@
-export * from "./accounts"
-export * from "./errors"
+export * from "./account"
 export * from "./bundler"
 export * from "./paymaster"
-export * from "./client"
 export * from "./modules"

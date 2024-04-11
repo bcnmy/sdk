@@ -1,10 +1,19 @@
-import { type Hex, type PublicClient, parseAbi } from "viem"
-import { getChain } from "../src/accounts/utils/helpers"
-import { extractChainIdFromBundlerUrl } from "../src/bundler/utils/helpers"
-import { extractChainIdFromPaymasterUrl } from "../src/paymaster/utils/helpers"
+import { type Chain, type Hex, type PublicClient, parseAbi } from "viem"
+import { getChain } from "../src/account"
+import {
+  extractChainIdFromBundlerUrl,
+  extractChainIdFromPaymasterUrl
+} from "../src/bundler"
 
-export const envCheck = () => {
-  const fields = ["BUNDLER_URL", "PRIVATE_KEY", "PAYMASTER_URL", "CHAIN_ID"]
+export const getEnvVars = () => {
+  const fields = [
+    "BUNDLER_URL",
+    "PRIVATE_KEY",
+    "PRIVATE_KEY_TWO",
+    "PAYMASTER_URL",
+    "PAYMASTER_URL_TWO",
+    "CHAIN_ID"
+  ]
   const errorFields = fields.filter((field) => !process.env[field])
   if (errorFields.length) {
     throw new Error(
@@ -13,12 +22,37 @@ export const envCheck = () => {
       }: ${errorFields.join(", ")}`
     )
   }
+  return {
+    bundlerUrl: process.env.BUNDLER_URL || "",
+    privateKey: process.env.PRIVATE_KEY || "",
+    privateKeyTwo: process.env.PRIVATE_KEY_TWO || "",
+    paymasterUrl: process.env.PAYMASTER_URL || "",
+    paymasterUrlTwo: process.env.PAYMASTER_URL_TWO || "",
+    chainId: process.env.CHAIN_ID || "0"
+  }
 }
 
-export const getChainConfig = () => {
-  const paymasterUrl = process.env.PAYMASTER_URL || ""
-  const bundlerUrl = process.env.BUNDLER_URL || ""
-  const chains = [Number.parseInt(process.env.CHAIN_ID || "0")]
+export type TestConfig = {
+  chain: Chain
+  chainId: number
+  paymasterUrl: string
+  paymasterUrlTwo: string
+  bundlerUrl: string
+  privateKey: string
+  privateKeyTwo: string
+}
+export const getConfig = (): TestConfig => {
+  const {
+    paymasterUrl,
+    paymasterUrlTwo,
+    bundlerUrl,
+    chainId: chainIdFromEnv,
+    privateKey,
+    privateKeyTwo
+  } = getEnvVars()
+  const chains = [Number.parseInt(chainIdFromEnv)]
+  const chainId = chains[0]
+  const chain = getChain(chainId)
 
   try {
     const chainIdFromBundlerUrl = extractChainIdFromBundlerUrl(bundlerUrl)
@@ -35,13 +69,15 @@ export const getChainConfig = () => {
   if (!allChainsMatch) {
     throw new Error("Chain IDs do not match")
   }
-  const chainId = chains[0]
-  const chain = getChain(chainId)
+
   return {
     chain,
     chainId,
     paymasterUrl,
-    bundlerUrl
+    paymasterUrlTwo,
+    bundlerUrl,
+    privateKey,
+    privateKeyTwo
   }
 }
 
@@ -63,3 +99,6 @@ export const checkBalance = (
     args: [address]
   })
 }
+
+export const getBundlerUrl = (chainId: number) =>
+  `https://bundler.biconomy.io/api/v2/${chainId}/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f14`

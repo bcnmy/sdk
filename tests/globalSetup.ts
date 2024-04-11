@@ -1,6 +1,5 @@
-import { envCheck, getChainConfig } from "./utils.js"
+import { getConfig } from "./utils.js"
 
 export default function setup({ provide: _ }) {
-  envCheck()
-  getChainConfig()
+  getConfig()
 }

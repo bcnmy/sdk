@@ -53,8 +53,6 @@ Copy `.env.example` to `.env` and fill in your details.
 
 ## 🛠️ Essential Scripts
 
-Execute key operations for Foundry and Hardhat with these scripts. Append `:forge` or `:hardhat` to run them in the respective environment.
-
 ### 🧪 Run Tests
 
 ```bash

@@ -1,111 +1,168 @@
-import type { Address, Hex, LocalAccount } from "viem"
+import type { Chain, Hex } from "viem"
+import type {
+  SimulationType,
+  SmartAccountSigner,
+  SupportedSigner,
+  UserOperationStruct
+} from "../../account"
+import type { SessionKeyManagerModule } from "../SessionKeyManagerModule.js"
+import type { ISessionStorage } from "../interfaces/ISessionStorage.js"
+export type ModuleVersion = "V1_0_0" // | 'V1_0_1'
 
-import type { SmartAccountSigner } from "../../accounts/utils/types.js"
-
-export type BaseValidationModuleConfig = {
+export interface BaseValidationModuleConfig {
   /** entryPointAddress: address of the entry point */
   entryPointAddress?: Hex
 }
 
+export interface ECDSAOwnershipValidationModuleConfig
+  extends BaseValidationModuleConfig {
+  /** Address of the module */
+  moduleAddress?: Hex
+  /** Version of the module */
+  version?: ModuleVersion
+  /** Signer: viemWallet or ethers signer. Ingested when passed into smartAccount */
+  signer: SupportedSigner
+}
+
+export interface ECDSAOwnershipValidationModuleConfigConstructorProps
+  extends BaseValidationModuleConfig {
+  /** Address of the module */
+  moduleAddress?: Hex
+  /** Version of the module */
+  version?: ModuleVersion
+  /** Signer: Converted from viemWallet or ethers signer to SmartAccountSigner */
+  signer: SmartAccountSigner
+}
+
+export interface SessionKeyManagerModuleConfig
+  extends BaseValidationModuleConfig {
+  /** Address of the module */
+  moduleAddress?: Hex
+  /** Version of the module */
+  version?: ModuleVersion
+  /** SmartAccount address */
+  smartAccountAddress: string
+  storageType?: StorageType
+  sessionStorageClient?: ISessionStorage
+}
+
+export interface BatchedSessionRouterModuleConfig
+  extends BaseValidationModuleConfig {
+  /** Address of the module */
+  moduleAddress?: Hex
+  /** Version of the module */
+  version?: ModuleVersion
+  /** Session Key Manager module: Could be BaseValidationModule */
+  sessionKeyManagerModule?: SessionKeyManagerModule
+  /** Session Key Manager module address */
+  sessionManagerModuleAddress?: Hex
+  /** Address of the associated smart account */
+  smartAccountAddress: string
+  /** Storage type, e.g. local storage */
+  storageType?: StorageType
+}
+
+export enum StorageType {
+  LOCAL_STORAGE = 0
+}
+
+export type SessionParams = {
+  /** Redundant now as we've favoured uuid() */
+  sessionID?: string
+  /** Session Signer: viemWallet or ethers signer. Ingested when passed into smartAccount */
+  sessionSigner: SupportedSigner
+  /** The session validation module is a sub-module smart-contract which works with session key manager validation module. It validates the userop calldata against the defined session permissions (session key data) within the contract. */
+  sessionValidationModule?: Hex
+  /** Additional info if needed to be appended in signature */
+  additionalSessionData?: string
+}
+
 export type ModuleInfo = {
-  version: 1
+  // Could be a full object of below params and that way it can be an array too!
+  // sessionParams?: SessionParams[] // where SessionParams is below four
+  sessionID?: string
+  /** Session Signer: viemWallet or ethers signer. Ingested when passed into smartAccount */
+  sessionSigner?: SupportedSigner
+  /** The session validation module is a sub-module smart-contract which works with session key manager validation module. It validates the userop calldata against the defined session permissions (session key data) within the contract. */
+  sessionValidationModule?: Hex
+  /** Additional info if needed to be appended in signature */
+  additionalSessionData?: string
+  batchSessionParams?: SessionParams[]
 }
 
-export type ModuleVersion = "V1_0_0"
-
-export type IValidationModule = {
-  getModuleAddress(): Hex
-  getInitData(): Promise<Hex>
-  getSigner(): Promise<SmartAccountSigner>
-  signUserOpHash(_userOpHash: string): Promise<Hex>
-  signMessage(_message: string | Uint8Array): Promise<string>
-  getDummySignature(): Promise<Hex>
+export interface SendUserOpParams extends ModuleInfo {
+  /** "validation_and_execution" is recommended during development for improved debugging & devEx, but will add some additional latency to calls. "validation" can be used in production ro remove this latency once flows have been tested. */
+  simulationType?: SimulationType
 }
 
-/**
- * Represents a base validation module.
- */
-export type BaseValidationModule = IValidationModule & {
-  /**
-   * The entry point address.
-   */
-  entryPointAddress: Hex
-
-  /**
-   * Retrieves the module address.
-   * @returns The module address.
-   */
-  getModuleAddress(): Hex
-
-  /**
-   * Retrieves the initialization data.
-   * @returns A promise that resolves to the initialization data.
-   */
-  getInitData(): Promise<Hex>
-
-  /**
-   * Retrieves a dummy signature.
-   * @param _params - The module information.
-   * @returns A promise that resolves to the dummy signature.
-   */
-  getDummySignature(_params?: ModuleInfo): Promise<Hex>
-
-  /**
-   * Retrieves the signer.
-   * @returns A promise that resolves to the smart account signer.
-   */
-  getSigner(): Promise<SmartAccountSigner>
-
-  /**
-   * Signs a user operation hash.
-   * @param _userOpHash - The user operation hash.
-   * @param _params - The module information.
-   * @returns A promise that resolves to the signature.
-   */
-  signUserOpHash(_userOpHash: string, _params?: ModuleInfo): Promise<Hex>
-
-  /**
-   * Signs a message.
-   * @param _message - The message to sign.
-   * @returns A promise that resolves to the signature.
-   */
-  signMessage(_message: Uint8Array | string): Promise<string>
-
-  /**
-   * Signs a message using a smart account signer.
-   * @param message - The message to sign.
-   * @param signer - The local account signer.
-   * @returns A promise that resolves to the signature.
-   */
-  signMessageSmartAccountSigner(
-    message: string | Uint8Array,
-    signer: LocalAccount
-  ): Promise<string>
+export type SignerData = {
+  /** Public key */
+  pbKey: string
+  /** Private key */
+  pvKey: `0x${string}`
+  /** Network Id */
+  chainId?: Chain
 }
 
-/**
- * Interface for implementing a Session Validation Module.
- * Session Validation Modules works along with SessionKeyManager
- * and generate module specific sessionKeyData which is to be
- * verified by SessionValidationModule on chain.
- *
- * @remarks sessionData is of generic type T which is specific to the module
- *
- * @author Sachin Tomar <sachin.tomar@biconomy.io>
- */
-export type ISessionValidationModule<T> = {
-  getSessionKeyData(_sessionData: T): Promise<string>
-  getAddress(): string
+export type CreateSessionDataResponse = {
+  data: string
+  sessionIDInfo: Array<string>
 }
 
-export type ECDSAOwnershipValidationModuleConfig =
-  BaseValidationModuleConfig & {
-    /** Address of the module */
-    moduleAddress?: Hex
-    /** Version of the module */
-    version?: ModuleVersion
-    /** Signer: viemWallet or ethers signer. Ingested when passed into smartAccount */
-    signer: SmartAccountSigner
-    /** entryPointAddress: address of the entry point contract */
-    entryPointAddress?: Address
-  }
+export interface CreateSessionDataParams {
+  /** window end for the session key */
+  validUntil: number
+  /** window start for the session key */
+  validAfter: number
+  sessionValidationModule: Hex
+  sessionPublicKey: Hex
+  sessionKeyData: Hex
+  /** we generate uuid based sessionId. but if you prefer to track it on your side and attach custom session identifier this can be passed */
+  preferredSessionId?: string
+}
+
+export interface MultiChainValidationModuleConfig
+  extends BaseValidationModuleConfig {
+  /** Address of the module */
+  moduleAddress?: Hex
+  /** Version of the module */
+  version?: ModuleVersion
+  /** Signer: viemWallet or ethers signer. Ingested when passed into smartAccount */
+  signer: SupportedSigner
+}
+export interface MultiChainValidationModuleConfigConstructorProps
+  extends BaseValidationModuleConfig {
+  /** Address of the module */
+  moduleAddress?: Hex
+  /** Version of the module */
+  version?: ModuleVersion
+  /** Signer: viemWallet or ethers signer. Ingested when passed into smartAccount */
+  signer: SmartAccountSigner
+}
+
+export type MultiChainUserOpDto = {
+  /** window end timestamp */
+  validUntil?: number
+  /** window start timestamp */
+  validAfter?: number
+  chainId: number
+  userOp: Partial<UserOperationStruct>
+}
+
+export interface BaseSessionKeyData {
+  sessionKey: Hex
+}
+
+export interface ERC20SessionKeyData extends BaseSessionKeyData {
+  /** ERC20 token address */
+  token: Hex
+  /** Recipient address */
+  recipient: Hex
+  /** ERC20 amount (Bigint) */
+  maxAmount: bigint
+}
+
+export interface SessionValidationModuleConfig {
+  /** Address of the module */
+  moduleAddress: string
+}
