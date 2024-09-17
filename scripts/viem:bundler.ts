@@ -1,9 +1,11 @@
-import { http, type PublicClient, createPublicClient, parseEther } from "viem"
+import { config } from "dotenv"
+import { http, type PublicClient, createPublicClient } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
-import { toNexusAccount } from "../packages/sdk/account/toNexusAccount"
-import { bigIntReplacer } from "../packages/sdk/account/utils/Utils"
-import { getChain } from "../packages/sdk/account/utils/getChain"
-import { createBicoBundlerClient } from "../packages/sdk/clients/createBicoBundlerClient"
+import { toNexusAccount } from "../src/sdk/account/toNexusAccount"
+import { getChain } from "../src/sdk/account/utils/getChain"
+import { createBicoBundlerClient } from "../src/sdk/clients/createBicoBundlerClient"
+
+config()
 
 const k1ValidatorAddress = "0x663E709f60477f07885230E213b8149a7027239B"
 const factoryAddress = "0x887Ca6FaFD62737D0E79A2b8Da41f0B15A864778"
@@ -32,8 +34,8 @@ export const getConfig = () => {
     privateKeyTwo
   } = getEnvVars()
 
-  const chains = [Number.parseInt(chainIdFromEnv)]
-  const chainId = chains[0]
+  const chainId = Number.parseInt(chainIdFromEnv)
+
   const chain = getChain(chainId)
 
   return {
@@ -128,7 +130,11 @@ const main = async () => {
     account: nexusAccount
   })
   const userOpReceipt = await bicoBundler.waitForUserOperationReceipt({ hash })
+  const { transactionHash } = await publicClient.waitForTransactionReceipt({
+    hash: userOpReceipt.receipt.transactionHash
+  })
   console.timeEnd("write methods")
+  console.log({ transactionHash })
 }
 
 main()

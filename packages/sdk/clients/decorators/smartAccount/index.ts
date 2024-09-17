@@ -6,9 +6,15 @@ import type {
   ContractFunctionName,
   Hash,
   SendTransactionParameters,
+  SendTransactionReturnType,
+  SignMessageParameters,
+  SignMessageReturnType,
+  SignTypedDataParameters,
+  SignTypedDataReturnType,
   Transport,
   TypedData,
-  WriteContractParameters
+  WriteContractParameters,
+  WriteContractReturnType
 } from "viem"
 import type { SmartAccount } from "viem/account-abstraction"
 import { sendTransaction } from "./sendTransaction"

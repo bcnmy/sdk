@@ -25,7 +25,6 @@ import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
  *   - Local Accounts: [`eth_sendRawTransaction`](https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_sendrawtransaction)
  *
  * @param client - Client to use
- * @param parameters - {@link SendTransactionParameters}
  * @returns The [Transaction](https://viem.sh/docs/glossary/terms.html#transaction) hash.
  *
  * @example
