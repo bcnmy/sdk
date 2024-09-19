@@ -6,7 +6,7 @@
     "exclude": [
         "../src/**/*.test.ts",
         "../src/**/*.test-d.ts",
-        "../src/**/*.bench.ts"
+        "../src/**/*.bench.ts",
     ],
     "compilerOptions": {
         "moduleResolution": "node",

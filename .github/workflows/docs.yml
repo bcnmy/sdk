@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - develop
+      - main
 
 permissions:
   contents: write
@@ -11,7 +11,7 @@ jobs:
   deploy-docs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - run: git config --global user.email "gh@runner.com"
       - run: git config --global user.name "gh-runner"
 
@@ -20,7 +20,7 @@ jobs:
 
       - name: Set remote url
         run: git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/bcnmy/sdk.git
-  
+
       - name: Run the tests
         run: bun run docs:deploy
 
