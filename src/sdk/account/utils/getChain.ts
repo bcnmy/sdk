@@ -64,7 +64,7 @@ type StringOrStrings = string | string[]
  *
  * @example
  *
- * import { getCustomChain, createNexusClient } from "@biconomy/sdk"
+ * import { getCustomChain, createNexusClient } from "@biconomy/account"
  *
  * const customChain = getCustomChain(
  *   "My Custom Chain",

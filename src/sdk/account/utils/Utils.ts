@@ -303,6 +303,7 @@ export function typeToString(typeDef: TypedDataWith712): string[] {
 }
 
 /** @ignore */
+// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 export function bigIntReplacer(_key: string, value: any): any {
   return typeof value === "bigint" ? value.toString() : value
 }

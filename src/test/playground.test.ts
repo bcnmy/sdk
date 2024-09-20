@@ -9,10 +9,7 @@ import {
   createWalletClient
 } from "viem"
 import { beforeAll, describe, expect, test } from "vitest"
-import {
-  biconomyPaymasterContext,
-  createBicoPaymasterClient
-} from "../sdk/clients/createBicoPaymasterClient"
+import { createBicoPaymasterClient } from "../sdk/clients/createBicoPaymasterClient"
 import {
   type NexusClient,
   createNexusClient
@@ -77,7 +74,7 @@ describe.skipIf(!playgroundTrue)("playground", () => {
 
   test("should init the smart account", async () => {
     nexusClient = await createNexusClient({
-      holder: account,
+      signer: account,
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl),
@@ -127,8 +124,7 @@ describe.skipIf(!playgroundTrue)("playground", () => {
           to: recipientAddress,
           value: 1n
         }
-      ],
-      preVerificationGas: 800000000n
+      ]
     })
     const { status } = await publicClient.waitForTransactionReceipt({ hash })
     const balanceAfter = await publicClient.getBalance({
@@ -138,14 +134,14 @@ describe.skipIf(!playgroundTrue)("playground", () => {
     expect(balanceAfter - balanceBefore).toBe(1n)
   })
 
-  test("should send some native token using the paymaster", async () => {
+  test("should send a userOp using pm_sponsorUserOperation", async () => {
     if (!paymasterUrl) {
       console.log("No paymaster url provided")
       return
     }
 
     nexusClient = await createNexusClient({
-      holder: account,
+      signer: account,
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl),
@@ -153,8 +149,7 @@ describe.skipIf(!playgroundTrue)("playground", () => {
       factoryAddress,
       paymaster: createBicoPaymasterClient({
         paymasterUrl
-      }),
-      paymasterContext: biconomyPaymasterContext
+      })
     })
     expect(async () =>
       nexusClient.sendTransaction({
@@ -165,6 +160,6 @@ describe.skipIf(!playgroundTrue)("playground", () => {
           }
         ]
       })
-    ).rejects.toThrow()
+    ).rejects.toThrow("Error in generating paymasterAndData")
   })
 })

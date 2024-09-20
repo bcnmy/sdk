@@ -1,13 +1,13 @@
 {
   "$schema": "https://typedoc.org/schema.json",
-  "entryPoints": ["src/index.ts"],
+  "entryPoints": ["src/sdk/index.ts"],
   "exclude": [
     "src/sdk/account/utils/**/*.ts",
     "src/sdk/__contracts/**/*.ts",
     "src/test/**/*.ts"
   ],
-  "basePath": "src",
-  "includes": "src",
+  "basePath": "src/sdk",
+  "includes": "src/sdk",
   "out": "docs",
   "gitRevision": "main"
 }
