@@ -4,41 +4,31 @@
 
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/bcnmy/sdk)
 
-This repository serves as a comprehensive foundation for typescript account abstraction projects, streamlining the development process with a focus on best practices, security, and efficiency.
+The Biconomy SDK is your all-in-one toolkit for building decentralized applications (dApps) with **ERC4337 Account Abstraction** and **Smart Accounts**. It is designed for seamless user experiences and offers non-custodial solutions for user onboarding, sending transactions (userOps), gas sponsorship and much more.
 
 ## 📚 Table of Contents
 
-- [SDK 🚀](#sdk-🚀)
-  - [📚 Table of Contents](#-📚-table-of-contents)
-  - [Getting Started](#getting-started)
+- [SDK 🚀](#sdk-)
+
+  - [📚 Table of Contents](#-table-of-contents)
+  - [🛠️ Quickstart](#-quickstart)
+
     - [Prerequisites](#prerequisites)
     - [Installation](#installation)
-  - [🛠️ Essential Scripts](#-🛠️-essential-scripts)
-    - [🧪 Run Tests](#-🧪-run-tests)
-    - [📊 Coverage Report](#-📊-coverage-report)
-    - [📄 Documentation](https://bcnmy.github.io/sdk)
-    - [🎨 Lint Code](#-🖌️-auto-fix-linting-issues)
-    - [🖌️ Auto-fix Linting Issues](#️-auto-fix-linting-issues)
-  - [Documentation and Resources](#-documentation-and-resources)
+
+  - [📄 Documentation and Resources](#-documentation-and-resources)
+  - [💼 Examples](#-examples)
   - [License](#license)
   - [Connect with Biconomy 🍊](#connect-with-biconomy-🍊)
 
-## Getting Started
-
-To kickstart, follow these steps:
-
-### Prerequisites
-
-- Node.js (v18.x or later)
-- Bun (or npm)
+## 🛠️ Quickstart
 
 ### Installation
 
-1. **Clone the repository:**
+1. **Add the package and install dependencies:**
 
 ```bash
-git clone https://github.com/bcnmy/sdk.git
-cd sdk
+bun add @biconomy/sdk viem
 ```
 
 2. **Install dependencies:**
@@ -47,58 +37,46 @@ cd sdk
 bun i
 ```
 
-3. **Setup environment variables:**
+```typescript
+import { createNexusClient } from "@biconomy/sdk";
 
-Copy `.env.example` to `.env` and fill in your details.
+const smartAccount = await createNexusClient({
+  signer: viemWalletOrEthersSigner,
+  bundlerUrl: "", // From dashboard.biconomy.io
+  paymasterUrl: "", // From dashboard.biconomy.io
+});
 
-## 🛠️ Essential Scripts
+const { wait } = await smartAccount.sendTransaction({ to: "0x...", value: 1 });
 
-Execute key operations for Foundry and Hardhat with these scripts. Append `:forge` or `:hardhat` to run them in the respective environment.
-
-### 🧪 Run Tests
-
-```bash
-bun run test
+const {
+  receipt: { transactionHash },
+  success,
+} = await wait();
 ```
-
-Carries out tests.
-
-### 📊 Coverage Report
-
-```bash
-bun run coverage
-```
-
-Creates detailed reports for test coverage.
-
-### 🎨 Lint Code
-
-```bash
-bun run lint
-```
-
-Checks code for style and potential errors.
-
-### 🖌️ Auto-fix Linting Issues
-
-```bash
-bun run lint:fix
-```
-
-Automatically fixes linting problems found.
 
 ## Documentation and Resources
 
 For a comprehensive understanding of our project and to contribute effectively, please refer to the following resources:
 
+- [**Biconomy Documentation**](https://docs.biconomy.io)
+- [**Biconomy Dashboard**](https://dashboard.biconomy.io)
+- [**API Documentation**](https://bcnmy.github.io/sdk)
 - [**Contributing Guidelines**](./CONTRIBUTING.md): Learn how to contribute to our project, from code contributions to documentation improvements.
 - [**Code of Conduct**](./CODE_OF_CONDUCT.md): Our commitment to fostering an open and welcoming environment.
 - [**Security Policy**](./SECURITY.md): Guidelines for reporting security vulnerabilities.
-- [**Changelog**](./CHANGELOG.md): Stay updated with the changes and versions.
+- [**Changelog**](./CHANGELOG.md): Stay updated with the changes and versions
+
+## 💼 Examples
+
+- [Initialise a smartAccount](examples/INITIALISE_A_SMART_CONTRACT.md)
+- [send some eth with sponsorship](examples/SEND_SOME_ETH_WITH_SPONSORSHIP.md)
+- [send a multi tx and pay gas with an erc20 token](examples/SEND_A_MULTI_TX_AND_PAY_GAS_WITH_TOKEN.md)
+- [create and use a session](examples/CREATE_AND_USE_A_SESSION.md)
+- [create and use a batch session](examples/CREATE_AND_USE_A_BATCH_SESSION.md)
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](./LICENSE) file for details.
+This project is licensed under the MIT License. See the [LICENSE](./LICENSE) file for details
 
 ## Connect with Biconomy 🍊
 
