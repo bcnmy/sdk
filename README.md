@@ -39,19 +39,18 @@ bun i
 
 ```typescript
 import { createNexusClient } from "@biconomy/sdk";
+import { http } from "viem";
 
-const smartAccount = await createNexusClient({
-  signer: viemWalletOrEthersSigner,
-  bundlerUrl: "", // From dashboard.biconomy.io
-  paymasterUrl: "", // From dashboard.biconomy.io
+const nexusClient = await createNexusClient({
+  holder: account,
+  chain,
+  transport: http(),
+  bundlerTransport: http(bundlerUrl),
 });
 
-const { wait } = await smartAccount.sendTransaction({ to: "0x...", value: 1 });
+const hash = await nexusClient.sendTransaction({ calls: [to: "0x...", value: 1] });
+const { status, transactionHash } = await nexusClient.account.client.waitForTransactionReceipt({ hash });
 
-const {
-  receipt: { transactionHash },
-  success,
-} = await wait();
 ```
 
 ## Documentation and Resources

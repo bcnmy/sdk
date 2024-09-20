@@ -65,23 +65,23 @@ import { type UnknownHolder, toHolder } from "./utils/toHolder"
 /**
  * Parameters for creating a Nexus Smart Account
  */
-export type ToNexusSmartAccountParameters = {
-  /** The blockchain network */
-  chain: Chain
-  /** The transport configuration */
-  transport: ClientConfig["transport"]
-  /** The holder account or address */
-  holder: UnknownHolder
-  /** Optional index for the account */
-  index?: bigint | undefined
-  /** Optional active validation module */
-  activeModule?: BaseValidationModule
-  /** Optional factory address */
-  factoryAddress?: Address
-  /** Optional K1 validator address */
-  k1ValidatorAddress?: Address
-} & Prettify<
-  Pick<
+export type ToNexusSmartAccountParameters = Prettify<
+  {
+    /** The blockchain network */
+    chain: Chain
+    /** The transport configuration */
+    transport: ClientConfig["transport"]
+    /** The holder account or address */
+    holder: UnknownHolder
+    /** Optional index for the account */
+    index?: bigint | undefined
+    /** Optional active validation module */
+    activeModule?: BaseValidationModule
+    /** Optional factory address */
+    factoryAddress?: Address
+    /** Optional K1 validator address */
+    k1ValidatorAddress?: Address
+  } & Pick<
     ClientConfig<Transport, Chain, Account, RpcSchema>,
     | "account"
     | "cacheTime"
@@ -215,7 +215,6 @@ export const toNexusAccount = async (
         _accountAddress = e?.cause.data.args[0] as Address
         return _accountAddress
       }
-      console.log("Im in here", e)
     }
     throw new Error("Failed to get counterfactual account address")
   }

@@ -8,7 +8,7 @@ import {
 type BicoBundlerClientConfig = Omit<BundlerClientConfig, "transport"> &
   OneOf<
     | {
-        transport?: Transport
+        transport: Transport
       }
     | {
         bundlerUrl: string
