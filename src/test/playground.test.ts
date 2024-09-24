@@ -9,10 +9,7 @@ import {
   createWalletClient
 } from "viem"
 import { beforeAll, describe, expect, test } from "vitest"
-import {
-  biconomyPaymasterContext,
-  createBicoPaymasterClient
-} from "../sdk/clients/createBicoPaymasterClient"
+import { createBicoPaymasterClient } from "../sdk/clients/createBicoPaymasterClient"
 import {
   type NexusClient,
   createNexusClient
@@ -153,8 +150,7 @@ describe.skipIf(!playgroundTrue)("playground", () => {
       factoryAddress,
       paymaster: createBicoPaymasterClient({
         paymasterUrl
-      }),
-      paymasterContext: biconomyPaymasterContext
+      })
     })
     expect(async () =>
       nexusClient.sendTransaction({
