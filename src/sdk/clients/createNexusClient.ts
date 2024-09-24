@@ -220,6 +220,7 @@ export async function createNexusClient(
   })
     .extend(erc7579Actions())
     .extend(smartAccountActions())
+    .extend(bicoBundlerActions())
 
   return bundler_ as unknown as NexusClient
 }

@@ -16,7 +16,7 @@ import {
   createBundlerClient
 } from "viem/account-abstraction"
 import { biconomyPaymasterContext } from "./createBicoPaymasterClient"
-import { bicoBundlerActions, type BicoActions } from "./decorators/bundler"
+import { type BicoActions, bicoBundlerActions } from "./decorators/bundler"
 import type { BicoRpcSchema } from "./decorators/bundler/getUserOperationGasPrice"
 
 export type BicoBundlerClient<
