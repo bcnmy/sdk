@@ -8,14 +8,14 @@ import {
 type BicoBundlerClientConfig = Omit<BundlerClientConfig, "transport"> &
   OneOf<
     | {
-        transport: Transport
-      }
+      transport: Transport
+    }
     | {
-        bundlerUrl: string
-      }
+      bundlerUrl: string
+    }
     | {
-        apiKey?: string
-      }
+      apiKey?: string
+    }
   >
 
 /**
@@ -51,11 +51,10 @@ export const createBicoBundlerClient = (
       : parameters.bundlerUrl
         ? http(parameters.bundlerUrl)
         : http(
-            // @ts-ignore: Type saftey provided by the if statement above
-            `https://bundler.biconomy.io/api/v3/${parameters.chain.id}/${
-              parameters.apiKey ??
-              "nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f14"
-            }`
-          )
+          // @ts-ignore: Type saftey provided by the if statement above
+          `https://bundler.biconomy.io/api/v3/${parameters.chain.id}/${parameters.apiKey ??
+          "nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f14"
+          }`
+        )
   })
 }

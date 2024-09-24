@@ -79,11 +79,11 @@ const main = async () => {
     account: nexusAccount,
     ...(paymasterUrl
       ? {
-          paymaster: createBicoPaymasterClient({
-            transport: http(paymasterUrl)
-          }),
-          paymasterContext: biconomyPaymasterContext
-        }
+        paymaster: createBicoPaymasterClient({
+          transport: http(paymasterUrl)
+        }),
+        paymasterContext: biconomyPaymasterContext
+      }
       : undefined),
     userOperation: {
       estimateFeesPerGas: async (parameters) => {
@@ -125,8 +125,7 @@ const main = async () => {
 
   const successCount = results.filter((result) => result.status === "fulfilled")
   console.log(
-    `running the ${usesAltoBundler ? "Alto" : "Bico"} bundler with ${
-      successCount.length
+    `running the ${usesAltoBundler ? "Alto" : "Bico"} bundler with ${successCount.length
     } successful calls`
   )
 
