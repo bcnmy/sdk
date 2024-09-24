@@ -1,4 +1,4 @@
-import type { Address, Chain, Client, Hash, Prettify, Transport } from "viem"
+import type { Chain, Client, Prettify, Transport } from "viem"
 import {
   type GetUserOperationGasPriceReturnType,
   getUserOperationGasPrice

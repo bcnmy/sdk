@@ -338,8 +338,5 @@ export const getAccountDomainStructFields = async (
     keccak256(encodePacked(["uint256[]"], [extensions]))
   ])
 }
-
-export const isTesting =
-  process.env.TEST === "true"
-    ? "pimlico_getUserOperationGasPrice"
-    : "biconomy_getGasFeeValues"
+export const playgroundTrue = process.env.RUN_PLAYGROUND === "true"
+export const shouldUsePimlico = process.env.TEST === "true" && !playgroundTrue
