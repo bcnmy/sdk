@@ -125,6 +125,7 @@
     "commit-msg": "npx --no -- commitlint --edit ${1}"
   },
   "dependencies": {
+    "@rhinestone/module-sdk": "^0.1.17",
     "merkletreejs": "^0.3.11"
   }
 }

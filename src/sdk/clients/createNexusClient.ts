@@ -5,7 +5,6 @@ import type {
   ClientConfig,
   EstimateFeesPerGasReturnType,
   Prettify,
-  PublicClient,
   RpcSchema,
   Transport
 } from "viem"
@@ -20,20 +19,17 @@ import contracts from "../__contracts"
 import type { Call } from "../account/utils/Types"
 
 import { type NexusAccount, toNexusAccount } from "../account/toNexusAccount"
-import type { UnknownHolder } from "../account/utils/toHolder"
+import type { UnknownSigner } from "../account/utils/toSigner"
 import type { BaseExecutionModule } from "../modules/base/BaseExecutionModule"
 import type { BaseValidationModule } from "../modules/base/BaseValidationModule"
-import {
-  type BicoBundlerClient,
-  createBicoBundlerClient
-} from "./createBicoBundlerClient"
+import { createBicoBundlerClient } from "./createBicoBundlerClient"
 import { type Erc7579Actions, erc7579Actions } from "./decorators/erc7579"
 import {
   type SmartAccountActions,
   smartAccountActions
 } from "./decorators/smartAccount"
 
-import { bicoBundlerActions } from "./decorators/bundler"
+import type { GetUserOperationGasPriceReturnType } from "./decorators/bundler/getUserOperationGasPrice"
 
 /**
  * Parameters for sending a transaction
@@ -140,11 +136,11 @@ export type NexusClientConfig<
         }
       | undefined
     /** Owner of the account. */
-    holder: UnknownHolder
+    signer: UnknownSigner
     /** Index of the account. */
     index?: bigint
     /** Active module of the account. */
-    activeModule?: BaseValidationModule
+    activeValidationModule?: BaseValidationModule
     /** Executor module of the account. */
     executorModule?: BaseExecutionModule
     /** Factory address of the account. */
@@ -169,7 +165,7 @@ export type NexusClientConfig<
  *   chain: mainnet,
  *   transport: http('https://mainnet.infura.io/v3/YOUR-PROJECT-ID'),
  *   bundlerTransport: http('https://api.biconomy.io'),
- *   holder: '0x...',
+ *   signer: '0x...',
  * })
  */
 export async function createNexusClient(
@@ -178,18 +174,21 @@ export async function createNexusClient(
   const {
     client: client_,
     chain = parameters.chain ?? client_?.chain,
-    holder,
+    signer,
     index = 0n,
     key = "nexus client",
     name = "Nexus Client",
-    activeModule,
+    activeValidationModule,
     factoryAddress = contracts.k1ValidatorFactory.address,
     k1ValidatorAddress = contracts.k1Validator.address,
     bundlerTransport,
+    paymaster,
     transport,
+    paymasterContext,
     userOperation = {
       estimateFeesPerGas: async (_) => {
-        const gasFees = await bundler_.getUserOperationGasPrice()
+        const gasFees: GetUserOperationGasPriceReturnType =
+          await bundler_.getUserOperationGasPrice()
         return {
           maxFeePerGas: gasFees.fast.maxFeePerGas * 2n,
           maxPriorityFeePerGas: gasFees.fast.maxPriorityFeePerGas * 2n
@@ -203,9 +202,9 @@ export async function createNexusClient(
   const nexusAccount = await toNexusAccount({
     transport,
     chain,
-    holder,
+    signer,
     index,
-    activeModule,
+    activeValidationModule,
     factoryAddress,
     k1ValidatorAddress
   })
@@ -215,12 +214,13 @@ export async function createNexusClient(
     key,
     name,
     account: nexusAccount,
+    paymaster,
+    paymasterContext,
     transport: bundlerTransport,
     userOperation
   })
     .extend(erc7579Actions())
     .extend(smartAccountActions())
-    .extend(bicoBundlerActions())
 
   return bundler_ as unknown as NexusClient
 }

@@ -1,14 +1,8 @@
-import { AbiCoder, ParamType } from "ethers/abi"
-import { JsonRpcProvider } from "ethers/providers"
-import { Wallet } from "ethers/wallet"
 import {
   http,
-  type AbiParameter,
   type Account,
   type Address,
   type Chain,
-  type Hex,
-  encodeAbiParameters,
   encodeFunctionData,
   parseEther
 } from "viem"
@@ -55,7 +49,7 @@ describe("nexus.client", async () => {
     testClient = toTestClient(chain, getTestAccount(5))
 
     nexusClient = await createNexusClient({
-      holder: account,
+      signer: account,
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl)
@@ -219,7 +213,7 @@ describe("nexus.client", async () => {
         module: {
           type: "validator",
           address: addresses.K1Validator,
-          context: "0x"
+          data: "0x"
         }
       }),
       nexusClient.supportsExecutionMode({
@@ -243,18 +237,5 @@ describe("nexus.client", async () => {
     const balanceAfter = await getBalance(testClient, recipientAddress)
     expect(status).toBe("success")
     expect(balanceAfter - balanceBefore).toBe(2n)
-  })
-
-  // Not working
-  test.skip("should uninstall modules", async () => {
-    const result = await nexusClient.uninstallModules({
-      modules: [
-        {
-          type: "validator",
-          address: addresses.K1Validator,
-          context: "0x"
-        }
-      ]
-    })
   })
 })

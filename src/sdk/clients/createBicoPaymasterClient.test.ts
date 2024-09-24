@@ -7,17 +7,15 @@ import {
   type WalletClient,
   createPublicClient,
   createWalletClient,
-  encodeFunctionData,
   parseEther
 } from "viem"
 import {
-  type BundlerClient,
   type PaymasterClient,
   entryPoint07Address
 } from "viem/account-abstraction"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { toNetwork } from "../../test/testSetup"
-import { fundAndDeployClients, killNetwork, topUp } from "../../test/testUtils"
+import { killNetwork } from "../../test/testUtils"
 import type { NetworkConfig } from "../../test/testUtils"
 import { type NexusAccount, toNexusAccount } from "../account/toNexusAccount"
 import {
@@ -79,7 +77,7 @@ describe.skip("bico.paymaster", async () => {
     })
 
     nexusAccount = await toNexusAccount({
-      holder: account,
+      signer: account,
       chain,
       transport: http(),
       k1ValidatorAddress,
@@ -93,7 +91,7 @@ describe.skip("bico.paymaster", async () => {
     nexusAccountAddress = await nexusAccount.getCounterFactualAddress()
 
     nexusClient = await createNexusClient({
-      holder: account,
+      signer: account,
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl),
@@ -111,8 +109,6 @@ describe.skip("bico.paymaster", async () => {
       calls: [{ to: recipientAddress, value: parseEther("1") }]
     })
 
-    console.log({ userOperation })
-
     const paymasterData = await paymaster.getPaymasterData({
       chainId: chain.id,
       entryPointAddress: entryPoint07Address,
@@ -120,13 +116,9 @@ describe.skip("bico.paymaster", async () => {
       paymasterVerificationGasLimit: 20000n,
       paymasterPostOpGasLimit: 20000n
     })
-
-    console.log({ paymasterData })
   })
 
   test.skip("should have call getPaymasterStubData", async () => {
-    console.log({ paymasterUrl })
-
     const paymasterData = await paymaster.getPaymasterStubData({
       chainId: chain.id,
       entryPointAddress: entryPoint07Address,
@@ -135,7 +127,6 @@ describe.skip("bico.paymaster", async () => {
       sender: nexusAccountAddress,
       context: biconomyPaymasterContext
     })
-    console.log({ paymasterData })
   })
 
   test.skip("should send a transaction using the paymasterData", async () => {
@@ -149,8 +140,6 @@ describe.skip("bico.paymaster", async () => {
     })
     const { status, transactionHash } =
       await publicClient.waitForTransactionReceipt({ hash })
-
-    console.log({ transactionHash })
 
     expect(status).toBe("success")
   })

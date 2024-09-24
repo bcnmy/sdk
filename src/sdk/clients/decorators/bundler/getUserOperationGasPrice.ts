@@ -1,7 +1,7 @@
 import type { Account, Chain, Client, Hex, Transport } from "viem"
-import { isTesting } from "../../../account/utils/Utils"
+import { shouldUsePimlico } from "../../../account/utils/Utils"
 
-const conditionalMethod = isTesting
+const conditionalMethod = shouldUsePimlico
   ? "pimlico_getUserOperationGasPrice"
   : "biconomy_getGasFeeValues"
 
@@ -9,11 +9,11 @@ export type BicoRpcSchema = [
   {
     Method: "biconomy_getGasFeeValues" | "pimlico_getUserOperationGasPrice"
     Parameters: []
-    ReturnType: PimlicoUserOperationGasPriceWithBigIntAsHex
+    ReturnType: BicoUserOperationGasPriceWithBigIntAsHex
   }
 ]
 
-type PimlicoUserOperationGasPriceWithBigIntAsHex = {
+type BicoUserOperationGasPriceWithBigIntAsHex = {
   slow: {
     maxFeePerGas: Hex
     maxPriorityFeePerGas: Hex

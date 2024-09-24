@@ -67,13 +67,7 @@ type BicoBundlerClientConfig = Omit<BundlerClientConfig, "transport"> &
  *
  * const bundlerClient = createBicoBundlerClient({ chain: mainnet });
  */
-export const createBicoBundlerClient = <
-  transport extends Transport = Transport,
-  chain extends Chain | undefined = Chain | undefined,
-  account extends SmartAccount | undefined = SmartAccount | undefined,
-  client extends Client | undefined = Client | undefined,
-  rpcSchema extends RpcSchema | undefined = undefined
->(
+export const createBicoBundlerClient = (
   parameters: BicoBundlerClientConfig
 ): BicoBundlerClient => {
   if (

@@ -61,28 +61,28 @@ import {
   packUserOp,
   typeToString
 } from "./utils/Utils"
-import { type UnknownHolder, toHolder } from "./utils/toHolder"
+import { type UnknownSigner, toSigner } from "./utils/toSigner"
 
 /**
  * Parameters for creating a Nexus Smart Account
  */
-export type ToNexusSmartAccountParameters = Prettify<
-  {
-    /** The blockchain network */
-    chain: Chain
-    /** The transport configuration */
-    transport: ClientConfig["transport"]
-    /** The holder account or address */
-    holder: UnknownHolder
-    /** Optional index for the account */
-    index?: bigint | undefined
-    /** Optional active validation module */
-    activeModule?: BaseValidationModule
-    /** Optional factory address */
-    factoryAddress?: Address
-    /** Optional K1 validator address */
-    k1ValidatorAddress?: Address
-  } & Pick<
+export type ToNexusSmartAccountParameters = {
+  /** The blockchain network */
+  chain: Chain
+  /** The transport configuration */
+  transport: ClientConfig["transport"]
+  /** The signer account or address */
+  signer: UnknownSigner
+  /** Optional index for the account */
+  index?: bigint | undefined
+  /** Optional active validation module */
+  activeValidationModule?: BaseValidationModule
+  /** Optional factory address */
+  factoryAddress?: Address
+  /** Optional K1 validator address */
+  k1ValidatorAddress?: Address
+} & Prettify<
+  Pick<
     ClientConfig<Transport, Chain, Account, RpcSchema>,
     | "account"
     | "cacheTime"
@@ -114,6 +114,8 @@ export type NexusSmartAccountImplementation = SmartAccountImplementation<
     encodeExecute: (call: Call) => Promise<Hex>
     encodeExecuteBatch: (calls: readonly Call[]) => Promise<Hex>
     getUserOpHash: (userOp: Partial<UserOperationStruct>) => Promise<Hex>
+    setActiveValidationModule: (validationModule: BaseValidationModule) => void
+    getActiveValidationModule: () => BaseValidationModule
     factoryData: Hex
     factoryAddress: Address
   }
@@ -133,7 +135,7 @@ export type NexusSmartAccountImplementation = SmartAccountImplementation<
  * const account = await toNexusAccount({
  *   chain: mainnet,
  *   transport: http(),
- *   holder: '0x...',
+ *   signer: '0x...',
  * })
  */
 export const toNexusAccount = async (
@@ -142,19 +144,19 @@ export const toNexusAccount = async (
   const {
     chain,
     transport,
-    holder: holder_,
+    signer: _signer,
     index = 0n,
-    activeModule,
+    activeValidationModule,
     factoryAddress = contracts.k1ValidatorFactory.address,
     k1ValidatorAddress = contracts.k1Validator.address,
     key = "nexus account",
     name = "Nexus Account"
   } = parameters
 
-  const holder = await toHolder({ holder: holder_ })
+  const signer = await toSigner({ signer: _signer })
 
   const masterClient = createWalletClient({
-    account: holder,
+    account: signer,
     chain,
     transport,
     key,
@@ -179,16 +181,16 @@ export const toNexusAccount = async (
     args: [signerAddress, index, [], 0]
   })
 
-  const defaultedActiveModule =
-    activeModule ??
+  let defaultedActiveModule =
+    activeValidationModule ??
     new K1ValidatorModule(
       {
         address: k1ValidatorAddress,
         type: "validator",
-        context: signerAddress,
+        data: signerAddress,
         additionalContext: "0x"
       },
-      holder
+      signer
     )
 
   let _accountAddress: Address
@@ -206,7 +208,7 @@ export const toNexusAccount = async (
         functionName: "computeAccountAddress",
         args: [signerAddress, index, [], 0]
       })) as Address
-    } catch (e) {
+    } catch (e: any) {
       if (e.shortMessage?.includes(ERROR_MESSAGES.MISSING_ACCOUNT_CONTRACT)) {
         throw new Error(ERROR_MESSAGES.ACCOUNT_NOT_DEPLOYED)
       }
@@ -359,6 +361,17 @@ export const toNexusAccount = async (
   }
 
   /**
+   * @description Changes the active module for the account
+   * @param newModule - The new module to set as active
+   * @returns void
+   */
+  const setActiveValidationModule = (
+    validationModule: BaseValidationModule
+  ): void => {
+    defaultedActiveModule = validationModule
+  }
+
+  /**
    * @description Signs a message
    * @param params - The parameters for signing
    * @param params.message - The message to sign
@@ -368,7 +381,7 @@ export const toNexusAccount = async (
     message
   }: { message: SignableMessage }): Promise<Hex> => {
     const tempSignature = await defaultedActiveModule
-      .getHolder()
+      .getSigner()
       .signMessage({ message })
 
     const signature = encodePacked(
@@ -525,6 +538,8 @@ export const toNexusAccount = async (
       encodeExecute,
       encodeExecuteBatch,
       getUserOpHash,
+      setActiveValidationModule,
+      getActiveValidationModule: () => defaultedActiveModule,
       factoryData,
       factoryAddress
     }
