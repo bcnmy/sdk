@@ -113,6 +113,10 @@ export const initTestnetNetwork = async (): Promise<NetworkConfig> => {
   }
   const bundlerUrl = _bundlerUrl ?? getBundlerUrl(+chainId)
 
+  const holder = privateKeyToAccount(
+    privateKey?.startsWith("0x") ? (privateKey as Hex) : `0x${privateKey}`
+  )
+
   return {
     rpcUrl: chain.rpcUrls.default.http[0],
     rpcPort: 0,
@@ -120,9 +124,7 @@ export const initTestnetNetwork = async (): Promise<NetworkConfig> => {
     bundlerUrl,
     paymasterUrl,
     bundlerPort: 0,
-    account: privateKeyToAccount(
-      privateKey?.startsWith("0x") ? (privateKey as Hex) : `0x${privateKey}`
-    )
+    account: holder
   }
 }
 

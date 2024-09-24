@@ -22,7 +22,7 @@ describe("bico.bundler", async () => {
   let testClient: MasterClient
   let account: Account
   let nexusAccountAddress: Address
-  let bicoBundler: BundlerClient
+  let bicoBundler: BicoBundlerClient
   let nexusAccount: NexusAccount
 
   beforeAll(async () => {

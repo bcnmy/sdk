@@ -1,3 +1,4 @@
+import { config } from "dotenv"
 import {
   type Address,
   type Client,
@@ -36,6 +37,7 @@ import type {
   EIP712DomainReturn,
   UserOperationStruct
 } from "./Types"
+config()
 
 /**
  * pack the userOperation
@@ -336,3 +338,8 @@ export const getAccountDomainStructFields = async (
     keccak256(encodePacked(["uint256[]"], [extensions]))
   ])
 }
+
+export const isTesting =
+  process.env.TEST === "true"
+    ? "pimlico_getUserOperationGasPrice"
+    : "biconomy_getGasFeeValues"

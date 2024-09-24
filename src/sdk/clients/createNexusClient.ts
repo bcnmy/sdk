@@ -23,12 +23,17 @@ import { type NexusAccount, toNexusAccount } from "../account/toNexusAccount"
 import type { UnknownHolder } from "../account/utils/toHolder"
 import type { BaseExecutionModule } from "../modules/base/BaseExecutionModule"
 import type { BaseValidationModule } from "../modules/base/BaseValidationModule"
-import { createBicoBundlerClient } from "./createBicoBundlerClient"
+import {
+  type BicoBundlerClient,
+  createBicoBundlerClient
+} from "./createBicoBundlerClient"
 import { type Erc7579Actions, erc7579Actions } from "./decorators/erc7579"
 import {
   type SmartAccountActions,
   smartAccountActions
 } from "./decorators/smartAccount"
+
+import { bicoBundlerActions } from "./decorators/bundler"
 
 /**
  * Parameters for sending a transaction
@@ -183,13 +188,11 @@ export async function createNexusClient(
     bundlerTransport,
     transport,
     userOperation = {
-      estimateFeesPerGas: async (parameters) => {
-        const feeData = await (
-          parameters?.account?.client as PublicClient
-        )?.estimateFeesPerGas?.()
+      estimateFeesPerGas: async (_) => {
+        const gasFees = await bundler_.getUserOperationGasPrice()
         return {
-          maxFeePerGas: feeData.maxFeePerGas * 2n,
-          maxPriorityFeePerGas: feeData.maxPriorityFeePerGas * 2n
+          maxFeePerGas: gasFees.fast.maxFeePerGas * 2n,
+          maxPriorityFeePerGas: gasFees.fast.maxPriorityFeePerGas * 2n
         }
       }
     }
@@ -207,7 +210,7 @@ export async function createNexusClient(
     k1ValidatorAddress
   })
 
-  const bundler = createBicoBundlerClient({
+  const bundler_ = createBicoBundlerClient({
     ...parameters,
     key,
     name,
@@ -218,5 +221,5 @@ export async function createNexusClient(
     .extend(erc7579Actions())
     .extend(smartAccountActions())
 
-  return bundler as unknown as NexusClient
+  return bundler_ as unknown as NexusClient
 }
