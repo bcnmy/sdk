@@ -3,24 +3,29 @@ import {
   type Account,
   type Address,
   type Chain,
+  type PublicClient,
   encodeAbiParameters,
   encodePacked
 } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
-import { toNetwork } from "../../../test/testSetup"
+import { toNetwork } from "../../../../test/testSetup"
 import {
   fundAndDeployClients,
   getBalance,
   getTestAccount,
   killNetwork,
   toTestClient
-} from "../../../test/testUtils"
-import type { MasterClient, NetworkConfig } from "../../../test/testUtils"
-import addresses from "../../__contracts/addresses"
+} from "../../../../test/testUtils"
+import type { MasterClient, NetworkConfig } from "../../../../test/testUtils"
+import addresses from "../../../__contracts/addresses"
 import {
   type NexusClient,
   createNexusClient
-} from "../../clients/createNexusClient"
+} from "../../../clients/createNexusClient"
+import {
+  ToK1ValidatorModuleReturnType,
+  toK1ValidatorModule
+} from "./toK1ValidatorModule"
 
 describe("modules.k1Validator.write", async () => {
   let network: NetworkConfig
@@ -75,6 +80,24 @@ describe("modules.k1Validator.write", async () => {
     const balanceAfter = await getBalance(testClient, recipientAddress)
     expect(success).toBe(true)
     expect(balanceAfter - balanceBefore).toBe(1n)
+  })
+
+  test("k1Validator properties", async () => {
+    const k1Validator = await toK1ValidatorModule({
+      client: nexusClient.account.client as PublicClient,
+      initData: encodePacked(["address"], [account.address]),
+      deInitData: "0x",
+      address: addresses.K1Validator
+    })
+    expect(k1Validator.signMessage).toBeDefined()
+    expect(k1Validator.signUserOpHash).toBeDefined()
+    expect(k1Validator.getDummySignature).toBeDefined()
+    expect(k1Validator.address).toBeDefined()
+    expect(k1Validator.client).toBeDefined()
+    expect(k1Validator.initData).toBeDefined()
+    expect(k1Validator.deInitData).toBeDefined()
+    expect(k1Validator.signer).toBeDefined()
+    expect(k1Validator.type).toBeDefined()
   })
 
   test("should install k1 validator with 1 owner", async () => {
@@ -155,6 +178,5 @@ describe("modules.k1Validator.write", async () => {
 
       expect(hashUninstall).rejects.toThrow()
     }
-    // Get installed modules
   })
 })

@@ -14,28 +14,29 @@ import {
   zeroAddress
 } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
-import {
-  createK1ValidatorModule,
-  createOwnableValidatorModule,
-  toSigner
-} from "../.."
-import { toNetwork } from "../../../test/testSetup"
+import { TEST_CONTRACTS } from "../../../../test/callDatas"
+import { toNetwork } from "../../../../test/testSetup"
 import {
   fundAndDeployClients,
   getTestAccount,
   killNetwork,
   toTestClient
-} from "../../../test/testUtils"
-import type { MasterClient, NetworkConfig } from "../../../test/testUtils"
-import addresses from "../../__contracts/addresses"
+} from "../../../../test/testUtils"
+import type { MasterClient, NetworkConfig } from "../../../../test/testUtils"
+import addresses from "../../../__contracts/addresses"
 import {
   type NexusClient,
   createNexusClient
-} from "../../clients/createNexusClient"
-import { parseModuleTypeId } from "../../clients/decorators/erc7579/supportsModule"
-import { TEST_CONTRACTS } from "./../../../test/callDatas"
-import type { K1ValidatorModule } from "./K1ValidatorModule"
-import type { OwnableValidator } from "./OwnableValidator"
+} from "../../../clients/createNexusClient"
+import { parseModuleTypeId } from "../../../clients/decorators/erc7579/supportsModule"
+import {
+  type ToK1ValidatorModuleReturnType,
+  toK1ValidatorModule
+} from "../k1Validator/toK1ValidatorModule"
+import {
+  type ToOwnableValidatorModuleReturnType,
+  toOwnableValidatorModule
+} from "./toOwnableValidationModule"
 
 describe("modules.ownableValidator", async () => {
   let network: NetworkConfig
@@ -49,8 +50,8 @@ describe("modules.ownableValidator", async () => {
   let nexusAccountAddress: Address
   let recipient: Account
   let recipientAddress: Address
-  let ownableValidatorModule: OwnableValidator
-  let k1ValidatorModule: K1ValidatorModule
+  let ownableValidatorModule: ToOwnableValidatorModuleReturnType
+  let k1ValidatorModule: ToK1ValidatorModuleReturnType
   beforeAll(async () => {
     network = await toNetwork("FILE_LOCALHOST")
 
@@ -72,16 +73,26 @@ describe("modules.ownableValidator", async () => {
     nexusAccountAddress = await nexusClient.account.getCounterFactualAddress()
     await fundAndDeployClients(testClient, [nexusClient])
 
-    ownableValidatorModule = await createOwnableValidatorModule({
-      smartAccount: nexusClient.account,
+    ownableValidatorModule = await toOwnableValidatorModule({
       address: TEST_CONTRACTS.OwnableValidator.address,
-      owners: [account.address, recipient.address],
-      threshold: 2
+      client: nexusClient.account.client as PublicClient,
+      initData: encodeAbiParameters(
+        [
+          { name: "threshold", type: "uint256" },
+          { name: "owners", type: "address[]" }
+        ],
+        [BigInt(2), [account.address, recipient.address]]
+      ),
+      threshold: 2,
+      deInitData: "0x"
     })
 
-    k1ValidatorModule = await createK1ValidatorModule(
-      await toSigner({ signer: account })
-    )
+    k1ValidatorModule = await toK1ValidatorModule({
+      address: addresses.K1Validator,
+      client: nexusClient.account.client as PublicClient,
+      initData: encodePacked(["address"], [account.address]),
+      deInitData: encodePacked(["address"], [account.address])
+    })
   })
 
   afterAll(async () => {

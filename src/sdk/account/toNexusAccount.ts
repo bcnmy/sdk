@@ -50,8 +50,8 @@ import {
   PARENT_TYPEHASH
 } from "./utils/Constants"
 
-import type { BaseValidationModule } from "../modules/base/BaseValidationModule"
-import { K1ValidatorModule } from "../modules/validators/K1ValidatorModule"
+import { toK1ValidatorModule } from "../modules/validators/k1Validator/toK1ValidatorModule"
+import type { ToValidationModuleReturnType } from "../modules/validators/toValidationModule"
 import {
   type TypedDataWith712,
   eip712WrapHash,
@@ -75,7 +75,7 @@ export type ToNexusSmartAccountParameters = {
   /** Optional index for the account */
   index?: bigint | undefined
   /** Optional active validation module */
-  activeValidationModule?: BaseValidationModule
+  activeValidationModule?: ToValidationModuleReturnType
   /** Optional factory address */
   factoryAddress?: Address
   /** Optional K1 validator address */
@@ -113,8 +113,10 @@ export type NexusSmartAccountImplementation = SmartAccountImplementation<
     encodeExecute: (call: Call) => Promise<Hex>
     encodeExecuteBatch: (calls: readonly Call[]) => Promise<Hex>
     getUserOpHash: (userOp: Partial<UserOperationStruct>) => Promise<Hex>
-    setActiveValidationModule: (validationModule: BaseValidationModule) => void
-    getActiveValidationModule: () => BaseValidationModule
+    setActiveValidationModule: (
+      validationModule: ToValidationModuleReturnType
+    ) => void
+    getActiveValidationModule: () => ToValidationModuleReturnType
     factoryData: Hex
     factoryAddress: Address
   }
@@ -182,15 +184,14 @@ export const toNexusAccount = async (
 
   let defaultedActiveModule =
     activeValidationModule ??
-    new K1ValidatorModule(
-      {
-        address: k1ValidatorAddress,
-        type: "validator",
-        data: signerAddress,
-        additionalContext: "0x"
-      },
-      signer
-    )
+    (await toK1ValidatorModule({
+      address: k1ValidatorAddress,
+      initData: signerAddress,
+      deInitData: "0x",
+      client: masterClient
+    }))
+
+  console.log(defaultedActiveModule, "defaultedActiveModule")
 
   let _accountAddress: Address
   const getAddress = async () => {
@@ -352,7 +353,7 @@ export const toNexusAccount = async (
    * @returns void
    */
   const setActiveValidationModule = (
-    validationModule: BaseValidationModule
+    validationModule: ToValidationModuleReturnType
   ): void => {
     defaultedActiveModule = validationModule
   }
@@ -366,13 +367,13 @@ export const toNexusAccount = async (
   const signMessage = async ({
     message
   }: { message: SignableMessage }): Promise<Hex> => {
-    const tempSignature = await defaultedActiveModule
-      .getSigner()
-      .signMessage({ message })
+    const tempSignature = await defaultedActiveModule.signer.signMessage({
+      message
+    })
 
     const signature = encodePacked(
       ["address", "bytes"],
-      [defaultedActiveModule.getAddress(), tempSignature]
+      [defaultedActiveModule.address, tempSignature]
     )
 
     const erc6492Signature = concat([
@@ -470,7 +471,7 @@ export const toNexusAccount = async (
 
     signature = encodePacked(
       ["address", "bytes"],
-      [defaultedActiveModule.getAddress(), signatureData]
+      [defaultedActiveModule.address, signatureData]
     )
 
     return signature

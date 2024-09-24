@@ -21,8 +21,7 @@ import type { Call } from "../account/utils/Types"
 
 import { type NexusAccount, toNexusAccount } from "../account/toNexusAccount"
 import type { UnknownSigner } from "../account/utils/toSigner"
-import type { BaseExecutionModule } from "../modules/base/BaseExecutionModule"
-import type { BaseValidationModule } from "../modules/base/BaseValidationModule"
+import type { ToValidationModuleReturnType } from "../modules/validators/toValidationModule"
 import { createBicoBundlerClient } from "./createBicoBundlerClient"
 import { type Erc7579Actions, erc7579Actions } from "./decorators/erc7579"
 import {
@@ -139,9 +138,7 @@ export type NexusClientConfig<
     /** Index of the account. */
     index?: bigint
     /** Active module of the account. */
-    activeValidationModule?: BaseValidationModule
-    /** Executor module of the account. */
-    executorModule?: BaseExecutionModule
+    activeValidationModule?: ToValidationModuleReturnType
     /** Factory address of the account. */
     factoryAddress?: Address
     /** Owner module */
