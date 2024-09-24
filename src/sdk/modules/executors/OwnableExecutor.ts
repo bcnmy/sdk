@@ -34,7 +34,7 @@ export class OwnableExecutorModule extends BaseExecutionModule {
     super(module, holder)
     this.nexusClient = nexusClient
     this.owners = owners
-    this.context = module.context ?? "0x"
+    this.data = module.data ?? "0x"
     this.address = address
   }
 
@@ -46,7 +46,7 @@ export class OwnableExecutorModule extends BaseExecutionModule {
     const module: Module = {
       address: address,
       type: "executor",
-      context: context ?? "0x",
+      data: context ?? "0x",
       additionalContext: "0x"
     }
     const owners = await (

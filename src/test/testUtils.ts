@@ -12,13 +12,8 @@ import {
   createPublicClient,
   createTestClient,
   createWalletClient,
-  encodeAbiParameters,
-  encodePacked,
-  keccak256,
   parseAbi,
-  parseAbiParameters,
   publicActions,
-  toBytes,
   walletActions,
   zeroAddress
 } from "viem"
@@ -27,11 +22,11 @@ import { mnemonicToAccount, privateKeyToAccount } from "viem/accounts"
 import contracts from "../sdk/__contracts"
 import { getChain, getCustomChain } from "../sdk/account/utils"
 import { Logger } from "../sdk/account/utils/Logger"
+import { createBicoBundlerClient } from "../sdk/clients/createBicoBundlerClient"
 import {
   type NexusClient,
   createNexusClient
 } from "../sdk/clients/createNexusClient"
-
 import {
   ENTRY_POINT_SIMULATIONS_CREATECALL,
   ENTRY_POINT_V07_CREATECALL,
@@ -200,7 +195,7 @@ export const toConfiguredAnvil = async ({
   rpcPort
 }: { rpcPort: number }): Promise<AnvilInstance> => {
   const instance = anvil({
-    hardfork: "Paris",
+    hardfork: "Cancun",
     chainId: rpcPort,
     port: rpcPort,
     codeSizeLimit: 1000000000000
@@ -310,7 +305,7 @@ export const toFundedTestClients = async ({
   const testClient = toTestClient(chain, getTestAccount())
 
   const nexus = await createNexusClient({
-    holder: account,
+    signer: account,
     transport: http(),
     bundlerTransport: http(bundlerUrl),
     chain
