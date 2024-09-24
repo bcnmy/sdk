@@ -92,7 +92,10 @@ export async function sendTransaction<
       client,
       sendUserOperation,
       "sendUserOperation"
-    )({ ...args, signature } as SendUserOperationParameters<account, accountOverride>)
+    )({ ...args, signature } as SendUserOperationParameters<
+      account,
+      accountOverride
+    >)
   }
 
   const userOperationReceipt = await getAction(

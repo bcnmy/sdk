@@ -16,15 +16,15 @@ import {
 type BicoPaymasterClientConfig = Omit<PaymasterClientConfig, "transport"> &
   OneOf<
     | {
-      transport?: Transport
-    }
+        transport?: Transport
+      }
     | {
-      paymasterUrl: string
-    }
+        paymasterUrl: string
+      }
     | {
-      chainId: number
-      apiKey: string
-    }
+        chainId: number
+        apiKey: string
+      }
   >
 
 /**
@@ -74,6 +74,6 @@ export const createBicoPaymasterClient = (
       : parameters.paymasterUrl
         ? http(parameters.paymasterUrl)
         : http(
-          `https://paymaster.biconomy.io/api/v3/${parameters.chainId}/${parameters.apiKey}`
-        )
+            `https://paymaster.biconomy.io/api/v3/${parameters.chainId}/${parameters.apiKey}`
+          )
   })

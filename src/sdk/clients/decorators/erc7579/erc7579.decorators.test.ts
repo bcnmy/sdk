@@ -1,6 +1,15 @@
 import { textSpanOverlapsWith } from "typescript"
-import { http, type Account, type Address, type Chain, isHex, encodeAbiParameters, encodePacked } from "viem"
+import {
+  http,
+  type Account,
+  type Address,
+  type Chain,
+  encodeAbiParameters,
+  encodePacked,
+  isHex
+} from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
+import mockAddresses from "../../../../test/__contracts/mockAddresses"
 import { toNetwork } from "../../../../test/testSetup"
 import {
   type MasterClient,
@@ -12,7 +21,6 @@ import {
 } from "../../../../test/testUtils"
 import contracts from "../../../__contracts"
 import { type NexusClient, createNexusClient } from "../../createNexusClient"
-import mockAddresses from "../../../../test/__contracts/mockAddresses"
 
 describe("erc7579.decorators", async () => {
   let network: NetworkConfig
@@ -100,7 +108,8 @@ describe("erc7579.decorators", async () => {
   })
 
   test("should uninstall a module", async () => {
-    const [installedValidators, nextCursor] = await nexusClient.getInstalledValidators({})
+    const [installedValidators, nextCursor] =
+      await nexusClient.getInstalledValidators({})
 
     const prevModule = await nexusClient.getPreviousModule({
       module: {

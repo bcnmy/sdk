@@ -17,22 +17,22 @@ import {
   walletActions,
   zeroAddress
 } from "viem"
+import { createBundlerClient } from "viem/account-abstraction"
 import { mnemonicToAccount, privateKeyToAccount } from "viem/accounts"
 import contracts from "../sdk/__contracts"
 import { getChain, getCustomChain } from "../sdk/account/utils"
 import { Logger } from "../sdk/account/utils/Logger"
+import { createBicoBundlerClient } from "../sdk/clients/createBicoBundlerClient"
 import {
   type NexusClient,
   createNexusClient
 } from "../sdk/clients/createNexusClient"
-import { createBicoBundlerClient } from "../sdk/clients/createBicoBundlerClient"
 import {
   ENTRY_POINT_SIMULATIONS_CREATECALL,
   ENTRY_POINT_V07_CREATECALL,
   TEST_CONTRACTS
 } from "./callDatas"
 import * as hardhatExec from "./executables"
-import { createBundlerClient } from "viem/account-abstraction"
 
 config()
 
@@ -276,7 +276,8 @@ export const nonZeroBalance = async (
   const balance = await getBalance(testClient, address, tokenAddress)
   if (balance > BigInt(0)) return
   throw new Error(
-    `Insufficient balance ${tokenAddress ? `of token ${tokenAddress}` : "of native token"
+    `Insufficient balance ${
+      tokenAddress ? `of token ${tokenAddress}` : "of native token"
     } during test setup of owner: ${address}`
   )
 }
@@ -389,7 +390,8 @@ export const topUp = async (
 
   if (balanceOfRecipient > amount) {
     Logger.log(
-      `balanceOfRecipient (${recipient}) already has enough ${token ?? "native token"
+      `balanceOfRecipient (${recipient}) already has enough ${
+        token ?? "native token"
       } (${balanceOfRecipient}) during safeTopUp`
     )
     return await Promise.resolve()

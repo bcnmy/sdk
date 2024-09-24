@@ -1,4 +1,11 @@
-import { type Chain, type Client, type Hex, type Transport, encodeFunctionData, getAddress } from "viem"
+import {
+  type Chain,
+  type Client,
+  type Hex,
+  type Transport,
+  encodeFunctionData,
+  getAddress
+} from "viem"
 import {
   type GetSmartAccountParameter,
   type SmartAccount,

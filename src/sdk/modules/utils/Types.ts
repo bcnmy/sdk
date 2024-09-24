@@ -66,7 +66,7 @@ export type ModuleInfo = {
   batchSessionParams?: SessionParams[]
 }
 
-export interface SendUserOpParams extends ModuleInfo { }
+export interface SendUserOpParams extends ModuleInfo {}
 
 export type SignerData = {
   /** This is not the public as provided by viem, key but address for the given pvKey */

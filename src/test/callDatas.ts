@@ -1,20 +1,18 @@
 import type { Hex } from "viem"
 
-export const TEST_CONTRACTS: Record<string, { chainId: number; name: string; address: Hex }> = {
+export const TEST_CONTRACTS: Record<
+  string,
+  { chainId: number; name: string; address: Hex }
+> = {
   // Rhinestone Ownables
   OwnableValidator: {
-    chainId: 84532,
+    chainId: 11155111,
     name: "OwnableValidator",
-    address: "0xfb11d7ca9161F1DF508787BA45951225B6C0a681"
+    address: "0x6605F8785E09a245DD558e55F9A0f4A508434503"
   },
   OwnableExecutor: {
-    chainId: 84532,
-    name: "OwnableExecutor",
-    address: "0x989110e958902f619148b8171fbDF1Dca0c5AE0B"
-  },
-  OwnableExecutorSepolia: {
     chainId: 11155111,
-    name: "OwnableExecutorSepolia",
+    name: "OwnableExecutor",
     address: "0xc98B026383885F41d9a995f85FC480E9bb8bB891"
   },
   // Smart sessions

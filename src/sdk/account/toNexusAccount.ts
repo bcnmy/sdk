@@ -114,7 +114,7 @@ export type NexusSmartAccountImplementation = SmartAccountImplementation<
     encodeExecuteBatch: (calls: readonly Call[]) => Promise<Hex>
     getUserOpHash: (userOp: Partial<UserOperationStruct>) => Promise<Hex>
     setActiveValidationModule: (validationModule: BaseValidationModule) => void
-    getActiveValidationModule: () => BaseValidationModule,
+    getActiveValidationModule: () => BaseValidationModule
     factoryData: Hex
     factoryAddress: Address
   }
@@ -351,8 +351,10 @@ export const toNexusAccount = async (
    * @param newModule - The new module to set as active
    * @returns void
    */
-  const setActiveValidationModule = (validationModule: BaseValidationModule): void => {
-    defaultedActiveModule = validationModule;
+  const setActiveValidationModule = (
+    validationModule: BaseValidationModule
+  ): void => {
+    defaultedActiveModule = validationModule
   }
 
   /**
@@ -364,7 +366,9 @@ export const toNexusAccount = async (
   const signMessage = async ({
     message
   }: { message: SignableMessage }): Promise<Hex> => {
-    const tempSignature = await defaultedActiveModule.getSigner().signMessage({ message })
+    const tempSignature = await defaultedActiveModule
+      .getSigner()
+      .signMessage({ message })
 
     const signature = encodePacked(
       ["address", "bytes"],

@@ -4,9 +4,7 @@ import {
   type Address,
   type Chain,
   encodeFunctionData,
-  parseEther,
-  encodeAbiParameters,
-  encodePacked
+  parseEther
 } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { CounterAbi } from "../../test/__contracts/abi"
@@ -20,7 +18,6 @@ import {
   topUp
 } from "../../test/testUtils"
 import type { MasterClient, NetworkConfig } from "../../test/testUtils"
-import { pKey } from "../../test/testUtils"
 import { addresses } from "../__contracts/addresses"
 import { ERROR_MESSAGES } from "../account/utils/Constants"
 import { makeInstallDataAndHash } from "../account/utils/Utils"
@@ -116,7 +113,7 @@ describe("nexus.client", async () => {
     expect(addresses.every(Boolean)).to.be.true
     expect(addresses).toStrictEqual([
       "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-      "0xCAbC052f31414FfEbeA1094924dFeb0D17d85034" // Sender smart account
+      "0x9faF274EB7cc2D342d786Ad0995dB3c0d641446d" // Sender smart account
     ])
   })
 
@@ -198,19 +195,19 @@ describe("nexus.client", async () => {
   test("should have correct fields", async () => {
     const chainId = 1
     const chain = getChain(chainId)
-      ;[
-        "blockExplorers",
-        "contracts",
-        "fees",
-        "formatters",
-        "id",
-        "name",
-        "nativeCurrency",
-        "rpcUrls",
-        "serializers"
-      ].every((field) => {
-        expect(chain).toHaveProperty(field)
-      })
+    ;[
+      "blockExplorers",
+      "contracts",
+      "fees",
+      "formatters",
+      "id",
+      "name",
+      "nativeCurrency",
+      "rpcUrls",
+      "serializers"
+    ].every((field) => {
+      expect(chain).toHaveProperty(field)
+    })
   })
 
   test("should throw an error, chain id not found", async () => {

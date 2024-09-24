@@ -1,21 +1,24 @@
-import { TEST_CONTRACTS } from './../../../test/callDatas';
-import {
-  getAddOwnableValidatorOwnerAction,
-} from "@rhinestone/module-sdk"
+import { getAddOwnableValidatorOwnerAction } from "@rhinestone/module-sdk"
 import {
   http,
   type Account,
   type Address,
   type Chain,
+  type Hex,
   type PublicClient,
-  encodePacked,
   encodeAbiParameters,
   encodeFunctionData,
-  parseAbi,
-  zeroAddress,
+  encodePacked,
   getAddress,
+  parseAbi,
+  zeroAddress
 } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
+import {
+  createK1ValidatorModule,
+  createOwnableValidatorModule,
+  toSigner
+} from "../.."
 import { toNetwork } from "../../../test/testSetup"
 import {
   fundAndDeployClients,
@@ -26,13 +29,13 @@ import {
 import type { MasterClient, NetworkConfig } from "../../../test/testUtils"
 import addresses from "../../__contracts/addresses"
 import {
-  createNexusClient,
   type NexusClient,
+  createNexusClient
 } from "../../clients/createNexusClient"
-import { createK1ValidatorModule, createOwnableValidatorModule, toSigner } from "../.."
-import { type OwnableValidator } from './OwnableValidator';
-import { parseModuleTypeId } from '../../clients/decorators/erc7579/supportsModule';
-import { K1ValidatorModule } from './K1ValidatorModule';
+import { parseModuleTypeId } from "../../clients/decorators/erc7579/supportsModule"
+import { TEST_CONTRACTS } from "./../../../test/callDatas"
+import type { K1ValidatorModule } from "./K1ValidatorModule"
+import type { OwnableValidator } from "./OwnableValidator"
 
 describe("modules.ownableValidator", async () => {
   let network: NetworkConfig
@@ -76,7 +79,9 @@ describe("modules.ownableValidator", async () => {
       threshold: 2
     })
 
-    k1ValidatorModule = await createK1ValidatorModule(account)
+    k1ValidatorModule = await createK1ValidatorModule(
+      await toSigner({ signer: account })
+    )
   })
 
   afterAll(async () => {
@@ -106,7 +111,7 @@ describe("modules.ownableValidator", async () => {
   test("should add accountTwo as owner", async () => {
     const addOwnerExecution = await getAddOwnableValidatorOwnerAction({
       owner: recipient.address,
-      client: nexusClient.client as PublicClient,
+      client: nexusClient.account.client as PublicClient,
       account: {
         address: nexusClient.account.address,
         type: "nexus",
@@ -124,15 +129,21 @@ describe("modules.ownableValidator", async () => {
         ]
       })
       expect(transactionHash).toBeDefined()
-      const receipt = await testClient.waitForTransactionReceipt({ hash: transactionHash })
+      const receipt = await testClient.waitForTransactionReceipt({
+        hash: transactionHash
+      })
       expect(receipt.status).toBe("success")
     } else {
       throw new Error("Failed to get add owner execution")
     }
 
+    console.log(testClient, "testClient")
+
     const owners = await testClient.readContract({
       address: TEST_CONTRACTS.OwnableValidator.address,
-      abi: parseAbi(["function getOwners(address account) external view returns (address[] ownersArray)"]),
+      abi: parseAbi([
+        "function getOwners(address account) external view returns (address[] ownersArray)"
+      ]),
       functionName: "getOwners",
       args: [nexusClient.account.address]
     })
@@ -143,8 +154,8 @@ describe("modules.ownableValidator", async () => {
     const isInstalled = await nexusClient.isModuleInstalled({
       module: {
         address: TEST_CONTRACTS.OwnableValidator.address,
-        type: "validator",
-      },
+        type: "validator"
+      }
     })
     expect(isInstalled).toBe(true)
     // Set threshold
@@ -165,14 +176,18 @@ describe("modules.ownableValidator", async () => {
   }, 90000)
 
   test("should need 2 signatures to send a user operation", async () => {
-    const activeValidationModule = nexusClient.account.getActiveValidationModule()
+    const activeValidationModule =
+      nexusClient.account.getActiveValidationModule()
     expect(activeValidationModule.address).toBe(addresses.K1Validator)
 
     nexusClient.account.setActiveValidationModule(ownableValidatorModule)
-    const activeValidationModuleAfter = nexusClient.account.getActiveValidationModule()
-    expect(activeValidationModuleAfter.address).toBe(TEST_CONTRACTS.OwnableValidator.address)
+    const activeValidationModuleAfter =
+      nexusClient.account.getActiveValidationModule()
+    expect(activeValidationModuleAfter.address).toBe(
+      TEST_CONTRACTS.OwnableValidator.address
+    )
 
-    let dummyUserOp = await nexusClient.prepareUserOperation({
+    const dummyUserOp = await nexusClient.prepareUserOperation({
       calls: [
         {
           to: zeroAddress,
@@ -182,12 +197,19 @@ describe("modules.ownableValidator", async () => {
           to: zeroAddress,
           data: "0x"
         }
-      ],
+      ]
     })
     const dummyUserOpHash = await nexusClient.account.getUserOpHash(dummyUserOp)
-    const signature1 = await account?.signMessage?.({ message: { raw: dummyUserOpHash } })
-    const signature2 = await recipient?.signMessage?.({ message: { raw: dummyUserOpHash } })
-    const multiSignature = encodePacked(["bytes", "bytes"], [signature1!, signature2!])
+    const signature1 = await account?.signMessage?.({
+      message: { raw: dummyUserOpHash }
+    })
+    const signature2 = await recipient?.signMessage?.({
+      message: { raw: dummyUserOpHash }
+    })
+    const multiSignature = encodePacked(
+      ["bytes", "bytes"],
+      [signature1 ?? "0x", signature2 ?? "0x"]
+    )
     const userOpHash = await nexusClient.sendUserOperation({
       calls: [
         {
@@ -202,16 +224,17 @@ describe("modules.ownableValidator", async () => {
       signature: multiSignature
     })
     expect(userOpHash).toBeDefined()
-    const { success: userOpSuccess } = await nexusClient.waitForUserOperationReceipt({ hash: userOpHash })
+    const { success: userOpSuccess } =
+      await nexusClient.waitForUserOperationReceipt({ hash: userOpHash })
     expect(userOpSuccess).toBe(true)
   })
 
   test("should uninstall ownable validator", async () => {
-    const [installedValidators] = await nexusClient.getInstalledValidators({});
+    const [installedValidators] = await nexusClient.getInstalledValidators({})
     const prevModule = await nexusClient.getPreviousModule({
       module: {
         address: TEST_CONTRACTS.OwnableValidator.address,
-        type: "validator",
+        type: "validator"
       },
       installedValidators
     })
@@ -247,7 +270,11 @@ describe("modules.ownableValidator", async () => {
         }
       ],
       functionName: "uninstallModule",
-      args: [parseModuleTypeId("validator"), getAddress(TEST_CONTRACTS.OwnableValidator.address), deInitData]
+      args: [
+        parseModuleTypeId("validator"),
+        getAddress(TEST_CONTRACTS.OwnableValidator.address),
+        deInitData
+      ]
     })
 
     const userOp = await nexusClient.prepareUserOperation({
@@ -261,9 +288,16 @@ describe("modules.ownableValidator", async () => {
     const userOpHash = await nexusClient.account.getUserOpHash(userOp)
     expect(userOpHash).toBeDefined()
 
-    const signature1 = await account?.signMessage?.({ message: { raw: userOpHash } })
-    const signature2 = await recipient?.signMessage?.({ message: { raw: userOpHash } })
-    const multiSignature = encodePacked(["bytes", "bytes"], [signature1!, signature2!])
+    const signature1 = await account?.signMessage?.({
+      message: { raw: userOpHash }
+    })
+    const signature2 = (await recipient?.signMessage?.({
+      message: { raw: userOpHash }
+    })) as Hex
+    const multiSignature = encodePacked(
+      ["bytes", "bytes"],
+      [signature1 ?? "0x", signature2 ?? "0x"]
+    )
     const uninstallHash = await nexusClient.uninstallModule({
       module: {
         address: TEST_CONTRACTS.OwnableValidator.address,
@@ -273,7 +307,8 @@ describe("modules.ownableValidator", async () => {
       signatureOverride: multiSignature
     })
     expect(uninstallHash).toBeDefined()
-    const { success: userOpSuccess } = await nexusClient.waitForUserOperationReceipt({ hash: uninstallHash })
+    const { success: userOpSuccess } =
+      await nexusClient.waitForUserOperationReceipt({ hash: uninstallHash })
     expect(userOpSuccess).toBe(true)
   })
 })

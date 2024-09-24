@@ -44,7 +44,7 @@ if ([chain, privateKey, bundlerUrl].every(Boolean) !== true)
 const account = privateKeyToAccount(`0x${privateKey}`)
 const recipient = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045" // vitalik.eth
 const nexusClient = await createNexusClient({
-  holder: account,
+  signer: account,
   chain,
   transport: http(),
   bundlerTransport: http(bundlerUrl),

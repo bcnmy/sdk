@@ -1,4 +1,11 @@
-import { encodeAbiParameters, encodePacked, http, type Account, type Address, type Chain } from "viem"
+import {
+  http,
+  type Account,
+  type Address,
+  type Chain,
+  encodeAbiParameters,
+  encodePacked
+} from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { toNetwork } from "../../../test/testSetup"
 import {

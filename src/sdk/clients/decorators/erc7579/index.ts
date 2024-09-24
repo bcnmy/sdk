@@ -18,6 +18,10 @@ import {
   type GetInstalledValidatorsParameters,
   getInstalledValidators
 } from "./getInstalledValidators.js"
+import {
+  type GetPreviousModuleParameters,
+  getPreviousModule
+} from "./getPreviousModule.js"
 import { type InstallModuleParameters, installModule } from "./installModule.js"
 import {
   type InstallModulesParameters,
@@ -44,10 +48,6 @@ import {
   type UninstallModulesParameters,
   uninstallModules
 } from "./uninstallModules.js"
-import {
-  type GetPreviousModuleParameters,
-  getPreviousModule
-} from "./getPreviousModule.js"
 
 export type Erc7579Actions<TSmartAccount extends SmartAccount | undefined> = {
   accountId: (args?: GetSmartAccountParameter<TSmartAccount>) => Promise<string>
@@ -90,7 +90,9 @@ export type Erc7579Actions<TSmartAccount extends SmartAccount | undefined> = {
   getFallbackBySelector: (
     args: GetFallbackBySelectorParameters<TSmartAccount>
   ) => Promise<[Hex, Hex]>
-  getPreviousModule: (args: GetPreviousModuleParameters<TSmartAccount>) => Promise<Hex>
+  getPreviousModule: (
+    args: GetPreviousModuleParameters<TSmartAccount>
+  ) => Promise<Hex>
 }
 
 export type {
