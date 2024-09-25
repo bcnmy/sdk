@@ -57,7 +57,7 @@ describe("nexus.account", async () => {
 
   // Test utils
   let testClient: MasterClient
-  let account: Account
+  let eoaAccount: Account
   let nexusAccountAddress: Address
   let nexusClient: NexusClient
   let nexusAccount: NexusAccount
@@ -68,17 +68,17 @@ describe("nexus.account", async () => {
 
     chain = network.chain
     bundlerUrl = network.bundlerUrl
-    account = getTestAccount(0)
+    eoaAccount = getTestAccount(0)
     testClient = toTestClient(chain, getTestAccount(5))
 
     walletClient = createWalletClient({
-      account,
+      account: eoaAccount,
       chain,
       transport: http()
     })
 
     nexusClient = await createNexusClient({
-      signer: account,
+      signer: eoaAccount,
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl)
@@ -160,7 +160,7 @@ describe("nexus.account", async () => {
       nexusAccount.isDeployed(),
       nexusAccount.getCounterFactualAddress(),
       nexusAccount.getUserOpHash({
-        sender: account.address,
+        sender: eoaAccount.address,
         nonce: 0n,
         data: "0x",
         signature: "0x",
@@ -177,8 +177,8 @@ describe("nexus.account", async () => {
       nexusAccount.signMessage({ message: "hello" }),
       nexusAccount.getNonce(),
       nexusAccount.getInitCode(),
-      nexusAccount.encodeExecute({ to: account.address, value: 100n }),
-      nexusAccount.encodeExecuteBatch([{ to: account.address, value: 100n }])
+      nexusAccount.encodeExecute({ to: eoaAccount.address, value: 100n }),
+      nexusAccount.encodeExecuteBatch([{ to: eoaAccount.address, value: 100n }])
     ])
 
     expect(isAddress(counterfactualAddress)).toBe(true)
@@ -246,7 +246,7 @@ describe("nexus.account", async () => {
     )
 
     const signature = await walletClient.signMessage({
-      account,
+      account: eoaAccount,
       message: { raw: toBytes(dataToSign) }
     })
 

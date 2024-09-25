@@ -34,7 +34,7 @@ describe("modules.k1Validator.write", async () => {
 
   // Test utils
   let testClient: MasterClient
-  let account: Account
+  let eoaAccount: Account
   let nexusClient: NexusClient
   let nexusAccountAddress: Address
   let recipient: Account
@@ -45,14 +45,14 @@ describe("modules.k1Validator.write", async () => {
 
     chain = network.chain
     bundlerUrl = network.bundlerUrl
-    account = getTestAccount(0)
+    eoaAccount = getTestAccount(0)
     recipient = getTestAccount(1)
     recipientAddress = recipient.address
 
     testClient = toTestClient(chain, getTestAccount(5))
 
     nexusClient = await createNexusClient({
-      signer: account,
+      signer: eoaAccount,
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl)
@@ -85,7 +85,7 @@ describe("modules.k1Validator.write", async () => {
   test("k1Validator properties", async () => {
     const k1Validator = await toK1ValidatorModule({
       client: nexusClient.account.client as PublicClient,
-      initData: encodePacked(["address"], [account.address]),
+      initData: encodePacked(["address"], [eoaAccount.address]),
       deInitData: "0x",
       nexusAccountAddress: nexusClient.account.address
     })
@@ -105,7 +105,7 @@ describe("modules.k1Validator.write", async () => {
       module: {
         type: "validator",
         address: addresses.K1Validator,
-        data: encodePacked(["address"], [account.address])
+        data: encodePacked(["address"], [eoaAccount.address])
       }
     })
 
@@ -114,7 +114,7 @@ describe("modules.k1Validator.write", async () => {
         module: {
           address: addresses.K1Validator,
           type: "validator",
-          data: encodePacked(["address"], [account.address])
+          data: encodePacked(["address"], [eoaAccount.address])
         }
       })
 
@@ -137,7 +137,7 @@ describe("modules.k1Validator.write", async () => {
           { name: "prev", type: "address" },
           { name: "disableModuleData", type: "bytes" }
         ],
-        [prevModule, encodePacked(["address"], [account.address])]
+        [prevModule, encodePacked(["address"], [eoaAccount.address])]
       )
 
       const hashUninstall = nexusClient.uninstallModule({
@@ -165,7 +165,7 @@ describe("modules.k1Validator.write", async () => {
           { name: "prev", type: "address" },
           { name: "disableModuleData", type: "bytes" }
         ],
-        [prevModule, encodePacked(["address"], [account.address])]
+        [prevModule, encodePacked(["address"], [eoaAccount.address])]
       )
 
       const hashUninstall = nexusClient.uninstallModule({

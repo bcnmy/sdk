@@ -32,7 +32,7 @@ describe("account.decorators", async () => {
 
     chain = network.chain
     bundlerUrl = network.bundlerUrl
-    account = getTestAccount(0)
+    eoaAccount = getTestAccount(0)
     recipient = getTestAccount(1)
     recipientAddress = recipient.address
     testClient = toTestClient(chain, getTestAccount(5))

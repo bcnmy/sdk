@@ -42,7 +42,7 @@ describe("modules.ownableExecutor", async () => {
 
   // Test utils
   let testClient: MasterClient
-  let account: Account
+  let eoaAccount: Account
   let nexusClient: NexusClient
   let nexusAccountAddress: Address
   let recipient: Account
@@ -53,14 +53,14 @@ describe("modules.ownableExecutor", async () => {
 
     chain = network.chain
     bundlerUrl = network.bundlerUrl
-    account = getTestAccount(0)
+    eoaAccount = getTestAccount(0)
     recipient = getTestAccount(1)
     recipientAddress = recipient.address
 
     testClient = toTestClient(chain, getTestAccount(5))
 
     nexusClient = await createNexusClient({
-      signer: account,
+      signer: eoaAccount,
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl)
@@ -70,11 +70,11 @@ describe("modules.ownableExecutor", async () => {
     await fundAndDeployClients(testClient, [nexusClient])
 
     k1ValidatorModule = await toK1ValidatorModule({
-      address: addresses.K1Validator,
+      nexusAccountAddress: nexusClient.account.address,
       client: nexusClient.account.client as PublicClient,
       initData: encodePacked(
         ["address", "address"],
-        [account.address, recipient.address]
+        [eoaAccount.address, recipient.address]
       ),
       deInitData: "0x"
     })
@@ -98,7 +98,7 @@ describe("modules.ownableExecutor", async () => {
       module: {
         type: "executor",
         address: TEST_CONTRACTS.OwnableExecutor.address,
-        data: encodePacked(["address"], [account.address])
+        data: encodePacked(["address"], [eoaAccount.address])
       }
     })
     expect(userOpHash).toBeDefined()

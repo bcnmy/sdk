@@ -43,7 +43,7 @@ describe("modules.ownableValidator", async () => {
 
   // Test utils
   let testClient: MasterClient
-  let account: Account
+  let eoaAccount: Account
   let nexusClient: NexusClient
   let nexusAccountAddress: Address
   let recipient: Account
@@ -55,14 +55,14 @@ describe("modules.ownableValidator", async () => {
 
     chain = network.chain
     bundlerUrl = network.bundlerUrl
-    account = getTestAccount(0)
+    eoaAccount = getTestAccount(0)
     recipient = getTestAccount(1)
     recipientAddress = recipient.address
 
     testClient = toTestClient(chain, getTestAccount(5))
 
     nexusClient = await createNexusClient({
-      signer: account,
+      signer: eoaAccount,
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl)
@@ -79,7 +79,7 @@ describe("modules.ownableValidator", async () => {
           { name: "threshold", type: "uint256" },
           { name: "owners", type: "address[]" }
         ],
-        [BigInt(2), [account.address, recipient.address]]
+        [BigInt(2), [eoaAccount.address, recipient.address]]
       ),
       deInitData: "0x"
     })
@@ -87,8 +87,8 @@ describe("modules.ownableValidator", async () => {
     k1ValidatorModule = await toK1ValidatorModule({
       nexusAccountAddress: nexusClient.account.address,
       client: nexusClient.account.client as PublicClient,
-      initData: encodePacked(["address"], [account.address]),
-      deInitData: encodePacked(["address"], [account.address])
+      initData: encodePacked(["address"], [eoaAccount.address]),
+      deInitData: encodePacked(["address"], [eoaAccount.address])
     })
   })
 
@@ -114,7 +114,7 @@ describe("modules.ownableValidator", async () => {
             { name: "threshold", type: "uint256" },
             { name: "owners", type: "address[]" }
           ],
-          [BigInt(1), [account.address]]
+          [BigInt(1), [eoaAccount.address]]
         )
       }
     })
@@ -184,7 +184,7 @@ describe("modules.ownableValidator", async () => {
       ]
     })
     const dummyUserOpHash = await nexusClient.account.getUserOpHash(dummyUserOp)
-    const signature1 = await account?.signMessage?.({
+    const signature1 = await eoaAccount?.signMessage?.({
       message: { raw: dummyUserOpHash }
     })
     const signature2 = await recipient?.signMessage?.({
@@ -272,7 +272,7 @@ describe("modules.ownableValidator", async () => {
     const userOpHash = await nexusClient.account.getUserOpHash(userOp)
     expect(userOpHash).toBeDefined()
 
-    const signature1 = await account?.signMessage?.({
+    const signature1 = await eoaAccount?.signMessage?.({
       message: { raw: userOpHash }
     })
     const signature2 = (await recipient?.signMessage?.({
