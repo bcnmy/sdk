@@ -35,13 +35,11 @@ export async function getInstalledValidators<
   TSmartAccount extends SmartAccount | undefined
 >(
   client: Client<Transport, Chain | undefined, TSmartAccount>,
-  parameters: GetInstalledValidatorsParameters<TSmartAccount>
+  parameters?: GetInstalledValidatorsParameters<TSmartAccount>
 ): Promise<readonly [readonly Hex[], Hex]> {
-  const {
-    account: account_ = client.account,
-    pageSize = 100n,
-    cursor = SENTINEL_ADDRESS
-  } = parameters
+  const account_ = parameters?.account ?? client.account
+  const pageSize = parameters?.pageSize ?? 100n
+  const cursor = parameters?.cursor ?? SENTINEL_ADDRESS
 
   if (!account_) {
     throw new AccountNotFoundError({

@@ -29,9 +29,9 @@ export async function getActiveHook<
   TSmartAccount extends SmartAccount | undefined
 >(
   client: Client<Transport, Chain | undefined, TSmartAccount>,
-  parameters: GetActiveHookParameters<TSmartAccount>
+  parameters?: GetActiveHookParameters<TSmartAccount>
 ): Promise<Hex> {
-  const { account: account_ = client.account } = parameters
+  const account_ = parameters?.account ?? client.account
 
   if (!account_) {
     throw new AccountNotFoundError({

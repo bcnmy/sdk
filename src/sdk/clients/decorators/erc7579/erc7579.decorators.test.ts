@@ -70,9 +70,9 @@ describe("erc7579.decorators", async () => {
       supportsDelegateCall,
       isK1ValidatorInstalled
     ] = await Promise.all([
-      nexusClient.getInstalledValidators({}),
-      nexusClient.getInstalledExecutors({}),
-      nexusClient.getActiveHook({}),
+      nexusClient.getInstalledValidators(),
+      nexusClient.getInstalledExecutors(),
+      nexusClient.getActiveHook(),
       nexusClient.getFallbackBySelector({ selector: "0xcb5baf0f" }),
       nexusClient.supportsModule({ type: "validator" }),
       nexusClient.supportsExecutionMode({ type: "delegatecall" }),
