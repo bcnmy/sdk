@@ -1,4 +1,3 @@
-import { getAddOwnableValidatorOwnerAction } from "@rhinestone/module-sdk"
 import {
   http,
   type Account,
@@ -10,7 +9,6 @@ import {
   encodeFunctionData,
   encodePacked,
   getAddress,
-  parseAbi,
   zeroAddress
 } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
@@ -36,7 +34,7 @@ import {
 import {
   type ToOwnableValidatorModuleReturnType,
   toOwnableValidatorModule
-} from "./toOwnableValidationModule"
+} from "./toOwnableValidatorModule"
 
 describe("modules.ownableValidator", async () => {
   let network: NetworkConfig
@@ -74,7 +72,7 @@ describe("modules.ownableValidator", async () => {
     await fundAndDeployClients(testClient, [nexusClient])
 
     ownableValidatorModule = await toOwnableValidatorModule({
-      address: TEST_CONTRACTS.OwnableValidator.address,
+      nexusAccountAddress: nexusClient.account.address,
       client: nexusClient.account.client as PublicClient,
       initData: encodeAbiParameters(
         [
@@ -83,12 +81,11 @@ describe("modules.ownableValidator", async () => {
         ],
         [BigInt(2), [account.address, recipient.address]]
       ),
-      threshold: 2,
       deInitData: "0x"
     })
 
     k1ValidatorModule = await toK1ValidatorModule({
-      address: addresses.K1Validator,
+      nexusAccountAddress: nexusClient.account.address,
       client: nexusClient.account.client as PublicClient,
       initData: encodePacked(["address"], [account.address]),
       deInitData: encodePacked(["address"], [account.address])
@@ -97,6 +94,13 @@ describe("modules.ownableValidator", async () => {
 
   afterAll(async () => {
     await killNetwork([network?.rpcPort, network?.bundlerPort])
+  })
+
+  test("should return values if module not installed", async () => {
+    const owners = await ownableValidatorModule.getOwners()
+    const threshold = await ownableValidatorModule.getThreshold()
+    expect(owners).toEqual([])
+    expect(threshold).toBe(0)
   })
 
   test("should install ownable validator and perform operations", async () => {
@@ -120,44 +124,20 @@ describe("modules.ownableValidator", async () => {
   })
 
   test("should add accountTwo as owner", async () => {
-    const addOwnerExecution = await getAddOwnableValidatorOwnerAction({
-      owner: recipient.address,
-      client: nexusClient.account.client as PublicClient,
-      account: {
-        address: nexusClient.account.address,
-        type: "nexus",
-        deployedOnChains: []
-      }
+    const addOwnerTx = await ownableValidatorModule.getAddOwnerTx(
+      recipient.address
+    )
+
+    const transactionHash = await nexusClient.sendTransaction({
+      calls: [addOwnerTx]
     })
-
-    if ("callData" in addOwnerExecution) {
-      const transactionHash = await nexusClient.sendTransaction({
-        calls: [
-          {
-            to: TEST_CONTRACTS.OwnableValidator.address,
-            data: addOwnerExecution.callData
-          }
-        ]
-      })
-      expect(transactionHash).toBeDefined()
-      const receipt = await testClient.waitForTransactionReceipt({
-        hash: transactionHash
-      })
-      expect(receipt.status).toBe("success")
-    } else {
-      throw new Error("Failed to get add owner execution")
-    }
-
-    console.log(testClient, "testClient")
-
-    const owners = await testClient.readContract({
-      address: TEST_CONTRACTS.OwnableValidator.address,
-      abi: parseAbi([
-        "function getOwners(address account) external view returns (address[] ownersArray)"
-      ]),
-      functionName: "getOwners",
-      args: [nexusClient.account.address]
+    expect(transactionHash).toBeDefined()
+    const receipt = await testClient.waitForTransactionReceipt({
+      hash: transactionHash
     })
+    expect(receipt.status).toBe("success")
+
+    const owners = await ownableValidatorModule.getOwners()
     expect(owners).toContain(recipient.address)
   })
 
@@ -170,20 +150,13 @@ describe("modules.ownableValidator", async () => {
     })
     expect(isInstalled).toBe(true)
     // Set threshold
-    const calldata = encodeFunctionData({
-      functionName: "setThreshold",
-      abi: parseAbi(["function setThreshold(uint256 _threshold) external"]),
-      args: [BigInt(2)]
-    })
+    const setThresholdTx = ownableValidatorModule.getSetThresholdTx(2)
     const userOpHash = await nexusClient.sendTransaction({
-      calls: [
-        {
-          to: TEST_CONTRACTS.OwnableValidator.address,
-          data: calldata
-        }
-      ]
+      calls: [setThresholdTx]
     })
     expect(userOpHash).toBeDefined()
+    const newThreshold = await ownableValidatorModule.getThreshold()
+    expect(newThreshold).toBe(2)
   }, 90000)
 
   test("should need 2 signatures to send a user operation", async () => {

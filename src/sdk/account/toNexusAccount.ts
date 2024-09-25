@@ -149,7 +149,6 @@ export const toNexusAccount = async (
     index = 0n,
     activeValidationModule,
     factoryAddress = contracts.k1ValidatorFactory.address,
-    k1ValidatorAddress = contracts.k1Validator.address,
     key = "nexus account",
     name = "Nexus Account"
   } = parameters
@@ -182,17 +181,6 @@ export const toNexusAccount = async (
     args: [signerAddress, index, [], 0]
   })
 
-  let defaultedActiveModule =
-    activeValidationModule ??
-    (await toK1ValidatorModule({
-      address: k1ValidatorAddress,
-      initData: signerAddress,
-      deInitData: "0x",
-      client: masterClient
-    }))
-
-  console.log(defaultedActiveModule, "defaultedActiveModule")
-
   let _accountAddress: Address
   const getAddress = async () => {
     if (_accountAddress) return _accountAddress
@@ -204,6 +192,15 @@ export const toNexusAccount = async (
     })) as Address
     return _accountAddress
   }
+
+  let defaultedActiveModule =
+    activeValidationModule ??
+    (await toK1ValidatorModule({
+      nexusAccountAddress: await getAddress(),
+      initData: signerAddress,
+      deInitData: "0x",
+      client: masterClient
+    }))
 
   /**
    * @description Gets the counterfactual address of the account
