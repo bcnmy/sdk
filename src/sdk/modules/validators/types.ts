@@ -4,8 +4,6 @@ import type { Signer } from "./../../account/utils/toSigner"
 
 export type ModuleImplementation<extend extends object = object> = {
   getDummySignature: (params?: any) => Hex
-  signUserOpHash: (userOpHash: Hex) => Promise<Hex>
-  signMessage: (message: Uint8Array | string) => Promise<Hex>
   /** Extend the Module with custom properties. */
   extend?: extend | undefined
   client: Client
@@ -26,6 +24,8 @@ export type Module<
       signer: Signer
       /** Type of module. */
       type: ModuleType
+      signMessage: (_message: Uint8Array | string) => Promise<Hex>
+      signUserOpHash: (userOpHash: Hex) => Promise<Hex>
     }
   >
 >
