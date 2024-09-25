@@ -102,7 +102,7 @@
     "prool": "^0.0.16",
     "rimraf": "^5.0.5",
     "simple-git-hooks": "^2.9.0",
-    "size-limit": "^11",
+    "size-limit": "^11.1.5",
     "ts-node": "^10.9.2",
     "tsc-alias": "^1.8.8",
     "tslib": "^2.6.3",
