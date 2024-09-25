@@ -178,9 +178,7 @@ export async function createNexusClient(
     factoryAddress = contracts.k1ValidatorFactory.address,
     k1ValidatorAddress = contracts.k1Validator.address,
     bundlerTransport,
-    paymaster,
     transport,
-    paymasterContext,
     userOperation = {
       estimateFeesPerGas: async (parameters) => {
         const feeData = await (
@@ -211,8 +209,6 @@ export async function createNexusClient(
     key,
     name,
     account: nexusAccount,
-    paymaster,
-    paymasterContext,
     transport: bundlerTransport,
     userOperation
   })
