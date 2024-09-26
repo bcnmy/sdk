@@ -55,6 +55,7 @@ export async function addOwner<TSmartAccount extends SmartAccount | undefined>(
   const account = parseAccount(account_) as SmartAccount
   const publicClient = account.client
 
+  // Review: you may want to rename this.
   const action = await getAddOwnableValidatorOwnerAction({
     account: { address: account.address, deployedOnChains: [], type: "nexus" },
     client: publicClient as any,
