@@ -108,6 +108,10 @@ export const initTestnetNetwork = async (): Promise<NetworkConfig> => {
   }
   const bundlerUrl = _bundlerUrl ?? getBundlerUrl(+chainId)
 
+  const holder = privateKeyToAccount(
+    privateKey?.startsWith("0x") ? (privateKey as Hex) : `0x${privateKey}`
+  )
+
   return {
     rpcUrl: chain.rpcUrls.default.http[0],
     rpcPort: 0,
@@ -115,9 +119,7 @@ export const initTestnetNetwork = async (): Promise<NetworkConfig> => {
     bundlerUrl,
     paymasterUrl,
     bundlerPort: 0,
-    account: privateKeyToAccount(
-      privateKey?.startsWith("0x") ? (privateKey as Hex) : `0x${privateKey}`
-    )
+    account: holder
   }
 }
 
@@ -212,7 +214,6 @@ export const initDeployments = async (rpcPort: number) => {
     `using hardhat to deploy nexus contracts to http://localhost:${rpcPort}`
   )
   await hardhatExec.init()
-  await hardhatExec.clean()
   await hardhatExec.deploy(rpcPort)
   console.log("hardhat deployment complete.")
 

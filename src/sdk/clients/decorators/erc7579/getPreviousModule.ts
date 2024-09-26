@@ -54,8 +54,6 @@ export async function getPreviousModule<
     })
   }
 
-  console.log(parameters, "parameters")
-
   let installedModules: Hex[]
   if (module.type === "validator") {
     if (!parameters.installedValidators)
