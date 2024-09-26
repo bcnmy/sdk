@@ -87,7 +87,7 @@ describe("modules.k1Validator.write", async () => {
     })
     expect(k1Validator.signMessage).toBeDefined()
     expect(k1Validator.signUserOpHash).toBeDefined()
-    expect(k1Validator.getDummySignature).toBeDefined()
+    expect(k1Validator.getStubSignature).toBeDefined()
     expect(k1Validator.address).toBeDefined()
     expect(k1Validator.client).toBeDefined()
     expect(k1Validator.initData).toBeDefined()

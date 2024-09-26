@@ -26,16 +26,12 @@ import {
   type NexusClient,
   createNexusClient
 } from "../../../clients/createNexusClient"
-import {
-  addOwner,
-  ownableValidatorActions,
-  setThreshold
-} from "../../../clients/decorators/erc7579/modules/ownableValidator"
 import { parseModuleTypeId } from "../../../clients/decorators/erc7579/supportsModule"
 import {
   type ToK1ValidatorModuleReturnType,
   toK1ValidatorModule
 } from "../k1Validator/toK1ValidatorModule"
+import { addOwner, ownableValidatorActions, setThreshold } from "./decorators"
 import {
   type ToOwnableValidatorModuleReturnType,
   toOwnableValidatorModule
@@ -56,7 +52,7 @@ describe("modules.ownableValidator", async () => {
   let ownableValidatorModule: ToOwnableValidatorModuleReturnType
   let k1ValidatorModule: ToK1ValidatorModuleReturnType
   beforeAll(async () => {
-    network = await toNetwork("FILE_LOCALHOST")
+    network = await toNetwork()
 
     chain = network.chain
     bundlerUrl = network.bundlerUrl

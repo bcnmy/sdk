@@ -21,6 +21,8 @@ export const DefaultGasLimit = {
 }
 
 export const ERROR_MESSAGES = {
+  MISSING_ACCOUNT_CONTRACT:
+    'The contract function "computeAccountAddress" returned no data ("0x")',
   INVALID_HEX:
     "Invalid hex, if you are targeting a number, consider using pad() and toHex() from viem: pad(toHex(BigInt(2000))",
   ACCOUNT_NOT_DEPLOYED: "Account has not yet been deployed",

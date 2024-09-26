@@ -9,15 +9,13 @@ import {
   createWalletClient
 } from "viem"
 import { beforeAll, describe, expect, test } from "vitest"
-import {
-  biconomyPaymasterContext,
-  createBicoPaymasterClient
-} from "../sdk/clients/createBicoPaymasterClient"
+import { playgroundTrue } from "../sdk/account/utils/Utils"
+import { createBicoPaymasterClient } from "../sdk/clients/createBicoPaymasterClient"
 import {
   type NexusClient,
   createNexusClient
 } from "../sdk/clients/createNexusClient"
-import { playgroundTrue, toNetwork } from "./testSetup"
+import { toNetwork } from "./testSetup"
 import type { NetworkConfig } from "./testUtils"
 
 // Remove the following lines to use the default factory and validator addresses
@@ -153,8 +151,7 @@ describe.skipIf(!playgroundTrue)("playground", () => {
       factoryAddress,
       paymaster: createBicoPaymasterClient({
         paymasterUrl
-      }),
-      paymasterContext: biconomyPaymasterContext
+      })
     })
     expect(async () =>
       nexusClient.sendTransaction({

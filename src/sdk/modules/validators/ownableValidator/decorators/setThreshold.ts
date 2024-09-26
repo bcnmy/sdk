@@ -6,7 +6,7 @@ import {
   sendUserOperation
 } from "viem/account-abstraction"
 import { getAction, parseAccount } from "viem/utils"
-import { AccountNotFoundError } from "../../../../../account/utils/AccountNotFound"
+import { AccountNotFoundError } from "../../../../account/utils/AccountNotFound"
 
 export type SetThresholdParameters<
   TSmartAccount extends SmartAccount | undefined

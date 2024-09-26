@@ -6,7 +6,6 @@ import type {
   ClientConfig,
   EstimateFeesPerGasReturnType,
   Prettify,
-  PublicClient,
   RpcSchema,
   Transport
 } from "viem"
@@ -153,6 +152,8 @@ export type NexusClientConfig<
     factoryAddress?: Address
     /** Owner module */
     k1ValidatorAddress?: Address
+    accountName?: string
+    accountKey?: string
   }
 >
 
@@ -184,27 +185,21 @@ export async function createNexusClient(
     index = 0n,
     key = "nexus client",
     name = "Nexus Client",
+    accountName,
+    accountKey,
     activeValidationModule,
     factoryAddress = contracts.k1ValidatorFactory.address,
     k1ValidatorAddress = contracts.k1Validator.address,
     bundlerTransport,
     transport,
-    userOperation = {
-      estimateFeesPerGas: async (parameters) => {
-        const feeData = await (
-          parameters?.account?.client as PublicClient
-        )?.estimateFeesPerGas?.()
-        return {
-          maxFeePerGas: feeData.maxFeePerGas * 2n,
-          maxPriorityFeePerGas: feeData.maxPriorityFeePerGas * 2n
-        }
-      }
-    }
+    ...bundlerConfig
   } = parameters
 
   if (!chain) throw new Error("Missing chain")
 
   const nexusAccount = await toNexusAccount({
+    name: accountName,
+    key: accountKey,
     transport,
     chain,
     signer,
@@ -214,16 +209,16 @@ export async function createNexusClient(
     k1ValidatorAddress
   })
 
-  const bundler = createBicoBundlerClient({
-    ...parameters,
+  const bundler_ = createBicoBundlerClient({
+    ...bundlerConfig,
+    chain,
     key,
     name,
     account: nexusAccount,
-    transport: bundlerTransport,
-    userOperation
+    transport: bundlerTransport
   })
     .extend(erc7579Actions())
     .extend(smartAccountActions())
 
-  return bundler as unknown as NexusClient
+  return bundler_ as unknown as NexusClient
 }

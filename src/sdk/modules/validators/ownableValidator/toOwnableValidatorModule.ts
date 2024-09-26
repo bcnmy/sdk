@@ -158,7 +158,7 @@ export const toOwnableValidatorModule = async ({
         data: action.callData
       }
     },
-    getDummySignature: async (): Promise<Hex> => {
+    getStubSignature: async (): Promise<Hex> => {
       const isInstalled = await isModuleInstalled({
         account: nexusAccount,
         client: client as PublicClient,

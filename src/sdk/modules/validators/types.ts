@@ -12,7 +12,7 @@ export type ModuleImplementation<extend extends object = object> = {
    * @param params - Optional parameters for generating the signature.
    * @returns A promise that resolves to a hexadecimal string representing the dummy signature.
    */
-  getDummySignature: (params?: any) => Promise<Hex>
+  getStubSignature: (params?: any) => Promise<Hex>
   /** Extend the Module with custom properties. */
   extend?: extend | undefined
   /** The client associated with this module. */

@@ -49,7 +49,7 @@ describe("modules.ownableExecutor", async () => {
   let recipientAddress: Address
   let k1ValidatorModule: ToK1ValidatorModuleReturnType
   beforeAll(async () => {
-    network = await toNetwork("FILE_LOCALHOST")
+    network = await toNetwork()
 
     chain = network.chain
     bundlerUrl = network.bundlerUrl
