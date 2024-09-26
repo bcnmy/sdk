@@ -491,7 +491,7 @@ export const toNexusAccount = async (
       return { factory: factoryAddress, factoryData }
     },
     getStubSignature: async (): Promise<Hex> => {
-      return defaultedActiveModule.getDummySignature()
+      return await defaultedActiveModule.getDummySignature()
     },
     signMessage,
     signTypedData,

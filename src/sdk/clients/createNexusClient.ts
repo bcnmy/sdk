@@ -1,5 +1,6 @@
 import type {
   Address,
+  BundlerRpcSchema,
   Chain,
   Client,
   ClientConfig,
@@ -46,10 +47,20 @@ export type NexusClient<
   client extends Client | undefined = Client | undefined,
   rpcSchema extends RpcSchema | undefined = undefined
 > = Prettify<
-  Pick<
-    ClientConfig<transport, chain, account, rpcSchema>,
-    "cacheTime" | "chain" | "key" | "name" | "pollingInterval" | "rpcSchema"
-  > &
+  Client<
+    transport,
+    chain extends Chain
+      ? chain
+      : client extends Client<any, infer chain>
+        ? chain
+        : undefined,
+    account,
+    rpcSchema extends RpcSchema
+      ? [...BundlerRpcSchema, ...rpcSchema]
+      : BundlerRpcSchema,
+    BundlerActions<account>
+  >
+> &
   BundlerActions<NexusAccount> &
   Erc7579Actions<NexusAccount> &
   SmartAccountActions<chain, NexusAccount> & {
@@ -78,7 +89,6 @@ export type NexusClient<
      */
     userOperation?: BundlerClientConfig["userOperation"] | undefined
   }
->
 
 /**
  * Configuration for creating a Nexus Client
@@ -108,31 +118,31 @@ export type NexusClientConfig<
     client?: client | Client | undefined
     /** Paymaster configuration. */
     paymaster?:
-    | true
-    | {
-      /** Retrieves paymaster-related User Operation properties to be used for sending the User Operation. */
-      getPaymasterData?: PaymasterActions["getPaymasterData"] | undefined
-      /** Retrieves paymaster-related User Operation properties to be used for gas estimation. */
-      getPaymasterStubData?:
-      | PaymasterActions["getPaymasterStubData"]
+      | true
+      | {
+          /** Retrieves paymaster-related User Operation properties to be used for sending the User Operation. */
+          getPaymasterData?: PaymasterActions["getPaymasterData"] | undefined
+          /** Retrieves paymaster-related User Operation properties to be used for gas estimation. */
+          getPaymasterStubData?:
+            | PaymasterActions["getPaymasterStubData"]
+            | undefined
+        }
       | undefined
-    }
-    | undefined
     /** Paymaster context to pass to `getPaymasterData` and `getPaymasterStubData` calls. */
     paymasterContext?: unknown
     /** User Operation configuration. */
     userOperation?:
-    | {
-      /** Prepares fee properties for the User Operation request. */
-      estimateFeesPerGas?:
-      | ((parameters: {
-        account: account | SmartAccount
-        bundlerClient: Client
-        userOperation: UserOperationRequest
-      }) => Promise<EstimateFeesPerGasReturnType<"eip1559">>)
+      | {
+          /** Prepares fee properties for the User Operation request. */
+          estimateFeesPerGas?:
+            | ((parameters: {
+                account: account | SmartAccount
+                bundlerClient: Client
+                userOperation: UserOperationRequest
+              }) => Promise<EstimateFeesPerGasReturnType<"eip1559">>)
+            | undefined
+        }
       | undefined
-    }
-    | undefined
     /** Owner of the account. */
     signer: UnknownSigner
     /** Index of the account. */
