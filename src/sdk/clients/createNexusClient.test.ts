@@ -150,20 +150,6 @@ describe("nexus.client", async () => {
     expect(result).toBeTruthy()
   }, 30000)
 
-  // test.skip("should create a nexusAccount from an ethers signer", async () => {
-  //   const ethersProvider = new JsonRpcProvider(chain.rpcUrls.default.http[0])
-  //   const ethersSigner = new Wallet(pKey, ethersProvider)
-
-  //   const ethOwnerNexusClient = await createNexusClient({
-  //     chain,
-  //     owner: (await ethersSigner.getAddress()) as Hex,
-  //     bundlerTransport: http(bundlerUrl),
-  //     transport: http(chain.rpcUrls.default.http[0])
-  //   })
-
-  //   expect(await ethOwnerNexusClient.account.getAddress()).toBeTruthy()
-  // })
-
   test("should read estimated user op gas values", async () => {
     const userOp = await nexusClient.prepareUserOperation({
       calls: [

@@ -11,7 +11,10 @@ import {
 import type { MasterClient, NetworkConfig } from "../../test/testUtils"
 import contracts from "../__contracts"
 import { type NexusAccount, toNexusAccount } from "../account/toNexusAccount"
-import { createBicoBundlerClient } from "./createBicoBundlerClient"
+import {
+  type BicoBundlerClient,
+  createBicoBundlerClient
+} from "./createBicoBundlerClient"
 
 describe("bico.bundler", async () => {
   let network: NetworkConfig
@@ -22,7 +25,7 @@ describe("bico.bundler", async () => {
   let testClient: MasterClient
   let account: Account
   let nexusAccountAddress: Address
-  let bicoBundler: BundlerClient
+  let bicoBundler: BicoBundlerClient
   let nexusAccount: NexusAccount
 
   beforeAll(async () => {
@@ -69,6 +72,17 @@ describe("bico.bundler", async () => {
     expect(supportedEntrypoints).to.include(contracts.entryPoint.address)
     expect(preparedUserOp).toHaveProperty("signature")
   })
+
+  test.concurrent(
+    "should have been extended by biconomy specific actions",
+    async () => {
+      const gasFees = await bicoBundler.getGasFeeValues()
+      expect(gasFees).toHaveProperty("fast")
+      expect(gasFees).toHaveProperty("standard")
+      expect(gasFees).toHaveProperty("slow")
+      expect(gasFees.fast.maxFeePerGas).toBeGreaterThan(0n)
+    }
+  )
 
   test("should send a user operation and get the receipt", async () => {
     const calls = [{ to: account.address, value: 1n }]

@@ -43,6 +43,7 @@ import { EntrypointAbi, K1ValidatorFactoryAbi } from "../__contracts/abi"
 import type { Call, GetNonceArgs, UserOperationStruct } from "./utils/Types"
 
 import {
+  ERROR_MESSAGES,
   EXECUTE_BATCH,
   EXECUTE_SINGLE,
   MAGIC_BYTES,
@@ -193,14 +194,26 @@ export const toNexusAccount = async (
     )
 
   let _accountAddress: Address
+  /**
+   * @description Gets the address of the account
+   * @returns The address of the account
+   */
   const getAddress = async () => {
     if (_accountAddress) return _accountAddress
-    _accountAddress = (await masterClient.readContract({
-      address: factoryAddress,
-      abi: K1ValidatorFactoryAbi,
-      functionName: "computeAccountAddress",
-      args: [signerAddress, index, [], 0]
-    })) as Address
+
+    try {
+      _accountAddress = (await masterClient.readContract({
+        address: factoryAddress,
+        abi: K1ValidatorFactoryAbi,
+        functionName: "computeAccountAddress",
+        args: [signerAddress, index, [], 0]
+      })) as Address
+    } catch (e: any) {
+      if (e.shortMessage?.includes(ERROR_MESSAGES.MISSING_ACCOUNT_CONTRACT)) {
+        throw new Error(ERROR_MESSAGES.ACCOUNT_NOT_DEPLOYED)
+      }
+    }
+
     return _accountAddress
   }
 
@@ -210,6 +223,7 @@ export const toNexusAccount = async (
    * @throws {Error} If unable to get the counterfactual address
    */
   const getCounterFactualAddress = async (): Promise<Address> => {
+    if (_accountAddress) return _accountAddress
     try {
       await entryPointContract.simulate.getSenderAddress([getInitCode()])
     } catch (e: any) {
@@ -489,12 +503,9 @@ export const toNexusAccount = async (
         ? encodeExecute(calls[0])
         : encodeExecuteBatch(calls)
     },
-    getFactoryArgs: async () => {
-      return { factory: factoryAddress, factoryData }
-    },
-    getStubSignature: async (): Promise<Hex> => {
-      return defaultedActiveModule.getDummySignature()
-    },
+    getFactoryArgs: async () => ({ factory: factoryAddress, factoryData }),
+    getStubSignature: async (): Promise<Hex> =>
+      defaultedActiveModule.getStubSignature(),
     signMessage,
     signTypedData,
     signUserOperation: async (
@@ -505,7 +516,12 @@ export const toNexusAccount = async (
       const { chainId = masterClient.chain.id, ...userOpWithoutSender } =
         parameters
       const address = await getCounterFactualAddress()
-      const userOperation = { ...userOpWithoutSender, sender: address }
+
+      const userOperation = {
+        ...userOpWithoutSender,
+        sender: address
+      }
+
       const hash = getUserOperationHash({
         chainId,
         entryPointAddress: entryPoint07Address,
@@ -516,6 +532,7 @@ export const toNexusAccount = async (
     },
     getNonce,
     extend: {
+      entryPointAddress: entryPoint07Address,
       getCounterFactualAddress,
       isDeployed,
       getInitCode,

@@ -52,7 +52,7 @@ describe("modules.ownableValidator", async () => {
   let ownableValidatorModule: OwnableValidator
   let k1ValidatorModule: K1ValidatorModule
   beforeAll(async () => {
-    network = await toNetwork("FILE_LOCALHOST")
+    network = await toNetwork()
 
     chain = network.chain
     bundlerUrl = network.bundlerUrl
@@ -136,8 +136,6 @@ describe("modules.ownableValidator", async () => {
     } else {
       throw new Error("Failed to get add owner execution")
     }
-
-    console.log(testClient, "testClient")
 
     const owners = await testClient.readContract({
       address: TEST_CONTRACTS.OwnableValidator.address,

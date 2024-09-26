@@ -32,13 +32,12 @@ type BicoPaymasterClientConfig = Omit<PaymasterClientConfig, "transport"> &
  */
 export const biconomyPaymasterContext = {
   mode: "SPONSORED",
-  calculateGasLimits: true,
-  expiryDuration: 300, // duration (secs) for which the generate paymasterAndData will be valid. Default duration is 300 secs.
+  expiryDuration: 300,
   sponsorshipInfo: {
     webhookData: {},
     smartAccountInfo: {
       name: "BICONOMY",
-      version: "3.0.0"
+      version: "1.0.0"
     }
   }
 }
@@ -66,14 +65,17 @@ export const biconomyPaymasterContext = {
  */
 export const createBicoPaymasterClient = (
   parameters: BicoPaymasterClientConfig
-): PaymasterClient =>
-  createPaymasterClient({
+): PaymasterClient => {
+  const defaultedTransport = parameters.transport
+    ? parameters.transport
+    : parameters.paymasterUrl
+      ? http(parameters.paymasterUrl)
+      : http(
+          `https://paymaster.biconomy.io/api/v2/${parameters.chainId}/${parameters.apiKey}`
+        )
+
+  return createPaymasterClient({
     ...parameters,
-    transport: parameters.transport
-      ? parameters.transport
-      : parameters.paymasterUrl
-        ? http(parameters.paymasterUrl)
-        : http(
-            `https://paymaster.biconomy.io/api/v3/${parameters.chainId}/${parameters.apiKey}`
-          )
+    transport: defaultedTransport
   })
+}
