@@ -81,12 +81,12 @@ export type Erc7579Actions<TSmartAccount extends SmartAccount | undefined> = {
     }
   ) => Promise<Hash>
   getInstalledValidators: (
-    args: GetInstalledValidatorsParameters<TSmartAccount>
+    args?: GetInstalledValidatorsParameters<TSmartAccount>
   ) => Promise<readonly [readonly Hex[], Hex]>
   getInstalledExecutors: (
-    args: GetInstalledExecutorsParameters<TSmartAccount>
+    args?: GetInstalledExecutorsParameters<TSmartAccount>
   ) => Promise<readonly [readonly Hex[], Hex]>
-  getActiveHook: (args: GetActiveHookParameters<TSmartAccount>) => Promise<Hex>
+  getActiveHook: (args?: GetActiveHookParameters<TSmartAccount>) => Promise<Hex>
   getFallbackBySelector: (
     args: GetFallbackBySelectorParameters<TSmartAccount>
   ) => Promise<[Hex, Hex]>

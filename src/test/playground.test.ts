@@ -33,7 +33,7 @@ describe.skipIf(!playgroundTrue)("playground", () => {
 
   // Test utils
   let publicClient: PublicClient // testClient not available on public testnets
-  let account: PrivateKeyAccount
+  let eoaAccount: PrivateKeyAccount
   let recipientAddress: Address
   let nexusClient: NexusClient
   let nexusAccountAddress: Address
@@ -44,12 +44,12 @@ describe.skipIf(!playgroundTrue)("playground", () => {
     chain = network.chain
     bundlerUrl = network.bundlerUrl
     paymasterUrl = network.paymasterUrl
-    account = network.account as PrivateKeyAccount
+    eoaAccount = network.account as PrivateKeyAccount
 
     recipientAddress = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045" // vitalik.eth
 
     walletClient = createWalletClient({
-      account,
+      account: eoaAccount,
       chain,
       transport: http()
     })
@@ -75,7 +75,7 @@ describe.skipIf(!playgroundTrue)("playground", () => {
 
   test("should init the smart account", async () => {
     nexusClient = await createNexusClient({
-      signer: account,
+      signer: eoaAccount,
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl),
@@ -92,7 +92,7 @@ describe.skipIf(!playgroundTrue)("playground", () => {
   test("should check balances and top up relevant addresses", async () => {
     const [ownerBalance, smartAccountBalance] = await Promise.all([
       publicClient.getBalance({
-        address: account.address
+        address: eoaAccount.address
       }),
       publicClient.getBalance({
         address: nexusAccountAddress
@@ -105,7 +105,7 @@ describe.skipIf(!playgroundTrue)("playground", () => {
     if (smartAccountBalance === 0n) {
       const hash = await walletClient.sendTransaction({
         chain,
-        account,
+        account: eoaAccount,
         to: nexusAccountAddress,
         value: 1000000000000000000n
       })
@@ -143,7 +143,7 @@ describe.skipIf(!playgroundTrue)("playground", () => {
     }
 
     nexusClient = await createNexusClient({
-      signer: account,
+      signer: eoaAccount,
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl),
@@ -157,7 +157,7 @@ describe.skipIf(!playgroundTrue)("playground", () => {
       nexusClient.sendTransaction({
         calls: [
           {
-            to: account.address,
+            to: eoaAccount.address,
             value: 1n
           }
         ]

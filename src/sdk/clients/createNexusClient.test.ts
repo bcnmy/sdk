@@ -31,7 +31,7 @@ describe("nexus.client", async () => {
 
   // Test utils
   let testClient: MasterClient
-  let account: Account
+  let eoaAccount: Account
   let recipientAccount: Account
   let recipientAddress: Address
   let nexusClient: NexusClient
@@ -42,14 +42,14 @@ describe("nexus.client", async () => {
 
     chain = network.chain
     bundlerUrl = network.bundlerUrl
-    account = getTestAccount(0)
+    eoaAccount = getTestAccount(0)
     recipientAccount = getTestAccount(1)
     recipientAddress = recipientAccount.address
 
     testClient = toTestClient(chain, getTestAccount(5))
 
     nexusClient = await createNexusClient({
-      signer: account,
+      signer: eoaAccount,
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl)
@@ -107,7 +107,7 @@ describe("nexus.client", async () => {
   // @note @todo this test is only valid for anvil
   test("should have account addresses", async () => {
     const addresses = await Promise.all([
-      account.address,
+      eoaAccount.address,
       nexusClient.account.getAddress()
     ])
     expect(addresses.every(Boolean)).to.be.true
@@ -140,10 +140,10 @@ describe("nexus.client", async () => {
   }, 60000)
 
   test("should check enable mode", async () => {
-    const result = makeInstallDataAndHash(account.address, [
+    const result = makeInstallDataAndHash(eoaAccount.address, [
       {
         type: "validator",
-        config: account.address
+        config: eoaAccount.address
       }
     ])
 
