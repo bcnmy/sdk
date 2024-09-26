@@ -1,4 +1,5 @@
 import type { Address, Chain, Hex } from "viem"
+import { type EnableSessionData, SmartSessionMode } from "@rhinestone/module-sdk"
 // import type { Signer, UnknownSigner } from "../../account/utils/toSigner"
 
 // Review:
@@ -52,3 +53,13 @@ export const moduleTypeIds: ModuleTypeIds = {
 }
 
 // TODO: add types related to smart sessions
+
+export type SmartSessionModeType =
+  (typeof SmartSessionMode)[keyof typeof SmartSessionMode]
+
+export type ModuleSignatureMetadata = {
+  mode?: SmartSessionModeType
+  permissionId?: Hex
+  enableSessionData?: EnableSessionData
+}
+

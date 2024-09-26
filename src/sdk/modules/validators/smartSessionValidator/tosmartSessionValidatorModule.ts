@@ -3,6 +3,14 @@ import addresses from "../../../__contracts/addresses"
 import { toSigner } from "../../../account"
 import { toValidationModule } from "../toValidationModule"
 import type { Module, ModuleImplementation } from "../types"
+import { type ModuleSignatureMetadata } from "../../utils/Types"
+import { encodeSmartSessionSignature, SmartSessionMode } from "@rhinestone/module-sdk"
+
+const DUMMY_ECDSA_SIG = "0xe8b94748580ca0b4993c9a1b86b5be851bfc076ff5ce3a1ff65bf16392acfcb800f9b4f1aef1555c7fce5599fffb17e7c635502154a0333ba21f3ae491839af51c";
+// Note: possibly only needed in decorators
+// const UNIVERSAL_POLICY_ADDRESS = addresses.UniActionPolicy
+// const TIMEFRAME_POLICY_ADDRESS = addresses.TimeframePolicy
+// const SIMPLE_SESSION_VALIDATOR_ADDRESS = addresses.SimpleSessionValidator
 
 export type ToSmartSessionValidatorModuleReturnType = Prettify<
   Module<SmartSessionValidatorModuleImplementation>
@@ -44,27 +52,39 @@ export const toSmartSessionValidatorModule = async ({
   deInitData: Hex
   client: Client
 }): Promise<ToSmartSessionValidatorModuleReturnType> => {
+  // Note: session key signer (applies in case of K1 based simple session validator algorithm)  
   const signer = await toSigner({ signer: client.account as Account })
+
   return toValidationModule({
     address: addresses.SmartSession,
     nexusAccountAddress,
     initData,
     deInitData,
-    getStubSignature: async () => {
-      const dynamicPart = addresses.SmartSession.substring(2).padEnd(40, "0")
-      return `0x0000000000000000000000000000000000000000000000000000000000000040000000000000000000000000${dynamicPart}000000000000000000000000000000000000000000000000000000000000004181d4b4981670cb18f99f0b4a66446df1bf5b204d24cfcb659bf38ba27a4359b5711649ec2423c5e1247245eba2964679b6a1dbb85c992ae40b9b00c6935b02ff1b00000000000000000000000000000000000000000000000000000000000000`
+    getStubSignature: async (moduleSignatureMetadata?: ModuleSignatureMetadata) => {
+      const signature = encodeSmartSessionSignature({
+            mode: moduleSignatureMetadata?.mode ? moduleSignatureMetadata.mode : SmartSessionMode.USE,
+            permissionId: moduleSignatureMetadata?.permissionId ? moduleSignatureMetadata.permissionId : '0x',
+            signature: DUMMY_ECDSA_SIG,
+            enableSessionData: moduleSignatureMetadata?.enableSessionData
+        }) as Hex
+      return signature
     },
-    signUserOpHash: async (userOpHash: Hex) => {
+    signUserOpHash: async (userOpHash: Hex, moduleSignatureMetadata?: ModuleSignatureMetadata) => {
       const signature = await signer.signMessage({
         message: { raw: userOpHash as Hex }
       })
-      return signature as Hex
+      const moduleSignature = encodeSmartSessionSignature({
+        mode: moduleSignatureMetadata?.mode ? moduleSignatureMetadata.mode : SmartSessionMode.USE,
+        permissionId: moduleSignatureMetadata?.permissionId ? moduleSignatureMetadata.permissionId : '0x',
+        signature: signature,
+        enableSessionData: moduleSignatureMetadata?.enableSessionData
+      }) as Hex
+      return moduleSignature
     },
     signMessage: async (_message: Uint8Array | string) => {
       const message =
         typeof _message === "string" ? _message : { raw: _message }
       let signature = await signer.signMessage({ message })
-
       const potentiallyIncorrectV = Number.parseInt(signature.slice(-2), 16)
       if (![27, 28].includes(potentiallyIncorrectV)) {
         const correctV = potentiallyIncorrectV + 27
