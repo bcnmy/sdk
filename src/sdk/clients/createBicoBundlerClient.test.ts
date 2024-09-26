@@ -23,7 +23,7 @@ describe("bico.bundler", async () => {
 
   // Test utils
   let testClient: MasterClient
-  let account: Account
+  let eoaAccount: Account
   let nexusAccountAddress: Address
   let bicoBundler: BicoBundlerClient
   let nexusAccount: NexusAccount
@@ -33,11 +33,11 @@ describe("bico.bundler", async () => {
 
     chain = network.chain
     bundlerUrl = network.bundlerUrl
-    account = getTestAccount(0)
+    eoaAccount = getTestAccount(0)
     testClient = toTestClient(chain, getTestAccount(5))
 
     nexusAccount = await toNexusAccount({
-      signer: account,
+      signer: eoaAccount,
       chain,
       transport: http()
     })
@@ -55,7 +55,7 @@ describe("bico.bundler", async () => {
       bicoBundler.getChainId(),
       bicoBundler.getSupportedEntryPoints(),
       bicoBundler.prepareUserOperation({
-        sender: account.address,
+        sender: eoaAccount.address,
         nonce: 0n,
         data: "0x",
         signature: "0x",
@@ -85,7 +85,7 @@ describe("bico.bundler", async () => {
   )
 
   test("should send a user operation and get the receipt", async () => {
-    const calls = [{ to: account.address, value: 1n }]
+    const calls = [{ to: eoaAccount.address, value: 1n }]
     // Must find gas fees before sending the user operation
     const gas = await testClient.estimateFeesPerGas()
     const hash = await bicoBundler.sendUserOperation({

@@ -1,5 +1,6 @@
 import type {
   Address,
+  BundlerRpcSchema,
   Chain,
   Client,
   ClientConfig,
@@ -20,8 +21,7 @@ import type { Call } from "../account/utils/Types"
 
 import { type NexusAccount, toNexusAccount } from "../account/toNexusAccount"
 import type { UnknownSigner } from "../account/utils/toSigner"
-import type { BaseExecutionModule } from "../modules/base/BaseExecutionModule"
-import type { BaseValidationModule } from "../modules/base/BaseValidationModule"
+import type { ToValidationModuleReturnType } from "../modules/validators/toValidationModule"
 import { createBicoBundlerClient } from "./createBicoBundlerClient"
 import { type Erc7579Actions, erc7579Actions } from "./decorators/erc7579"
 import {
@@ -46,39 +46,48 @@ export type NexusClient<
   client extends Client | undefined = Client | undefined,
   rpcSchema extends RpcSchema | undefined = undefined
 > = Prettify<
-  Pick<
-    ClientConfig<transport, chain, account, rpcSchema>,
-    "cacheTime" | "chain" | "key" | "name" | "pollingInterval" | "rpcSchema"
-  > &
-    BundlerActions<NexusAccount> &
-    Erc7579Actions<NexusAccount> &
-    SmartAccountActions<chain, NexusAccount> & {
-      /**
-       * The Nexus account associated with this client
-       */
-      account: NexusAccount
-      /**
-       * Optional client for additional functionality
-       */
-      client?: client | Client | undefined
-      /**
-       * Transport configuration for the bundler
-       */
-      bundlerTransport?: BundlerClientConfig["transport"]
-      /**
-       * Optional paymaster configuration
-       */
-      paymaster?: BundlerClientConfig["paymaster"] | undefined
-      /**
-       * Optional paymaster context
-       */
-      paymasterContext?: BundlerClientConfig["paymasterContext"] | undefined
-      /**
-       * Optional user operation configuration
-       */
-      userOperation?: BundlerClientConfig["userOperation"] | undefined
-    }
->
+  Client<
+    transport,
+    chain extends Chain
+      ? chain
+      : client extends Client<any, infer chain>
+        ? chain
+        : undefined,
+    account,
+    rpcSchema extends RpcSchema
+      ? [...BundlerRpcSchema, ...rpcSchema]
+      : BundlerRpcSchema,
+    BundlerActions<account>
+  >
+> &
+  BundlerActions<NexusAccount> &
+  Erc7579Actions<NexusAccount> &
+  SmartAccountActions<chain, NexusAccount> & {
+    /**
+     * The Nexus account associated with this client
+     */
+    account: NexusAccount
+    /**
+     * Optional client for additional functionality
+     */
+    client?: client | Client | undefined
+    /**
+     * Transport configuration for the bundler
+     */
+    bundlerTransport?: BundlerClientConfig["transport"]
+    /**
+     * Optional paymaster configuration
+     */
+    paymaster?: BundlerClientConfig["paymaster"] | undefined
+    /**
+     * Optional paymaster context
+     */
+    paymasterContext?: BundlerClientConfig["paymasterContext"] | undefined
+    /**
+     * Optional user operation configuration
+     */
+    userOperation?: BundlerClientConfig["userOperation"] | undefined
+  }
 
 /**
  * Configuration for creating a Nexus Client
@@ -138,9 +147,7 @@ export type NexusClientConfig<
     /** Index of the account. */
     index?: bigint
     /** Active module of the account. */
-    activeValidationModule?: BaseValidationModule
-    /** Executor module of the account. */
-    executorModule?: BaseExecutionModule
+    activeValidationModule?: ToValidationModuleReturnType
     /** Factory address of the account. */
     factoryAddress?: Address
     /** Owner module */
