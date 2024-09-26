@@ -112,7 +112,7 @@ export const MAX_RULES = 16
 export const toUniversalActionPolicy = (
   actionConfig: ActionConfig
 ): Policy => ({
-  address: "0x28120dC008C36d95DE5fa0603526f219c1Ba80f6",
+  address: "0x148CD6c24F4dd23C396E081bBc1aB1D92eeDe2BF",
   initData: encodeAbiParameters(UniActionPolicyAbi, [
     toActionConfig(actionConfig)
   ]),
@@ -120,14 +120,14 @@ export const toUniversalActionPolicy = (
 })
 
 export const sudoPolicy: Policy = {
-  address: "0x",
+  address: "0x529Ad04F4D83aAb25144a90267D4a1443B84f5A6",
   initData: "0x",
   deInitData: "0x"
 }
 
 export const toSpendingLimitsPolicy = (params: Params): Policy => {
   return {
-    address: "0xDe9688b24c00699Ad51961ef90Ce5a9a8C49982B",
+    address: "0x8e58f4945e6ba2a11b184a9c20b6c765a0891b95",
     initData: encodeAbiParameters(
       [{ type: "address[]" }, { type: "uint256[]" }],
       [params.map(({ token }) => token), params.map(({ limit }) => limit)]

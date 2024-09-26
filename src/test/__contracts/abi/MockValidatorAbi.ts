@@ -84,7 +84,7 @@ export const MockValidatorAbi = [
     inputs: [
       {
         internalType: "address",
-        name: "",
+        name: "sender",
         type: "address"
       },
       {
@@ -102,36 +102,7 @@ export const MockValidatorAbi = [
     outputs: [
       {
         internalType: "bytes4",
-        name: "",
-        type: "bytes4"
-      }
-    ],
-    stateMutability: "view",
-    type: "function"
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address"
-      },
-      {
-        internalType: "bytes32",
-        name: "hash",
-        type: "bytes32"
-      },
-      {
-        internalType: "bytes",
-        name: "signature",
-        type: "bytes"
-      }
-    ],
-    name: "isValidSignatureWithSenderLegacy",
-    outputs: [
-      {
-        internalType: "bytes4",
-        name: "",
+        name: "sigValidationResult",
         type: "bytes4"
       }
     ],

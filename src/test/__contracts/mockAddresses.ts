@@ -1,19 +1,18 @@
 // The contents of this folder is auto-generated. Please do not edit as your changes are likely to be overwritten
 
-import type { Hex } from "viem"
-export const mockAddresses: Record<string, Hex> = {
-  MockHook: "0x4445134442b717275c06034D0e6A589C258a7CfC",
-  Stakeable: "0x251a414Fa6a2a719Cf79D370F9aEb2e0817FA086",
-  NexusAccountFactory: "0xA2cE66fB6bBA1828DbcE2114682286c82434e59E",
-  BiconomyMetaFactory: "0xDdb351881419426F0942921db482690Da5a47d22",
-  Counter: "0x61f70428b61864B38D9B45b7B032c700B960acCD",
-  MockValidator: "0x4713E68A85A2ED5FF28e61DD76f17E8Cd94f4992",
-  MockToken: "0xe22ed8281e84aeAA770eE04f0E07dAf6A028117F",
-  BootstrapLib: "0x15a93E4a5221e9aDe5B3E6A7A70060080cc464f0",
-  MockRegistry: "0xD270D6A18B9C6063dE7B92EBd25B11f74e8B75eB",
-  MockHandler: "0x67D49D2345A96890c2A986bE294e8808868C5057",
-  TokenWithPermit: "0xfD6345760Ff39EC6B19506a7b8486EcA74B3F82A",
-  Bootstrap: "0xF53a824Bb0508FBa3a599FaF5BD37CE70b0867Fc",
-  MockExecutor: "0x9A75Bc1C839164196Eb5668b38337712994A2c8A"
+export const mockAddresses = {
+  MockHook: "0x8a81354786B34949133ceE3c7D7772eE04Ed9749",
+  Stakeable: "0x33F4F96959eC465DBEee63CdEc09fc1a224bCE15",
+  NexusAccountFactory: "0x9eb6AeE874Ca0a6763b9a8Ca404D0A31055C80a3",
+  BiconomyMetaFactory: "0x3bCF58bbEfD78C2445d883127946Edd1D3544073",
+  NexusBootstrap: "0xb4C237566bcE54a832B8e84d0A4BfEaA0C3B0343",
+  Counter: "0x2b4e7a9e2040729933D3C8284a95e460fBB2257E",
+  MockValidator: "0x6DAA3CDa6886dcff35248dA93D79600aea267d0C",
+  MockToken: "0x29515466c8d02e60BFb7DF4255908Eb271b7f244",
+  BootstrapLib: "0x53Fbd943Da8d372fe35086d3A09d0aCD7Cfe9f1a",
+  MockRegistry: "0xFA344eABd10bedfa29A3BDC549fB246D48998f8A",
+  MockHandler: "0x6821519337864B001a6DD6Eb7ca8E5B79Ece511E",
+  TokenWithPermit: "0xc76c8504BE016999637AA6385198bAab78aa98d9",
+  MockExecutor: "0x6D63b32868318625360FcEBba6dF3DB903782f51"
 } as const
 export default mockAddresses
