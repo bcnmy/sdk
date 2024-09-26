@@ -21,9 +21,7 @@ import {
   type NexusClient,
   createNexusClient
 } from "../../../clients/createNexusClient"
-import {
-  toK1ValidatorModule
-} from "./toK1ValidatorModule"
+import { toK1ValidatorModule } from "./toK1ValidatorModule"
 
 describe("modules.k1Validator.write", async () => {
   let network: NetworkConfig
@@ -120,7 +118,7 @@ describe("modules.k1Validator.write", async () => {
         await nexusClient.waitForUserOperationReceipt({ hash })
       expect(installSuccess).toBe(true)
 
-      const deInitData = encodePacked(["address"], [eoaAccount.address]);
+      const deInitData = encodePacked(["address"], [eoaAccount.address])
 
       const hashUninstall = nexusClient.uninstallModule({
         module: {
@@ -132,7 +130,7 @@ describe("modules.k1Validator.write", async () => {
 
       expect(hashUninstall).rejects.toThrow()
     } else {
-      const deInitData = encodePacked(["address"], [eoaAccount.address]);
+      const deInitData = encodePacked(["address"], [eoaAccount.address])
 
       const hashUninstall = nexusClient.uninstallModule({
         module: {

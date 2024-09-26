@@ -1,4 +1,8 @@
 import {
+  getOwnableValidatorSignature,
+  uninstallModule
+} from "@rhinestone/module-sdk"
+import {
   http,
   type Account,
   type Address,
@@ -6,10 +10,10 @@ import {
   type Hex,
   type PublicClient,
   encodeAbiParameters,
-  encodePacked,
-  zeroAddress,
   encodeFunctionData,
-  getAddress
+  encodePacked,
+  getAddress,
+  zeroAddress
 } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { toNetwork } from "../../../../test/testSetup"
@@ -25,6 +29,7 @@ import {
   type NexusClient,
   createNexusClient
 } from "../../../clients/createNexusClient"
+import { parseModuleTypeId } from "../../../clients/decorators/erc7579/supportsModule"
 import {
   type ToK1ValidatorModuleReturnType,
   toK1ValidatorModule
@@ -33,8 +38,6 @@ import {
   type ToOwnableValidatorModuleReturnType,
   toOwnableValidatorModule
 } from "./toOwnableValidatorModule"
-import { getOwnableValidatorSignature, uninstallModule } from "@rhinestone/module-sdk"
-import { parseModuleTypeId } from "../../../clients/decorators/erc7579/supportsModule"
 
 describe("modules.ownableValidator", async () => {
   let network: NetworkConfig
