@@ -108,28 +108,11 @@ describe("erc7579.decorators", async () => {
   })
 
   test("should uninstall a module", async () => {
-    const [installedValidators, nextCursor] =
-      await nexusClient.getInstalledValidators({})
-
-    const prevModule = await nexusClient.getPreviousModule({
-      module: {
-        address: mockAddresses.MockValidator,
-        type: "validator"
-      },
-      installedValidators
-    })
-
     const hash = await nexusClient.uninstallModule({
       module: {
         type: "validator",
         address: mockAddresses.MockValidator,
-        data: encodeAbiParameters(
-          [
-            { name: "prev", type: "address" },
-            { name: "disableModuleData", type: "bytes" }
-          ],
-          [prevModule, encodePacked(["address"], [eoaAccount.address])]
-        )
+        data: encodePacked(["address"], [eoaAccount.address])
       }
     })
 

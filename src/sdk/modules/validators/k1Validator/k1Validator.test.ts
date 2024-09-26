@@ -4,7 +4,6 @@ import {
   type Address,
   type Chain,
   type PublicClient,
-  encodeAbiParameters,
   encodePacked
 } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
@@ -23,7 +22,6 @@ import {
   createNexusClient
 } from "../../../clients/createNexusClient"
 import {
-  ToK1ValidatorModuleReturnType,
   toK1ValidatorModule
 } from "./toK1ValidatorModule"
 
@@ -122,23 +120,7 @@ describe("modules.k1Validator.write", async () => {
         await nexusClient.waitForUserOperationReceipt({ hash })
       expect(installSuccess).toBe(true)
 
-      const [installedValidators] = await nexusClient.getInstalledValidators({})
-
-      const prevModule = await nexusClient.getPreviousModule({
-        module: {
-          address: addresses.K1Validator,
-          type: "validator"
-        },
-        installedValidators
-      })
-
-      const deInitData = encodeAbiParameters(
-        [
-          { name: "prev", type: "address" },
-          { name: "disableModuleData", type: "bytes" }
-        ],
-        [prevModule, encodePacked(["address"], [eoaAccount.address])]
-      )
+      const deInitData = encodePacked(["address"], [eoaAccount.address]);
 
       const hashUninstall = nexusClient.uninstallModule({
         module: {
@@ -150,23 +132,7 @@ describe("modules.k1Validator.write", async () => {
 
       expect(hashUninstall).rejects.toThrow()
     } else {
-      const [installedValidators] = await nexusClient.getInstalledValidators({})
-
-      const prevModule = await nexusClient.getPreviousModule({
-        module: {
-          address: addresses.K1Validator,
-          type: "validator"
-        },
-        installedValidators
-      })
-
-      const deInitData = encodeAbiParameters(
-        [
-          { name: "prev", type: "address" },
-          { name: "disableModuleData", type: "bytes" }
-        ],
-        [prevModule, encodePacked(["address"], [eoaAccount.address])]
-      )
+      const deInitData = encodePacked(["address"], [eoaAccount.address]);
 
       const hashUninstall = nexusClient.uninstallModule({
         module: {

@@ -6,13 +6,12 @@ import {
   type Hex,
   type PublicClient,
   encodeAbiParameters,
-  encodeFunctionData,
   encodePacked,
-  getAddress,
-  zeroAddress
+  zeroAddress,
+  encodeFunctionData,
+  getAddress
 } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
-import { TEST_CONTRACTS } from "../../../../test/callDatas"
 import { toNetwork } from "../../../../test/testSetup"
 import {
   fundAndDeployClients,
@@ -26,7 +25,6 @@ import {
   type NexusClient,
   createNexusClient
 } from "../../../clients/createNexusClient"
-import { parseModuleTypeId } from "../../../clients/decorators/erc7579/supportsModule"
 import {
   type ToK1ValidatorModuleReturnType,
   toK1ValidatorModule
@@ -35,6 +33,8 @@ import {
   type ToOwnableValidatorModuleReturnType,
   toOwnableValidatorModule
 } from "./toOwnableValidatorModule"
+import { getOwnableValidatorSignature, uninstallModule } from "@rhinestone/module-sdk"
+import { parseModuleTypeId } from "../../../clients/decorators/erc7579/supportsModule"
 
 describe("modules.ownableValidator", async () => {
   let network: NetworkConfig
@@ -107,7 +107,7 @@ describe("modules.ownableValidator", async () => {
     // Install ownable validator
     const installHash = await nexusClient.installModule({
       module: {
-        address: TEST_CONTRACTS.OwnableValidator.address,
+        address: ownableValidatorModule.address,
         type: "validator",
         data: encodeAbiParameters(
           [
@@ -144,7 +144,7 @@ describe("modules.ownableValidator", async () => {
   test("should set threshold to 2", async () => {
     const isInstalled = await nexusClient.isModuleInstalled({
       module: {
-        address: TEST_CONTRACTS.OwnableValidator.address,
+        address: ownableValidatorModule.address,
         type: "validator"
       }
     })
@@ -168,7 +168,7 @@ describe("modules.ownableValidator", async () => {
     const activeValidationModuleAfter =
       nexusClient.account.getActiveValidationModule()
     expect(activeValidationModuleAfter.address).toBe(
-      TEST_CONTRACTS.OwnableValidator.address
+      ownableValidatorModule.address
     )
 
     const dummyUserOp = await nexusClient.prepareUserOperation({
@@ -217,7 +217,7 @@ describe("modules.ownableValidator", async () => {
     const [installedValidators] = await nexusClient.getInstalledValidators({})
     const prevModule = await nexusClient.getPreviousModule({
       module: {
-        address: TEST_CONTRACTS.OwnableValidator.address,
+        address: ownableValidatorModule.address,
         type: "validator"
       },
       installedValidators
@@ -229,7 +229,6 @@ describe("modules.ownableValidator", async () => {
       ],
       [prevModule, "0x"]
     )
-
     const uninstallCallData = encodeFunctionData({
       abi: [
         {
@@ -256,7 +255,7 @@ describe("modules.ownableValidator", async () => {
       functionName: "uninstallModule",
       args: [
         parseModuleTypeId("validator"),
-        getAddress(TEST_CONTRACTS.OwnableValidator.address),
+        getAddress(ownableValidatorModule.address),
         deInitData
       ]
     })
@@ -278,15 +277,14 @@ describe("modules.ownableValidator", async () => {
     const signature2 = (await recipient?.signMessage?.({
       message: { raw: userOpHash }
     })) as Hex
-    const multiSignature = encodePacked(
-      ["bytes", "bytes"],
-      [signature1 ?? "0x", signature2 ?? "0x"]
-    )
+    const multiSignature = getOwnableValidatorSignature({
+      signatures: [signature1 ?? "0x", signature2 ?? "0x"]
+    })
     const uninstallHash = await nexusClient.uninstallModule({
       module: {
-        address: TEST_CONTRACTS.OwnableValidator.address,
+        address: ownableValidatorModule.address,
         type: "validator",
-        data: deInitData
+        data: "0x"
       },
       signatureOverride: multiSignature
     })

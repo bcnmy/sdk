@@ -94,11 +94,7 @@ export const toOwnableValidatorModule = async ({
           data: action.callData
         }
       }
-      return {
-        to: "0x0",
-        value: 0n,
-        data: "0x"
-      }
+      throw new Error("Error getting tx")
     },
     getRemoveOwnerTx: async (owner: Hex): Promise<Transaction> => {
       const action = await getRemoveOwnableValidatorOwnerAction({
@@ -113,11 +109,7 @@ export const toOwnableValidatorModule = async ({
           data: action.callData
         }
       }
-      return {
-        to: "0x0",
-        value: 0n,
-        data: "0x"
-      }
+      throw new Error("Error getting tx")
     },
     getSetThresholdTx: (threshold: number): Transaction => {
       const action = getSetOwnableValidatorThresholdAction({ threshold })

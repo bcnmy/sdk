@@ -3,6 +3,7 @@ import {
   type Client,
   type Hex,
   type Transport,
+  encodeAbiParameters,
   encodeFunctionData,
   getAddress
 } from "viem"
@@ -13,7 +14,7 @@ import {
 } from "viem/account-abstraction"
 import { getAction } from "viem/utils"
 import { parseAccount } from "viem/utils"
-import type { Module } from "."
+import { getInstalledValidators, getPreviousModule, type Module } from "."
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
 import { parseModuleTypeId } from "./supportsModule"
 
@@ -70,6 +71,24 @@ export async function uninstallModule<
   }
 
   const account = parseAccount(account_) as SmartAccount
+  const [installedValidators] = await getInstalledValidators(client)
+
+  const prevModule = await getPreviousModule(client, {
+    module: {
+      address,
+      type
+    },
+    installedValidators,
+    account
+  })
+
+  const deInitData = encodeAbiParameters(
+    [
+      { name: "prev", type: "address" },
+      { name: "disableModuleData", type: "bytes" }
+    ],
+    [prevModule, data ?? "0x"]
+  )
 
   return getAction(
     client,
@@ -104,7 +123,7 @@ export async function uninstallModule<
             }
           ],
           functionName: "uninstallModule",
-          args: [parseModuleTypeId(type), getAddress(address), data ?? "0x"]
+          args: [parseModuleTypeId(type), getAddress(address), deInitData]
         })
       }
     ],
