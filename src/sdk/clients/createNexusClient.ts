@@ -29,8 +29,6 @@ import {
   smartAccountActions
 } from "./decorators/smartAccount"
 
-import type { GetUserOperationGasPriceReturnType } from "./decorators/bundler/getUserOperationGasPrice"
-
 /**
  * Parameters for sending a transaction
  */
@@ -147,6 +145,8 @@ export type NexusClientConfig<
     factoryAddress?: Address
     /** Owner module */
     k1ValidatorAddress?: Address
+    accountName?: string
+    accountKey?: string
   }
 >
 
@@ -178,28 +178,21 @@ export async function createNexusClient(
     index = 0n,
     key = "nexus client",
     name = "Nexus Client",
+    accountName,
+    accountKey,
     activeValidationModule,
     factoryAddress = contracts.k1ValidatorFactory.address,
     k1ValidatorAddress = contracts.k1Validator.address,
     bundlerTransport,
-    paymaster,
     transport,
-    paymasterContext,
-    userOperation = {
-      estimateFeesPerGas: async (_) => {
-        const gasFees: GetUserOperationGasPriceReturnType =
-          await bundler_.getUserOperationGasPrice()
-        return {
-          maxFeePerGas: gasFees.fast.maxFeePerGas * 2n,
-          maxPriorityFeePerGas: gasFees.fast.maxPriorityFeePerGas * 2n
-        }
-      }
-    }
+    ...bundlerConfig
   } = parameters
 
   if (!chain) throw new Error("Missing chain")
 
   const nexusAccount = await toNexusAccount({
+    name: accountName,
+    key: accountKey,
     transport,
     chain,
     signer,
@@ -210,14 +203,12 @@ export async function createNexusClient(
   })
 
   const bundler_ = createBicoBundlerClient({
-    ...parameters,
+    ...bundlerConfig,
+    chain,
     key,
     name,
     account: nexusAccount,
-    paymaster,
-    paymasterContext,
-    transport: bundlerTransport,
-    userOperation
+    transport: bundlerTransport
   })
     .extend(erc7579Actions())
     .extend(smartAccountActions())

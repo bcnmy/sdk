@@ -155,7 +155,8 @@ describe("nexus.account", async () => {
       nonce,
       initCode,
       encodedExecute,
-      encodedExecuteBatch
+      encodedExecuteBatch,
+      entryPointVersion
     ] = await Promise.all([
       nexusAccount.isDeployed(),
       nexusAccount.getCounterFactualAddress(),
@@ -178,7 +179,8 @@ describe("nexus.account", async () => {
       nexusAccount.getNonce(),
       nexusAccount.getInitCode(),
       nexusAccount.encodeExecute({ to: account.address, value: 100n }),
-      nexusAccount.encodeExecuteBatch([{ to: account.address, value: 100n }])
+      nexusAccount.encodeExecuteBatch([{ to: account.address, value: 100n }]),
+      nexusClient.account.entryPoint.version
     ])
 
     expect(isAddress(counterfactualAddress)).toBe(true)
@@ -204,6 +206,7 @@ describe("nexus.account", async () => {
 
     expect(isHex(encodedExecute)).toBe(true)
     expect(isHex(encodedExecuteBatch)).toBe(true)
+    expect(entryPointVersion).toBe("0.7")
   })
 
   test("should test isValidSignature EIP712Sign to be valid with viem", async () => {

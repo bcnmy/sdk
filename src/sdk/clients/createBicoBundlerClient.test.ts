@@ -11,7 +11,10 @@ import {
 import type { MasterClient, NetworkConfig } from "../../test/testUtils"
 import contracts from "../__contracts"
 import { type NexusAccount, toNexusAccount } from "../account/toNexusAccount"
-import { createBicoBundlerClient } from "./createBicoBundlerClient"
+import {
+  type BicoBundlerClient,
+  createBicoBundlerClient
+} from "./createBicoBundlerClient"
 
 describe("bico.bundler", async () => {
   let network: NetworkConfig

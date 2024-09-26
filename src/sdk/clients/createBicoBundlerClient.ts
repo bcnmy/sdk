@@ -17,7 +17,10 @@ import {
 } from "viem/account-abstraction"
 import { biconomyPaymasterContext } from "./createBicoPaymasterClient"
 import { type BicoActions, bicoBundlerActions } from "./decorators/bundler"
-import type { BicoRpcSchema } from "./decorators/bundler/getUserOperationGasPrice"
+import type {
+  BicoRpcSchema,
+  GetGasFeeValuesReturnType
+} from "./decorators/bundler/getGasFeeValues"
 
 export type BicoBundlerClient<
   transport extends Transport = Transport,
@@ -93,13 +96,24 @@ export const createBicoBundlerClient = (
           }`
         )
 
+  const defaultedUserOperation = parameters.userOperation ?? {
+    estimateFeesPerGas: async (_) => {
+      const gasFees: GetGasFeeValuesReturnType =
+        await bundler_.getGasFeeValues()
+      return gasFees.fast
+    }
+  }
+
   const defaultedPaymasterContext = parameters.paymaster
     ? parameters.paymasterContext ?? biconomyPaymasterContext
     : undefined
 
-  return createBundlerClient({
+  const bundler_ = createBundlerClient({
     ...parameters,
     transport: defaultedTransport,
-    paymasterContext: defaultedPaymasterContext
-  }).extend(bicoBundlerActions()) as BicoBundlerClient
+    paymasterContext: defaultedPaymasterContext,
+    userOperation: defaultedUserOperation
+  }).extend(bicoBundlerActions())
+
+  return bundler_ as BicoBundlerClient
 }

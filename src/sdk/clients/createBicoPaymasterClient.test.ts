@@ -6,18 +6,18 @@ import {
   type PublicClient,
   type WalletClient,
   createPublicClient,
-  createWalletClient,
-  parseEther
+  createWalletClient
 } from "viem"
 import {
   type PaymasterClient,
   entryPoint07Address
 } from "viem/account-abstraction"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
-import { toNetwork } from "../../test/testSetup"
+import { paymasterTruthy, toNetwork } from "../../test/testSetup"
 import { killNetwork } from "../../test/testUtils"
 import type { NetworkConfig } from "../../test/testUtils"
 import { type NexusAccount, toNexusAccount } from "../account/toNexusAccount"
+import { safeMultiplier } from "../account/utils"
 import {
   type BicoBundlerClient,
   createBicoBundlerClient
@@ -33,7 +33,7 @@ import { type NexusClient, createNexusClient } from "./createNexusClient"
 const k1ValidatorAddress = "0x663E709f60477f07885230E213b8149a7027239B"
 const factoryAddress = "0x887Ca6FaFD62737D0E79A2b8Da41f0B15A864778"
 
-describe.skip("bico.paymaster", async () => {
+describe.runIf(paymasterTruthy).skip("bico.paymaster", async () => {
   let network: NetworkConfig
   // Nexus Config
   let chain: Chain
@@ -86,6 +86,7 @@ describe.skip("bico.paymaster", async () => {
 
     bicoBundler = createBicoBundlerClient({
       bundlerUrl,
+      chain,
       account: nexusAccount
     })
     nexusAccountAddress = await nexusAccount.getCounterFactualAddress()
@@ -97,29 +98,28 @@ describe.skip("bico.paymaster", async () => {
       bundlerTransport: http(bundlerUrl),
       k1ValidatorAddress,
       factoryAddress,
-      paymaster
+      paymaster,
+      // For "PUBLIC_TESTNET" network, the userOperation we can hardcode estimates
+      userOperation: {
+        estimateFeesPerGas: async (_) => {
+          const feeData = await publicClient.estimateFeesPerGas()
+          return {
+            maxFeePerGas: safeMultiplier(feeData.maxFeePerGas, 1.25),
+            maxPriorityFeePerGas: safeMultiplier(
+              feeData.maxPriorityFeePerGas,
+              1.25
+            )
+          }
+        }
+      }
     })
   })
   afterAll(async () => {
     await killNetwork([network?.rpcPort, network?.bundlerPort])
   })
 
-  test("should call paymaster.getPaymasterData", async () => {
-    const userOperation = await nexusClient.prepareUserOperation({
-      calls: [{ to: recipientAddress, value: parseEther("1") }]
-    })
-
-    const paymasterData = await paymaster.getPaymasterData({
-      chainId: chain.id,
-      entryPointAddress: entryPoint07Address,
-      ...userOperation,
-      paymasterVerificationGasLimit: 20000n,
-      paymasterPostOpGasLimit: 20000n
-    })
-  })
-
-  test.skip("should have call getPaymasterStubData", async () => {
-    const paymasterData = await paymaster.getPaymasterStubData({
+  test("should provide paymasterStubData", async () => {
+    const paymasterStubData = await paymaster.getPaymasterStubData({
       chainId: chain.id,
       entryPointAddress: entryPoint07Address,
       callData: "0x",
@@ -127,20 +127,10 @@ describe.skip("bico.paymaster", async () => {
       sender: nexusAccountAddress,
       context: biconomyPaymasterContext
     })
-  })
 
-  test.skip("should send a transaction using the paymasterData", async () => {
-    const hash = await nexusClient.sendTransaction({
-      calls: [{ to: account.address, value: 1n }],
-      verificationGasLimit: 1n,
-      preVerificationGas: 1n,
-      callGasLimit: 1n,
-      maxFeePerGas: 1n,
-      nonce: 0n
-    })
-    const { status, transactionHash } =
-      await publicClient.waitForTransactionReceipt({ hash })
-
-    expect(status).toBe("success")
+    expect(paymasterStubData).toHaveProperty("paymaster")
+    expect(paymasterStubData).toHaveProperty("paymasterData")
+    expect(paymasterStubData).toHaveProperty("paymasterVerificationGasLimit")
+    expect(paymasterStubData).toHaveProperty("paymasterPostOpGasLimit")
   })
 })

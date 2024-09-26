@@ -1,9 +1,5 @@
 import type { Account, Chain, Client, Hex, Transport } from "viem"
-import { shouldUsePimlico } from "../../../account/utils/Utils"
-
-const conditionalMethod = shouldUsePimlico
-  ? "pimlico_getUserOperationGasPrice"
-  : "biconomy_getGasFeeValues"
+import { isTesting } from "../../../account/utils/Utils"
 
 export type BicoRpcSchema = [
   {
@@ -28,7 +24,7 @@ type BicoUserOperationGasPriceWithBigIntAsHex = {
   }
 }
 
-export type GetUserOperationGasPriceReturnType = {
+export type GetGasFeeValuesReturnType = {
   slow: {
     maxFeePerGas: bigint
     maxPriorityFeePerGas: bigint
@@ -52,26 +48,28 @@ export type GetUserOperationGasPriceReturnType = {
  *
  * @example
  * import { createClient } from "viem"
- * import { getUserOperationGasPrice } from "permissionless/actions/pimlico"
+ * import { getGasFeeValues } from "permissionless/actions/pimlico"
  *
  * const bundlerClient = createClient({
  *      chain: goerli,
  *      transport: http("https://biconomy.io/api/v3/5/your-api-key"),
  * })
  *
- * await getUserOperationGasPrice(bundlerClient)
+ * await getGasFeeValues(bundlerClient)
  *
  */
-export const getUserOperationGasPrice = async (
+export const getGasFeeValues = async (
   client: Client<
     Transport,
     Chain | undefined,
     Account | undefined,
     BicoRpcSchema
   >
-): Promise<GetUserOperationGasPriceReturnType> => {
+): Promise<GetGasFeeValuesReturnType> => {
   const gasPrice = await client.request({
-    method: conditionalMethod,
+    method: isTesting
+      ? "pimlico_getUserOperationGasPrice"
+      : "biconomy_getGasFeeValues",
     params: []
   })
 

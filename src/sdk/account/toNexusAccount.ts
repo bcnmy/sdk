@@ -505,7 +505,7 @@ export const toNexusAccount = async (
     },
     getFactoryArgs: async () => ({ factory: factoryAddress, factoryData }),
     getStubSignature: async (): Promise<Hex> =>
-      defaultedActiveModule.getDummySignature(),
+      defaultedActiveModule.getStubSignature(),
     signMessage,
     signTypedData,
     signUserOperation: async (
@@ -532,6 +532,7 @@ export const toNexusAccount = async (
     },
     getNonce,
     extend: {
+      entryPointAddress: entryPoint07Address,
       getCounterFactualAddress,
       isDeployed,
       getInitCode,

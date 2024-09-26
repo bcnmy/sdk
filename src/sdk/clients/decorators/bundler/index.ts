@@ -1,14 +1,14 @@
 import type { Chain, Client, Prettify, Transport } from "viem"
 import {
-  type GetUserOperationGasPriceReturnType,
-  getUserOperationGasPrice
-} from "./getUserOperationGasPrice"
+  type GetGasFeeValuesReturnType,
+  getGasFeeValues
+} from "./getGasFeeValues"
 
 export type BicoActions = {
   /**
    * Returns the live gas prices that you can use to send a user operation.
    *
-   * @returns slow, standard & fast values for maxFeePerGas & maxPriorityFeePerGas {@link GetUserOperationGasPriceReturnType}
+   * @returns slow, standard & fast values for maxFeePerGas & maxPriorityFeePerGas {@link GetGasFeeValuesReturnType}
    *
    * @example
    *
@@ -20,11 +20,9 @@ export type BicoActions = {
    *      transport: http("https://api.biconomy.io/v2/goerli/rpc?apikey=YOUR_API_KEY_HERE")
    * }).extend(bicoBundlerActions())
    *
-   * await bundlerClient.getUserOperationGasPrice()
+   * await bundlerClient.getGasFeeValues()
    */
-  getUserOperationGasPrice: () => Promise<
-    Prettify<GetUserOperationGasPriceReturnType>
-  >
+  getGasFeeValues: () => Promise<Prettify<GetGasFeeValuesReturnType>>
 }
 
 export const bicoBundlerActions =
@@ -35,5 +33,5 @@ export const bicoBundlerActions =
   >(
     client: Client<TTransport, TChain>
   ): BicoActions => ({
-    getUserOperationGasPrice: async () => getUserOperationGasPrice(client)
+    getGasFeeValues: async () => getGasFeeValues(client)
   })

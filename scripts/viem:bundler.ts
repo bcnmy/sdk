@@ -86,18 +86,9 @@ const main = async () => {
         }
       : undefined),
     userOperation: {
-      estimateFeesPerGas: async (parameters) => {
-        const feeData = await (
-          parameters?.account?.client as PublicClient
-        )?.estimateFeesPerGas?.()
-        const gas = {
-          maxFeePerGas: safeMultiplier(feeData.maxFeePerGas, GAS_ESTIMATE),
-          maxPriorityFeePerGas: safeMultiplier(
-            feeData.maxPriorityFeePerGas,
-            GAS_ESTIMATE
-          )
-        }
-        return gas
+      estimateFeesPerGas: async (_) => {
+        const feeData = await bicoBundler.getGasFeeValues()
+        return feeData.fast
       }
     }
   })
