@@ -73,6 +73,17 @@ describe("bico.bundler", async () => {
     expect(preparedUserOp).toHaveProperty("signature")
   })
 
+  test.concurrent(
+    "should have been extended by biconomy specific actions",
+    async () => {
+      const gasFees = await bicoBundler.getGasFeeValues()
+      expect(gasFees).toHaveProperty("fast")
+      expect(gasFees).toHaveProperty("standard")
+      expect(gasFees).toHaveProperty("slow")
+      expect(gasFees.fast.maxFeePerGas).toBeGreaterThan(0n)
+    }
+  )
+
   test("should send a user operation and get the receipt", async () => {
     const calls = [{ to: account.address, value: 1n }]
     // Must find gas fees before sending the user operation
