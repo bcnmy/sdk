@@ -63,6 +63,8 @@ export type ModuleSignatureMetadata = {
   enableSessionData?: EnableSessionData
 }
 
+// TODO: finalise & describe the types
+
 export type CreateSessionDataParams = {
   sessionPublicKey?: Hex // Works in case of session validator address is K1 algorithm. for other validators made up sessionData is needed
 
