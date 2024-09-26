@@ -16,6 +16,7 @@ import {
 } from "../clients/createNexusClient"
 import policies, { ParamCondition } from "./smartSessions"
 
+// Review: marked for deletion
 describe("smart.sessions", async () => {
   let network: NetworkConfig
   let chain: Chain

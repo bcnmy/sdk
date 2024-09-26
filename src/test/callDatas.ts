@@ -15,21 +15,26 @@ export const TEST_CONTRACTS: Record<
     name: "OwnableExecutor",
     address: "0xc98B026383885F41d9a995f85FC480E9bb8bB891"
   },
-  // Smart sessions
+  // Smart sessions: TODO: update with latest address
   SmartSession: {
     chainId: 84532,
     name: "SmartSession",
-    address: "0x0ce452fD9d0a20BCC14A2C4830E22bEB7EA4C8ee"
+    address: "0x3834aD7f5f73fAd19C089a924F18e6F3417d1ac2"
   },
-  SimpleSigner: {
+  SimpleSessionValidator: {
     chainId: 84532,
-    name: "Simple Signer",
+    name: "Simple Session Validator",
     address: "0xAAAdFd794A1781e4Fd3eA64985F107a7Ac2b3872"
   },
   UniActionPolicy: {
     chainId: 84532,
     name: "UniActionPolicy",
     address: "0x28120dC008C36d95DE5fa0603526f219c1Ba80f6"
+  },
+  Counter: {
+    chainId: 84532,
+    name: "Counter",
+    address: "0x14e4829E655F0b3a1793838dDd47273D5341d416"
   },
   TimeFramePolicy: {
     chainId: 84532,
@@ -51,6 +56,7 @@ export const TEST_CONTRACTS: Record<
     name: "WalletConnect CoSigner",
     address: "0x24084171C36Fa6dfdf41D9C89A51F600ed35A731"
   },
+  // Review: addresses and need
   MockK1Validator: {
     chainId: 84532,
     name: "MockK1Validator",
@@ -61,6 +67,7 @@ export const TEST_CONTRACTS: Record<
     name: "MockValidator",
     address: "0x61Cb30337CB980383704f2Debfb8bea66d0f26b3"
   },
+  // Review
   UserOperationBuilder: {
     chainId: 84532,
     name: "UserOperationBuilder",

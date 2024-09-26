@@ -2,6 +2,7 @@ import { type Address, type Hex, encodeAbiParameters } from "viem"
 import { UniActionPolicyAbi } from "../__contracts/abi"
 import { type AnyReferenceValue, parseReferenceValue } from "./utils/Helper"
 
+// Review: marked for deletion
 export type Rule = {
   /**
    * EQUAL = 0,
