@@ -1,4 +1,5 @@
 import {
+  type Execution,
   OWNABLE_VALIDATOR_ADDRESS,
   getAccount,
   getAddOwnableValidatorOwnerAction,
@@ -126,34 +127,28 @@ export const toOwnableValidatorModule = async ({
     initData,
     deInitData,
     getAddOwnerTx: async (owner: Hex): Promise<Transaction> => {
-      const action = await getAddOwnableValidatorOwnerAction({
+      const action = (await getAddOwnableValidatorOwnerAction({
         account: nexusAccount,
         client: client as PublicClient,
         owner
-      })
-      if ("callData" in action) {
-        return {
-          to: action.target,
-          value: BigInt(action.value.toString()),
-          data: action.callData
-        }
+      })) as Execution
+      return {
+        to: action.target,
+        value: BigInt(action.value.toString()),
+        data: action.callData
       }
-      throw new Error("Error getting tx")
     },
     getRemoveOwnerTx: async (owner: Hex): Promise<Transaction> => {
-      const action = await getRemoveOwnableValidatorOwnerAction({
+      const action = (await getRemoveOwnableValidatorOwnerAction({
         account: nexusAccount,
         client: client as PublicClient,
         owner
-      })
-      if ("callData" in action) {
-        return {
-          to: action.target,
-          value: BigInt(action.value.toString()),
-          data: action.callData
-        }
+      })) as Execution
+      return {
+        to: action.target,
+        value: BigInt(action.value.toString()),
+        data: action.callData
       }
-      throw new Error("Error getting tx")
     },
     getSetThresholdTx: (threshold: number): Transaction => {
       const action = getSetOwnableValidatorThresholdAction({ threshold })
