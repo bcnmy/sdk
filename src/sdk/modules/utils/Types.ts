@@ -115,6 +115,16 @@ rules: ParamRule[];
 valueLimit: bigint;
 }
 
+export type ActionConfig = {
+  valueLimitPerUse: bigint
+  paramRules: ParamRules
+}
+
+export type ParamRules = {
+  length: number
+  rules: ParamRule[]
+}
+
 export type ParamRule = {
   condition: ParamCondition
   offset: number

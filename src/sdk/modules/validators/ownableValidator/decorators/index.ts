@@ -6,6 +6,7 @@ import { type SetThresholdParameters, setThreshold } from "./setThreshold"
 export type OwnableValidatorActions<
   TSmartAccount extends SmartAccount | undefined
 > = {
+  // Review: signatureOverride is already part of AddOwnerParameters.
   addOwner: (
     args: AddOwnerParameters<TSmartAccount> & {
       signatureOverride?: Hex

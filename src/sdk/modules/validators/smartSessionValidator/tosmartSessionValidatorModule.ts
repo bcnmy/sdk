@@ -95,6 +95,7 @@ export const toSmartSessionValidatorModule = async ({
       }
       return signature as Hex
     },
+    //TODO: add getters
     client
   })
 }

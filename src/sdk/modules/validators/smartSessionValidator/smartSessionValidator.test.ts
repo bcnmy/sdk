@@ -4,7 +4,10 @@ import {
     type Address,
     type Chain,
     type PublicClient,
-    encodePacked
+    encodePacked,
+    toBytes,
+    toHex,
+    Hex
   } from "viem"
   import { afterAll, beforeAll, describe, expect, test } from "vitest"
   import { toNetwork } from "../../../../test/testSetup"
@@ -21,7 +24,11 @@ import {
     type NexusClient,
     createNexusClient
   } from "../../../clients/createNexusClient"
-  import { toSmartSessionValidatorModule } from "./toSmartSessionValidatorModule"
+  import { toSmartSessionValidatorModule } from "./tosmartSessionValidatorModule"
+import { CreateSessionDataParams } from "../../utils/Types"
+import { TEST_CONTRACTS } from "../../../../test/callDatas"
+import { isSessionEnabled } from "./decorators/Helper"
+import { smartSessionValidatorActions } from "./decorators"
   
   describe("modules.smartSessionValidator.write", async () => {
     let network: NetworkConfig
@@ -150,4 +157,65 @@ import {
       const stubSig = await smartSessionValidator.signUserOpHash(mockUserOpHash, {permissionId: "0xfcb2f4375207e6abcd89f2cd06c962435405acde8a974d872b373d7c5d557f0a"})
       expect(stubSig).toBeDefined()
     })
+
+    test.skip("should create Counter increment session (USE mode) on installed smart session validator", async () => {
+      const isInstalledBefore = await nexusClient.isModuleInstalled({
+        module: {
+          type: "validator",
+          address: addresses.SmartSession,
+        }
+      })
+  
+      expect(isInstalledBefore).toBe(true)
+  
+      const smartSessionValidator = await toSmartSessionValidatorModule({
+        client: nexusClient.account.client as PublicClient,
+        initData: encodePacked(["address"], [eoaAccount.address]),
+        deInitData: "0x",
+        nexusAccountAddress: nexusClient.account.address
+      })
+         
+      // make EOA owner of SA session key as well
+      const sessionKeyEOA = eoaAccount.address
+  
+      // Todo: Add a negative test case for time range policy
+      const sessionRequestedInfo: CreateSessionDataParams = {
+        sessionPublicKey: sessionKeyEOA,
+        sessionValidatorAddress: TEST_CONTRACTS.SimpleSessionValidator.address,
+        sessionKeyData: toHex(toBytes(sessionKeyEOA)),
+        sessionValidAfter: 0,
+        sessionValidUntil: 0,
+        actionPoliciesInfo: 
+        [{
+        contractAddress: TEST_CONTRACTS.Counter.address, // counter address
+        functionSelector: "0x273ea3e3" as Hex, // function selector for increment count
+        validUntil: 0, // 1717001666
+        validAfter: 0,
+        rules: [], // no other rules and conditions applied
+        valueLimit: BigInt(0) 
+        }],
+      }
+
+      const smartSessionNexusClient = nexusClient.extend(smartSessionValidatorActions())
+
+      const userOpHash = await smartSessionNexusClient.enableSessions({
+        account: nexusClient.account,
+        sessionRequestedInfo: [sessionRequestedInfo]
+      })
+
+      expect(userOpHash).toBeDefined()
+
+      const receipt = await nexusClient.waitForUserOperationReceipt({
+       hash: userOpHash
+      })
+
+      expect(receipt.success).toBe(true)
+  
+      // const isEnabled = await isSessionEnabled({
+      //   client: nexusClient.account.client as PublicClient,
+      //   accountAddress: nexusClient.account.address,
+      //   permissionId: "0xfcb2f4375207e6abcd89f2cd06c962435405acde8a974d872b373d7c5d557f0a"
+      // })
+      // expect(isEnabled).toBe(true)
+    }, 60000)
   })
