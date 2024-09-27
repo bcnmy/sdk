@@ -292,27 +292,52 @@ describe("modules.smartSessionValidator.write", async () => {
 
     // Note: POC
     // smartSessionValidator.activePermissionId = cachedPermissionId
-    smartSessionValidator.activePermissionId = cachedPermissionId
 
     // set active validation module
     nexusClient.account.setActiveValidationModule(smartSessionValidator)
 
-    // Make userop to increase counter
-    const hash = await nexusClient.sendTransaction({
-      calls: [
+    const smartSessionNexusClient = nexusClient.extend(
+      smartSessionValidatorActions()
+    )
+
+    const userOpHash = await smartSessionNexusClient.useEnabledSession({
+      account: nexusClient.account,
+      actions: [
         {
-          to: TEST_CONTRACTS.Counter.address,
-          data: encodeFunctionData({
+          target: TEST_CONTRACTS.Counter.address,
+          value: 0n,
+          callData: encodeFunctionData({
               abi: CounterAbi,
               functionName: "incrementNumber",
               args: []
           })
         }
       ],
+      permissionId: cachedPermissionId
     })
 
-    const { status } = await testClient.waitForTransactionReceipt({ hash })
-    expect(status).toBe("success")
+    expect(userOpHash).toBeDefined()
+    const receipt = await nexusClient.waitForUserOperationReceipt({
+      hash: userOpHash
+    })
+    expect(receipt.success).toBe(true)
+
+    // // Make userop to increase counter
+    // const hash = await nexusClient.sendTransaction({
+    //   calls: [
+    //     {
+    //       to: TEST_CONTRACTS.Counter.address,
+    //       data: encodeFunctionData({
+    //           abi: CounterAbi,
+    //           functionName: "incrementNumber",
+    //           args: []
+    //       })
+    //     }
+    //   ],
+    // })
+
+    // const { status } = await testClient.waitForTransactionReceipt({ hash })
+    // expect(status).toBe("success")
 
     const counterAfter = await pubClient.readContract({
       address: TEST_CONTRACTS.Counter.address,
