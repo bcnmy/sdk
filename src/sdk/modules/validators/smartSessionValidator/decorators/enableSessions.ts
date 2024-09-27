@@ -219,5 +219,7 @@ export async function enableSessions<
       userOpHash: userOpHash,
       permissionIds: actionResponse.permissionIds
     }
+  } else {
+    throw new Error("Error getting enable sessions action")
   }
 }

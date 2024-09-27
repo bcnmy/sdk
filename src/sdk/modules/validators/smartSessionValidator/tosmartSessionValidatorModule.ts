@@ -71,6 +71,7 @@ export const toSmartSessionValidatorModule = async ({
     getStubSignature: async (
       moduleSignatureMetadata?: ModuleSignatureMetadata
     ) => {
+      // console.log("activePermissionId", activePermissionId)
       const signature = encodeSmartSessionSignature({
         mode: moduleSignatureMetadata?.mode
           ? moduleSignatureMetadata.mode

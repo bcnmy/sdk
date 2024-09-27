@@ -7,7 +7,8 @@ import {
   type PublicClient,
   encodePacked,
   toBytes,
-  toHex
+  toHex,
+  encodeFunctionData
 } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { TEST_CONTRACTS } from "../../../../test/callDatas"
@@ -253,7 +254,7 @@ describe("modules.smartSessionValidator.write", async () => {
     })
     expect(isEnabled).toBe(true)
 
-    console.log({ cachedPermissionId })
+    // console.log({ cachedPermissionId })
 
     // TODO: marked for deletion if we do not use any getters
     const smartSessionValidator = await toSmartSessionValidatorModule({
@@ -300,10 +301,14 @@ describe("modules.smartSessionValidator.write", async () => {
     const hash = await nexusClient.sendTransaction({
       calls: [
         {
-          to: recipientAddress,
-          value: 1n
+          to: TEST_CONTRACTS.Counter.address,
+          data: encodeFunctionData({
+              abi: CounterAbi,
+              functionName: "incrementNumber",
+              args: []
+          })
         }
-      ]
+      ],
     })
 
     const { status } = await testClient.waitForTransactionReceipt({ hash })
