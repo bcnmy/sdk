@@ -6,20 +6,21 @@ import {
 } from "viem/account-abstraction"
 import { getAction, parseAccount } from "viem/utils"
 import { AccountNotFoundError } from "../../../../account/utils/AccountNotFound"
-import { type Execution} from "../../../utils/Types"
+import type { Execution } from "../../../utils/Types"
 // import { NexusAccount } from "../../../../account"
 // Review: Execution type could either be used from our sdk or from module-sdk
 
 // If the session is enabled for multiple actions, it is possible to send a batch transaction. hence it accepts an array of executions.
 // permisisonId corresponds to already enabled session.
-export type UseEnabledSessionParameters<TSmartAccount extends SmartAccount | undefined> =
-  GetSmartAccountParameter<TSmartAccount> & {
-    actions: Execution[],
-    permissionId: Hex,
-    maxFeePerGas?: bigint
-    maxPriorityFeePerGas?: bigint
-    nonce?: bigint
-    signatureOverride?: Hex
+export type UseEnabledSessionParameters<
+  TSmartAccount extends SmartAccount | undefined
+> = GetSmartAccountParameter<TSmartAccount> & {
+  actions: Execution[]
+  permissionId: Hex
+  maxFeePerGas?: bigint
+  maxPriorityFeePerGas?: bigint
+  nonce?: bigint
+  signatureOverride?: Hex
 }
 
 /**
@@ -44,7 +45,9 @@ export type UseEnabledSessionParameters<TSmartAccount extends SmartAccount | und
  * })
  * console.log(userOpHash) // '0x...'
  */
-export async function useEnabledSession<TSmartAccount extends SmartAccount | undefined>(
+export async function useEnabledSession<
+  TSmartAccount extends SmartAccount | undefined
+>(
   client: Client<Transport, Chain | undefined, TSmartAccount>,
   parameters: UseEnabledSessionParameters<TSmartAccount>
 ): Promise<Hex> {
@@ -73,25 +76,24 @@ export async function useEnabledSession<TSmartAccount extends SmartAccount | und
   // const smartSessionValidator = (account as NexusAccount).getActiveValidationModule()
   //const userOpSig = await smartSessionValidator.signUserOpHash(permissionId)
 
-  // Review: 
-  // Q: Can we access / pass smartSessionValidator instance here? 
+  // Review:
+  // Q: Can we access / pass smartSessionValidator instance here?
   // If above is possible then may not need to set activePermisisonId at all..
-  
-  return await getAction(
-      client,
-      sendUserOperation,
-      "sendUserOperation"
-    )({
-      calls: actions.map(action => ({
-        to: action.target,
-        value: BigInt(action.value.toString()),
-        data: action.callData
-      })),
-      maxFeePerGas,
-      maxPriorityFeePerGas,
-      nonce,
-      account,
-      signature: signatureOverride
-    })
-}
 
+  return await getAction(
+    client,
+    sendUserOperation,
+    "sendUserOperation"
+  )({
+    calls: actions.map((action) => ({
+      to: action.target,
+      value: BigInt(action.value.toString()),
+      data: action.callData
+    })),
+    maxFeePerGas,
+    maxPriorityFeePerGas,
+    nonce,
+    account,
+    signature: signatureOverride
+  })
+}

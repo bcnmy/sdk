@@ -503,7 +503,7 @@ export const toNexusAccount = async (
     },
     getFactoryArgs: async () => ({ factory: factoryAddress, factoryData }),
     getStubSignature: async (): Promise<Hex> =>
-      defaultedActiveModule.getStubSignature(),
+      await defaultedActiveModule.getStubSignature(),
     signMessage,
     signTypedData,
     signUserOperation: async (

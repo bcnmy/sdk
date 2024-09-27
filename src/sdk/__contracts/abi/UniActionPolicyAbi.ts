@@ -2,57 +2,57 @@ export const UniActionPolicyAbi = [
   {
     components: [
       {
-        name: 'valueLimitPerUse',
-        type: 'uint256',
+        name: "valueLimitPerUse",
+        type: "uint256"
       },
       {
         components: [
           {
-            name: 'length',
-            type: 'uint256',
+            name: "length",
+            type: "uint256"
           },
           {
             components: [
               {
-                name: 'condition',
-                type: 'uint8',
+                name: "condition",
+                type: "uint8"
               },
               {
-                name: 'offset',
-                type: 'uint64',
+                name: "offset",
+                type: "uint64"
               },
               {
-                name: 'isLimited',
-                type: 'bool',
+                name: "isLimited",
+                type: "bool"
               },
               {
-                name: 'ref',
-                type: 'bytes32',
+                name: "ref",
+                type: "bytes32"
               },
               {
                 components: [
                   {
-                    name: 'limit',
-                    type: 'uint256',
+                    name: "limit",
+                    type: "uint256"
                   },
                   {
-                    name: 'used',
-                    type: 'uint256',
-                  },
+                    name: "used",
+                    type: "uint256"
+                  }
                 ],
-                name: 'usage',
-                type: 'tuple',
-              },
+                name: "usage",
+                type: "tuple"
+              }
             ],
-            name: 'rules',
-            type: 'tuple[16]',
-          },
+            name: "rules",
+            type: "tuple[16]"
+          }
         ],
-        name: 'paramRules',
-        type: 'tuple',
-      },
+        name: "paramRules",
+        type: "tuple"
+      }
     ],
-    name: 'ActionConfig',
-    type: 'tuple',
-  },
+    name: "ActionConfig",
+    type: "tuple"
+  }
 ]
