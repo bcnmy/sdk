@@ -29,6 +29,7 @@ import { CreateSessionDataParams } from "../../utils/Types"
 import { TEST_CONTRACTS } from "../../../../test/callDatas"
 import { isSessionEnabled } from "./decorators/Helper"
 import { smartSessionValidatorActions } from "./decorators"
+import { CounterAbi } from "../../../__contracts/abi/CounterAbi"
   
 describe("modules.smartSessionValidator.write", async () => {
     let network: NetworkConfig
@@ -91,7 +92,8 @@ describe("modules.smartSessionValidator.write", async () => {
         client: nexusClient.account.client as PublicClient,
         initData: encodePacked(["address"], [eoaAccount.address]),
         deInitData: "0x",
-        nexusAccountAddress: nexusClient.account.address
+        nexusAccountAddress: nexusClient.account.address,
+        activePermissionId: '0x'
       })
       expect(smartSessionValidator.signMessage).toBeDefined()
       expect(smartSessionValidator.signUserOpHash).toBeDefined()
@@ -139,7 +141,8 @@ describe("modules.smartSessionValidator.write", async () => {
         client: nexusClient.account.client as PublicClient,
         initData: encodePacked(["address"], [eoaAccount.address]),
         deInitData: "0x",
-        nexusAccountAddress: nexusClient.account.address
+        nexusAccountAddress: nexusClient.account.address,
+        activePermissionId: '0x'
       })
 
       const stubSig = await smartSessionValidator.getStubSignature({permissionId: "0xfcb2f4375207e6abcd89f2cd06c962435405acde8a974d872b373d7c5d557f0a"})
@@ -151,15 +154,16 @@ describe("modules.smartSessionValidator.write", async () => {
         client: nexusClient.account.client as PublicClient,
         initData: encodePacked(["address"], [eoaAccount.address]),
         deInitData: "0x",
-        nexusAccountAddress: nexusClient.account.address
+        nexusAccountAddress: nexusClient.account.address,
+        activePermissionId: '0x'
       })
 
       const mockUserOpHash = "0x1234567890123456789012345678901234567890123456789012345678901234"
-      const stubSig = await smartSessionValidator.signUserOpHash(mockUserOpHash, {permissionId: "0xfcb2f4375207e6abcd89f2cd06c962435405acde8a974d872b373d7c5d557f0a"})
-      expect(stubSig).toBeDefined()
+      const realSig = await smartSessionValidator.signUserOpHash(mockUserOpHash, {permissionId: "0xfcb2f4375207e6abcd89f2cd06c962435405acde8a974d872b373d7c5d557f0a"})
+      expect(realSig).toBeDefined()
     })
 
-    test.skip("should create Counter increment session (USE mode) on installed smart session validator", async () => {
+    test("should create Counter increment session (USE mode) on installed smart session validator", async () => {
       const isInstalledBefore = await nexusClient.isModuleInstalled({
         module: {
           type: "validator",
@@ -169,11 +173,13 @@ describe("modules.smartSessionValidator.write", async () => {
   
       expect(isInstalledBefore).toBe(true)
   
+      // TODO: marked for deletion if we do not use any getters
       const smartSessionValidator = await toSmartSessionValidatorModule({
         client: nexusClient.account.client as PublicClient,
         initData: encodePacked(["address"], [eoaAccount.address]),
         deInitData: "0x",
-        nexusAccountAddress: nexusClient.account.address
+        nexusAccountAddress: nexusClient.account.address,
+        activePermissionId: '0x'
       })
          
       // make EOA owner of SA session key as well
@@ -225,5 +231,78 @@ describe("modules.smartSessionValidator.write", async () => {
         permissionId: permissionId
       })
       expect(isEnabled).toBe(true)
+    }, 60000)
+
+    test("should make use of already enabled session (USE mode) to increment a counter using a session key", async () => {
+
+      const isEnabled = await isSessionEnabled({
+        client: nexusClient.account.client as PublicClient,
+        accountAddress: nexusClient.account.address,
+        permissionId: cachedPermissionId
+      })
+      expect(isEnabled).toBe(true)
+  
+      // TODO: marked for deletion if we do not use any getters
+      const smartSessionValidator = await toSmartSessionValidatorModule({
+        client: nexusClient.account.client as PublicClient,
+        initData: encodePacked(["address"], [eoaAccount.address]),
+        deInitData: "0x",
+        nexusAccountAddress: nexusClient.account.address,
+        activePermissionId: cachedPermissionId
+      })
+    
+      const pubClient = nexusClient.account.client as PublicClient
+  
+      const counterBefore = await pubClient.readContract({
+        address: TEST_CONTRACTS.Counter.address,
+        abi: CounterAbi,
+        functionName: "getNumber",
+        args: []
+      })
+  
+      // helpful for out of range test
+      // await testClient.setNextBlockTimestamp({ 
+      //   timestamp: 9727001666n
+      // })
+
+      // TODO: dev notes below: marked for deletion
+      // Note: this is possible and maybe pass to prepareUserOperation if that path is probable.
+      // const stubSig = await smartSessionValidator.getStubSignature({permissionId: cachedPermissionId})
+
+      // Note: this is possible and maybe pass to sendTransaction/sendUseroperation a final signature. It would need userOpHash built prior, using prepareUseroperation?
+      // const stubSig = await smartSessionValidator.signUserOpHash(mockUserOpHash, {permissionId: cachedPermissionId})
+
+      // Note: possibly can not be used. unless useEnabledSession decorator works 
+      // ^ (that would in turn either need activePermisisonId to set or perhaps sending overridden sig to sendUserOperation)
+      // const smartSessionNexusClient = nexusClient.extend(smartSessionValidatorActions())
+
+      // Note: POC
+      // smartSessionValidator.activePermissionId = cachedPermissionId
+      smartSessionValidator.setActivePermissionId(cachedPermissionId)
+
+      // set active validation module
+      nexusClient.account.setActiveValidationModule(smartSessionValidator)
+
+      // Make userop to increase counter
+      const hash = await nexusClient.sendTransaction({
+        calls: [
+          {
+            to: recipientAddress,
+            value: 1n
+          }
+        ]
+      })
+
+      const { success } = await nexusClient.waitForUserOperationReceipt({ hash })
+      expect(success).toBe(true)
+  
+      const counterAfter = await pubClient.readContract({
+          address: TEST_CONTRACTS.Counter.address,
+          abi: CounterAbi,
+          functionName: "getNumber",
+          args: []
+        })
+  
+      expect(counterAfter).toBe(counterBefore + BigInt(1))
     }, 60000)
   })

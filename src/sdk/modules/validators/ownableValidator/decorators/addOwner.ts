@@ -47,6 +47,7 @@ export async function addOwner<TSmartAccount extends SmartAccount | undefined>(
   } = parameters
 
   if (!account_) {
+    // Review: if this should be same for methods in different decorators.
     throw new AccountNotFoundError({
       docsPath: "/docs/actions/wallet/sendTransaction"
     })

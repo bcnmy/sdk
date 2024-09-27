@@ -15,8 +15,10 @@ const DUMMY_ECDSA_SIG = "0xe8b94748580ca0b4993c9a1b86b5be851bfc076ff5ce3a1ff65bf
 export type ToSmartSessionValidatorModuleReturnType = Prettify<
   Module<SmartSessionValidatorModuleImplementation>
 >
-
-export type SmartSessionValidatorModuleImplementation = ModuleImplementation
+export type SmartSessionValidatorModuleImplementation = ModuleImplementation & {
+  activePermissionId: Hex
+  setActivePermissionId: (permissionId: Hex) => void
+}
 
 /**
  * Creates a Snmart Session Validator Module instance.
@@ -43,14 +45,16 @@ export type SmartSessionValidatorModuleImplementation = ModuleImplementation
  */
 export const toSmartSessionValidatorModule = async ({
   nexusAccountAddress,
-  client,
   initData,
-  deInitData
+  deInitData,
+  client,
+  activePermissionId
 }: {
   nexusAccountAddress: Hex
   initData: Hex
   deInitData: Hex
   client: Client
+  activePermissionId: Hex
 }): Promise<ToSmartSessionValidatorModuleReturnType> => {
   // Note: session key signer (applies in case of K1 based simple session validator algorithm)  
   const signer = await toSigner({ signer: client.account as Account })
@@ -60,10 +64,11 @@ export const toSmartSessionValidatorModule = async ({
     nexusAccountAddress,
     initData,
     deInitData,
+    activePermissionId: activePermissionId ?? '0x',
     getStubSignature: async (moduleSignatureMetadata?: ModuleSignatureMetadata) => {
       const signature = encodeSmartSessionSignature({
             mode: moduleSignatureMetadata?.mode ? moduleSignatureMetadata.mode : SmartSessionMode.USE,
-            permissionId: moduleSignatureMetadata?.permissionId ? moduleSignatureMetadata.permissionId : '0x',
+            permissionId: moduleSignatureMetadata?.permissionId ? moduleSignatureMetadata.permissionId : activePermissionId,
             signature: DUMMY_ECDSA_SIG,
             enableSessionData: moduleSignatureMetadata?.enableSessionData
         }) as Hex
@@ -73,9 +78,10 @@ export const toSmartSessionValidatorModule = async ({
       const signature = await signer.signMessage({
         message: { raw: userOpHash as Hex }
       })
+      console.log("activePermissionId", activePermissionId)
       const moduleSignature = encodeSmartSessionSignature({
         mode: moduleSignatureMetadata?.mode ? moduleSignatureMetadata.mode : SmartSessionMode.USE,
-        permissionId: moduleSignatureMetadata?.permissionId ? moduleSignatureMetadata.permissionId : '0x',
+        permissionId: moduleSignatureMetadata?.permissionId ? moduleSignatureMetadata.permissionId : activePermissionId,
         signature: signature,
         enableSessionData: moduleSignatureMetadata?.enableSessionData
       }) as Hex
@@ -94,6 +100,10 @@ export const toSmartSessionValidatorModule = async ({
         signature = `0x${signature}`
       }
       return signature as Hex
+    },
+    // Review if needed and correctness
+    setActivePermissionId: (permissionId: Hex) => {
+      activePermissionId = permissionId
     },
     //TODO: add getters
     client
