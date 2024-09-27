@@ -159,7 +159,7 @@ describe("modules.smartSessionValidator.write", async () => {
       expect(stubSig).toBeDefined()
     })
 
-    test.skip("should create Counter increment session (USE mode) on installed smart session validator", async () => {
+    test("should create Counter increment session (USE mode) on installed smart session validator", async () => {
       const isInstalledBefore = await nexusClient.isModuleInstalled({
         module: {
           type: "validator",
