@@ -8,10 +8,11 @@ import { encodeAbiParameters, encodeFunctionData, getAction, parseAccount } from
 import addresses from "../../../../__contracts/addresses"
 import { AccountNotFoundError } from "../../../../account/utils/AccountNotFound"
 import { type CreateSessionDataParams } from "../../../utils/Types"
-import { type ActionData, type PolicyData, type Session, type Account, type Execution } from "@rhinestone/module-sdk"
+import { type ActionData, type PolicyData, type Session, type Account } from "@rhinestone/module-sdk"
 import { createActionConfig, createActionData, generateSalt, getPermissionId, toActionConfig, toTimeRangePolicy } from "./Helper"
 import { UniActionPolicyAbi } from "../../../../__contracts/abi"
 import { SmartSessionAbi } from "../../../../__contracts/abi/SmartSessionAbi"
+import { type EnableSessionsActionReturnParams, type EnableSessionsResponse } from "./Types"
 // Review: Execution type could either be used from our sdk or from module-sdk
 
 const UNIVERSAL_POLICY_ADDRESS = addresses.UniActionPolicy
@@ -36,11 +37,8 @@ export const getSmartSessionValidatorEnableSessionsAction = async ({
     sessionRequestedInfo: CreateSessionDataParams[]
     client: PublicClient
     account: Account // TODO: review type
-  }): Promise<Execution | Error> => {
-    console.log("sessionRequestedInfo", sessionRequestedInfo)
-    console.log("client", client)
+  }): Promise<EnableSessionsActionReturnParams | Error> => {
     console.log("account", account)
-
     const sessions: Session[] = [];
     const permissionIds: Hex[] = [];
 
@@ -106,9 +104,12 @@ export const getSmartSessionValidatorEnableSessionsAction = async ({
 
     
     return {
+      action: {
       target: addresses.SmartSession,
       value: BigInt(0),
       callData: enableSessionsData,
+      },
+      permissionIds: permissionIds
     }
 }
 
@@ -131,7 +132,7 @@ export const getSmartSessionValidatorEnableSessionsAction = async ({
 export async function enableSessions<TSmartAccount extends SmartAccount | undefined>(
   client: Client<Transport, Chain | undefined, TSmartAccount>,
   parameters: EnableSessionsParameters<TSmartAccount>
-): Promise<Hex> {
+): Promise<EnableSessionsResponse> {
   const {
     account: account_ = client.account,
     maxFeePerGas,
@@ -150,33 +151,47 @@ export async function enableSessions<TSmartAccount extends SmartAccount | undefi
   const account = parseAccount(account_) as SmartAccount
   const publicClient = account.client
 
-  const action = await getSmartSessionValidatorEnableSessionsAction({
+  const actionResponse = await getSmartSessionValidatorEnableSessionsAction({
     account: { address: account.address, deployedOnChains: [], type: "nexus" },
     client: publicClient as any,
     sessionRequestedInfo
   })
 
-  if (!("callData" in action)) {
+  if ('action' in actionResponse) {
+    const { action } = actionResponse;
+    if (!("callData" in action)) {
+      throw new Error("Error getting enable sessions action")
+    }
+  
+    const userOpHash =  await getAction(
+      client,
+      sendUserOperation,
+      "sendUserOperation"
+    )({
+      calls: [
+        {
+          to: action.target,
+          value: BigInt(action.value.toString()),
+          data: action.callData
+        }
+      ],
+      maxFeePerGas,
+      maxPriorityFeePerGas,
+      nonce,
+      account,
+      signature: signatureOverride
+    }) as Hex
+
+    return {
+      userOpHash: userOpHash,
+      permissionIds: actionResponse.permissionIds
+    }
+
+
+  } else {
+    // Handle the error case
+    console.error('Error:', actionResponse.message);
     throw new Error("Error getting enable sessions action")
   }
-
-  return getAction(
-    client,
-    sendUserOperation,
-    "sendUserOperation"
-  )({
-    calls: [
-      {
-        to: action.target,
-        value: BigInt(action.value.toString()),
-        data: action.callData
-      }
-    ],
-    maxFeePerGas,
-    maxPriorityFeePerGas,
-    nonce,
-    account,
-    signature: signatureOverride
-  })
 }
 

@@ -1,6 +1,7 @@
-import type { Chain, Client, Hash, Hex, Transport } from "viem"
+import type { Chain, Client, Hex, Transport } from "viem"
 import type { SmartAccount } from "viem/account-abstraction"
 import { type EnableSessionsParameters, enableSessions } from "./enableSessions"
+import { type EnableSessionsResponse } from "./Types"
 export type SmartSessionValidatorActions<
   TSmartAccount extends SmartAccount | undefined
 > = {
@@ -8,7 +9,7 @@ export type SmartSessionValidatorActions<
     args: EnableSessionsParameters<TSmartAccount> & {
       signatureOverride?: Hex
     }
-  ) => Promise<Hash>
+  ) => Promise<EnableSessionsResponse>
 }
 
 export function smartSessionValidatorActions() {
