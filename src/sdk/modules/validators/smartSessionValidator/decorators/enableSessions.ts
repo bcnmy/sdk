@@ -1,116 +1,147 @@
+import type {
+  Account,
+  ActionData,
+  PolicyData,
+  Session
+} from "@rhinestone/module-sdk"
 import type { Chain, Client, Hex, PublicClient, Transport } from "viem"
 import {
   type GetSmartAccountParameter,
   type SmartAccount,
   sendUserOperation
 } from "viem/account-abstraction"
-import { encodeAbiParameters, encodeFunctionData, getAction, parseAccount } from "viem/utils"
-import addresses from "../../../../__contracts/addresses"
-import { AccountNotFoundError } from "../../../../account/utils/AccountNotFound"
-import { type CreateSessionDataParams } from "../../../utils/Types"
-import { type ActionData, type PolicyData, type Session, type Account } from "@rhinestone/module-sdk"
-import { createActionConfig, createActionData, generateSalt, getPermissionId, toActionConfig, toTimeRangePolicy } from "./Helper"
+import {
+  encodeAbiParameters,
+  encodeFunctionData,
+  getAction,
+  parseAccount
+} from "viem/utils"
 import { UniActionPolicyAbi } from "../../../../__contracts/abi"
 import { SmartSessionAbi } from "../../../../__contracts/abi/SmartSessionAbi"
-import { type EnableSessionsActionReturnParams, type EnableSessionsResponse } from "./Types"
+import addresses from "../../../../__contracts/addresses"
+import { AccountNotFoundError } from "../../../../account/utils/AccountNotFound"
+import type { CreateSessionDataParams } from "../../../utils/Types"
+import {
+  createActionConfig,
+  createActionData,
+  generateSalt,
+  getPermissionId,
+  toActionConfig,
+  toTimeRangePolicy
+} from "./Helper"
+import type {
+  EnableSessionsActionReturnParams,
+  EnableSessionsResponse
+} from "./Types"
 // Review: Execution type could either be used from our sdk or from module-sdk
 
 const UNIVERSAL_POLICY_ADDRESS = addresses.UniActionPolicy
 const SIMPLE_SESSION_VALIDATOR_ADDRESS = addresses.SimpleSessionValidator
 
-
-export type EnableSessionsParameters<TSmartAccount extends SmartAccount | undefined> =
-  GetSmartAccountParameter<TSmartAccount> & {
-    sessionRequestedInfo: CreateSessionDataParams[]
-    maxFeePerGas?: bigint
-    maxPriorityFeePerGas?: bigint
-    nonce?: bigint
-    signatureOverride?: Hex
+export type EnableSessionsParameters<
+  TSmartAccount extends SmartAccount | undefined
+> = GetSmartAccountParameter<TSmartAccount> & {
+  sessionRequestedInfo: CreateSessionDataParams[]
+  maxFeePerGas?: bigint
+  maxPriorityFeePerGas?: bigint
+  nonce?: bigint
+  signatureOverride?: Hex
 }
 
 // Note: WIP writing our own helper action for enabling sessions for USE mode.
 export const getSmartSessionValidatorEnableSessionsAction = async ({
-    sessionRequestedInfo,
-    client,
-    account, // TODO: review type
-  }: {
-    sessionRequestedInfo: CreateSessionDataParams[]
-    client: PublicClient
-    account: Account // TODO: review type
-  }): Promise<EnableSessionsActionReturnParams | Error> => {
-    console.log("account", account)
-    const sessions: Session[] = [];
-    const permissionIds: Hex[] = [];
+  sessionRequestedInfo,
+  client,
+  account // TODO: review type
+}: {
+  sessionRequestedInfo: CreateSessionDataParams[]
+  client: PublicClient
+  account: Account // TODO: review type
+}): Promise<EnableSessionsActionReturnParams | Error> => {
+  console.log("account", account)
+  const sessions: Session[] = []
+  const permissionIds: Hex[] = []
 
-    // Start populating the session for each param provided
-    for (const sessionInfo of sessionRequestedInfo) {
-        const actionPolicies: ActionData[] = [];
-        for (const actionPolicyInfo of sessionInfo.actionPoliciesInfo) {
-            // TODO: make it easy to generate rules for particular contract and selectors.
-            const actionConfig = createActionConfig(actionPolicyInfo.rules, actionPolicyInfo.valueLimit);
+  // Start populating the session for each param provided
+  for (const sessionInfo of sessionRequestedInfo) {
+    const actionPolicies: ActionData[] = []
+    for (const actionPolicyInfo of sessionInfo.actionPoliciesInfo) {
+      // TODO: make it easy to generate rules for particular contract and selectors.
+      const actionConfig = createActionConfig(
+        actionPolicyInfo.rules,
+        actionPolicyInfo.valueLimit
+      )
 
-            // TODO: use util instead to create uni action policy here..
-            // one may also pass baked up policyData.
+      // TODO: use util instead to create uni action policy here..
+      // one may also pass baked up policyData.
 
-            // create uni action policy here..
-            const uniActionPolicyData: PolicyData = {
-            policy: UNIVERSAL_POLICY_ADDRESS,
-            // Build initData for UniversalActionPolicy
-            initData: encodeAbiParameters(
-                UniActionPolicyAbi,
-                [toActionConfig(actionConfig)]
-                )
-            };
-            // create time range policy here..
-            const timeFramePolicyData: PolicyData = toTimeRangePolicy(actionPolicyInfo.validUntil, actionPolicyInfo.validAfter);
+      // create uni action policy here..
+      const uniActionPolicyData: PolicyData = {
+        policy: UNIVERSAL_POLICY_ADDRESS,
+        // Build initData for UniversalActionPolicy
+        initData: encodeAbiParameters(UniActionPolicyAbi, [
+          toActionConfig(actionConfig)
+        ])
+      }
+      // create time range policy here..
+      const timeFramePolicyData: PolicyData = toTimeRangePolicy(
+        actionPolicyInfo.validUntil,
+        actionPolicyInfo.validAfter
+      )
 
-            // Create ActionData
-            const actionPolicy = createActionData(
-                actionPolicyInfo.contractAddress,
-                actionPolicyInfo.functionSelector,
-                [uniActionPolicyData, timeFramePolicyData]
-            );
+      // Create ActionData
+      const actionPolicy = createActionData(
+        actionPolicyInfo.contractAddress,
+        actionPolicyInfo.functionSelector,
+        [uniActionPolicyData, timeFramePolicyData]
+      )
 
-            actionPolicies.push(actionPolicy);
-        }
-
-        const userOpTimeFramePolicyData: PolicyData = toTimeRangePolicy(sessionInfo.sessionValidUntil ?? 0, sessionInfo.sessionValidAfter ?? 0);
-
-        const session: Session = {
-            sessionValidator: sessionInfo.sessionValidatorAddress ?? SIMPLE_SESSION_VALIDATOR_ADDRESS,
-            sessionValidatorInitData: sessionInfo.sessionKeyData, // sessionValidatorInitData: abi.encodePacked(sessionSigner.addr),
-            salt: sessionInfo.salt ?? generateSalt(),
-            userOpPolicies: [userOpTimeFramePolicyData], //note: timeframe policy can also be applied to userOp, so it will have to be provided separately
-            actions: actionPolicies,
-            erc7739Policies: {
-              allowedERC7739Content: [],
-              erc1271Policies: []
-            }
-          };
-    
-          const permissionId = await getPermissionId({ client: client, session: session }) as Hex;
-          // push permissionId to the array
-          permissionIds.push(permissionId);
-    
-          // Push to sessions array
-          sessions.push(session);
+      actionPolicies.push(actionPolicy)
     }
 
-    const enableSessionsData = encodeFunctionData({
-      abi: SmartSessionAbi,
-      functionName: "enableSessions",
-      args: [sessions]
-    });
+    const userOpTimeFramePolicyData: PolicyData = toTimeRangePolicy(
+      sessionInfo.sessionValidUntil ?? 0,
+      sessionInfo.sessionValidAfter ?? 0
+    )
 
-    
-    return {
-      action: {
+    const session: Session = {
+      sessionValidator:
+        sessionInfo.sessionValidatorAddress ?? SIMPLE_SESSION_VALIDATOR_ADDRESS,
+      sessionValidatorInitData: sessionInfo.sessionKeyData, // sessionValidatorInitData: abi.encodePacked(sessionSigner.addr),
+      salt: sessionInfo.salt ?? generateSalt(),
+      userOpPolicies: [userOpTimeFramePolicyData], //note: timeframe policy can also be applied to userOp, so it will have to be provided separately
+      actions: actionPolicies,
+      erc7739Policies: {
+        allowedERC7739Content: [],
+        erc1271Policies: []
+      }
+    }
+
+    const permissionId = (await getPermissionId({
+      client: client,
+      session: session
+    })) as Hex
+    // push permissionId to the array
+    permissionIds.push(permissionId)
+
+    // Push to sessions array
+    sessions.push(session)
+  }
+
+  const enableSessionsData = encodeFunctionData({
+    abi: SmartSessionAbi,
+    functionName: "enableSessions",
+    args: [sessions]
+  })
+
+  return {
+    action: {
       target: addresses.SmartSession,
       value: BigInt(0),
-      callData: enableSessionsData,
-      },
-      permissionIds: permissionIds
-    }
+      callData: enableSessionsData
+    },
+    permissionIds: permissionIds
+  }
 }
 
 /**
@@ -129,7 +160,9 @@ export const getSmartSessionValidatorEnableSessionsAction = async ({
  * })
  * console.log(userOpHash) // '0x...'
  */
-export async function enableSessions<TSmartAccount extends SmartAccount | undefined>(
+export async function enableSessions<
+  TSmartAccount extends SmartAccount | undefined
+>(
   client: Client<Transport, Chain | undefined, TSmartAccount>,
   parameters: EnableSessionsParameters<TSmartAccount>
 ): Promise<EnableSessionsResponse> {
@@ -157,13 +190,13 @@ export async function enableSessions<TSmartAccount extends SmartAccount | undefi
     sessionRequestedInfo
   })
 
-  if ('action' in actionResponse) {
-    const { action } = actionResponse;
+  if ("action" in actionResponse) {
+    const { action } = actionResponse
     if (!("callData" in action)) {
       throw new Error("Error getting enable sessions action")
     }
-  
-    const userOpHash =  await getAction(
+
+    const userOpHash = (await getAction(
       client,
       sendUserOperation,
       "sendUserOperation"
@@ -180,18 +213,13 @@ export async function enableSessions<TSmartAccount extends SmartAccount | undefi
       nonce,
       account,
       signature: signatureOverride
-    }) as Hex
+    })) as Hex
 
     return {
       userOpHash: userOpHash,
       permissionIds: actionResponse.permissionIds
     }
-
-
   } else {
-    // Handle the error case
-    console.error('Error:', actionResponse.message);
     throw new Error("Error getting enable sessions action")
   }
 }
-

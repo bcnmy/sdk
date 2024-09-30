@@ -1,13 +1,12 @@
-import { type Hex } from "viem"
-import { type Execution } from "../../../utils/Types"
+import type { Hex } from "viem"
+import type { Execution } from "../../../utils/Types"
 
 export type EnableSessionsActionReturnParams = {
-    permissionIds: Hex[]
-    action: Execution
+  permissionIds: Hex[]
+  action: Execution
 }
 
 export type EnableSessionsResponse = {
-    userOpHash: Hex
-    permissionIds: Hex[]
+  userOpHash: Hex
+  permissionIds: Hex[]
 }
-
