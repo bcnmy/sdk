@@ -5,10 +5,10 @@ import {
   sendUserOperation
 } from "viem/account-abstraction"
 import { getAction, parseAccount } from "viem/utils"
+import type { NexusAccount } from "../../../../account"
 import { AccountNotFoundError } from "../../../../account/utils/AccountNotFound"
 import type { Execution } from "../../../utils/Types"
-import { type NexusAccount } from "../../../../account"
-import { type ToSmartSessionValidatorModuleReturnType } from "../tosmartSessionValidatorModule"
+import type { ToSmartSessionValidatorModuleReturnType } from "../tosmartSessionValidatorModule"
 // Review: Execution type could either be used from our sdk or from module-sdk
 
 // If the session is enabled for multiple actions, it is possible to send a batch transaction. hence it accepts an array of executions.
@@ -74,7 +74,9 @@ export async function useEnabledSession<
   const account = parseAccount(account_) as SmartAccount
   // const publicClient = account.client
 
-  const smartSessionValidator = (account as NexusAccount).getActiveValidationModule() as ToSmartSessionValidatorModuleReturnType
+  const smartSessionValidator = (
+    account as NexusAccount
+  ).getActiveValidationModule() as ToSmartSessionValidatorModuleReturnType
   smartSessionValidator.activePermissionId = permissionId
 
   return await getAction(

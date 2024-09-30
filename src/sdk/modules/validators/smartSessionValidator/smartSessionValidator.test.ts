@@ -5,10 +5,10 @@ import {
   type Chain,
   type Hex,
   type PublicClient,
+  encodeFunctionData,
   encodePacked,
   toBytes,
-  toHex,
-  encodeFunctionData
+  toHex
 } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { TEST_CONTRACTS } from "../../../../test/callDatas"
@@ -307,9 +307,9 @@ describe("modules.smartSessionValidator.write", async () => {
           target: TEST_CONTRACTS.Counter.address,
           value: 0n,
           callData: encodeFunctionData({
-              abi: CounterAbi,
-              functionName: "incrementNumber",
-              args: []
+            abi: CounterAbi,
+            functionName: "incrementNumber",
+            args: []
           })
         }
       ],
