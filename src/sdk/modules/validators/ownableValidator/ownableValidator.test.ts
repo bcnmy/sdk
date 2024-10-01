@@ -73,7 +73,7 @@ describe("modules.ownableValidator", async () => {
     await fundAndDeployClients(testClient, [nexusClient])
 
     ownableValidatorModule = await toOwnableValidatorModule({
-      nexusAccountAddress: nexusClient.account.address,
+      accountAddress: nexusClient.account.address,
       client: nexusClient.account.client as PublicClient,
       initData: encodeAbiParameters(
         [
@@ -86,7 +86,7 @@ describe("modules.ownableValidator", async () => {
     })
 
     k1ValidatorModule = await toK1ValidatorModule({
-      nexusAccountAddress: nexusClient.account.address,
+      accountAddress: nexusClient.account.address,
       client: nexusClient.account.client as PublicClient,
       initData: encodePacked(["address"], [eoaAccount.address]),
       deInitData: encodePacked(["address"], [eoaAccount.address])
@@ -128,7 +128,7 @@ describe("modules.ownableValidator", async () => {
       await nexusClient.waitForUserOperationReceipt({ hash: installHash })
     expect(installSuccess).toBe(true)
 
-    nexusClient.account.setActiveValidationModule(ownableValidatorModule)
+    nexusClient.account.setActiveModule(ownableValidatorModule)
   })
 
   test("should add accountTwo as owner", async () => {
@@ -149,9 +149,7 @@ describe("modules.ownableValidator", async () => {
   })
 
   test("should remove an owner", async () => {
-    const activeValidationModuleAfter =
-      nexusClient.account.getActiveValidationModule()
-    expect(activeValidationModuleAfter.address).toBe(
+    expect(nexusClient.account.getActiveModule().address).toBe(
       ownableValidatorModule.address
     )
 
@@ -165,6 +163,7 @@ describe("modules.ownableValidator", async () => {
       calls: [removeOwnerTx]
     })
     const dummyUserOpHash = await nexusClient.account.getUserOpHash(userOp)
+
     const signature1 = await eoaAccount?.signMessage?.({
       message: { raw: dummyUserOpHash }
     })
@@ -220,9 +219,7 @@ describe("modules.ownableValidator", async () => {
   }, 90000)
 
   test("should require 2 signatures to send user operation", async () => {
-    const activeValidationModuleAfter =
-      nexusClient.account.getActiveValidationModule()
-    expect(activeValidationModuleAfter.address).toBe(
+    expect(nexusClient.account.getActiveModule().address).toBe(
       ownableValidatorModule.address
     )
 
