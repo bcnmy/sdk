@@ -33,7 +33,7 @@ import {
   type ToK1ValidatorModuleReturnType,
   toK1ValidatorModule
 } from "../validators/k1Validator/toK1ValidatorModule"
-import { TEST_CONTRACTS } from "./../../../test/callDatas"
+import { testAddresses } from "./../../../test/callDatas"
 
 describe("modules.ownableExecutor", async () => {
   let network: NetworkConfig
@@ -89,7 +89,7 @@ describe("modules.ownableExecutor", async () => {
     const isInstalled = await nexusClient.isModuleInstalled({
       module: {
         type: "executor",
-        address: TEST_CONTRACTS.OwnableExecutor.address
+        address: testAddresses.OwnableExecutor
       }
     })
     expect(isInstalled).toBe(false)
@@ -97,7 +97,7 @@ describe("modules.ownableExecutor", async () => {
     const userOpHash = await nexusClient.installModule({
       module: {
         type: "executor",
-        address: TEST_CONTRACTS.OwnableExecutor.address,
+        address: testAddresses.OwnableExecutor,
         data: encodePacked(["address"], [eoaAccount.address])
       }
     })
@@ -110,7 +110,7 @@ describe("modules.ownableExecutor", async () => {
     const isInstalledAfter = await nexusClient.isModuleInstalled({
       module: {
         type: "executor",
-        address: TEST_CONTRACTS.OwnableExecutor.address
+        address: testAddresses.OwnableExecutor
       }
     })
     expect(isInstalledAfter).toBe(true)
@@ -129,7 +129,7 @@ describe("modules.ownableExecutor", async () => {
     const userOpHash = await nexusClient.sendTransaction({
       calls: [
         {
-          to: TEST_CONTRACTS.OwnableExecutor.address,
+          to: testAddresses.OwnableExecutor,
           data: execution.callData,
           value: 0n
         }
@@ -138,7 +138,7 @@ describe("modules.ownableExecutor", async () => {
     expect(userOpHash).toBeDefined()
     const masterClient = nexusClient.account.client as MasterClient
     const owners = await masterClient.readContract({
-      address: TEST_CONTRACTS.OwnableExecutor.address,
+      address: testAddresses.OwnableExecutor,
       abi: parseAbi([
         "function getOwners(address account) external view returns (address[])"
       ]),
@@ -163,7 +163,7 @@ describe("modules.ownableExecutor", async () => {
     const client = nexusClient.account.client as WalletClient
     const hash = await client.sendTransaction({
       account: recipient,
-      to: TEST_CONTRACTS.OwnableExecutor.address,
+      to: testAddresses.OwnableExecutor,
       data: executeOnOwnedAccountExecution.callData,
       chain,
       value: 0n

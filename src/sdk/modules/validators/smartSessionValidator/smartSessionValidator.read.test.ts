@@ -1,7 +1,7 @@
 import { http, type Account, type Address, type Chain, pad, toHex } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { parseReferenceValue } from "../../utils/Helper"
-import { TEST_CONTRACTS } from "../../../../test/callDatas"
+import { testAddresses } from "../../../../test/callDatas"
 import { toNetwork } from "../../../../test/testSetup"
 import {
   fundAndDeployClients,
@@ -58,8 +58,8 @@ describe("smart.sessions", async () => {
 
   test("should have smart account bytecode", async () => {
     const bytecodes = await Promise.all(
-      [TEST_CONTRACTS.SmartSession, TEST_CONTRACTS.UniActionPolicy].map(
-        (address) => testClient.getCode(address)
+      [testAddresses.SmartSession, testAddresses.UniActionPolicy].map(
+        (address) => testClient.getCode({ address })
       )
     )
     expect(bytecodes.every((bytecode) => !!bytecode?.length)).toBeTruthy()
@@ -111,7 +111,7 @@ describe("smart.sessions", async () => {
     const installUniversalPolicy = policies.to.universalAction(actionConfigData)
 
     expect(installUniversalPolicy.address).toEqual(
-      TEST_CONTRACTS.UniActionPolicy.address
+      testAddresses.UniActionPolicy
     )
     expect(installUniversalPolicy.initData).toBeDefined()
     expect(installUniversalPolicy.deInitData).toEqual("0x")

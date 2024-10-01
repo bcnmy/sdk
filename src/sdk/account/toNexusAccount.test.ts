@@ -39,12 +39,10 @@ import {
   type NexusClient,
   createNexusClient
 } from "../clients/createNexusClient"
-import { type NexusAccount, toNexusAccount } from "./toNexusAccount"
-import { getAccountDomainStructFields } from "./utils"
+import type { NexusAccount } from "./toNexusAccount"
+import { getAccountDomainStructFields, getAccountMeta } from "./utils"
 import {
-  NEXUS_DOMAIN_NAME,
   NEXUS_DOMAIN_TYPEHASH,
-  NEXUS_DOMAIN_VERSION,
   PARENT_TYPEHASH,
   eip1271MagicValue
 } from "./utils/Constants"
@@ -93,6 +91,8 @@ describe("nexus.account", async () => {
   })
 
   test("should check isValidSignature PersonalSign is valid", async () => {
+    const meta = await getAccountMeta(testClient, nexusAccountAddress)
+
     const data = hashMessage("0x1234")
 
     // Calculate the domain separator
@@ -101,8 +101,8 @@ describe("nexus.account", async () => {
         parseAbiParameters("bytes32, bytes32, bytes32, uint256, address"),
         [
           keccak256(toBytes(NEXUS_DOMAIN_TYPEHASH)),
-          keccak256(toBytes(NEXUS_DOMAIN_NAME)),
-          keccak256(toBytes(NEXUS_DOMAIN_VERSION)),
+          keccak256(toBytes(meta.name)),
+          keccak256(toBytes(meta.version)),
           BigInt(chain.id),
           nexusAccountAddress
         ]
@@ -271,7 +271,7 @@ describe("nexus.account", async () => {
     )
 
     const contractResponse = await testClient.readContract({
-      address: await nexusAccount.getAddress(),
+      address: nexusAccountAddress,
       abi: NexusAbi,
       functionName: "isValidSignature",
       args: [typedHashHashed, finalSignature]
