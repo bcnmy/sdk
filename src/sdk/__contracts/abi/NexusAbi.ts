@@ -337,6 +337,25 @@ export const NexusAbi = [
     anonymous: false,
     inputs: [
       {
+        indexed: false,
+        internalType: "address",
+        name: "hook",
+        type: "address"
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "timestamp",
+        type: "uint256"
+      }
+    ],
+    name: "EmergencyHookUninstallRequestReset",
+    type: "event"
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
         components: [
           {
             internalType: "address",
@@ -1044,25 +1063,6 @@ export const NexusAbi = [
   {
     inputs: [],
     name: "supportsNestedTypedDataSign",
-    outputs: [
-      {
-        internalType: "bytes32",
-        name: "",
-        type: "bytes32"
-      }
-    ],
-    stateMutability: "view",
-    type: "function"
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "validator",
-        type: "address"
-      }
-    ],
-    name: "supportsNestedTypedDataSignWithValidator",
     outputs: [
       {
         internalType: "bytes32",

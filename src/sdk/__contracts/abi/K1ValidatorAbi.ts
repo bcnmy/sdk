@@ -28,6 +28,19 @@ export const K1ValidatorAbi = [
     inputs: [
       {
         internalType: "address",
+        name: "sender",
+        type: "address"
+      }
+    ],
+    name: "addSafeSender",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
         name: "smartAccount",
         type: "address"
       }
@@ -47,7 +60,7 @@ export const K1ValidatorAbi = [
     inputs: [
       {
         internalType: "uint256",
-        name: "typeID",
+        name: "typeId",
         type: "uint256"
       }
     ],
@@ -66,36 +79,7 @@ export const K1ValidatorAbi = [
     inputs: [
       {
         internalType: "address",
-        name: "",
-        type: "address"
-      },
-      {
-        internalType: "bytes32",
-        name: "hash",
-        type: "bytes32"
-      },
-      {
-        internalType: "bytes",
-        name: "data",
-        type: "bytes"
-      }
-    ],
-    name: "isValidSignatureWithSender",
-    outputs: [
-      {
-        internalType: "bytes4",
-        name: "",
-        type: "bytes4"
-      }
-    ],
-    stateMutability: "view",
-    type: "function"
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "",
+        name: "sender",
         type: "address"
       },
       {
@@ -109,11 +93,11 @@ export const K1ValidatorAbi = [
         type: "bytes"
       }
     ],
-    name: "isValidSignatureWithSenderLegacy",
+    name: "isValidSignatureWithSender",
     outputs: [
       {
         internalType: "bytes4",
-        name: "",
+        name: "sigValidationResult",
         type: "bytes4"
       }
     ],
@@ -155,6 +139,19 @@ export const K1ValidatorAbi = [
       }
     ],
     name: "onUninstall",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "sender",
+        type: "address"
+      }
+    ],
+    name: "removeSafeSender",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function"

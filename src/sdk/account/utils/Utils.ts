@@ -165,7 +165,9 @@ export function convertToFactor(percentage: number | undefined): number {
 
 export function makeInstallDataAndHash(
   accountOwner: Address,
-  modules: { type: ModuleType; config: Hex }[]
+  modules: { type: ModuleType; config: Hex }[],
+  domainName = NEXUS_DOMAIN_NAME,
+  domainVersion = NEXUS_DOMAIN_VERSION
 ): [string, string] {
   const types = modules.map((module) => BigInt(moduleTypeIds[module.type]))
   const initDatas = modules.map((module) =>
@@ -190,8 +192,8 @@ export function makeInstallDataAndHash(
 
   const hashToSign = _hashTypedData(
     structHash,
-    "Nexus",
-    "1.0.0-beta",
+    domainName,
+    domainVersion,
     accountOwner
   )
 
@@ -247,7 +249,7 @@ export function getTypesForEIP712Domain({
     domain?.salt && { name: "salt", type: "bytes32" }
   ].filter(Boolean) as TypedDataParameter[]
 }
-export const accountMetadata = async (
+export const getAccountMeta = async (
   client: Client,
   accountAddress: Address
 ): Promise<AccountMetadata> => {

@@ -17,7 +17,7 @@ export const K1ValidatorFactoryAbi = [
         type: "address"
       },
       {
-        internalType: "contract Bootstrap",
+        internalType: "contract NexusBootstrap",
         name: "bootstrapper",
         type: "address"
       },
@@ -153,7 +153,7 @@ export const K1ValidatorFactoryAbi = [
     name: "BOOTSTRAPPER",
     outputs: [
       {
-        internalType: "contract Bootstrap",
+        internalType: "contract NexusBootstrap",
         name: "",
         type: "address"
       }
