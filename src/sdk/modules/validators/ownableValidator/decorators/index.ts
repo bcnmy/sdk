@@ -6,15 +6,9 @@ import { type SetThresholdParameters, setThreshold } from "./setThreshold"
 export type OwnableValidatorActions<
   TSmartAccount extends SmartAccount | undefined
 > = {
-  addOwner: (
-    args: AddOwnerParameters<TSmartAccount>
-  ) => Promise<Hash>
-  removeOwner: (
-    args: RemoveOwnerParameters<TSmartAccount>
-  ) => Promise<Hash>
-  setThreshold: (
-    args: SetThresholdParameters<TSmartAccount>
-  ) => Promise<Hash>
+  addOwner: (args: AddOwnerParameters<TSmartAccount>) => Promise<Hash>
+  removeOwner: (args: RemoveOwnerParameters<TSmartAccount>) => Promise<Hash>
+  setThreshold: (args: SetThresholdParameters<TSmartAccount>) => Promise<Hash>
 }
 
 export function ownableValidatorActions() {

@@ -3,7 +3,7 @@ import type {
   SmartSessionMode
 } from "@rhinestone/module-sdk"
 import type { AbiFunction, Address, Chain, Hex } from "viem"
-import { type AnyReferenceValue } from "../.."
+import type { AnyReferenceValue } from "../.."
 // import type { Signer, UnknownSigner } from "../../account/utils/toSigner"
 
 // Review:
@@ -190,7 +190,3 @@ export type SpendingLimitsParams = {
   token: Address
   limit: bigint
 }[]
-
-
-
-

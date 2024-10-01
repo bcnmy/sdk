@@ -24,7 +24,6 @@ import {
   toTestClient
 } from "../../../test/testUtils"
 import type { MasterClient, NetworkConfig } from "../../../test/testUtils"
-import addresses from "../../__contracts/addresses"
 import {
   type NexusClient,
   createNexusClient
