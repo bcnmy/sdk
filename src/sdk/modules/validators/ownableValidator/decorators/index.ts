@@ -1,4 +1,4 @@
-import type { Chain, Client, Hash, Hex, Transport } from "viem"
+import type { Chain, Client, Hash, Transport } from "viem"
 import type { SmartAccount } from "viem/account-abstraction"
 import { type AddOwnerParameters, addOwner } from "./addOwner"
 import { type RemoveOwnerParameters, removeOwner } from "./removeOwner"
@@ -6,21 +6,14 @@ import { type SetThresholdParameters, setThreshold } from "./setThreshold"
 export type OwnableValidatorActions<
   TSmartAccount extends SmartAccount | undefined
 > = {
-  // Review: signatureOverride is already part of AddOwnerParameters.
   addOwner: (
-    args: AddOwnerParameters<TSmartAccount> & {
-      signatureOverride?: Hex
-    }
+    args: AddOwnerParameters<TSmartAccount>
   ) => Promise<Hash>
   removeOwner: (
-    args: RemoveOwnerParameters<TSmartAccount> & {
-      signatureOverride?: Hex
-    }
+    args: RemoveOwnerParameters<TSmartAccount>
   ) => Promise<Hash>
   setThreshold: (
-    args: SetThresholdParameters<TSmartAccount> & {
-      signatureOverride?: Hex
-    }
+    args: SetThresholdParameters<TSmartAccount>
   ) => Promise<Hash>
 }
 

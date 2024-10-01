@@ -11,10 +11,6 @@ import type { Module, ModuleImplementation } from "../types"
 
 const DUMMY_ECDSA_SIG =
   "0xe8b94748580ca0b4993c9a1b86b5be851bfc076ff5ce3a1ff65bf16392acfcb800f9b4f1aef1555c7fce5599fffb17e7c635502154a0333ba21f3ae491839af51c"
-// Note: possibly only needed in decorators
-// const UNIVERSAL_POLICY_ADDRESS = addresses.UniActionPolicy
-// const TIMEFRAME_POLICY_ADDRESS = addresses.TimeframePolicy
-// const SIMPLE_SESSION_VALIDATOR_ADDRESS = addresses.SimpleSessionValidator
 
 export type ToSmartSessionValidatorModuleReturnType = Prettify<
   Module<SmartSessionValidatorModuleImplementation>

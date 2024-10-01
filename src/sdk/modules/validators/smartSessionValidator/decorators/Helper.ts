@@ -4,6 +4,7 @@ import {
   type Address,
   type Hex,
   type PublicClient,
+  encodeAbiParameters,
   encodePacked,
   pad,
   toBytes,
@@ -12,9 +13,12 @@ import {
 import { parseReferenceValue } from "../../.."
 import { SmartSessionAbi } from "../../../../__contracts/abi/SmartSessionAbi"
 import addresses from "../../../../__contracts/addresses"
-import type { ActionConfig, ParamRule } from "../../../utils/Types"
+import type { ActionConfig, Policy, RawActionConfig, Rule, SpendingLimitsParams } from "../../../utils/Types"
+import { UniActionPolicyAbi } from "../../../../__contracts/abi"
 
 const TIMEFRAME_POLICY_ADDRESS = addresses.TimeframePolicy
+
+export const MAX_RULES = 16
 
 export const generateSalt = (): Hex => {
   const randomBytes = new Uint8Array(32)
@@ -25,7 +29,7 @@ export const generateSalt = (): Hex => {
 }
 
 export const createActionConfig = (
-  rules: ParamRule[],
+  rules: Rule[],
   valueLimit: bigint
 ): ActionConfig => {
   return {
@@ -51,15 +55,15 @@ export const createActionData = (
   }
 }
 
-export const toActionConfig = (config: ActionConfig): ActionConfig => {
+export const toActionConfig = (config: ActionConfig): RawActionConfig => {
   // Ensure we always have 16 rules, filling with default values if necessary
   const filledRules = [...config.paramRules.rules]
 
   // Fill the rest with default ParamRule if the length is less than 16
-  while (filledRules.length < 16) {
+  while (filledRules.length < MAX_RULES) {
     filledRules.push({
       condition: 0, // Default condition (EQUAL)
-      offset: 0, // Default offsetIndex
+      offsetIndex: 0, // Default offset
       isLimited: false, // Default isLimited flag
       ref: "0x0000000000000000000000000000000000000000000000000000000000000000", // Default bytes32 ref
       usage: {
@@ -77,7 +81,7 @@ export const toActionConfig = (config: ActionConfig): ActionConfig => {
         const parsedRef = parseReferenceValue(rule.ref)
         return {
           condition: rule.condition,
-          offset: rule.offset * 32, // Ensure correct offset calculation
+          offset: BigInt(rule.offsetIndex) * BigInt(32),
           isLimited: rule.isLimited,
           ref: parsedRef,
           usage: rule.usage
@@ -85,7 +89,10 @@ export const toActionConfig = (config: ActionConfig): ActionConfig => {
       })
     }
   }
+
+
 }
+  
 
 export const toTimeRangePolicy = (
   validUntil: number,
@@ -143,3 +150,40 @@ export const isSessionEnabled = async ({
     args: [permissionId, accountAddress]
   })) as boolean
 }
+
+export const toUniversalActionPolicy = (
+  actionConfig: ActionConfig
+): Policy => ({
+  address: "0x28120dC008C36d95DE5fa0603526f219c1Ba80f6",
+  initData: encodeAbiParameters(UniActionPolicyAbi, [
+    toActionConfig(actionConfig)
+  ]),
+  deInitData: "0x"
+})
+
+export const sudoPolicy: Policy = {
+  address: "0x",
+  initData: "0x",
+  deInitData: "0x"
+}
+
+export const toSpendingLimitsPolicy = (params: SpendingLimitsParams): Policy => {
+  return {
+    address: "0xDe9688b24c00699Ad51961ef90Ce5a9a8C49982B",
+    initData: encodeAbiParameters(
+      [{ type: "address[]" }, { type: "uint256[]" }],
+      [params.map(({ token }) => token), params.map(({ limit }) => limit)]
+    ),
+    deInitData: "0x"
+  }
+}
+
+export const policies = {
+  to: {
+    universalAction: toUniversalActionPolicy,
+    spendingLimits: toSpendingLimitsPolicy
+  },
+  sudo: sudoPolicy
+} as const
+
+export default policies

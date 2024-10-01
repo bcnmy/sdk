@@ -48,7 +48,6 @@ export type EnableSessionsParameters<
   signatureOverride?: Hex
 }
 
-// Note: WIP writing our own helper action for enabling sessions for USE mode.
 export const getSmartSessionValidatorEnableSessionsAction = async ({
   sessionRequestedInfo,
   client,
@@ -109,7 +108,7 @@ export const getSmartSessionValidatorEnableSessionsAction = async ({
         sessionInfo.sessionValidatorAddress ?? SIMPLE_SESSION_VALIDATOR_ADDRESS,
       sessionValidatorInitData: sessionInfo.sessionKeyData, // sessionValidatorInitData: abi.encodePacked(sessionSigner.addr),
       salt: sessionInfo.salt ?? generateSalt(),
-      userOpPolicies: [userOpTimeFramePolicyData], //note: timeframe policy can also be applied to userOp, so it will have to be provided separately
+      userOpPolicies: [userOpTimeFramePolicyData],
       actions: actionPolicies,
       erc7739Policies: {
         allowedERC7739Content: [],
@@ -150,6 +149,7 @@ export const getSmartSessionValidatorEnableSessionsAction = async ({
  * @param client - The client instance.
  * @param parameters - Parameters including the smart account, required session specific policies info, and optional gas settings.
  * @returns The hash of the user operation as a hexadecimal string.
+ * @returns An array of permission ids corresponding to the sessions enabled.
  * @throws {AccountNotFoundError} If the account is not found.
  *
  * @example
@@ -219,7 +219,6 @@ export async function enableSessions<
       userOpHash: userOpHash,
       permissionIds: actionResponse.permissionIds
     }
-  } else {
-    throw new Error("Error getting enable sessions action")
   }
+  throw new Error("Error getting enable sessions action")
 }

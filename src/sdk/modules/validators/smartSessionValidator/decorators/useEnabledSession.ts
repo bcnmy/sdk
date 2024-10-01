@@ -68,9 +68,6 @@ export async function useEnabledSession<
     })
   }
 
-  // Review: could be removed.
-  console.log("permissionId", permissionId)
-
   const account = parseAccount(account_) as SmartAccount
   // const publicClient = account.client
 

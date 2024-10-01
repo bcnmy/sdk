@@ -47,7 +47,6 @@ export async function addOwner<TSmartAccount extends SmartAccount | undefined>(
   } = parameters
 
   if (!account_) {
-    // Review: if this should be same for methods in different decorators.
     throw new AccountNotFoundError({
       docsPath: "/docs/actions/wallet/sendTransaction"
     })
@@ -56,7 +55,6 @@ export async function addOwner<TSmartAccount extends SmartAccount | undefined>(
   const account = parseAccount(account_) as SmartAccount
   const publicClient = account.client
 
-  // Review: you may want to rename this.
   const action = await getAddOwnableValidatorOwnerAction({
     account: { address: account.address, deployedOnChains: [], type: "nexus" },
     client: publicClient as any,

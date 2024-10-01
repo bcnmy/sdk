@@ -11,6 +11,7 @@ import {
   toHex
 } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
+import { CounterAbi } from "../../../../test/__contracts/abi/CounterAbi"
 import { TEST_CONTRACTS } from "../../../../test/callDatas"
 import { toNetwork } from "../../../../test/testSetup"
 import {
@@ -21,7 +22,6 @@ import {
   toTestClient
 } from "../../../../test/testUtils"
 import type { MasterClient, NetworkConfig } from "../../../../test/testUtils"
-import { CounterAbi } from "../../../../test/__contracts/abi/CounterAbi"
 import addresses from "../../../__contracts/addresses"
 import {
   type NexusClient,
@@ -181,15 +181,6 @@ describe("modules.smartSessionValidator.write", async () => {
 
     expect(isInstalledBefore).toBe(true)
 
-    // TODO: marked for deletion if we do not use any getters
-    const smartSessionValidator = await toSmartSessionValidatorModule({
-      client: nexusClient.account.client as PublicClient,
-      initData: encodePacked(["address"], [eoaAccount.address]),
-      deInitData: "0x",
-      nexusAccountAddress: nexusClient.account.address,
-      activePermissionId: "0x"
-    })
-
     // make EOA owner of SA session key as well
     const sessionKeyEOA = eoaAccount.address
 
@@ -216,7 +207,6 @@ describe("modules.smartSessionValidator.write", async () => {
       smartSessionValidatorActions()
     )
 
-    // Review: if this looks good
     const enableSessionsResponse = await smartSessionNexusClient.enableSessions(
       {
         account: nexusClient.account,
@@ -254,9 +244,6 @@ describe("modules.smartSessionValidator.write", async () => {
     })
     expect(isEnabled).toBe(true)
 
-    // console.log({ cachedPermissionId })
-
-    // TODO: marked for deletion if we do not use any getters
     const smartSessionValidator = await toSmartSessionValidatorModule({
       client: nexusClient.account.client as PublicClient,
       initData: encodePacked(["address"], [eoaAccount.address]),
@@ -278,20 +265,6 @@ describe("modules.smartSessionValidator.write", async () => {
     // await testClient.setNextBlockTimestamp({
     //   timestamp: 9727001666n
     // })
-
-    // TODO: dev notes below: marked for deletion
-    // Note: this is possible and maybe pass to prepareUserOperation if that path is probable.
-    // const stubSig = await smartSessionValidator.getStubSignature({permissionId: cachedPermissionId})
-
-    // Note: this is possible and maybe pass to sendTransaction/sendUseroperation a final signature. It would need userOpHash built prior, using prepareUseroperation?
-    // const stubSig = await smartSessionValidator.signUserOpHash(mockUserOpHash, {permissionId: cachedPermissionId})
-
-    // Note: possibly can not be used. unless useEnabledSession decorator works
-    // ^ (that would in turn either need activePermisisonId to set or perhaps sending overridden sig to sendUserOperation)
-    // const smartSessionNexusClient = nexusClient.extend(smartSessionValidatorActions())
-
-    // Note: POC
-    // smartSessionValidator.activePermissionId = cachedPermissionId
 
     // set active validation module
     nexusClient.account.setActiveValidationModule(smartSessionValidator)
