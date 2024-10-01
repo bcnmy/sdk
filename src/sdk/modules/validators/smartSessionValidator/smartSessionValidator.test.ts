@@ -21,7 +21,7 @@ import {
   toTestClient
 } from "../../../../test/testUtils"
 import type { MasterClient, NetworkConfig } from "../../../../test/testUtils"
-import { CounterAbi } from "../../../__contracts/abi/CounterAbi"
+import { CounterAbi } from "../../../../test/__contracts/abi/CounterAbi"
 import addresses from "../../../__contracts/addresses"
 import {
   type NexusClient,
