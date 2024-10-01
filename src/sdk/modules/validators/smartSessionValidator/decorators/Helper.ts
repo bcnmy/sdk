@@ -11,10 +11,16 @@ import {
   toHex
 } from "viem"
 import { parseReferenceValue } from "../../.."
+import { UniActionPolicyAbi } from "../../../../__contracts/abi"
 import { SmartSessionAbi } from "../../../../__contracts/abi/SmartSessionAbi"
 import addresses from "../../../../__contracts/addresses"
-import type { ActionConfig, Policy, RawActionConfig, Rule, SpendingLimitsParams } from "../../../utils/Types"
-import { UniActionPolicyAbi } from "../../../../__contracts/abi"
+import type {
+  ActionConfig,
+  Policy,
+  RawActionConfig,
+  Rule,
+  SpendingLimitsParams
+} from "../../../utils/Types"
 
 const TIMEFRAME_POLICY_ADDRESS = addresses.TimeframePolicy
 
@@ -89,10 +95,7 @@ export const toActionConfig = (config: ActionConfig): RawActionConfig => {
       })
     }
   }
-
-
 }
-  
 
 export const toTimeRangePolicy = (
   validUntil: number,
@@ -167,7 +170,9 @@ export const sudoPolicy: Policy = {
   deInitData: "0x"
 }
 
-export const toSpendingLimitsPolicy = (params: SpendingLimitsParams): Policy => {
+export const toSpendingLimitsPolicy = (
+  params: SpendingLimitsParams
+): Policy => {
   return {
     address: "0xDe9688b24c00699Ad51961ef90Ce5a9a8C49982B",
     initData: encodeAbiParameters(

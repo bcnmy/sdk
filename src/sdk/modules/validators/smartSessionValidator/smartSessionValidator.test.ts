@@ -30,7 +30,7 @@ import {
 import type { CreateSessionDataParams } from "../../utils/Types"
 import { smartSessionValidatorActions } from "./decorators"
 import { isSessionEnabled } from "./decorators/Helper"
-import { toSmartSessionValidatorModule } from "./tosmartSessionValidatorModule"
+import { toSmartSessionValidatorModule } from "./toSmartSessionValidatorModule"
 
 describe("modules.smartSessionValidator.write", async () => {
   let network: NetworkConfig

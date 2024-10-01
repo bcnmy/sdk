@@ -1,6 +1,6 @@
 import { http, type Account, type Address, type Chain, pad, toHex } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
-import { parseReferenceValue } from "../../utils/Helper"
+import { ParamCondition } from "../../.."
 import { TEST_CONTRACTS } from "../../../../test/callDatas"
 import { toNetwork } from "../../../../test/testSetup"
 import {
@@ -14,9 +14,8 @@ import {
   type NexusClient,
   createNexusClient
 } from "../../../clients/createNexusClient"
+import { parseReferenceValue } from "../../utils/Helper"
 import policies from "./decorators/Helper"
-import { ParamCondition } from "../../.."
-
 
 describe("smart.sessions", async () => {
   let network: NetworkConfig
