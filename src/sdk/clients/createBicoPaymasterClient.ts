@@ -5,6 +5,8 @@ import {
   createPaymasterClient
 } from "viem/account-abstraction"
 
+export type BicoPaymasterClient = Omit<PaymasterClient, "getPaymasterStubData">
+
 /**
  * Configuration options for creating a Bico Paymaster Client.
  * @typedef {Object} BicoPaymasterClientConfig
@@ -33,8 +35,8 @@ type BicoPaymasterClientConfig = Omit<PaymasterClientConfig, "transport"> &
 export const biconomyPaymasterContext = {
   mode: "SPONSORED",
   expiryDuration: 300,
+  calculateGasLimits: true,
   sponsorshipInfo: {
-    webhookData: {},
     smartAccountInfo: {
       name: "BICONOMY",
       version: "1.0.0"
@@ -65,7 +67,7 @@ export const biconomyPaymasterContext = {
  */
 export const createBicoPaymasterClient = (
   parameters: BicoPaymasterClientConfig
-): PaymasterClient => {
+): BicoPaymasterClient => {
   const defaultedTransport = parameters.transport
     ? parameters.transport
     : parameters.paymasterUrl
@@ -74,8 +76,11 @@ export const createBicoPaymasterClient = (
           `https://paymaster.biconomy.io/api/v2/${parameters.chainId}/${parameters.apiKey}`
         )
 
-  return createPaymasterClient({
+  // Remove getPaymasterStubData from the client.
+  const { getPaymasterStubData, ...paymasterClient } = createPaymasterClient({
     ...parameters,
     transport: defaultedTransport
   })
+
+  return paymasterClient
 }
