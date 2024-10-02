@@ -84,7 +84,7 @@ export type OwnableValidatorModuleImplementation = Assign<
  * Creates an Ownable Validator Module instance.
  * This module allows management of owners and thresholds for a Nexus account.
  *
- * @param nexusAccountAddress The address of the Nexus account.
+ * @param accountAddress The address of the Nexus account.
  * @param client The client instance.
  * @param initData Initialization data for the module.
  * @param deInitData De-initialization data for the module.
@@ -92,7 +92,7 @@ export type OwnableValidatorModuleImplementation = Assign<
  *
  * @example
  * const module = await toOwnableValidatorModule({
- *   nexusAccountAddress: '0x1234...',
+ *   accountAddress: '0x1234...',
  *   client: nexusClient,
  *   initData: '0x...',
  *   deInitData: '0x...'
@@ -104,25 +104,25 @@ export type OwnableValidatorModuleImplementation = Assign<
  * const addOwnerTx = await module.getAddOwnerTx('0x5678...');
  */
 export const toOwnableValidatorModule = async ({
-  nexusAccountAddress,
+  accountAddress,
   client,
   initData,
   deInitData
 }: {
-  nexusAccountAddress: Hex
+  accountAddress: Hex
   initData: Hex
   deInitData: Hex
   client: Client
 }): Promise<ToOwnableValidatorModuleReturnType> => {
   const signer = await toSigner({ signer: client.account as Account })
   const nexusAccount = getAccount({
-    address: nexusAccountAddress,
+    address: accountAddress,
     type: "nexus"
   })
 
   return toValidationModule({
     signer,
-    nexusAccountAddress,
+    accountAddress,
     address: OWNABLE_VALIDATOR_ADDRESS,
     initData,
     deInitData,

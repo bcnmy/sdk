@@ -8,7 +8,7 @@
   "sideEffects": false,
   "name": "@biconomy/sdk",
   "author": "Biconomy",
-  "version": "0.0.1",
+  "version": "0.0.0",
   "description": "SDK for Biconomy integration with support for account abstraction, smart accounts, ERC-4337.",
   "keywords": [
     "erc-7579",
@@ -67,6 +67,7 @@
     "changeset": "changeset",
     "changeset:release": "bun run build && changeset publish",
     "changeset:version": "changeset version && bun install --lockfile-only",
+    "changeset:release:canary": "bun run scripts/publish:canary.ts && bun run changeset:release && git reset --hard && git clean -fd",
     "esm:watch": "tsc --project ./tsconfig/tsconfig.esm.json --watch",
     "cjs:watch": "tsc --project ./tsconfig/tsconfig.cjs.json --watch",
     "esm:watch:aliases": "tsc-alias -p ./tsconfig/tsconfig.esm.json --watch",

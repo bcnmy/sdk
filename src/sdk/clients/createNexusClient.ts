@@ -147,7 +147,7 @@ export type NexusClientConfig<
     /** Index of the account. */
     index?: bigint
     /** Active module of the account. */
-    activeValidationModule?: ToValidationModuleReturnType
+    activeModule?: ToValidationModuleReturnType
     /** Factory address of the account. */
     factoryAddress?: Address
     /** Owner module */
@@ -187,7 +187,7 @@ export async function createNexusClient(
     name = "Nexus Client",
     accountName,
     accountKey,
-    activeValidationModule,
+    activeModule,
     factoryAddress = contracts.k1ValidatorFactory.address,
     k1ValidatorAddress = contracts.k1Validator.address,
     bundlerTransport,
@@ -204,7 +204,7 @@ export async function createNexusClient(
     chain,
     signer,
     index,
-    activeValidationModule,
+    activeModule,
     factoryAddress,
     k1ValidatorAddress
   })
