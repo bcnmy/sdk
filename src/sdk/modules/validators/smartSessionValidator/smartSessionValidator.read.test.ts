@@ -1,6 +1,6 @@
 import { http, type Account, type Address, type Chain, pad, toHex } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
-import { ParamCondition } from "../../.."
+import { ParamCondition } from "./Types"
 import { testAddresses } from "./../../../../test/callDatas"
 import { toNetwork } from "../../../../test/testSetup"
 import {
@@ -15,7 +15,7 @@ import {
   createNexusClient
 } from "../../../clients/createNexusClient"
 import { parseReferenceValue } from "../../utils/Helper"
-import policies from "./decorators/Helper"
+import policies from "./Helper"
 
 describe("smart.sessions", async () => {
   let network: NetworkConfig
@@ -109,18 +109,16 @@ describe("smart.sessions", async () => {
     }
     const installUniversalPolicy = policies.to.universalAction(actionConfigData)
 
-    expect(installUniversalPolicy.address).toEqual(
+    expect(installUniversalPolicy.policy).toEqual(
       testAddresses.UniActionPolicy
     )
     expect(installUniversalPolicy.initData).toBeDefined()
-    expect(installUniversalPolicy.deInitData).toEqual("0x")
   })
 
   test("should get a sudo action policy", async () => {
     const installSudoActionPolicy = policies.sudo
-    expect(installSudoActionPolicy.address).toBeDefined()
+    expect(installSudoActionPolicy.policy).toBeDefined()
     expect(installSudoActionPolicy.initData).toEqual("0x")
-    expect(installSudoActionPolicy.deInitData).toEqual("0x")
   })
 
   test("should get a spending limit policy", async () => {
@@ -131,8 +129,7 @@ describe("smart.sessions", async () => {
       }
     ])
 
-    expect(installSpendingLimitPolicy.address).toBeDefined()
+    expect(installSpendingLimitPolicy.policy).toBeDefined()
     expect(installSpendingLimitPolicy.initData).toBeDefined()
-    expect(installSpendingLimitPolicy.deInitData).toEqual("0x")
   })
 })

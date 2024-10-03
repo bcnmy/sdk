@@ -10,31 +10,28 @@ import {
   sendUserOperation
 } from "viem/account-abstraction"
 import {
-  encodeAbiParameters,
   encodeFunctionData,
   getAction,
   parseAccount
 } from "viem/utils"
-import { UniActionPolicyAbi } from "../../../../__contracts/abi"
 import { SmartSessionAbi } from "../../../../__contracts/abi/SmartSessionAbi"
 import addresses from "../../../../__contracts/addresses"
 import { AccountNotFoundError } from "../../../../account/utils/AccountNotFound"
-import type { CreateSessionDataParams } from "../../../utils/Types"
+import type { CreateSessionDataParams } from "../Types"
 import {
   createActionConfig,
   createActionData,
   generateSalt,
   getPermissionId,
-  toActionConfig,
-  toTimeRangePolicy
-} from "./Helper"
+  toTimeRangePolicy,
+  toUniversalActionPolicy
+} from "../Helper"
 import type {
   CreateSessionsActionReturnParams,
   CreateSessionsResponse
-} from "./Types"
+} from "../Types"
 // Review: Execution type could either be used from our sdk or from module-sdk
 
-const UNIVERSAL_POLICY_ADDRESS = addresses.UniActionPolicy
 const SIMPLE_SESSION_VALIDATOR_ADDRESS = addresses.SimpleSessionValidator
 
 export type CreateSessionsParameters<
@@ -67,17 +64,10 @@ export const getSmartSessionValidatorCreateSessionsAction = async ({
         actionPolicyInfo.valueLimit
       )
 
-      // TODO: use util instead to create uni action policy here..
       // one may also pass baked up policyData.
 
       // create uni action policy here..
-      const uniActionPolicyData: PolicyData = {
-        policy: UNIVERSAL_POLICY_ADDRESS,
-        // Build initData for UniversalActionPolicy
-        initData: encodeAbiParameters(UniActionPolicyAbi, [
-          toActionConfig(actionConfig)
-        ])
-      }
+      const uniActionPolicyData = toUniversalActionPolicy(actionConfig)
       // create time range policy here..
       const timeFramePolicyData: PolicyData = toTimeRangePolicy(
         actionPolicyInfo.validUntil,

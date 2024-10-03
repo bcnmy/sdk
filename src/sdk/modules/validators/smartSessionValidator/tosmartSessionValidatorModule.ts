@@ -5,7 +5,7 @@ import {
 import type { Account, Client, Hex, Prettify } from "viem"
 import addresses from "../../../__contracts/addresses"
 import { toSigner } from "../../../account"
-import type { ModuleSignatureMetadata } from "../../utils/Types"
+import type { ModuleSignatureMetadata } from "./Types"
 import { toValidationModule } from "../toValidationModule"
 import type { Module, ModuleImplementation } from "../types"
 import { sanitizeSignature } from "../../utils/Helper"

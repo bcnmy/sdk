@@ -10,17 +10,16 @@ import {
   toBytes,
   toHex
 } from "viem"
-import { parseReferenceValue } from "../../.."
-import { UniActionPolicyAbi } from "../../../../__contracts/abi"
-import { SmartSessionAbi } from "../../../../__contracts/abi/SmartSessionAbi"
-import addresses from "../../../../__contracts/addresses"
+import { parseReferenceValue } from "../.."
+import { UniActionPolicyAbi } from "../../../__contracts/abi"
+import { SmartSessionAbi } from "../../../__contracts/abi/SmartSessionAbi"
+import addresses from "../../../__contracts/addresses"
 import type {
   ActionConfig,
-  Policy,
   RawActionConfig,
   Rule,
   SpendingLimitsParams
-} from "../../../utils/Types"
+} from "./Types"
 
 const TIMEFRAME_POLICY_ADDRESS = addresses.TimeframePolicy
 
@@ -97,30 +96,6 @@ export const toActionConfig = (config: ActionConfig): RawActionConfig => {
   }
 }
 
-export const toTimeRangePolicy = (
-  validUntil: number,
-  validAfter: number
-): PolicyData => {
-  const validUntilBytes = pad(toBytes(BigInt(validUntil), { size: 16 }), {
-    dir: "right",
-    size: 16
-  })
-  const validAfterBytes = pad(toBytes(BigInt(validAfter), { size: 16 }), {
-    dir: "right",
-    size: 16
-  })
-  const packedData = encodePacked(
-    ["bytes16", "bytes16"],
-    [toHex(validUntilBytes), toHex(validAfterBytes)]
-  )
-  const timeFramePolicyData: PolicyData = {
-    policy: TIMEFRAME_POLICY_ADDRESS,
-    // initData for TimeframePolicy
-    initData: packedData
-  }
-  return timeFramePolicyData
-}
-
 // Review: presently created local helper
 export const getPermissionId = async ({
   client,
@@ -156,30 +131,51 @@ export const isSessionEnabled = async ({
 
 export const toUniversalActionPolicy = (
   actionConfig: ActionConfig
-): Policy => ({
-  address: "0x28120dC008C36d95DE5fa0603526f219c1Ba80f6",
+): PolicyData => ({
+  policy: "0x28120dC008C36d95DE5fa0603526f219c1Ba80f6",
   initData: encodeAbiParameters(UniActionPolicyAbi, [
     toActionConfig(actionConfig)
   ]),
-  deInitData: "0x"
 })
 
-export const sudoPolicy: Policy = {
-  address: "0x529Ad04F4D83aAb25144a90267D4a1443B84f5A6",
+export const toTimeRangePolicy = (
+  validUntil: number,
+  validAfter: number
+): PolicyData => {
+  const validUntilBytes = pad(toBytes(BigInt(validUntil), { size: 16 }), {
+    dir: "right",
+    size: 16
+  })
+  const validAfterBytes = pad(toBytes(BigInt(validAfter), { size: 16 }), {
+    dir: "right",
+    size: 16
+  })
+  const packedData = encodePacked(
+    ["bytes16", "bytes16"],
+    [toHex(validUntilBytes), toHex(validAfterBytes)]
+  )
+  const timeFramePolicyData: PolicyData = {
+    policy: TIMEFRAME_POLICY_ADDRESS,
+    // initData for TimeframePolicy
+    initData: packedData
+  }
+  return timeFramePolicyData
+}
+
+export const sudoPolicy: PolicyData = {
+  policy: "0x529Ad04F4D83aAb25144a90267D4a1443B84f5A6",
   initData: "0x",
-  deInitData: "0x"
 }
 
 export const toSpendingLimitsPolicy = (
   params: SpendingLimitsParams
-): Policy => {
+): PolicyData => {
   return {
-    address: "0x8e58f4945e6ba2a11b184a9c20b6c765a0891b95",
+    policy: "0x8e58f4945e6ba2a11b184a9c20b6c765a0891b95",
     initData: encodeAbiParameters(
       [{ type: "address[]" }, { type: "uint256[]" }],
       [params.map(({ token }) => token), params.map(({ limit }) => limit)]
     ),
-    deInitData: "0x"
   }
 }
 

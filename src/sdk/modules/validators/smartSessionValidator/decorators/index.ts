@@ -1,6 +1,6 @@
 import type { Chain, Client, Hash, Hex, Transport } from "viem"
 import type { SmartAccount } from "viem/account-abstraction"
-import type { CreateSessionsResponse } from "./Types"
+import type { CreateSessionsResponse } from "../Types"
 import { type CreateSessionsParameters, createSessions } from "./createSessions"
 import {
   type UseSessionParameters,

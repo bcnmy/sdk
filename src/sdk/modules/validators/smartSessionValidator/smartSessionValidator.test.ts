@@ -27,9 +27,9 @@ import {
   type NexusClient,
   createNexusClient
 } from "../../../clients/createNexusClient"
-import type { CreateSessionDataParams } from "../../utils/Types"
+import type { CreateSessionDataParams } from "./Types"
 import { smartSessionValidatorActions } from "./decorators"
-import { isSessionEnabled } from "./decorators/Helper"
+import { isSessionEnabled } from "./Helper"
 import { toSmartSessionValidatorModule } from "./tosmartSessionValidatorModule"
 
 describe("modules.smartSessionValidator.write", async () => {
