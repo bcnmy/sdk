@@ -58,6 +58,7 @@ import {
   eip712WrapHash,
   getAccountDomainStructFields,
   getTypesForEIP712Domain,
+  numberTo3Bytes,
   packUserOp,
   typeToString
 } from "./utils/Utils"
@@ -337,14 +338,18 @@ export const toNexusAccount = async (
     validationMode: _validationMode = MODE_VALIDATION,
     nonceOptions
   }: GetNonceArgs = {}): Promise<bigint> => {
+    let nonceKey = "0x000000"
     if (nonceOptions) {
       if (nonceOptions?.nonceOverride) return BigInt(nonceOptions.nonceOverride)
       if (nonceOptions?.validationMode)
         _validationMode = nonceOptions.validationMode
+      if (nonceOptions?.nonceKey) {
+        nonceKey = numberTo3Bytes(Number(nonceOptions.nonceKey))
+      }
     }
     try {
       const key: string = concat([
-        "0x000000",
+        nonceKey as Hex,
         _validationMode,
         activeModule.address
       ])

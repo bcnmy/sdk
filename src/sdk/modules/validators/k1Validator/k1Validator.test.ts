@@ -83,7 +83,7 @@ describe("modules.k1Validator.write", async () => {
       client: nexusClient.account.client as PublicClient,
       initData: encodePacked(["address"], [eoaAccount.address]),
       deInitData: "0x",
-      nexusAccountAddress: nexusClient.account.address
+      accountAddress: nexusClient.account.address
     })
     expect(k1Validator.signMessage).toBeDefined()
     expect(k1Validator.signUserOpHash).toBeDefined()

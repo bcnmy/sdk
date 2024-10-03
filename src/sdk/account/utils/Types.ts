@@ -94,6 +94,8 @@ export type TypeDefinition = {
   [key: string]: TypeField[]
 }
 
+// Review: NonceOptions already has nonceKey and validationMode
+// Why is this key needed?
 export type GetNonceArgs = {
   key?: bigint | undefined
   validationMode?: "0x00" | "0x01"

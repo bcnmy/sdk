@@ -311,6 +311,15 @@ export function bigIntReplacer(_key: string, value: any): any {
   return typeof value === "bigint" ? value.toString() : value
 }
 
+export function numberTo3Bytes(num: number): string {
+  if (num < 0 || num > 0xffffff) {
+    throw new Error(
+      "Number out of range. Must be between 0 and 16777215 inclusive.",
+    );
+  }
+  return "0x" + num.toString(16).padStart(6, "0");
+}
+
 export const getAccountDomainStructFields = async (
   publicClient: PublicClient,
   accountAddress: Address
