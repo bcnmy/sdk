@@ -72,7 +72,7 @@ export async function useSession<
 
   const smartSessionValidator = (
     account as NexusAccount
-  ).getActiveValidationModule() as ToSmartSessionValidatorModuleReturnType
+  ).getActiveModule() as ToSmartSessionValidatorModuleReturnType
   smartSessionValidator.activePermissionId = permissionId
 
   return await getAction(

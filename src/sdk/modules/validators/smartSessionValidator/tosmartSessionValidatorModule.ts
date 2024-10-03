@@ -61,7 +61,7 @@ export const toSmartSessionValidatorModule = async ({
 
   return toValidationModule({
     address: addresses.SmartSession,
-    nexusAccountAddress,
+    accountAddress: nexusAccountAddress,
     initData,
     deInitData,
     activePermissionId,

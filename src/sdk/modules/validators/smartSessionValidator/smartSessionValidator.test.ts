@@ -267,7 +267,7 @@ describe("modules.smartSessionValidator.write", async () => {
     // })
 
     // set active validation module
-    nexusClient.account.setActiveValidationModule(smartSessionValidator)
+    nexusClient.account.setActiveModule(smartSessionValidator)
 
     const smartSessionNexusClient = nexusClient.extend(
       smartSessionValidatorActions()
