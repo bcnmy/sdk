@@ -15,7 +15,7 @@ export type K1ValidatorModuleImplementation = ModuleImplementation
  * Creates a K1 Validator Module instance.
  * This module provides validation functionality using the K1 algorithm for a Nexus account.
  *
- * @param nexusAccountAddress The address of the Nexus account.
+ * @param accountAddress The address of the Nexus account.
  * @param client The client instance.
  * @param initData Initialization data for the module.
  * @param deInitData De-initialization data for the module.
@@ -23,7 +23,7 @@ export type K1ValidatorModuleImplementation = ModuleImplementation
  *
  * @example
  * const module = await toK1ValidatorModule({
- *   nexusAccountAddress: '0x1234...',
+ *   accountAddress: '0x1234...',
  *   client: nexusClient,
  *   initData: '0x...',
  *   deInitData: '0x...'
@@ -35,24 +35,27 @@ export type K1ValidatorModuleImplementation = ModuleImplementation
  * const messageSignature = await module.signMessage('Hello, world!');
  */
 export const toK1ValidatorModule = async ({
-  nexusAccountAddress,
   client,
   initData,
-  deInitData
+  deInitData,
+  accountAddress,
+  address = addresses.K1Validator
 }: {
-  nexusAccountAddress: Hex
+  accountAddress: Hex
   initData: Hex
   deInitData: Hex
   client: Client
+  address?: Hex
 }): Promise<ToK1ValidatorModuleReturnType> => {
   const signer = await toSigner({ signer: client.account as Account })
+
   return toValidationModule({
-    address: addresses.K1Validator,
-    nexusAccountAddress,
+    address,
+    accountAddress,
     initData,
     deInitData,
     getStubSignature: async () => {
-      const dynamicPart = addresses.K1Validator.substring(2).padEnd(40, "0")
+      const dynamicPart = address.substring(2).padEnd(40, "0")
       return `0x0000000000000000000000000000000000000000000000000000000000000040000000000000000000000000${dynamicPart}000000000000000000000000000000000000000000000000000000000000004181d4b4981670cb18f99f0b4a66446df1bf5b204d24cfcb659bf38ba27a4359b5711649ec2423c5e1247245eba2964679b6a1dbb85c992ae40b9b00c6935b02ff1b00000000000000000000000000000000000000000000000000000000000000`
     },
     signUserOpHash: async (userOpHash: Hex) => {

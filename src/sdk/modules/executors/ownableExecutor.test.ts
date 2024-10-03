@@ -68,16 +68,17 @@ describe("modules.ownableExecutor", async () => {
     nexusAccountAddress = await nexusClient.account.getCounterFactualAddress()
     await fundAndDeployClients(testClient, [nexusClient])
 
-    k1ValidatorModule = await toK1ValidatorModule({
-      nexusAccountAddress: nexusClient.account.address,
+    const k1ValidatorModule = await toK1ValidatorModule({
       client: nexusClient.account.client as PublicClient,
+      accountAddress: nexusClient.account.address,
       initData: encodePacked(
         ["address", "address"],
         [eoaAccount.address, recipient.address]
       ),
       deInitData: "0x"
     })
-    nexusClient.account.setActiveValidationModule(k1ValidatorModule)
+
+    nexusClient.account.setActiveModule(k1ValidatorModule)
   })
 
   afterAll(async () => {

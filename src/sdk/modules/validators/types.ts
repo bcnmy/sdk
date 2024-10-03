@@ -18,7 +18,7 @@ export type ModuleImplementation<extend extends object = object> = {
   /** The client associated with this module. */
   client: Client
   /** The hexadecimal address of the Nexus account. */
-  nexusAccountAddress: Hex
+  accountAddress: Hex
   /** The hexadecimal address of the module. */
   address: Hex
   /** Initialization data for the module. */

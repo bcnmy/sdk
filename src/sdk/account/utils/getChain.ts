@@ -42,7 +42,7 @@ export const getChain = (chainId: number): Chain => {
     }
   }
   throw new Error(
-    "Chain not found. Please add a customChain into your config using the getCustomChain(...) helper, and the BiconomySmartAccountV2Config['customChain'] config option"
+    "Chain not found. Please add a customChain into your config using the getCustomChain(...) helper"
   )
 }
 

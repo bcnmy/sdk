@@ -8,10 +8,6 @@ import {
   createPublicClient,
   createWalletClient
 } from "viem"
-import {
-  type PaymasterClient,
-  entryPoint07Address
-} from "viem/account-abstraction"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { paymasterTruthy, toNetwork } from "../../test/testSetup"
 import { killNetwork } from "../../test/testUtils"
@@ -23,7 +19,7 @@ import {
   createBicoBundlerClient
 } from "./createBicoBundlerClient"
 import {
-  biconomyPaymasterContext,
+  type BicoPaymasterClient,
   createBicoPaymasterClient
 } from "./createBicoPaymasterClient"
 import { type NexusClient, createNexusClient } from "./createNexusClient"
@@ -33,7 +29,7 @@ import { type NexusClient, createNexusClient } from "./createNexusClient"
 const k1ValidatorAddress = "0x663E709f60477f07885230E213b8149a7027239B"
 const factoryAddress = "0x887Ca6FaFD62737D0E79A2b8Da41f0B15A864778"
 
-describe.runIf(paymasterTruthy).skip("bico.paymaster", async () => {
+describe.runIf(paymasterTruthy)("bico.paymaster", async () => {
   let network: NetworkConfig
   // Nexus Config
   let chain: Chain
@@ -47,7 +43,7 @@ describe.runIf(paymasterTruthy).skip("bico.paymaster", async () => {
   let recipientAddress: Address
   let bicoBundler: BicoBundlerClient
   let nexusAccountAddress: Address
-  let paymaster: PaymasterClient
+  let paymaster: BicoPaymasterClient
   let nexusAccount: NexusAccount
   let nexusClient: NexusClient
 
@@ -118,19 +114,39 @@ describe.runIf(paymasterTruthy).skip("bico.paymaster", async () => {
     await killNetwork([network?.rpcPort, network?.bundlerPort])
   })
 
-  test("should provide paymasterStubData", async () => {
-    const paymasterStubData = await paymaster.getPaymasterStubData({
-      chainId: chain.id,
-      entryPointAddress: entryPoint07Address,
-      callData: "0x",
-      nonce: 0n,
-      sender: nexusAccountAddress,
-      context: biconomyPaymasterContext
+  test("should have paymaster actions", async () => {
+    expect(paymaster).toHaveProperty("getPaymasterData")
+    expect(paymaster.getPaymasterData).toBeInstanceOf(Function)
+
+    // Bico Paymaster has no getPaymasterStubData method, to ensure latency is kept low.
+    expect(paymaster).not.toHaveProperty("getPaymasterStubData")
+  })
+
+  test("should send a sponsored transaction", async () => {
+    // Get initial balance
+    const initialBalance = await publicClient.getBalance({
+      address: nexusAccountAddress
     })
 
-    expect(paymasterStubData).toHaveProperty("paymaster")
-    expect(paymasterStubData).toHaveProperty("paymasterData")
-    expect(paymasterStubData).toHaveProperty("paymasterVerificationGasLimit")
-    expect(paymasterStubData).toHaveProperty("paymasterPostOpGasLimit")
+    // Send user operation
+    const hash = await nexusClient.sendTransaction({
+      calls: [
+        {
+          to: recipientAddress,
+          value: 1n
+        }
+      ]
+    })
+
+    // Wait for the transaction to be mined
+    const { status } = await publicClient.waitForTransactionReceipt({ hash })
+    expect(status).toBe("success")
+    // Get final balance
+    const finalBalance = await publicClient.getBalance({
+      address: nexusAccountAddress
+    })
+    // Check that the balance hasn't changed
+    // No gas fees were paid, so the balance should have decreased only by 1n
+    expect(finalBalance).toBe(initialBalance - 1n)
   })
 })
