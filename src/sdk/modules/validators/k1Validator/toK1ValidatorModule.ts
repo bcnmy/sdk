@@ -3,6 +3,7 @@ import addresses from "../../../__contracts/addresses"
 import { toSigner } from "../../../account"
 import { toValidationModule } from "../toValidationModule"
 import type { Module, ModuleImplementation } from "../types"
+import { sanitizeSignature } from "../../utils/Helper"
 
 export type ToK1ValidatorModuleReturnType = Prettify<
   Module<K1ValidatorModuleImplementation>
@@ -64,16 +65,7 @@ export const toK1ValidatorModule = async ({
       const message =
         typeof _message === "string" ? _message : { raw: _message }
       let signature = await signer.signMessage({ message })
-
-      const potentiallyIncorrectV = Number.parseInt(signature.slice(-2), 16)
-      if (![27, 28].includes(potentiallyIncorrectV)) {
-        const correctV = potentiallyIncorrectV + 27
-        signature = signature.slice(0, -2) + correctV.toString(16)
-      }
-      if (signature.slice(0, 2) !== "0x") {
-        signature = `0x${signature}`
-      }
-      return signature as Hex
+      return sanitizeSignature(signature)
     },
     client
   })

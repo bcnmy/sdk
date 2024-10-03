@@ -8,6 +8,7 @@ import { toSigner } from "../../../account"
 import type { ModuleSignatureMetadata } from "../../utils/Types"
 import { toValidationModule } from "../toValidationModule"
 import type { Module, ModuleImplementation } from "../types"
+import { sanitizeSignature } from "../../utils/Helper"
 
 const DUMMY_ECDSA_SIG =
   "0xe8b94748580ca0b4993c9a1b86b5be851bfc076ff5ce3a1ff65bf16392acfcb800f9b4f1aef1555c7fce5599fffb17e7c635502154a0333ba21f3ae491839af51c"
@@ -103,15 +104,7 @@ export const toSmartSessionValidatorModule = async ({
       const message =
         typeof _message === "string" ? _message : { raw: _message }
       let signature = await signer.signMessage({ message })
-      const potentiallyIncorrectV = Number.parseInt(signature.slice(-2), 16)
-      if (![27, 28].includes(potentiallyIncorrectV)) {
-        const correctV = potentiallyIncorrectV + 27
-        signature = signature.slice(0, -2) + correctV.toString(16)
-      }
-      if (signature.slice(0, 2) !== "0x") {
-        signature = `0x${signature}`
-      }
-      return signature as Hex
+      return sanitizeSignature(signature)
     },
     client
   })

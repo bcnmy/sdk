@@ -1,5 +1,4 @@
 import type {
-  Account,
   ActionData,
   PolicyData,
   Session
@@ -30,15 +29,15 @@ import {
   toTimeRangePolicy
 } from "./Helper"
 import type {
-  EnableSessionsActionReturnParams,
-  EnableSessionsResponse
+  CreateSessionsActionReturnParams,
+  CreateSessionsResponse
 } from "./Types"
 // Review: Execution type could either be used from our sdk or from module-sdk
 
 const UNIVERSAL_POLICY_ADDRESS = addresses.UniActionPolicy
 const SIMPLE_SESSION_VALIDATOR_ADDRESS = addresses.SimpleSessionValidator
 
-export type EnableSessionsParameters<
+export type CreateSessionsParameters<
   TSmartAccount extends SmartAccount | undefined
 > = GetSmartAccountParameter<TSmartAccount> & {
   sessionRequestedInfo: CreateSessionDataParams[]
@@ -48,16 +47,13 @@ export type EnableSessionsParameters<
   signatureOverride?: Hex
 }
 
-export const getSmartSessionValidatorEnableSessionsAction = async ({
+export const getSmartSessionValidatorCreateSessionsAction = async ({
   sessionRequestedInfo,
   client,
-  account // TODO: review type
 }: {
   sessionRequestedInfo: CreateSessionDataParams[]
   client: PublicClient
-  account: Account // TODO: review type
-}): Promise<EnableSessionsActionReturnParams | Error> => {
-  console.log("account", account)
+}): Promise<CreateSessionsActionReturnParams | Error> => {
   const sessions: Session[] = []
   const permissionIds: Hex[] = []
 
@@ -127,7 +123,7 @@ export const getSmartSessionValidatorEnableSessionsAction = async ({
     sessions.push(session)
   }
 
-  const enableSessionsData = encodeFunctionData({
+  const createSessionsData = encodeFunctionData({
     abi: SmartSessionAbi,
     functionName: "enableSessions",
     args: [sessions]
@@ -137,7 +133,7 @@ export const getSmartSessionValidatorEnableSessionsAction = async ({
     action: {
       target: addresses.SmartSession,
       value: BigInt(0),
-      callData: enableSessionsData
+      callData: createSessionsData
     },
     permissionIds: permissionIds
   }
@@ -153,19 +149,19 @@ export const getSmartSessionValidatorEnableSessionsAction = async ({
  * @throws {AccountNotFoundError} If the account is not found.
  *
  * @example
- * import { enableSessions } from '@biconomy/sdk'
+ * import { createSessions } from '@biconomy/sdk'
  *
- * const userOpHash = await enableSessions(nexusClient, {
+ * const userOpHash = await createSessions(nexusClient, {
  *   sessionRequestedInfo: '0x...'
  * })
  * console.log(userOpHash) // '0x...'
  */
-export async function enableSessions<
+export async function createSessions<
   TSmartAccount extends SmartAccount | undefined
 >(
   client: Client<Transport, Chain | undefined, TSmartAccount>,
-  parameters: EnableSessionsParameters<TSmartAccount>
-): Promise<EnableSessionsResponse> {
+  parameters: CreateSessionsParameters<TSmartAccount>
+): Promise<CreateSessionsResponse> {
   const {
     account: account_ = client.account,
     maxFeePerGas,
@@ -184,8 +180,7 @@ export async function enableSessions<
   const account = parseAccount(account_) as SmartAccount
   const publicClient = account.client
 
-  const actionResponse = await getSmartSessionValidatorEnableSessionsAction({
-    account: { address: account.address, deployedOnChains: [], type: "nexus" },
+  const actionResponse = await getSmartSessionValidatorCreateSessionsAction({
     client: publicClient as any,
     sessionRequestedInfo
   })

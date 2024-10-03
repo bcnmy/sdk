@@ -1,6 +1,7 @@
 import type { Account, Hex, Prettify } from "viem"
 import { toSigner } from "../../account/utils/toSigner.js"
 import type { Module, ModuleImplementation } from "./types.js"
+import { sanitizeSignature } from "../utils/Helper.js"
 
 export type ToValidationModuleReturnType<
   implementation extends ModuleImplementation = ModuleImplementation
@@ -34,16 +35,7 @@ export async function toValidationModule<
       const message =
         typeof _message === "string" ? _message : { raw: _message }
       let signature = await signer.signMessage({ message })
-
-      const potentiallyIncorrectV = Number.parseInt(signature.slice(-2), 16)
-      if (![27, 28].includes(potentiallyIncorrectV)) {
-        const correctV = potentiallyIncorrectV + 27
-        signature = signature.slice(0, -2) + correctV.toString(16)
-      }
-      if (signature.slice(0, 2) !== "0x") {
-        signature = `0x${signature}`
-      }
-      return signature as Hex
+      return sanitizeSignature(signature)
     },
     ...extend,
     ...rest

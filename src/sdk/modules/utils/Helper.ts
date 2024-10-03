@@ -202,3 +202,15 @@ export function parseReferenceValue(referenceValue: AnyReferenceValue): Hex {
   }
   return result
 }
+
+export function sanitizeSignature(signature: Hex): Hex {
+    const potentiallyIncorrectV = Number.parseInt(signature.slice(-2), 16)
+    if (![27, 28].includes(potentiallyIncorrectV)) {
+          const correctV = potentiallyIncorrectV + 27
+          signature = signature.slice(0, -2) + correctV.toString(16)
+    }
+    if (signature.slice(0, 2) !== "0x") {
+          signature = `0x${signature}`
+    }
+    return signature
+}

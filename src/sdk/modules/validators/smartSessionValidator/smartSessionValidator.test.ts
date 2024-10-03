@@ -207,23 +207,23 @@ describe("modules.smartSessionValidator.write", async () => {
       smartSessionValidatorActions()
     )
 
-    const enableSessionsResponse = await smartSessionNexusClient.enableSessions(
+    const createSessionsResponse = await smartSessionNexusClient.createSessions(
       {
         account: nexusClient.account,
         sessionRequestedInfo: [sessionRequestedInfo]
       }
     )
 
-    expect(enableSessionsResponse.userOpHash).toBeDefined()
-    expect(enableSessionsResponse.permissionIds).toBeDefined()
+    expect(createSessionsResponse.userOpHash).toBeDefined()
+    expect(createSessionsResponse.permissionIds).toBeDefined()
 
-    const permissionIds = enableSessionsResponse.permissionIds
+    const permissionIds = createSessionsResponse.permissionIds
     expect(permissionIds.length).toBe(1)
     const permissionId = permissionIds[0]
     cachedPermissionId = permissionId
 
     const receipt = await nexusClient.waitForUserOperationReceipt({
-      hash: enableSessionsResponse.userOpHash
+      hash: createSessionsResponse.userOpHash
     })
 
     expect(receipt.success).toBe(true)
@@ -273,7 +273,7 @@ describe("modules.smartSessionValidator.write", async () => {
       smartSessionValidatorActions()
     )
 
-    const userOpHash = await smartSessionNexusClient.useEnabledSession({
+    const userOpHash = await smartSessionNexusClient.useSession({
       account: nexusClient.account,
       actions: [
         {

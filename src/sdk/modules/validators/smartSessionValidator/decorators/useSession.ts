@@ -13,7 +13,7 @@ import type { ToSmartSessionValidatorModuleReturnType } from "../tosmartSessionV
 
 // If the session is enabled for multiple actions, it is possible to send a batch transaction. hence it accepts an array of executions.
 // permisisonId corresponds to already enabled session.
-export type UseEnabledSessionParameters<
+export type UseSessionParameters<
   TSmartAccount extends SmartAccount | undefined
 > = GetSmartAccountParameter<TSmartAccount> & {
   actions: Execution[]
@@ -33,9 +33,9 @@ export type UseEnabledSessionParameters<
  * @throws {AccountNotFoundError} If the account is not found.
  *
  * @example
- * import { useEnabledSession } from '@biconomy/sdk'
+ * import { useSession } from '@biconomy/sdk'
  *
- * const userOpHash = await useEnabledSession(nexusClient, {
+ * const userOpHash = await useSession(nexusClient, {
  *   actions: [{
  *     target: '0x...',
  *     value: BigInt(0),
@@ -46,11 +46,11 @@ export type UseEnabledSessionParameters<
  * })
  * console.log(userOpHash) // '0x...'
  */
-export async function useEnabledSession<
+export async function useSession<
   TSmartAccount extends SmartAccount | undefined
 >(
   client: Client<Transport, Chain | undefined, TSmartAccount>,
-  parameters: UseEnabledSessionParameters<TSmartAccount>
+  parameters: UseSessionParameters<TSmartAccount>
 ): Promise<Hex> {
   const {
     account: account_ = client.account,
@@ -69,7 +69,6 @@ export async function useEnabledSession<
   }
 
   const account = parseAccount(account_) as SmartAccount
-  // const publicClient = account.client
 
   const smartSessionValidator = (
     account as NexusAccount
