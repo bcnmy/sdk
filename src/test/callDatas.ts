@@ -36,6 +36,26 @@ export const TEST_CONTRACTS: Record<
     name: "Counter",
     address: "0x14e4829E655F0b3a1793838dDd47273D5341d416"
   },
+  MockCallee: {
+    chainId: 84532,
+    name: "MockCallee",
+    address: "0x29FdD9D9A9f8CD8dCa0F4764bf0F959183DF4139"
+  },
+  MockToken: {
+    chainId: 84532,
+    name: "MockToken",
+    address: "0x0006be192b4E06770eaa624AE7648DBF9051221c"
+  },
+  MockAttester: {
+    chainId: 84532,
+    name: "MockAttester",
+    address: "0xA4C777199658a41688E9488c4EcbD7a2925Cc23A"
+  },
+  MockRegistry: {
+    chainId: 84532,
+    name: "MockRegistry",
+    address: "0x000000000069E2a187AEFFb852bF3cCdC95151B2"
+  },
   TimeFramePolicy: {
     chainId: 84532,
     name: "TimeFramePolicy",
