@@ -60,6 +60,7 @@ import {
   getTypesForEIP712Domain,
   numberTo3Bytes,
   packUserOp,
+  toHexString,
   typeToString
 } from "./utils/Utils"
 import { type UnknownSigner, toSigner } from "./utils/toSigner"
@@ -335,24 +336,22 @@ export const toNexusAccount = async (
    * @returns The nonce
    */
   const getNonce = async ({
-    validationMode: _validationMode = MODE_VALIDATION,
-    nonceOptions
-  }: GetNonceArgs = {}): Promise<bigint> => {
-    let nonceKey = "0x000000"
-    if (nonceOptions) {
-      if (nonceOptions?.nonceOverride) return BigInt(nonceOptions.nonceOverride)
-      if (nonceOptions?.validationMode)
-        _validationMode = nonceOptions.validationMode
-      if (nonceOptions?.nonceKey) {
-        nonceKey = numberTo3Bytes(Number(nonceOptions.nonceKey))
-      }
-    }
+    key: _key = 0n,
+    validationMode: _validationMode = MODE_VALIDATION
+  }: {
+    key?: bigint | undefined
+    validationMode?: "0x00" | "0x01"
+  } = {}): Promise<bigint> => {
+    console.log("supplied key", _key)
+    console.log("validationMode", _validationMode)
+    let nonceKey = numberTo3Bytes(_key)
     try {
       const key: string = concat([
-        nonceKey as Hex,
+        toHexString(nonceKey) as Hex,
         _validationMode,
         activeModule.address
       ])
+      console.log("key", key)
       const accountAddress = await getAddress()
       return await entryPointContract.read.getNonce([
         accountAddress,

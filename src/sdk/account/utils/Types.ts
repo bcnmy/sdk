@@ -32,15 +32,6 @@ export type UserOpReceipt = {
   logs: Log[]
 }
 
-export type NonceOptions = {
-  /** nonceKey: The key to use for nonce */
-  nonceKey?: bigint
-  /** validationMode: Mode of the validation module */
-  validationMode?: typeof MODE_VALIDATION | typeof MODE_MODULE_ENABLE
-  /** nonceOverride: The nonce to use for the transaction */
-  nonceOverride?: bigint
-}
-
 export type Service = "Bundler" | "Paymaster"
 export type BigNumberish = Hex | number | bigint
 export type BytesLike = Uint8Array | Hex | string
@@ -98,8 +89,7 @@ export type TypeDefinition = {
 // Why is this key needed?
 export type GetNonceArgs = {
   key?: bigint | undefined
-  validationMode?: "0x00" | "0x01"
-  nonceOptions?: NonceOptions
+  validationMode?: typeof MODE_VALIDATION | typeof MODE_MODULE_ENABLE
 }
 export type Call = {
   to: Hex
