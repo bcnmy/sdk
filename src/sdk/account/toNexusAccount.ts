@@ -61,7 +61,7 @@ import {
   packUserOp,
   typeToString
 } from "./utils/Utils"
-import { type UnknownSigner, toSigner } from "./utils/toSigner"
+import { type Signer, type UnknownSigner, toSigner } from "./utils/toSigner"
 
 /**
  * Parameters for creating a Nexus Smart Account
@@ -118,6 +118,7 @@ export type NexusSmartAccountImplementation = SmartAccountImplementation<
     getActiveModule: () => ToValidationModuleReturnType
     factoryData: Hex
     factoryAddress: Address
+    signer: Signer
   }
 >
 
@@ -196,6 +197,7 @@ export const toNexusAccount = async (
         functionName: "computeAccountAddress",
         args: [signerAddress, index, [], 0]
       })) as Address
+      // biome-ignore lint/suspicious/noExplicitAny: <explanation>
     } catch (e: any) {
       if (e.shortMessage?.includes(ERROR_MESSAGES.MISSING_ACCOUNT_CONTRACT)) {
         throw new Error(ERROR_MESSAGES.ACCOUNT_NOT_DEPLOYED)
@@ -212,7 +214,7 @@ export const toNexusAccount = async (
       accountAddress: await getAddress(),
       initData: signerAddress,
       deInitData: "0x",
-      client: masterClient
+      signer
     }))
 
   /**
@@ -224,6 +226,7 @@ export const toNexusAccount = async (
     if (_accountAddress) return _accountAddress
     try {
       await entryPointContract.simulate.getSenderAddress([getInitCode()])
+      // biome-ignore lint/suspicious/noExplicitAny: <explanation>
     } catch (e: any) {
       if (e?.cause?.data?.errorName === "SenderAddressResult") {
         _accountAddress = e?.cause.data.args[0] as Address
@@ -537,7 +540,8 @@ export const toNexusAccount = async (
       setActiveModule,
       getActiveModule: () => activeModule,
       factoryData,
-      factoryAddress
+      factoryAddress,
+      signer
     }
   })
 }

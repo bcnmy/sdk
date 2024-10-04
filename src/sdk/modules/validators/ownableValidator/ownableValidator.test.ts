@@ -5,7 +5,6 @@ import {
   type Address,
   type Chain,
   type Hex,
-  type PublicClient,
   encodeAbiParameters,
   encodeFunctionData,
   encodePacked,
@@ -22,6 +21,7 @@ import {
 } from "../../../../test/testUtils"
 import type { MasterClient, NetworkConfig } from "../../../../test/testUtils"
 import addresses from "../../../__contracts/addresses"
+import type { Signer } from "../../../account/utils/toSigner"
 import {
   type NexusClient,
   createNexusClient
@@ -72,24 +72,14 @@ describe("modules.ownableValidator", async () => {
     nexusAccountAddress = await nexusClient.account.getCounterFactualAddress()
     await fundAndDeployClients(testClient, [nexusClient])
 
-    ownableValidatorModule = await toOwnableValidatorModule({
-      accountAddress: nexusClient.account.address,
-      client: nexusClient.account.client as PublicClient,
-      initData: encodeAbiParameters(
-        [
-          { name: "threshold", type: "uint256" },
-          { name: "owners", type: "address[]" }
-        ],
-        [BigInt(1), [eoaAccount.address]]
-      ),
-      deInitData: "0x"
+    ownableValidatorModule = toOwnableValidatorModule({
+      account: nexusClient.account,
+      signer: nexusClient.account.client.account as Signer
     })
 
     k1ValidatorModule = await toK1ValidatorModule({
       accountAddress: nexusClient.account.address,
-      client: nexusClient.account.client as PublicClient,
-      initData: encodePacked(["address"], [eoaAccount.address]),
-      deInitData: encodePacked(["address"], [eoaAccount.address])
+      signer: nexusClient.account.client.account as Signer
     })
   })
 

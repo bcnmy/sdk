@@ -8,8 +8,7 @@ import { getAction, parseAccount } from "viem/utils"
 import type { NexusAccount } from "../../../../account"
 import { AccountNotFoundError } from "../../../../account/utils/AccountNotFound"
 import type { Execution } from "../../../utils/Types"
-import type { ToSmartSessionValidatorModuleReturnType } from "../tosmartSessionValidatorModule"
-// Review: Execution type could either be used from our sdk or from module-sdk
+import type { SmartSessionMetaData } from "../Types"
 
 // If the session is enabled for multiple actions, it is possible to send a batch transaction. hence it accepts an array of executions.
 // permisisonId corresponds to already enabled session.
@@ -17,7 +16,6 @@ export type UseSessionParameters<
   TSmartAccount extends SmartAccount | undefined
 > = GetSmartAccountParameter<TSmartAccount> & {
   actions: Execution[]
-  permissionId: Hex
   maxFeePerGas?: bigint
   maxPriorityFeePerGas?: bigint
   nonce?: bigint
@@ -50,15 +48,19 @@ export async function useSession<
   TSmartAccount extends SmartAccount | undefined
 >(
   client: Client<Transport, Chain | undefined, TSmartAccount>,
-  parameters: UseSessionParameters<TSmartAccount>
+  parameters: UseSessionParameters<TSmartAccount>,
+  metaData?: SmartSessionMetaData
 ): Promise<Hex> {
+  if (!metaData) {
+    throw new Error("You must set the permissionID while using a session")
+  }
+
   const {
     account: account_ = client.account,
     maxFeePerGas,
     maxPriorityFeePerGas,
     nonce,
     actions,
-    permissionId,
     signatureOverride
   } = parameters
 
@@ -68,12 +70,7 @@ export async function useSession<
     })
   }
 
-  const account = parseAccount(account_) as SmartAccount
-
-  const smartSessionValidator = (
-    account as NexusAccount
-  ).getActiveModule() as ToSmartSessionValidatorModuleReturnType
-  smartSessionValidator.activePermissionId = permissionId
+  const account = parseAccount(account_) as NexusAccount
 
   return await getAction(
     client,

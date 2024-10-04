@@ -36,15 +36,13 @@ export const generateSalt = (): Hex => {
 export const createActionConfig = (
   rules: Rule[],
   valueLimit: bigint
-): ActionConfig => {
-  return {
-    paramRules: {
-      length: rules.length,
-      rules: rules
-    },
-    valueLimitPerUse: valueLimit
-  }
-}
+): ActionConfig => ({
+  paramRules: {
+    length: rules.length,
+    rules: rules
+  },
+  valueLimitPerUse: valueLimit
+})
 
 export const createActionData = (
   contractAddress: Address,
@@ -121,6 +119,7 @@ export const isSessionEnabled = async ({
   accountAddress: Address
   permissionId: Hex
 }) => {
+  console.log({ permissionId, accountAddress })
   return (await client.readContract({
     address: addresses.SmartSession,
     abi: SmartSessionAbi,
@@ -135,7 +134,7 @@ export const toUniversalActionPolicy = (
   policy: "0x28120dC008C36d95DE5fa0603526f219c1Ba80f6",
   initData: encodeAbiParameters(UniActionPolicyAbi, [
     toActionConfig(actionConfig)
-  ]),
+  ])
 })
 
 export const toTimeRangePolicy = (
@@ -164,7 +163,7 @@ export const toTimeRangePolicy = (
 
 export const sudoPolicy: PolicyData = {
   policy: "0x529Ad04F4D83aAb25144a90267D4a1443B84f5A6",
-  initData: "0x",
+  initData: "0x"
 }
 
 export const toSpendingLimitsPolicy = (
@@ -175,7 +174,7 @@ export const toSpendingLimitsPolicy = (
     initData: encodeAbiParameters(
       [{ type: "address[]" }, { type: "uint256[]" }],
       [params.map(({ token }) => token), params.map(({ limit }) => limit)]
-    ),
+    )
   }
 }
 

@@ -3,7 +3,7 @@ import {
   type Account,
   type Address,
   type Chain,
-  type PublicClient,
+  type Hex,
   encodePacked
 } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
@@ -32,9 +32,9 @@ describe("modules.k1Validator.write", async () => {
   let testClient: MasterClient
   let eoaAccount: Account
   let nexusClient: NexusClient
-  let nexusAccountAddress: Address
   let recipient: Account
   let recipientAddress: Address
+  let nexusAccountAddress: Hex
 
   beforeAll(async () => {
     network = await toNetwork()
@@ -80,16 +80,12 @@ describe("modules.k1Validator.write", async () => {
 
   test("k1Validator properties", async () => {
     const k1Validator = await toK1ValidatorModule({
-      client: nexusClient.account.client as PublicClient,
-      initData: encodePacked(["address"], [eoaAccount.address]),
-      deInitData: "0x",
-      nexusAccountAddress: nexusClient.account.address
+      signer: nexusClient.account.signer,
+      accountAddress: nexusClient.account.address
     })
     expect(k1Validator.signMessage).toBeDefined()
     expect(k1Validator.signUserOpHash).toBeDefined()
-    expect(k1Validator.getStubSignature).toBeDefined()
     expect(k1Validator.address).toBeDefined()
-    expect(k1Validator.client).toBeDefined()
     expect(k1Validator.initData).toBeDefined()
     expect(k1Validator.deInitData).toBeDefined()
     expect(k1Validator.signer).toBeDefined()

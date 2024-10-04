@@ -1,5 +1,5 @@
 import { getRemoveOwnableValidatorOwnerAction } from "@rhinestone/module-sdk"
-import type { Chain, Client, Hex, Transport } from "viem"
+import type { Chain, Client, Hex, PublicClient, Transport } from "viem"
 import {
   type GetSmartAccountParameter,
   type SmartAccount,
@@ -60,7 +60,7 @@ export async function removeOwner<
 
   const action = await getRemoveOwnableValidatorOwnerAction({
     account: { address: account.address, deployedOnChains: [], type: "nexus" },
-    client: publicClient as any,
+    client: publicClient as PublicClient,
     owner
   })
 
