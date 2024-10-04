@@ -40,7 +40,7 @@ import {
 } from "viem/account-abstraction"
 import contracts from "../__contracts"
 import { EntrypointAbi, K1ValidatorFactoryAbi } from "../__contracts/abi"
-import type { Call, GetNonceArgs, UserOperationStruct } from "./utils/Types"
+import type { Call, UserOperationStruct } from "./utils/Types"
 
 import {
   ERROR_MESSAGES,
@@ -333,31 +333,31 @@ export const toNexusAccount = async (
    * @param args - Optional arguments for getting the nonce
    * @returns The nonce
    */
-  const getNonce = async ({
-    validationMode: _validationMode = MODE_VALIDATION,
-    nonceOptions
-  }: GetNonceArgs = {}): Promise<bigint> => {
-    if (nonceOptions) {
-      if (nonceOptions?.nonceOverride) return BigInt(nonceOptions.nonceOverride)
-      if (nonceOptions?.validationMode)
-        _validationMode = nonceOptions.validationMode
-    }
+  const getNonce = async (parameters?: {
+    key?: bigint
+    validationMode?: "0x00" | "0x01"
+  }): Promise<bigint> => {
     try {
+      const TIMESTAMP_ADJUSTMENT = 1000000n
+
+      const defaultedKey = BigInt(parameters?.key ?? 0n) / TIMESTAMP_ADJUSTMENT
+      const defaultedValidationMode = parameters?.validationMode ?? "0x00"
+
       const key: string = concat([
-        "0x000000",
-        _validationMode,
+        toHex(defaultedKey, { size: 3 }),
+        defaultedValidationMode,
         activeModule.address
       ])
+
       const accountAddress = await getAddress()
       return await entryPointContract.read.getNonce([
         accountAddress,
         BigInt(key)
       ])
     } catch (e) {
-      return BigInt(0)
+      return 0n
     }
   }
-
   /**
    * @description Changes the active module for the account
    * @param newModule - The new module to set as active

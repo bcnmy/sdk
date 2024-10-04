@@ -13,6 +13,7 @@ import {
   encodeAbiParameters,
   encodeFunctionData,
   encodePacked,
+  getAddress,
   hexToBytes,
   keccak256,
   pad,
@@ -37,6 +38,7 @@ import type {
   EIP712DomainReturn,
   UserOperationStruct
 } from "./Types"
+
 config()
 
 /**
