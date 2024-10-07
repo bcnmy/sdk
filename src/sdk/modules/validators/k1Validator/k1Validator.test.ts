@@ -73,6 +73,7 @@ describe("modules.k1Validator.write", async () => {
       ],
       // Note: supply or don't supply key, it makes no difference to the log supplied key
       // nonce: await nexusClient.account.getNonce({key: 123456n })
+      nonce: await nexusClient.account.getNonce()
     })
     const { success } = await nexusClient.waitForUserOperationReceipt({ hash })
     const balanceAfter = await getBalance(testClient, recipientAddress)

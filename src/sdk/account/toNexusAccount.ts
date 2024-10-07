@@ -40,14 +40,13 @@ import {
 } from "viem/account-abstraction"
 import contracts from "../__contracts"
 import { EntrypointAbi, K1ValidatorFactoryAbi } from "../__contracts/abi"
-import type { Call, GetNonceArgs, UserOperationStruct } from "./utils/Types"
+import type { Call, UserOperationStruct } from "./utils/Types"
 
 import {
   ERROR_MESSAGES,
   EXECUTE_BATCH,
   EXECUTE_SINGLE,
   MAGIC_BYTES,
-  MODE_VALIDATION,
   PARENT_TYPEHASH
 } from "./utils/Constants"
 
@@ -58,12 +57,12 @@ import {
   eip712WrapHash,
   getAccountDomainStructFields,
   getTypesForEIP712Domain,
-  numberTo3Bytes,
   packUserOp,
-  toHexString,
   typeToString
 } from "./utils/Utils"
 import { type UnknownSigner, toSigner } from "./utils/toSigner"
+
+const TIMESTAMP_ADJUSTMENT = 16777215n
 
 /**
  * Parameters for creating a Nexus Smart Account
@@ -335,30 +334,27 @@ export const toNexusAccount = async (
    * @param args - Optional arguments for getting the nonce
    * @returns The nonce
    */
-  const getNonce = async ({
-    key: _key = 0n,
-    validationMode: _validationMode = MODE_VALIDATION
-  }: {
-    key?: bigint | undefined
+  const getNonce = async (parameters?: {
+    key?: bigint
     validationMode?: "0x00" | "0x01"
-  } = {}): Promise<bigint> => {
-    console.log("supplied key", _key)
-    console.log("validationMode", _validationMode)
-    let nonceKey = numberTo3Bytes(_key)
+  }): Promise<bigint> => {
     try {
+      const defaultedKey = BigInt(parameters?.key ?? 0n) % TIMESTAMP_ADJUSTMENT
+      const defaultedValidationMode = parameters?.validationMode ?? "0x00"
+      
       const key: string = concat([
-        toHexString(nonceKey) as Hex,
-        _validationMode,
+        toHex(defaultedKey, { size: 3 }),
+        defaultedValidationMode,
         activeModule.address
       ])
-      console.log("key", key)
+
       const accountAddress = await getAddress()
       return await entryPointContract.read.getNonce([
         accountAddress,
         BigInt(key)
       ])
     } catch (e) {
-      return BigInt(0)
+      return 0n
     }
   }
 
