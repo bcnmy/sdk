@@ -29,6 +29,7 @@ import {
   smartAccountActions
 } from "./decorators/smartAccount"
 
+// Review: below is not used anywhere.
 /**
  * Parameters for sending a transaction
  */

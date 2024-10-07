@@ -50,13 +50,14 @@ export const toSmartSessionValidatorModule = async ({
   client,
   activePermissionId = "0x"
 }: {
-  nexusAccountAddress: Hex
+  nexusAccountAddress: Hex // Review: name. this vs accountAddress
   initData: Hex
   deInitData: Hex
   client: Client
   activePermissionId: Hex
 }): Promise<ToSmartSessionValidatorModuleReturnType> => {
   // Note: session key signer (applies in case of K1 based simple session validator algorithm)
+  // Review: It is wrong if signer is picked from client same as passed to nexus account ownership.
   const signer = await toSigner({ signer: client.account as Account })
 
   return toValidationModule({
