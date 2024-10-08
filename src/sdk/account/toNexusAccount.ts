@@ -62,6 +62,7 @@ import {
 } from "./utils/Utils"
 import { type UnknownSigner, toSigner } from "./utils/toSigner"
 
+// Maximum number that can fit in bytes3
 const TIMESTAMP_ADJUSTMENT = 16777215n
 
 /**
@@ -339,9 +340,9 @@ export const toNexusAccount = async (
     validationMode?: "0x00" | "0x01"
   }): Promise<bigint> => {
     try {
+      // console.log("parameters", parameters)
       const defaultedKey = BigInt(parameters?.key ?? 0n) % TIMESTAMP_ADJUSTMENT
       const defaultedValidationMode = parameters?.validationMode ?? "0x00"
-      
       const key: string = concat([
         toHex(defaultedKey, { size: 3 }),
         defaultedValidationMode,
@@ -357,7 +358,6 @@ export const toNexusAccount = async (
       return 0n
     }
   }
-
   /**
    * @description Changes the active module for the account
    * @param newModule - The new module to set as active

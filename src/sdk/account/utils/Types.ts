@@ -1,5 +1,4 @@
 import type { Address, Hash, Hex, Log } from "viem"
-import type { MODE_MODULE_ENABLE, MODE_VALIDATION } from "./Constants"
 
 export type TStatus = "success" | "reverted"
 
@@ -85,11 +84,9 @@ export type TypeDefinition = {
   [key: string]: TypeField[]
 }
 
-// Review: NonceOptions already has nonceKey and validationMode
-// Why is this key needed?
 export type GetNonceArgs = {
   key?: bigint | undefined
-  validationMode?: typeof MODE_VALIDATION | typeof MODE_MODULE_ENABLE
+  validationMode?: "0x00" | "0x01"
 }
 export type Call = {
   to: Hex
