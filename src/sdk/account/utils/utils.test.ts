@@ -1,4 +1,4 @@
-import { ethers, ParamType } from "ethers"
+import { ParamType, ethers } from "ethers"
 import { type AbiParameter, encodeAbiParameters } from "viem"
 import { generatePrivateKey } from "viem/accounts"
 import { describe, expect, test } from "vitest"

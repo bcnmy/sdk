@@ -1,13 +1,15 @@
+import { ethers } from "ethers"
 import {
   http,
   type Account,
   type Address,
   type Chain,
+  type Hex,
   encodeFunctionData,
   isHex,
-  parseEther,
-  Hex,
+  parseEther
 } from "viem"
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { CounterAbi } from "../../test/__contracts/abi"
 import mockAddresses from "../../test/__contracts/mockAddresses"
@@ -21,13 +23,11 @@ import {
 } from "../../test/testUtils"
 import type { MasterClient, NetworkConfig } from "../../test/testUtils"
 import { addresses } from "../__contracts/addresses"
+import { toSigner } from "../account"
 import { ERROR_MESSAGES } from "../account/utils/Constants"
 import { getAccountMeta, makeInstallDataAndHash } from "../account/utils/Utils"
 import { getChain } from "../account/utils/getChain"
 import { type NexusClient, createNexusClient } from "./createNexusClient"
-import { ethers } from "ethers"
-import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
-import { toSigner } from "../account"
 
 describe("nexus.client", async () => {
   let network: NetworkConfig
@@ -197,19 +197,19 @@ describe("nexus.client", async () => {
   test("should have correct fields", async () => {
     const chainId = 1
     const chain = getChain(chainId)
-      ;[
-        "blockExplorers",
-        "contracts",
-        "fees",
-        "formatters",
-        "id",
-        "name",
-        "nativeCurrency",
-        "rpcUrls",
-        "serializers"
-      ].every((field) => {
-        expect(chain).toHaveProperty(field)
-      })
+    ;[
+      "blockExplorers",
+      "contracts",
+      "fees",
+      "formatters",
+      "id",
+      "name",
+      "nativeCurrency",
+      "rpcUrls",
+      "serializers"
+    ].every((field) => {
+      expect(chain).toHaveProperty(field)
+    })
   })
 
   test("should throw an error, chain id not found", async () => {
@@ -257,7 +257,7 @@ describe("nexus.client", async () => {
 
   test("should compare signatures of viem and ethers signer", async () => {
     const viemSigner = privateKeyToAccount(privKey)
-    const ethersSigner = new ethers.Wallet(privKey);
+    const ethersSigner = new ethers.Wallet(privKey)
 
     const viemNexusClient = await createNexusClient({
       signer: await toSigner({ signer: viemSigner }),
