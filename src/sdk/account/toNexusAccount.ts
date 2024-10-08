@@ -340,7 +340,7 @@ export const toNexusAccount = async (
     validationMode?: "0x00" | "0x01"
   }): Promise<bigint> => {
     try {
-      console.log("parameters", parameters)
+      // console.log("parameters", parameters)
       const defaultedKey = BigInt(parameters?.key ?? 0n) % TIMESTAMP_ADJUSTMENT
       const defaultedValidationMode = parameters?.validationMode ?? "0x00"
       const key: string = concat([
