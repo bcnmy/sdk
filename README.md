@@ -41,7 +41,12 @@ bun i
 
 ```typescript
 import { createNexusClient } from "@biconomy/sdk";
-import { http } from "viem";
+import { http, publicClient } from "viem";
+
+const publicClient = createPublicClient({
+  chain: mainnet,
+  transport: http(),
+});
 
 const nexusClient = await createNexusClient({
   holder: account,
@@ -51,7 +56,7 @@ const nexusClient = await createNexusClient({
 });
 
 const hash = await nexusClient.sendTransaction({ calls: [to: "0x...", value: 1] });
-const { status, transactionHash } = await nexusClient.account.client.waitForTransactionReceipt({ hash });
+const { status, transactionHash } = await publicClient.waitForTransactionReceipt({ hash });
 
 ```
 
@@ -66,14 +71,6 @@ For a comprehensive understanding of our project and to contribute effectively, 
 - [**Code of Conduct**](./CODE_OF_CONDUCT.md): Our commitment to fostering an open and welcoming environment.
 - [**Security Policy**](./SECURITY.md): Guidelines for reporting security vulnerabilities.
 - [**Changelog**](./CHANGELOG.md): Stay updated with the changes and versions
-
-## 💼 Examples
-
-- [Initialise a smartAccount](examples/INITIALISE_A_SMART_CONTRACT.md)
-- [send some eth with sponsorship](examples/SEND_SOME_ETH_WITH_SPONSORSHIP.md)
-- [send a multi tx and pay gas with an erc20 token](examples/SEND_A_MULTI_TX_AND_PAY_GAS_WITH_TOKEN.md)
-- [create and use a session](examples/CREATE_AND_USE_A_SESSION.md)
-- [create and use a batch session](examples/CREATE_AND_USE_A_BATCH_SESSION.md)
 
 ## License
 
