@@ -72,7 +72,7 @@ describe("modules.smartSessionValidator.write", async () => {
     await killNetwork([network?.rpcPort, network?.bundlerPort])
   })
 
-  test.skip("should send eth", async () => {
+  test("should send eth", async () => {
     const balanceBefore = await getBalance(testClient, recipientAddress)
     const hash = await nexusClient.sendTransaction({
       calls: [
