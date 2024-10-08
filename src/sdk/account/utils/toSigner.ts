@@ -1,3 +1,4 @@
+import { Wallet } from "ethers"
 import {
   type Account,
   type Address,
@@ -5,6 +6,7 @@ import {
   type EIP1193Provider,
   type EIP1193RequestFn,
   type EIP1474Methods,
+  type Hex,
   type LocalAccount,
   type OneOf,
   type Transport,
@@ -23,6 +25,7 @@ export type UnknownSigner = OneOf<
   | WalletClient<Transport, Chain | undefined, Account>
   | LocalAccount
   | Account
+  | Wallet
 >
 export async function toSigner({
   signer,
@@ -31,6 +34,28 @@ export async function toSigner({
   signer: UnknownSigner
   address?: Address
 }): Promise<LocalAccount> {
+  if (signer instanceof Wallet) {
+    return toAccount({
+      address: (await signer.getAddress()) as Hex,
+      async signMessage({ message }) {
+        if (typeof message === "string") {
+          return signer.signMessage(message) as Promise<Hex>
+        }
+        return signer.signMessage(message.raw) as Promise<Hex>
+      },
+      async signTransaction(_) {
+        throw new Error("Not supported")
+      },
+      async signTypedData(typedData) {
+        return signer.signTypedData(
+          typedData.domain as any,
+          typedData.types as any,
+          typedData.message as any
+        ) as Promise<Hex>
+      }
+    })
+  }
+
   if ("type" in signer && signer.type === "local") {
     return signer as LocalAccount
   }
