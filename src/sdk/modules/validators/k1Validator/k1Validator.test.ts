@@ -70,7 +70,12 @@ describe("modules.k1Validator.write", async () => {
           to: recipientAddress,
           value: 1n
         }
-      ]
+      ],
+      // Note: supply or don't supply key, it makes no difference to the log supplied key
+      // nonce: await nexusClient.account.getNonce({key: 123456n })
+
+      // Note: one can directly supply fixed or just use below for 2D nonce
+      nonce: await nexusClient.account.getNonce()
     })
     const { success } = await nexusClient.waitForUserOperationReceipt({ hash })
     const balanceAfter = await getBalance(testClient, recipientAddress)
@@ -83,7 +88,7 @@ describe("modules.k1Validator.write", async () => {
       client: nexusClient.account.client as PublicClient,
       initData: encodePacked(["address"], [eoaAccount.address]),
       deInitData: "0x",
-      nexusAccountAddress: nexusClient.account.address
+      accountAddress: nexusClient.account.address
     })
     expect(k1Validator.signMessage).toBeDefined()
     expect(k1Validator.signUserOpHash).toBeDefined()

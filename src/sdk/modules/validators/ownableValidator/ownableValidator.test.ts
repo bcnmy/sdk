@@ -177,7 +177,8 @@ describe("modules.ownableValidator", async () => {
     const userOpHash = await ownableNexusClient.removeOwner({
       account: nexusClient.account,
       owner: recipientAddress,
-      signatureOverride: multiSignature
+      signatureOverride: multiSignature,
+      nonce: userOp.nonce
     })
     expect(userOpHash).toBeDefined()
     const { success: userOpSuccess } =
@@ -223,7 +224,7 @@ describe("modules.ownableValidator", async () => {
       ownableValidatorModule.address
     )
 
-    const dummyUserOp = await nexusClient.prepareUserOperation({
+    const userOp = await nexusClient.prepareUserOperation({
       calls: [
         {
           to: zeroAddress,
@@ -232,29 +233,30 @@ describe("modules.ownableValidator", async () => {
       ]
     })
 
-    const dummyUserOpHash = await nexusClient.account.getUserOpHash(dummyUserOp)
+    const userOpHash = await nexusClient.account.getUserOpHash(userOp)
     const signature1 = await eoaAccount?.signMessage?.({
-      message: { raw: dummyUserOpHash }
+      message: { raw: userOpHash }
     })
     const signature2 = await recipient?.signMessage?.({
-      message: { raw: dummyUserOpHash }
+      message: { raw: userOpHash }
     })
     const multiSignature = encodePacked(
       ["bytes", "bytes"],
       [signature1 ?? "0x", signature2 ?? "0x"]
     )
-    const userOpHash = await nexusClient.sendUserOperation({
+    const userOperationHashResponse = await nexusClient.sendUserOperation({
       calls: [
         {
           to: zeroAddress,
           data: "0x"
         }
       ],
-      signature: multiSignature
+      signature: multiSignature,
+      nonce: userOp.nonce
     })
     expect(userOpHash).toBeDefined()
     const { success: userOpSuccess } =
-      await nexusClient.waitForUserOperationReceipt({ hash: userOpHash })
+      await nexusClient.waitForUserOperationReceipt({ hash: userOperationHashResponse })
     expect(userOpSuccess).toBe(true)
   })
 
@@ -331,7 +333,8 @@ describe("modules.ownableValidator", async () => {
         type: "validator",
         data: "0x"
       },
-      signatureOverride: multiSignature
+      signatureOverride: multiSignature,
+      nonce: userOp.nonce
     })
     expect(uninstallHash).toBeDefined()
     const { success: userOpSuccess } =

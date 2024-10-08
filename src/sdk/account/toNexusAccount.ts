@@ -47,7 +47,6 @@ import {
   EXECUTE_BATCH,
   EXECUTE_SINGLE,
   MAGIC_BYTES,
-  MODE_VALIDATION,
   PARENT_TYPEHASH
 } from "./utils/Constants"
 
@@ -62,6 +61,9 @@ import {
   typeToString
 } from "./utils/Utils"
 import { type UnknownSigner, toSigner } from "./utils/toSigner"
+
+// Maximum number that can fit in bytes3
+const TIMESTAMP_ADJUSTMENT = 16777215n
 
 /**
  * Parameters for creating a Nexus Smart Account
@@ -338,11 +340,9 @@ export const toNexusAccount = async (
     validationMode?: "0x00" | "0x01"
   }): Promise<bigint> => {
     try {
-      const TIMESTAMP_ADJUSTMENT = 1000000n
-
-      const defaultedKey = BigInt(parameters?.key ?? 0n) / TIMESTAMP_ADJUSTMENT
+      console.log("parameters", parameters)
+      const defaultedKey = BigInt(parameters?.key ?? 0n) % TIMESTAMP_ADJUSTMENT
       const defaultedValidationMode = parameters?.validationMode ?? "0x00"
-
       const key: string = concat([
         toHex(defaultedKey, { size: 3 }),
         defaultedValidationMode,
