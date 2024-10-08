@@ -5,10 +5,10 @@ import {
 import type { Account, Client, Hex, Prettify } from "viem"
 import addresses from "../../../__contracts/addresses"
 import { toSigner } from "../../../account"
-import type { ModuleSignatureMetadata } from "./Types"
+import { sanitizeSignature } from "../../utils/Helper"
 import { toValidationModule } from "../toValidationModule"
 import type { Module, ModuleImplementation } from "../types"
-import { sanitizeSignature } from "../../utils/Helper"
+import type { ModuleSignatureMetadata } from "./Types"
 
 const DUMMY_ECDSA_SIG =
   "0xe8b94748580ca0b4993c9a1b86b5be851bfc076ff5ce3a1ff65bf16392acfcb800f9b4f1aef1555c7fce5599fffb17e7c635502154a0333ba21f3ae491839af51c"
@@ -104,7 +104,7 @@ export const toSmartSessionValidatorModule = async ({
     signMessage: async (_message: Uint8Array | string) => {
       const message =
         typeof _message === "string" ? _message : { raw: _message }
-      let signature = await signer.signMessage({ message })
+      const signature = await signer.signMessage({ message })
       return sanitizeSignature(signature)
     },
     client

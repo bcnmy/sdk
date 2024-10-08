@@ -155,6 +155,7 @@ export type NexusClientConfig<
     k1ValidatorAddress?: Address
     accountName?: string
     accountKey?: string
+    accountAddress?: Address
   }
 >
 
@@ -193,6 +194,7 @@ export async function createNexusClient(
     k1ValidatorAddress = contracts.k1Validator.address,
     bundlerTransport,
     transport,
+    accountAddress,
     ...bundlerConfig
   } = parameters
 
@@ -201,6 +203,7 @@ export async function createNexusClient(
   const nexusAccount = await toNexusAccount({
     name: accountName,
     key: accountKey,
+    accountAddress,
     transport,
     chain,
     signer,

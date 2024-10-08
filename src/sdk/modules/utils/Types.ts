@@ -1,4 +1,4 @@
-import { type Address, type Chain, type Hex } from "viem"
+import type { Address, Chain, Hex } from "viem"
 
 // Review:
 export type ModuleVersion = "1.0.0-beta" // | 'V1_0_1'

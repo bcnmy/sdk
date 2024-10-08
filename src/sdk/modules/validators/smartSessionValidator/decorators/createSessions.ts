@@ -1,23 +1,14 @@
-import type {
-  ActionData,
-  PolicyData,
-  Session
-} from "@rhinestone/module-sdk"
+import type { ActionData, PolicyData, Session } from "@rhinestone/module-sdk"
 import type { Chain, Client, Hex, PublicClient, Transport } from "viem"
 import {
   type GetSmartAccountParameter,
   type SmartAccount,
   sendUserOperation
 } from "viem/account-abstraction"
-import {
-  encodeFunctionData,
-  getAction,
-  parseAccount
-} from "viem/utils"
+import { encodeFunctionData, getAction, parseAccount } from "viem/utils"
 import { SmartSessionAbi } from "../../../../__contracts/abi/SmartSessionAbi"
 import addresses from "../../../../__contracts/addresses"
 import { AccountNotFoundError } from "../../../../account/utils/AccountNotFound"
-import type { CreateSessionDataParams } from "../Types"
 import {
   createActionConfig,
   createActionData,
@@ -26,6 +17,7 @@ import {
   toTimeRangePolicy,
   toUniversalActionPolicy
 } from "../Helper"
+import type { CreateSessionDataParams } from "../Types"
 import type {
   CreateSessionsActionReturnParams,
   CreateSessionsResponse
@@ -46,7 +38,7 @@ export type CreateSessionsParameters<
 
 export const getSmartSessionValidatorCreateSessionsAction = async ({
   sessionRequestedInfo,
-  client,
+  client
 }: {
   sessionRequestedInfo: CreateSessionDataParams[]
   client: PublicClient

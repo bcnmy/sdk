@@ -1,9 +1,9 @@
 import type { Account, Client, Hex, Prettify } from "viem"
 import addresses from "../../../__contracts/addresses"
 import { toSigner } from "../../../account"
+import { sanitizeSignature } from "../../utils/Helper"
 import { toValidationModule } from "../toValidationModule"
 import type { Module, ModuleImplementation } from "../types"
-import { sanitizeSignature } from "../../utils/Helper"
 
 export type ToK1ValidatorModuleReturnType = Prettify<
   Module<K1ValidatorModuleImplementation>
@@ -67,7 +67,7 @@ export const toK1ValidatorModule = async ({
     signMessage: async (_message: Uint8Array | string) => {
       const message =
         typeof _message === "string" ? _message : { raw: _message }
-      let signature = await signer.signMessage({ message })
+      const signature = await signer.signMessage({ message })
       return sanitizeSignature(signature)
     },
     client

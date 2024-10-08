@@ -58,6 +58,7 @@ import {
   eip712WrapHash,
   getAccountDomainStructFields,
   getTypesForEIP712Domain,
+  isNullOrUndefined,
   packUserOp,
   typeToString
 } from "./utils/Utils"
@@ -81,6 +82,8 @@ export type ToNexusSmartAccountParameters = {
   factoryAddress?: Address
   /** Optional K1 validator address */
   k1ValidatorAddress?: Address
+  /** Optional account address override */
+  accountAddress?: Address
 } & Prettify<
   Pick<
     ClientConfig<Transport, Chain, Account, RpcSchema>,
@@ -181,13 +184,13 @@ export const toNexusAccount = async (
     args: [signerAddress, index, [], 0]
   })
 
-  let _accountAddress: Address
+  let _accountAddress: Address | undefined = parameters.accountAddress
   /**
    * @description Gets the address of the account
    * @returns The address of the account
    */
-  const getAddress = async () => {
-    if (_accountAddress) return _accountAddress
+  const getAddress = async (): Promise<Address> => {
+    if (!isNullOrUndefined(_accountAddress)) return _accountAddress
 
     try {
       _accountAddress = (await masterClient.readContract({
@@ -200,6 +203,7 @@ export const toNexusAccount = async (
       if (e.shortMessage?.includes(ERROR_MESSAGES.MISSING_ACCOUNT_CONTRACT)) {
         throw new Error(ERROR_MESSAGES.ACCOUNT_NOT_DEPLOYED)
       }
+      throw e
     }
 
     return _accountAddress
