@@ -181,7 +181,12 @@ export type AnyReferenceValue = BaseReferenceValue | HardcodedReference
  */
 export function parseReferenceValue(referenceValue: AnyReferenceValue): Hex {
   let result: Hex
-  if ((referenceValue as HardcodedReference)?.raw) {
+  // Handle 20-byte Ethereum address
+  if (isHex(referenceValue) && referenceValue.length === 42) {
+    // Remove '0x' prefix, pad to 32 bytes (64 characters) on the left, then add '0x' prefix back
+    result = `0x${'0'.repeat(24)}${referenceValue.slice(2)}` as Hex
+  } 
+  else if ((referenceValue as HardcodedReference)?.raw) {
     result = (referenceValue as HardcodedReference)?.raw
   } else if (typeof referenceValue === "bigint") {
     result = pad(toHex(referenceValue), { size: 32 }) as Hex
@@ -190,6 +195,7 @@ export function parseReferenceValue(referenceValue: AnyReferenceValue): Hex {
   } else if (typeof referenceValue === "boolean") {
     result = pad(toHex(referenceValue), { size: 32 }) as Hex
   } else if (isHex(referenceValue)) {
+    // review
     result = referenceValue
   } else if (typeof referenceValue === "string") {
     result = pad(referenceValue as Hex, { size: 32 })

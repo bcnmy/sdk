@@ -73,6 +73,9 @@ export async function useSession<
   const smartSessionValidator = (
     account as NexusAccount
   ).getActiveModule() as ToSmartSessionValidatorModuleReturnType
+
+  // Review: affects of this as it doesn't seem to work. unless set in the smart session module upon init.
+  // Todo: link discussion page.
   smartSessionValidator.activePermissionId = permissionId
 
   return await getAction(
