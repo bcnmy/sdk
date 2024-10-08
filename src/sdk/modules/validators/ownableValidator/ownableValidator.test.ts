@@ -178,7 +178,7 @@ describe("modules.ownableValidator", async () => {
       account: nexusClient.account,
       owner: recipientAddress,
       signatureOverride: multiSignature,
-      nonce: userOp.nonce
+      // nonce: userOp.nonce
     })
     expect(userOpHash).toBeDefined()
     const { success: userOpSuccess } =
@@ -252,7 +252,7 @@ describe("modules.ownableValidator", async () => {
         }
       ],
       signature: multiSignature,
-      nonce: userOp.nonce
+      // nonce: userOp.nonce
     })
     expect(userOpHash).toBeDefined()
     const { success: userOpSuccess } =
@@ -313,7 +313,7 @@ describe("modules.ownableValidator", async () => {
           to: nexusClient.account.address,
           data: uninstallCallData
         }
-      ]
+      ],
     })
     const userOpHash = await nexusClient.account.getUserOpHash(userOp)
     expect(userOpHash).toBeDefined()
@@ -334,7 +334,14 @@ describe("modules.ownableValidator", async () => {
         data: "0x"
       },
       signatureOverride: multiSignature,
-      nonce: userOp.nonce
+      // Note: If you supply nonceKey in prepareUserOperation by calling getNonce then do either of the below.
+      // 1. supply exact nonce
+      // nonce: userOp.nonce
+
+      // todo category. update decorators to make this work.
+      //2. supply nonceKey. uninstallModule should be able to handle this and make call to getNonce()
+
+      //3. supply nonce with getNonce call using same nonceKey.
     })
     expect(uninstallHash).toBeDefined()
     const { success: userOpSuccess } =
