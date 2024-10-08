@@ -6,7 +6,7 @@ import {
   encodeFunctionData,
   isHex,
   parseEther,
-  toBytes
+  Hex,
 } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { CounterAbi } from "../../test/__contracts/abi"
@@ -25,6 +25,9 @@ import { ERROR_MESSAGES } from "../account/utils/Constants"
 import { getAccountMeta, makeInstallDataAndHash } from "../account/utils/Utils"
 import { getChain } from "../account/utils/getChain"
 import { type NexusClient, createNexusClient } from "./createNexusClient"
+import { ethers } from "ethers"
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
+import { toSigner } from "../account"
 
 describe("nexus.client", async () => {
   let network: NetworkConfig
@@ -38,6 +41,7 @@ describe("nexus.client", async () => {
   let recipientAddress: Address
   let nexusClient: NexusClient
   let nexusAccountAddress: Address
+  let privKey: Hex
 
   beforeAll(async () => {
     network = await toNetwork()
@@ -50,8 +54,11 @@ describe("nexus.client", async () => {
 
     testClient = toTestClient(chain, getTestAccount(5))
 
+    privKey = generatePrivateKey()
+    const account = privateKeyToAccount(privKey)
+
     nexusClient = await createNexusClient({
-      signer: eoaAccount,
+      signer: account,
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl)
@@ -190,19 +197,19 @@ describe("nexus.client", async () => {
   test("should have correct fields", async () => {
     const chainId = 1
     const chain = getChain(chainId)
-    ;[
-      "blockExplorers",
-      "contracts",
-      "fees",
-      "formatters",
-      "id",
-      "name",
-      "nativeCurrency",
-      "rpcUrls",
-      "serializers"
-    ].every((field) => {
-      expect(chain).toHaveProperty(field)
-    })
+      ;[
+        "blockExplorers",
+        "contracts",
+        "fees",
+        "formatters",
+        "id",
+        "name",
+        "nativeCurrency",
+        "rpcUrls",
+        "serializers"
+      ].every((field) => {
+        expect(chain).toHaveProperty(field)
+      })
   })
 
   test("should throw an error, chain id not found", async () => {
@@ -246,5 +253,29 @@ describe("nexus.client", async () => {
     const balanceAfter = await getBalance(testClient, recipientAddress)
     expect(status).toBe("success")
     expect(balanceAfter - balanceBefore).toBe(2n)
+  })
+
+  test("should compare signatures of viem and ethers signer", async () => {
+    const viemSigner = privateKeyToAccount(privKey)
+    const ethersSigner = new ethers.Wallet(privKey);
+
+    const viemNexusClient = await createNexusClient({
+      signer: await toSigner({ signer: viemSigner }),
+      chain,
+      transport: http(),
+      bundlerTransport: http(bundlerUrl)
+    })
+
+    const ethersNexusClient = await createNexusClient({
+      signer: await toSigner({ signer: ethersSigner }),
+      chain,
+      transport: http(),
+      bundlerTransport: http(bundlerUrl)
+    })
+
+    const sig1 = await viemNexusClient.signMessage({ message: "test" })
+    const sig2 = await ethersNexusClient.signMessage({ message: "test" })
+
+    expect(sig1).toBe(sig2)
   })
 })
