@@ -8,12 +8,15 @@ import type {
   SendTransactionParameters,
   Transport,
   TypedData,
+  WaitForTransactionReceiptParameters,
+  WaitForTransactionReceiptReturnType,
   WriteContractParameters
 } from "viem"
 import type { SmartAccount } from "viem/account-abstraction"
 import { sendTransaction } from "./sendTransaction"
 import { signMessage } from "./signMessage"
 import { signTypedData } from "./signTypedData"
+import { waitForTransactionReceipt } from "./waitForTransactionReceipt"
 import { writeContract } from "./writeContract"
 
 export type SmartAccountActions<
@@ -307,6 +310,9 @@ export type SmartAccountActions<
       TChainOverride
     >
   >
+  waitForTransactionReceipt: (
+    params: WaitForTransactionReceiptParameters
+  ) => Promise<WaitForTransactionReceiptReturnType>
 }
 
 export function smartAccountActions() {
@@ -319,6 +325,7 @@ export function smartAccountActions() {
     sendTransaction: (args) => sendTransaction(client, args as any),
     signMessage: (args) => signMessage(client, args),
     signTypedData: (args) => signTypedData(client, args),
-    writeContract: (args) => writeContract(client, args)
+    writeContract: (args) => writeContract(client, args),
+    waitForTransactionReceipt: (args) => waitForTransactionReceipt(client, args)
   })
 }

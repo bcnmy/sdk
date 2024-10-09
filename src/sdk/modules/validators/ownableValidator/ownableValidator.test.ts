@@ -5,7 +5,6 @@ import {
   type Address,
   type Chain,
   type Hex,
-  type PublicClient,
   encodeAbiParameters,
   encodeFunctionData,
   encodePacked,
@@ -51,6 +50,7 @@ describe("modules.ownableValidator", async () => {
   let recipientAddress: Address
   let ownableValidatorModule: ToOwnableValidatorModuleReturnType
   let k1ValidatorModule: ToK1ValidatorModuleReturnType
+
   beforeAll(async () => {
     network = await toNetwork()
 
@@ -72,24 +72,14 @@ describe("modules.ownableValidator", async () => {
     nexusAccountAddress = await nexusClient.account.getCounterFactualAddress()
     await fundAndDeployClients(testClient, [nexusClient])
 
-    ownableValidatorModule = await toOwnableValidatorModule({
-      accountAddress: nexusClient.account.address,
-      client: nexusClient.account.client as PublicClient,
-      initData: encodeAbiParameters(
-        [
-          { name: "threshold", type: "uint256" },
-          { name: "owners", type: "address[]" }
-        ],
-        [BigInt(1), [eoaAccount.address]]
-      ),
-      deInitData: "0x"
+    ownableValidatorModule = toOwnableValidatorModule({
+      account: nexusClient.account,
+      signer: eoaAccount
     })
 
-    k1ValidatorModule = await toK1ValidatorModule({
+    k1ValidatorModule = toK1ValidatorModule({
       accountAddress: nexusClient.account.address,
-      client: nexusClient.account.client as PublicClient,
-      initData: encodePacked(["address"], [eoaAccount.address]),
-      deInitData: encodePacked(["address"], [eoaAccount.address])
+      signer: eoaAccount
     })
   })
 
@@ -110,7 +100,12 @@ describe("modules.ownableValidator", async () => {
   })
 
   test("should install ownable validator and perform operations", async () => {
-    // Install ownable validator
+    console.log("eoaAccount.address", eoaAccount.address)
+    console.log(
+      "ownableValidatorModule.address",
+      ownableValidatorModule.address
+    )
+
     const installHash = await nexusClient.installModule({
       module: {
         address: ownableValidatorModule.address,
@@ -129,6 +124,7 @@ describe("modules.ownableValidator", async () => {
     expect(installSuccess).toBe(true)
 
     nexusClient.account.setActiveModule(ownableValidatorModule)
+    console.log(nexusClient.account.getActiveModule().address)
   })
 
   test("should add accountTwo as owner", async () => {
@@ -260,6 +256,7 @@ describe("modules.ownableValidator", async () => {
 
   test("should uninstall ownable validator with 2 signatures", async () => {
     const [installedValidators] = await nexusClient.getInstalledValidators()
+    console.log("installedValidators", installedValidators)
     const prevModule = await nexusClient.getPreviousModule({
       module: {
         address: ownableValidatorModule.address,

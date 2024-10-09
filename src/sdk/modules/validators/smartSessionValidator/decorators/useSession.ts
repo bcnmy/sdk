@@ -1,17 +1,21 @@
-import { getRemoveOwnableValidatorOwnerAction } from "@rhinestone/module-sdk"
-import type { Chain, Client, Hex, PublicClient, Transport } from "viem"
+import type { Chain, Client, Hex, Transport } from "viem"
 import {
   type GetSmartAccountParameter,
   type SmartAccount,
   sendUserOperation
 } from "viem/account-abstraction"
 import { getAction, parseAccount } from "viem/utils"
+import type { NexusAccount } from "../../../../account"
 import { AccountNotFoundError } from "../../../../account/utils/AccountNotFound"
+import type { Execution } from "../../../utils/Types"
+import type { SmartSessionMetaData } from "../Types"
 
-export type RemoveOwnerParameters<
+// If the session is enabled for multiple actions, it is possible to send a batch transaction. hence it accepts an array of executions.
+// permisisonId corresponds to already enabled session.
+export type UseSessionParameters<
   TSmartAccount extends SmartAccount | undefined
 > = GetSmartAccountParameter<TSmartAccount> & {
-  owner: Hex
+  actions: Execution[]
   maxFeePerGas?: bigint
   maxPriorityFeePerGas?: bigint
   nonce?: bigint
@@ -19,33 +23,39 @@ export type RemoveOwnerParameters<
 }
 
 /**
- * Removes an owner from the OwnableValidator module of a given smart account.
+ * use a particular session that is enabled already on smart session validator.
  *
  * @param client - The client instance.
- * @param parameters - Parameters including the smart account, owner address to remove, and optional gas settings.
+ * @param parameters - Parameters including the smart account, required session specific info, and optional gas settings.
  * @returns The hash of the user operation as a hexadecimal string.
  * @throws {AccountNotFoundError} If the account is not found.
  *
  * @example
- * import { removeOwner } from '@biconomy/sdk'
+ * import { useSession } from '@biconomy/sdk'
  *
- * const userOpHash = await removeOwner(nexusClient, {
- *   owner: '0x...'
+ * const userOpHash = await useSession(nexusClient, {
+ *   actions: [{
+ *     target: '0x...',
+ *     value: BigInt(0),
+ *     callData: '0x...'
+ *   }],
+ *   permissionId: '0x...',
+ *   signatureOverride: '0x...'
  * })
  * console.log(userOpHash) // '0x...'
  */
-export async function removeOwner<
+export async function useSession<
   TSmartAccount extends SmartAccount | undefined
 >(
   client: Client<Transport, Chain | undefined, TSmartAccount>,
-  parameters: RemoveOwnerParameters<TSmartAccount>
+  parameters: UseSessionParameters<TSmartAccount>
 ): Promise<Hex> {
   const {
     account: account_ = client.account,
     maxFeePerGas,
     maxPriorityFeePerGas,
     nonce,
-    owner,
+    actions,
     signatureOverride
   } = parameters
 
@@ -55,31 +65,18 @@ export async function removeOwner<
     })
   }
 
-  const account = parseAccount(account_) as SmartAccount
-  const publicClient = account.client
+  const account = parseAccount(account_) as NexusAccount
 
-  const action = await getRemoveOwnableValidatorOwnerAction({
-    account: { address: account.address, deployedOnChains: [], type: "nexus" },
-    client: publicClient as PublicClient,
-    owner
-  })
-
-  if (!("callData" in action)) {
-    throw new Error("Error getting remove owner action")
-  }
-
-  return getAction(
+  return await getAction(
     client,
     sendUserOperation,
     "sendUserOperation"
   )({
-    calls: [
-      {
-        to: action.target,
-        value: BigInt(action.value.toString()),
-        data: action.callData
-      }
-    ],
+    calls: actions.map((action) => ({
+      to: action.target,
+      value: BigInt(action.value.toString()),
+      data: action.callData
+    })),
     maxFeePerGas,
     maxPriorityFeePerGas,
     nonce,
