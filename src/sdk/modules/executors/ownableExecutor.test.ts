@@ -24,6 +24,7 @@ import {
   toTestClient
 } from "../../../test/testUtils"
 import type { MasterClient, NetworkConfig } from "../../../test/testUtils"
+import type { Signer } from "../../account/utils/toSigner"
 import {
   type NexusClient,
   createNexusClient
@@ -33,7 +34,6 @@ import {
   toK1ValidatorModule
 } from "../validators/k1Validator/toK1ValidatorModule"
 import { testAddresses } from "./../../../test/callDatas"
-import type { Signer } from "../../account/utils/toSigner"
 
 describe("modules.ownableExecutor", async () => {
   let network: NetworkConfig

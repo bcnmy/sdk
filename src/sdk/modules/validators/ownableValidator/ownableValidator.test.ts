@@ -87,9 +87,14 @@ describe("modules.ownableValidator", async () => {
     await killNetwork([network?.rpcPort, network?.bundlerPort])
   })
 
-  test("should be able to extend the client", async () => {
+  test("should be able to extend the client, and activate the module", async () => {
     const ownableNexusClient = nexusClient.extend(ownableValidatorActions())
     expect(Object.keys(ownableNexusClient)).toContain("addOwner")
+    expect(nexusClient.account.getActiveModule().address).toBe(
+      ownableValidatorModule.address
+    )
+    // reactivate k1ValidatorModule
+    nexusClient.account.setActiveModule(k1ValidatorModule)
   })
 
   test("should return values if module not installed", async () => {
@@ -100,12 +105,6 @@ describe("modules.ownableValidator", async () => {
   })
 
   test("should install ownable validator and perform operations", async () => {
-    console.log("eoaAccount.address", eoaAccount.address)
-    console.log(
-      "ownableValidatorModule.address",
-      ownableValidatorModule.address
-    )
-
     const installHash = await nexusClient.installModule({
       module: {
         address: ownableValidatorModule.address,
@@ -124,7 +123,6 @@ describe("modules.ownableValidator", async () => {
     expect(installSuccess).toBe(true)
 
     nexusClient.account.setActiveModule(ownableValidatorModule)
-    console.log(nexusClient.account.getActiveModule().address)
   })
 
   test("should add accountTwo as owner", async () => {
@@ -256,7 +254,6 @@ describe("modules.ownableValidator", async () => {
 
   test("should uninstall ownable validator with 2 signatures", async () => {
     const [installedValidators] = await nexusClient.getInstalledValidators()
-    console.log("installedValidators", installedValidators)
     const prevModule = await nexusClient.getPreviousModule({
       module: {
         address: ownableValidatorModule.address,

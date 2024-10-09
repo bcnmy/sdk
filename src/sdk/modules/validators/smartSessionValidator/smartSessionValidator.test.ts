@@ -7,7 +7,6 @@ import {
   type LocalAccount,
   type PublicClient,
   encodeFunctionData,
-  encodePacked,
   toBytes,
   toHex
 } from "viem"
@@ -27,6 +26,7 @@ import {
   type NexusClient,
   createNexusClient
 } from "../../../clients/createNexusClient"
+import type { ToValidationModuleReturnType } from "../toValidationModule"
 import { isSessionEnabled } from "./Helper"
 import type { CreateSessionDataParams } from "./Types"
 import { smartSessionValidatorActions } from "./decorators"
@@ -45,6 +45,7 @@ describe("modules.smartSessionValidator.write", async () => {
   let recipientAddress: Address
   let cachedPermissionId: Hex
   let nexusAccountAddress: Hex
+  let k1Module: ToValidationModuleReturnType
 
   beforeAll(async () => {
     network = await toNetwork()
@@ -63,6 +64,8 @@ describe("modules.smartSessionValidator.write", async () => {
       transport: http(),
       bundlerTransport: http(bundlerUrl)
     })
+
+    k1Module = nexusClient.account.getActiveModule()
 
     nexusAccountAddress = await nexusClient.account.getCounterFactualAddress()
     await fundAndDeployClients(testClient, [nexusClient])
@@ -119,29 +122,30 @@ describe("modules.smartSessionValidator.write", async () => {
   test("should get stub signature from smartSessionValidator with USE mode", async () => {
     const smartSessionValidator = toSmartSessionsModule({
       account: nexusClient.account,
-      signer: eoaAccount
+      signer: eoaAccount,
+      data: {
+        permissionId:
+          "0xfcb2f4375207e6abcd89f2cd06c962435405acde8a974d872b373d7c5d557f0a"
+      }
     })
 
-    // @ts-ignore
-    const stubSig = await smartSessionValidator.getStubSignature({
-      permissionId:
-        "0xfcb2f4375207e6abcd89f2cd06c962435405acde8a974d872b373d7c5d557f0a"
-    })
+    const stubSig = await smartSessionValidator.getStubSignature()
     expect(stubSig).toBeDefined()
   })
 
   test("should get actual signature from smartSessionValidator with USE mode", async () => {
     const smartSessionValidator = toSmartSessionsModule({
       account: nexusClient.account,
-      signer: eoaAccount
+      signer: eoaAccount,
+      data: {
+        permissionId:
+          "0xfcb2f4375207e6abcd89f2cd06c962435405acde8a974d872b373d7c5d557f0a"
+      }
     })
 
     const mockUserOpHash =
       "0x1234567890123456789012345678901234567890123456789012345678901234"
-    const realSig = await smartSessionValidator.signUserOpHash(mockUserOpHash, {
-      permissionId:
-        "0xfcb2f4375207e6abcd89f2cd06c962435405acde8a974d872b373d7c5d557f0a"
-    })
+    const realSig = await smartSessionValidator.signUserOpHash(mockUserOpHash)
     expect(realSig).toBeDefined()
   })
 
@@ -159,39 +163,38 @@ describe("modules.smartSessionValidator.write", async () => {
     const sessionKeyEOA = eoaAccount.address
 
     // Todo: Add a negative test case for time range policy
-    const sessionRequestedInfo: CreateSessionDataParams = {
-      sessionPublicKey: sessionKeyEOA,
-      sessionValidatorAddress: TEST_CONTRACTS.SimpleSessionValidator.address,
-      sessionKeyData: toHex(toBytes(sessionKeyEOA)),
-      sessionValidAfter: 0,
-      sessionValidUntil: 0,
-      actionPoliciesInfo: [
-        {
-          contractAddress: TEST_CONTRACTS.Counter.address, // counter address
-          functionSelector: "0x273ea3e3" as Hex, // function selector for increment count
-          validUntil: 0, // 1717001666
-          validAfter: 0,
-          rules: [], // no other rules and conditions applied
-          valueLimit: BigInt(0)
-        }
-      ]
-    }
+    const sessionRequestedInfo: CreateSessionDataParams[] = [
+      {
+        sessionPublicKey: sessionKeyEOA,
+        sessionValidatorAddress: TEST_CONTRACTS.SimpleSessionValidator.address,
+        sessionKeyData: toHex(toBytes(sessionKeyEOA)),
+        sessionValidAfter: 0,
+        sessionValidUntil: 0,
+        actionPoliciesInfo: [
+          {
+            contractAddress: TEST_CONTRACTS.Counter.address, // counter address
+            functionSelector: "0x273ea3e3" as Hex, // function selector for increment count
+            validUntil: 0, // 1717001666
+            validAfter: 0,
+            rules: [], // no other rules and conditions applied
+            valueLimit: BigInt(0)
+          }
+        ]
+      }
+    ]
 
     const smartSessionNexusClient = nexusClient.extend(
       smartSessionValidatorActions()
     )
 
+    nexusClient.account.setActiveModule(k1Module)
+
     const createSessionsResponse = await smartSessionNexusClient.createSessions(
-      {
-        account: nexusClient.account,
-        sessionRequestedInfo: [sessionRequestedInfo]
-      }
+      { sessionRequestedInfo }
     )
 
     expect(createSessionsResponse.userOpHash).toBeDefined()
     expect(createSessionsResponse.permissionIds).toBeDefined()
-
-    console.log("createSessionsResponse", createSessionsResponse)
 
     const permissionIds = createSessionsResponse.permissionIds
     expect(permissionIds.length).toBe(1)

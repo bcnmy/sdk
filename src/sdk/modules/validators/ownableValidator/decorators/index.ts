@@ -1,9 +1,9 @@
 import type { Chain, Client, Hash, Transport } from "viem"
 import type { SmartAccount } from "viem/account-abstraction"
+import { activateModule } from "../../activateModule"
 import { type AddOwnerParameters, addOwner } from "./addOwner"
 import { type RemoveOwnerParameters, removeOwner } from "./removeOwner"
 import { type SetThresholdParameters, setThreshold } from "./setThreshold"
-import { activateModule } from "../../activateModule"
 
 export type OwnableValidatorActions<
   TSmartAccount extends SmartAccount | undefined

@@ -30,7 +30,7 @@ export function toValidationModule<
     ...rest
   } = implementation
 
-  let defaultedData = data ?? {}
+  let data_ = data ?? {}
 
   return {
     address,
@@ -55,9 +55,9 @@ export function toValidationModule<
       const signature = await signer.signMessage({ message })
       return sanitizeSignature(signature)
     },
-    getData: () => defaultedData,
+    getData: () => data_,
     setData: (data: NonNullable<ModuleImplementation["data"]>) => {
-      defaultedData = data
+      data_ = data
     },
     ...extend,
     ...rest

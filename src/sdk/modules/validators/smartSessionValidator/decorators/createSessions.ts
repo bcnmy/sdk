@@ -1,10 +1,6 @@
 import type { ActionData, PolicyData, Session } from "@rhinestone/module-sdk"
 import type { Chain, Client, Hex, PublicClient, Transport } from "viem"
-import {
-  type GetSmartAccountParameter,
-  type SmartAccount,
-  sendUserOperation
-} from "viem/account-abstraction"
+import { type SmartAccount, sendUserOperation } from "viem/account-abstraction"
 import { encodeFunctionData, getAction, parseAccount } from "viem/utils"
 import { SmartSessionAbi } from "../../../../__contracts/abi/SmartSessionAbi"
 import addresses from "../../../../__contracts/addresses"
@@ -28,12 +24,13 @@ const SIMPLE_SESSION_VALIDATOR_ADDRESS = addresses.SimpleSessionValidator
 
 export type CreateSessionsParameters<
   TSmartAccount extends SmartAccount | undefined
-> = GetSmartAccountParameter<TSmartAccount> & {
+> = {
   sessionRequestedInfo: CreateSessionDataParams[]
   maxFeePerGas?: bigint
   maxPriorityFeePerGas?: bigint
   nonce?: bigint
   signatureOverride?: Hex
+  account?: TSmartAccount
 }
 
 export const getSmartSessionValidatorCreateSessionsAction = async ({

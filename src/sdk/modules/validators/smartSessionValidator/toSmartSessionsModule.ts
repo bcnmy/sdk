@@ -68,16 +68,15 @@ export const toSmartSessionsModule = (
           enableSessionData: data.enableSessionData
         })
       },
-      getStubSignature: async () => {
-        if (!data || !data?.permissionId)
-          throw new Error("You must pass a permissionId to use a session")
-        return encodeSmartSessionSignature({
-          mode: data?.mode ?? SmartSessionMode.USE,
-          permissionId: data.permissionId,
-          signature: DUMMY_ECDSA_SIG,
-          enableSessionData: data.enableSessionData
-        })
-      }
+      getStubSignature: () =>
+        data?.permissionId
+          ? encodeSmartSessionSignature({
+              mode: data?.mode ?? SmartSessionMode.USE,
+              permissionId: data?.permissionId,
+              signature: DUMMY_ECDSA_SIG,
+              enableSessionData: data?.enableSessionData
+            })
+          : console.log("No permissionId found")
     }
   })
 }

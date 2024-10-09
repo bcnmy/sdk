@@ -1,9 +1,9 @@
 import type { Chain, Client, Hash, Transport } from "viem"
 import type { SmartAccount } from "viem/account-abstraction"
+import { activateModule } from "../../activateModule"
 import type { CreateSessionsResponse, SmartSessionMetaData } from "../Types"
 import { type CreateSessionsParameters, createSessions } from "./createSessions"
 import { type UseSessionParameters, useSession } from "./useSession"
-import { activateModule } from "../../activateModule"
 
 export type SmartSessionValidatorActions<
   TSmartAccount extends SmartAccount | undefined
