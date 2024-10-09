@@ -68,7 +68,6 @@ export async function useSession<
 
   const account = parseAccount(account_) as NexusAccount
 
-
   return await getAction(
     client,
     sendUserOperation,
