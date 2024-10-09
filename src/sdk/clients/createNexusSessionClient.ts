@@ -18,10 +18,8 @@ import type {
   SmartAccount,
   UserOperationRequest
 } from "viem/account-abstraction"
-import contracts from "../__contracts"
 import type { Call } from "../account/utils/Types"
 
-import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import type { UnknownSigner } from "../account/utils/toSigner"
 import { toSmartSessionValidatorModule } from "../modules/validators/smartSessionValidator/tosmartSessionValidatorModule"
 import type { ToValidationModuleReturnType } from "../modules/validators/toValidationModule"
@@ -65,31 +63,31 @@ export type NexusSessionClientConfig<
     client?: client | Client | undefined
     /** Paymaster configuration. */
     paymaster?:
-      | true
-      | {
-          /** Retrieves paymaster-related User Operation properties to be used for sending the User Operation. */
-          getPaymasterData?: PaymasterActions["getPaymasterData"] | undefined
-          /** Retrieves paymaster-related User Operation properties to be used for gas estimation. */
-          getPaymasterStubData?:
-            | PaymasterActions["getPaymasterStubData"]
-            | undefined
-        }
+    | true
+    | {
+      /** Retrieves paymaster-related User Operation properties to be used for sending the User Operation. */
+      getPaymasterData?: PaymasterActions["getPaymasterData"] | undefined
+      /** Retrieves paymaster-related User Operation properties to be used for gas estimation. */
+      getPaymasterStubData?:
+      | PaymasterActions["getPaymasterStubData"]
       | undefined
+    }
+    | undefined
     /** Paymaster context to pass to `getPaymasterData` and `getPaymasterStubData` calls. */
     paymasterContext?: unknown
     /** User Operation configuration. */
     userOperation?:
-      | {
-          /** Prepares fee properties for the User Operation request. */
-          estimateFeesPerGas?:
-            | ((parameters: {
-                account: account | SmartAccount
-                bundlerClient: Client
-                userOperation: UserOperationRequest
-              }) => Promise<EstimateFeesPerGasReturnType<"eip1559">>)
-            | undefined
-        }
+    | {
+      /** Prepares fee properties for the User Operation request. */
+      estimateFeesPerGas?:
+      | ((parameters: {
+        account: account | SmartAccount
+        bundlerClient: Client
+        userOperation: UserOperationRequest
+      }) => Promise<EstimateFeesPerGasReturnType<"eip1559">>)
       | undefined
+    }
+    | undefined
     /** Owner of the session. */
     signer: UnknownSigner
     /** Index of the account. */
@@ -133,18 +131,9 @@ export async function createNexusSessionClient(
     client: client_,
     chain = parameters.chain ?? client_?.chain,
     signer,
-    index = 0n,
-    key = "session nexus client",
-    name = "Session Nexus Client",
-    activeModule,
     accountAddress,
     bundlerUrl,
     permissionId,
-    factoryAddress = contracts.k1ValidatorFactory.address,
-    k1ValidatorAddress = contracts.k1Validator.address,
-    bundlerTransport,
-    transport,
-    ...bundlerConfig
   } = parameters
 
   if (!chain) throw new Error("Missing chain")

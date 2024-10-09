@@ -184,9 +184,8 @@ export function parseReferenceValue(referenceValue: AnyReferenceValue): Hex {
   // Handle 20-byte Ethereum address
   if (isHex(referenceValue) && referenceValue.length === 42) {
     // Remove '0x' prefix, pad to 32 bytes (64 characters) on the left, then add '0x' prefix back
-    result = `0x${'0'.repeat(24)}${referenceValue.slice(2)}` as Hex
-  } 
-  else if ((referenceValue as HardcodedReference)?.raw) {
+    result = `0x${"0".repeat(24)}${referenceValue.slice(2)}` as Hex
+  } else if ((referenceValue as HardcodedReference)?.raw) {
     result = (referenceValue as HardcodedReference)?.raw
   } else if (typeof referenceValue === "bigint") {
     result = pad(toHex(referenceValue), { size: 32 }) as Hex
