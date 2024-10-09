@@ -65,31 +65,31 @@ export type NexusSessionClientConfig<
     client: client | Client | undefined
     /** Paymaster configuration. */
     paymaster?:
-      | true
-      | {
-          /** Retrieves paymaster-related User Operation properties to be used for sending the User Operation. */
-          getPaymasterData?: PaymasterActions["getPaymasterData"] | undefined
-          /** Retrieves paymaster-related User Operation properties to be used for gas estimation. */
-          getPaymasterStubData?:
-            | PaymasterActions["getPaymasterStubData"]
-            | undefined
-        }
+    | true
+    | {
+      /** Retrieves paymaster-related User Operation properties to be used for sending the User Operation. */
+      getPaymasterData?: PaymasterActions["getPaymasterData"] | undefined
+      /** Retrieves paymaster-related User Operation properties to be used for gas estimation. */
+      getPaymasterStubData?:
+      | PaymasterActions["getPaymasterStubData"]
       | undefined
+    }
+    | undefined
     /** Paymaster context to pass to `getPaymasterData` and `getPaymasterStubData` calls. */
     paymasterContext?: unknown
     /** User Operation configuration. */
     userOperation?:
-      | {
-          /** Prepares fee properties for the User Operation request. */
-          estimateFeesPerGas?:
-            | ((parameters: {
-                account: account | SmartAccount
-                bundlerClient: Client
-                userOperation: UserOperationRequest
-              }) => Promise<EstimateFeesPerGasReturnType<"eip1559">>)
-            | undefined
-        }
+    | {
+      /** Prepares fee properties for the User Operation request. */
+      estimateFeesPerGas?:
+      | ((parameters: {
+        account: account | SmartAccount
+        bundlerClient: Client
+        userOperation: UserOperationRequest
+      }) => Promise<EstimateFeesPerGasReturnType<"eip1559">>)
       | undefined
+    }
+    | undefined
     /** Owner of the account. */
     // Note: Made the signer optional. This can be a session signer?
     signer?: UnknownSigner
@@ -173,7 +173,7 @@ export async function createNexusSessionClient(
     client: client_ as PublicClient,
     initData: encodePacked(["address"], [sessionKeyEOA]),
     deInitData: "0x",
-    nexusAccountAddress: accountAddress,
+    nexusAccountAddress: accountAddress ?? account.address,
     // Review: supply of permissionId when initialising module.
     activePermissionId: permissionId
   })
@@ -185,7 +185,7 @@ export async function createNexusSessionClient(
     chain,
     transport: http(),
     bundlerTransport: http(bundlerUrl),
-    accountAddress
+    // accountAddress
   })
   // Note: Goal is to be able to extend this and use useSession?
   // or one should be able to call sendTransaction that also works.

@@ -68,12 +68,13 @@ export async function useSession<
     })
   }
 
-  const account = parseAccount(account_) as SmartAccount
+  const account = parseAccount(account_) as NexusAccount
 
-  const smartSessionValidator = (
-    account as NexusAccount
-  ).getActiveModule() as ToSmartSessionValidatorModuleReturnType
-  smartSessionValidator.activePermissionId = permissionId
+  // @note This is not doing anything
+  // const smartSessionValidator = (
+  //   account as NexusAccount
+  // ).getActiveModule() as ToSmartSessionValidatorModuleReturnType
+  // smartSessionValidator.activePermissionId = permissionId
 
   return await getAction(
     client,
