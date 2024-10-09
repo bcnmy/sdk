@@ -1,7 +1,5 @@
 import { http, type Account, type Address, type Chain, pad, toHex } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
-import { ParamCondition } from "./Types"
-import { testAddresses } from "./../../../../test/callDatas"
 import { toNetwork } from "../../../../test/testSetup"
 import {
   fundAndDeployClients,
@@ -15,7 +13,9 @@ import {
   createNexusClient
 } from "../../../clients/createNexusClient"
 import { parseReferenceValue } from "../../utils/Helper"
+import { testAddresses } from "./../../../../test/callDatas"
 import policies from "./Helper"
+import { ParamCondition } from "./Types"
 
 describe("smart.sessions", async () => {
   let network: NetworkConfig
@@ -109,9 +109,7 @@ describe("smart.sessions", async () => {
     }
     const installUniversalPolicy = policies.to.universalAction(actionConfigData)
 
-    expect(installUniversalPolicy.policy).toEqual(
-      testAddresses.UniActionPolicy
-    )
+    expect(installUniversalPolicy.policy).toEqual(testAddresses.UniActionPolicy)
     expect(installUniversalPolicy.initData).toBeDefined()
   })
 

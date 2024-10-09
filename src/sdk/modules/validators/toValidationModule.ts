@@ -1,7 +1,7 @@
 import type { Account, Hex, Prettify } from "viem"
 import { toSigner } from "../../account/utils/toSigner.js"
-import type { Module, ModuleImplementation } from "./types.js"
 import { sanitizeSignature } from "../utils/Helper.js"
+import type { Module, ModuleImplementation } from "./types.js"
 
 export type ToValidationModuleReturnType<
   implementation extends ModuleImplementation = ModuleImplementation
@@ -34,7 +34,7 @@ export async function toValidationModule<
     signMessage: async (_message: Uint8Array | string) => {
       const message =
         typeof _message === "string" ? _message : { raw: _message }
-      let signature = await signer.signMessage({ message })
+      const signature = await signer.signMessage({ message })
       return sanitizeSignature(signature)
     },
     ...extend,

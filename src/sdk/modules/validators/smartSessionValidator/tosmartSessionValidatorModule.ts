@@ -5,10 +5,10 @@ import {
 import type { Account, Client, Hex, Prettify } from "viem"
 import addresses from "../../../__contracts/addresses"
 import { toSigner } from "../../../account"
-import type { ModuleSignatureMetadata } from "./Types"
+import { sanitizeSignature } from "../../utils/Helper"
 import { toValidationModule } from "../toValidationModule"
 import type { Module, ModuleImplementation } from "../types"
-import { sanitizeSignature } from "../../utils/Helper"
+import type { ModuleSignatureMetadata } from "./Types"
 
 const DUMMY_ECDSA_SIG =
   "0xe8b94748580ca0b4993c9a1b86b5be851bfc076ff5ce3a1ff65bf16392acfcb800f9b4f1aef1555c7fce5599fffb17e7c635502154a0333ba21f3ae491839af51c"
@@ -25,7 +25,7 @@ export type SmartSessionValidatorModuleImplementation = ModuleImplementation & {
  * This module provides validation functionality using the session key and permissions for a Nexus account.
  *
  * @param nexusAccountAddress The address of the Nexus account.
- * @param client The client instance.
+ * @param client The nexusclient.
  * @param initData Initialization data for the module.
  * @param deInitData De-initialization data for the module.
  * @returns A promise that resolves to a Smart Session Validator Module instance.
@@ -50,13 +50,12 @@ export const toSmartSessionValidatorModule = async ({
   client,
   activePermissionId = "0x"
 }: {
-  nexusAccountAddress: Hex
+  nexusAccountAddress: Hex // Review: name. this vs accountAddress
   initData: Hex
   deInitData: Hex
   client: Client
   activePermissionId: Hex
 }): Promise<ToSmartSessionValidatorModuleReturnType> => {
-  // Note: session key signer (applies in case of K1 based simple session validator algorithm)
   const signer = await toSigner({ signer: client.account as Account })
 
   return toValidationModule({
@@ -68,7 +67,6 @@ export const toSmartSessionValidatorModule = async ({
     getStubSignature: async (
       moduleSignatureMetadata?: ModuleSignatureMetadata
     ) => {
-      // console.log("activePermissionId", activePermissionId)
       const signature = encodeSmartSessionSignature({
         mode: moduleSignatureMetadata?.mode
           ? moduleSignatureMetadata.mode
@@ -103,7 +101,7 @@ export const toSmartSessionValidatorModule = async ({
     signMessage: async (_message: Uint8Array | string) => {
       const message =
         typeof _message === "string" ? _message : { raw: _message }
-      let signature = await signer.signMessage({ message })
+      const signature = await signer.signMessage({ message })
       return sanitizeSignature(signature)
     },
     client

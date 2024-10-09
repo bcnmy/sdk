@@ -1,7 +1,10 @@
+import type {
+  EnableSessionData,
+  SmartSessionMode
+} from "@rhinestone/module-sdk"
 import type { AbiFunction, Address, Hex } from "viem"
+import type { AnyReferenceValue } from "../../utils/Helper"
 import type { Execution } from "../../utils/Types"
-import { type EnableSessionData, SmartSessionMode } from "@rhinestone/module-sdk"
-import { type AnyReferenceValue } from "../../utils/Helper"
 
 export type CreateSessionsActionReturnParams = {
   permissionIds: Hex[]
@@ -149,4 +152,3 @@ export type SpendingLimitsParams = {
   token: Address
   limit: bigint
 }[]
-
