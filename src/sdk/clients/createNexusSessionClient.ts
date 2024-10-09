@@ -11,7 +11,8 @@ import {
   type RpcSchema,
   type Transport,
   createWalletClient,
-  encodePacked
+  encodePacked,
+  Account
 } from "viem"
 import type {
   PaymasterActions,
@@ -62,51 +63,47 @@ export type NexusSessionClientConfig<
     /** Bundler URL. */
     bundlerTransport: transport
     /** Client that points to an Execution RPC URL. */
-    client: client | Client | undefined
+    client?: client | Client | undefined
     /** Paymaster configuration. */
     paymaster?:
-      | true
-      | {
-          /** Retrieves paymaster-related User Operation properties to be used for sending the User Operation. */
-          getPaymasterData?: PaymasterActions["getPaymasterData"] | undefined
-          /** Retrieves paymaster-related User Operation properties to be used for gas estimation. */
-          getPaymasterStubData?:
-            | PaymasterActions["getPaymasterStubData"]
-            | undefined
-        }
+    | true
+    | {
+      /** Retrieves paymaster-related User Operation properties to be used for sending the User Operation. */
+      getPaymasterData?: PaymasterActions["getPaymasterData"] | undefined
+      /** Retrieves paymaster-related User Operation properties to be used for gas estimation. */
+      getPaymasterStubData?:
+      | PaymasterActions["getPaymasterStubData"]
       | undefined
+    }
+    | undefined
     /** Paymaster context to pass to `getPaymasterData` and `getPaymasterStubData` calls. */
     paymasterContext?: unknown
     /** User Operation configuration. */
     userOperation?:
-      | {
-          /** Prepares fee properties for the User Operation request. */
-          estimateFeesPerGas?:
-            | ((parameters: {
-                account: account | SmartAccount
-                bundlerClient: Client
-                userOperation: UserOperationRequest
-              }) => Promise<EstimateFeesPerGasReturnType<"eip1559">>)
-            | undefined
-        }
+    | {
+      /** Prepares fee properties for the User Operation request. */
+      estimateFeesPerGas?:
+      | ((parameters: {
+        account: account | SmartAccount
+        bundlerClient: Client
+        userOperation: UserOperationRequest
+      }) => Promise<EstimateFeesPerGasReturnType<"eip1559">>)
       | undefined
-    /** Owner of the account. */
-    // Note: Made the signer optional. This can be a session signer?
-    signer?: UnknownSigner
+    }
+    | undefined
+    /** Owner of the session. */
+    signer: UnknownSigner
     /** Index of the account. */
     index?: bigint
     /** Active module of the account. */
     activeModule?: ToValidationModuleReturnType
     /** Factory address of the account. */
     factoryAddress?: Address
-
-    // TODO: review below
-    // Note: I added these as things required to send a session tx.
-
     /** Address of the account. */
     accountAddress: Address
-    /** Session key EOA */
-    sessionKeyEOA: Address
+    //  @note Review. Since we are passing a signer (session owner) we can get the address from there.
+    // /** Session key EOA */
+    // sessionKeyEOA: Address
     /** Permission ID */
     permissionId: Hex
 
@@ -116,8 +113,6 @@ export type NexusSessionClientConfig<
 
     /** Owner module */
     k1ValidatorAddress?: Address
-    accountName?: string
-    accountKey?: string
   }
 >
 
@@ -142,11 +137,8 @@ export async function createNexusSessionClient(
     index = 0n,
     key = "session nexus client",
     name = "Session Nexus Client",
-    accountName,
-    accountKey,
     activeModule,
     accountAddress,
-    sessionKeyEOA,
     bundlerUrl,
     permissionId,
     factoryAddress = contracts.k1ValidatorFactory.address,
@@ -156,38 +148,32 @@ export async function createNexusSessionClient(
     ...bundlerConfig
   } = parameters
 
-  console.log("bundlerConfig", bundlerConfig)
-
   if (!chain) throw new Error("Missing chain")
 
-  const account = privateKeyToAccount(generatePrivateKey())
-
-  const incompatibleSigner = createWalletClient({
-    account,
+  const sessionClient = createWalletClient({
+    account: signer as Account,
     chain,
     transport: http()
   })
 
+  if (!signer.address) throw new Error("Invalid signer")
   // Review: review supplying a session signer.
   const smartSessionValidator = await toSmartSessionValidatorModule({
-    client: client_ as PublicClient,
-    initData: encodePacked(["address"], [sessionKeyEOA]),
+    client: sessionClient,
+    initData: encodePacked(["address"], [signer?.address ?? "0x"]),
     deInitData: "0x",
-    nexusAccountAddress: accountAddress ?? account.address,
+    nexusAccountAddress: accountAddress,
     // Review: supply of permissionId when initialising module.
     activePermissionId: permissionId
   })
 
-  // TODO: override SA address. major missing piece as there are no test cases
   const nexusClient = await createNexusClient({
-    signer: incompatibleSigner,
+    signer: sessionClient.account, // session signer should be able to sign for SA at accountAddress
     activeModule: smartSessionValidator,
     chain,
     transport: http(),
-    bundlerTransport: http(bundlerUrl)
-    // accountAddress
+    bundlerTransport: http(bundlerUrl),
+    accountAddress
   })
-  // Note: Goal is to be able to extend this and use useSession?
-  // or one should be able to call sendTransaction that also works.
   return nexusClient
 }
