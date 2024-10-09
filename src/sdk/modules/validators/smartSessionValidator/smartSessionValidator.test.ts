@@ -39,7 +39,7 @@ describe("modules.smartSessionValidator.write", async () => {
 
   // Test utils
   let testClient: MasterClient
-  let eoaAccount: Account
+  let eoaAccount: LocalAccount
   let nexusClient: NexusClient
   let recipient: Account
   let recipientAddress: Address
@@ -74,10 +74,8 @@ describe("modules.smartSessionValidator.write", async () => {
 
   test("should have valid smartSessionValidator properties", async () => {
     const smartSessionValidator = toSmartSessionsModule({
-      initData: encodePacked(["address"], [eoaAccount.address]),
-      deInitData: "0x",
       account: nexusClient.account,
-      signer: nexusClient.account.client.account as LocalAccount
+      signer: eoaAccount
     })
     expect(smartSessionValidator.signMessage).toBeDefined()
     expect(smartSessionValidator.signUserOpHash).toBeDefined()
@@ -121,7 +119,7 @@ describe("modules.smartSessionValidator.write", async () => {
   test("should get stub signature from smartSessionValidator with USE mode", async () => {
     const smartSessionValidator = toSmartSessionsModule({
       account: nexusClient.account,
-      signer: nexusClient.account.client.account as LocalAccount
+      signer: eoaAccount
     })
 
     // @ts-ignore
@@ -135,7 +133,7 @@ describe("modules.smartSessionValidator.write", async () => {
   test("should get actual signature from smartSessionValidator with USE mode", async () => {
     const smartSessionValidator = toSmartSessionsModule({
       account: nexusClient.account,
-      signer: nexusClient.account.client.account as LocalAccount
+      signer: eoaAccount
     })
 
     const mockUserOpHash =
@@ -205,8 +203,6 @@ describe("modules.smartSessionValidator.write", async () => {
     })
 
     expect(receipt.success).toBe(true)
-
-    console.log({ permissionId })
 
     const isEnabled = await isSessionEnabled({
       client: nexusClient.account.client as PublicClient,

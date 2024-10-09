@@ -20,14 +20,14 @@ export type ToSmartSessionReturnType = Prettify<
   Module<SmartSessionImplementation>
 >
 export type SmartSessionImplementation = ModuleImplementation & {
-  meta?: SmartSessionMetaData
+  data?: SmartSessionMetaData
 }
 export type ToSmartSessionsModuleParameters = Omit<
   ToValidationModuleParameters,
   "accountAddress"
 > & {
   account: SmartAccount
-  meta?: SmartSessionMetaData
+  data?: SmartSessionMetaData
 }
 
 export const toSmartSessionsModule = (
@@ -38,10 +38,11 @@ export const toSmartSessionsModule = (
     signer,
     initData = encodePacked(["address"], [signer.address]),
     deInitData = "0x",
-    meta
+    data
   } = parameters
 
   return toValidationModule({
+    data,
     signer,
     accountAddress: account.address,
     address: addresses.SmartSession,
@@ -55,26 +56,26 @@ export const toSmartSessionsModule = (
         return sanitizeSignature(signature)
       },
       signUserOpHash: async (userOpHash: Hex) => {
-        if (!meta || !meta?.permissionId)
+        if (!data || !data?.permissionId)
           throw new Error("You must pass a permissionId to use a session")
         const signature = await signer.signMessage({
           message: { raw: userOpHash as Hex }
         })
         return encodeSmartSessionSignature({
-          mode: meta?.mode ?? SmartSessionMode.USE,
-          permissionId: meta.permissionId,
+          mode: data?.mode ?? SmartSessionMode.USE,
+          permissionId: data.permissionId,
           signature,
-          enableSessionData: meta.enableSessionData
+          enableSessionData: data.enableSessionData
         })
       },
       getStubSignature: async () => {
-        if (!meta || !meta?.permissionId)
+        if (!data || !data?.permissionId)
           throw new Error("You must pass a permissionId to use a session")
         return encodeSmartSessionSignature({
-          mode: meta?.mode ?? SmartSessionMode.USE,
-          permissionId: meta.permissionId,
+          mode: data?.mode ?? SmartSessionMode.USE,
+          permissionId: data.permissionId,
           signature: DUMMY_ECDSA_SIG,
-          enableSessionData: meta.enableSessionData
+          enableSessionData: data.enableSessionData
         })
       }
     }

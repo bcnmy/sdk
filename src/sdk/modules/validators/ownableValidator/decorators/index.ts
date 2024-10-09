@@ -1,9 +1,10 @@
 import type { Chain, Client, Hash, Transport } from "viem"
 import type { SmartAccount } from "viem/account-abstraction"
-import { safeActivate } from "../../safeActivate"
 import { type AddOwnerParameters, addOwner } from "./addOwner"
 import { type RemoveOwnerParameters, removeOwner } from "./removeOwner"
 import { type SetThresholdParameters, setThreshold } from "./setThreshold"
+import { activateModule } from "../../activateModule"
+
 export type OwnableValidatorActions<
   TSmartAccount extends SmartAccount | undefined
 > = {
@@ -16,7 +17,7 @@ export function ownableValidatorActions() {
   return <TSmartAccount extends SmartAccount | undefined>(
     client: Client<Transport, Chain | undefined, TSmartAccount>
   ): OwnableValidatorActions<TSmartAccount> => {
-    safeActivate(client, "ownable")
+    activateModule(client, "ownable")
     return {
       addOwner: (args) => addOwner(client, args),
       removeOwner: (args) => removeOwner(client, args),

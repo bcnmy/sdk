@@ -48,13 +48,8 @@ export async function useSession<
   TSmartAccount extends SmartAccount | undefined
 >(
   client: Client<Transport, Chain | undefined, TSmartAccount>,
-  parameters: UseSessionParameters<TSmartAccount>,
-  metaData?: SmartSessionMetaData
+  parameters: UseSessionParameters<TSmartAccount>
 ): Promise<Hex> {
-  if (!metaData) {
-    throw new Error("You must set the permissionID while using a session")
-  }
-
   const {
     account: account_ = client.account,
     maxFeePerGas,

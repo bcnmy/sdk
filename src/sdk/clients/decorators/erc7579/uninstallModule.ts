@@ -25,6 +25,7 @@ export type UninstallModuleParameters<
   maxFeePerGas?: bigint
   maxPriorityFeePerGas?: bigint
   nonce?: bigint
+  signatureOverride?: Hex
 }
 
 /**

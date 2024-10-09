@@ -33,6 +33,7 @@ import {
   toK1ValidatorModule
 } from "../validators/k1Validator/toK1ValidatorModule"
 import { testAddresses } from "./../../../test/callDatas"
+import type { Signer } from "../../account/utils/toSigner"
 
 describe("modules.ownableExecutor", async () => {
   let network: NetworkConfig
@@ -68,14 +69,9 @@ describe("modules.ownableExecutor", async () => {
     nexusAccountAddress = await nexusClient.account.getCounterFactualAddress()
     await fundAndDeployClients(testClient, [nexusClient])
 
-    const k1ValidatorModule = await toK1ValidatorModule({
-      client: nexusClient.account.client as PublicClient,
-      accountAddress: nexusClient.account.address,
-      initData: encodePacked(
-        ["address", "address"],
-        [eoaAccount.address, recipient.address]
-      ),
-      deInitData: "0x"
+    const k1ValidatorModule = toK1ValidatorModule({
+      signer: eoaAccount,
+      accountAddress: nexusClient.account.address
     })
 
     nexusClient.account.setActiveModule(k1ValidatorModule)
