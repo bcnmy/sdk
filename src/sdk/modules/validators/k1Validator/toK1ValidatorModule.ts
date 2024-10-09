@@ -43,9 +43,9 @@ export type K1ValidatorModuleImplementation = ModuleImplementation & {
  * const userOpSignature = await module.signUserOpHash('0x...');
  * const messageSignature = await module.signMessage('Hello, world!');
  */
-export const toK1ValidatorModule = async (
+export const toK1ValidatorModule = (
   parameters: ToK1ValidatorModuleParameters
-): Promise<ToK1ValidatorModuleReturnType> => {
+): ToK1ValidatorModuleReturnType => {
   const {
     signer,
     initData = encodePacked(["address"], [signer.address]),

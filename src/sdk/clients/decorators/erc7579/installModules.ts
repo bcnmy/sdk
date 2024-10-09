@@ -28,6 +28,7 @@ export type InstallModulesParameters<
   maxFeePerGas?: bigint
   maxPriorityFeePerGas?: bigint
   nonce?: bigint
+  signatureOverride?: Hex
 }
 
 /**

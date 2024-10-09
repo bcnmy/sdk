@@ -209,13 +209,13 @@ export const toNexusAccount = async (
 
   let activeModule =
     activeModule_ ??
-    (await toK1ValidatorModule({
+    toK1ValidatorModule({
       address: k1ValidatorAddress,
       accountAddress: await getAddress(),
       initData: signerAddress,
       deInitData: "0x",
       signer
-    }))
+    })
 
   /**
    * @description Gets the counterfactual address of the account

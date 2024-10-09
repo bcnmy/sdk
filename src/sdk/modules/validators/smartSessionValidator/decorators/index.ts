@@ -1,6 +1,6 @@
 import type { Chain, Client, Hash, Transport } from "viem"
 import type { SmartAccount } from "viem/account-abstraction"
-import { safeActivate } from "../../safeActivate"
+import { activateModule } from "../../activateModule"
 import type { CreateSessionsResponse, SmartSessionMetaData } from "../Types"
 import { type CreateSessionsParameters, createSessions } from "./createSessions"
 import { type UseSessionParameters, useSession } from "./useSession"
@@ -14,15 +14,17 @@ export type SmartSessionValidatorActions<
   useSession: (args: UseSessionParameters<TSmartAccount>) => Promise<Hash>
 }
 
-export function smartSessionValidatorActions(metaData?: SmartSessionMetaData) {
+export function smartSessionValidatorActions(
+  moduleData?: SmartSessionMetaData
+) {
   return <TSmartAccount extends SmartAccount | undefined>(
     client: Client<Transport, Chain | undefined, TSmartAccount>
   ): SmartSessionValidatorActions<TSmartAccount> => {
-    safeActivate(client, "smartSession")
+    activateModule(client, "smartSession", moduleData)
 
     return {
       createSessions: (args) => createSessions(client, args),
-      useSession: (args) => useSession(client, args, metaData)
+      useSession: (args) => useSession(client, args)
     }
   }
 }

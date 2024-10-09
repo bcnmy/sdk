@@ -51,15 +51,9 @@ import {
 
 export type Erc7579Actions<TSmartAccount extends SmartAccount | undefined> = {
   accountId: (args?: GetSmartAccountParameter<TSmartAccount>) => Promise<string>
-  installModule: (
-    args: InstallModuleParameters<TSmartAccount> & {
-      signatureOverride?: Hex
-    }
-  ) => Promise<Hash>
+  installModule: (args: InstallModuleParameters<TSmartAccount>) => Promise<Hash>
   installModules: (
-    args: InstallModulesParameters<TSmartAccount> & {
-      signatureOverride?: Hex
-    }
+    args: InstallModulesParameters<TSmartAccount>
   ) => Promise<Hash>
   isModuleInstalled: (
     args: IsModuleInstalledParameters<TSmartAccount>
@@ -71,14 +65,10 @@ export type Erc7579Actions<TSmartAccount extends SmartAccount | undefined> = {
     args: SupportsModuleParameters<TSmartAccount>
   ) => Promise<boolean>
   uninstallModule: (
-    args: UninstallModuleParameters<TSmartAccount> & {
-      signatureOverride?: Hex
-    }
+    args: UninstallModuleParameters<TSmartAccount>
   ) => Promise<Hash>
   uninstallModules: (
-    args: UninstallModulesParameters<TSmartAccount> & {
-      signatureOverride?: Hex
-    }
+    args: UninstallModulesParameters<TSmartAccount>
   ) => Promise<Hash>
   getInstalledValidators: (
     args?: GetInstalledValidatorsParameters<TSmartAccount>

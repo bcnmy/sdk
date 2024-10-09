@@ -21,7 +21,6 @@ import {
 } from "../../../../test/testUtils"
 import type { MasterClient, NetworkConfig } from "../../../../test/testUtils"
 import addresses from "../../../__contracts/addresses"
-import type { Signer } from "../../../account/utils/toSigner"
 import {
   type NexusClient,
   createNexusClient
@@ -51,6 +50,7 @@ describe("modules.ownableValidator", async () => {
   let recipientAddress: Address
   let ownableValidatorModule: ToOwnableValidatorModuleReturnType
   let k1ValidatorModule: ToK1ValidatorModuleReturnType
+
   beforeAll(async () => {
     network = await toNetwork()
 
@@ -74,12 +74,12 @@ describe("modules.ownableValidator", async () => {
 
     ownableValidatorModule = toOwnableValidatorModule({
       account: nexusClient.account,
-      signer: nexusClient.account.client.account as Signer
+      signer: eoaAccount
     })
 
-    k1ValidatorModule = await toK1ValidatorModule({
+    k1ValidatorModule = toK1ValidatorModule({
       accountAddress: nexusClient.account.address,
-      signer: nexusClient.account.client.account as Signer
+      signer: eoaAccount
     })
   })
 
@@ -100,7 +100,12 @@ describe("modules.ownableValidator", async () => {
   })
 
   test("should install ownable validator and perform operations", async () => {
-    // Install ownable validator
+    console.log("eoaAccount.address", eoaAccount.address)
+    console.log(
+      "ownableValidatorModule.address",
+      ownableValidatorModule.address
+    )
+
     const installHash = await nexusClient.installModule({
       module: {
         address: ownableValidatorModule.address,
@@ -119,6 +124,7 @@ describe("modules.ownableValidator", async () => {
     expect(installSuccess).toBe(true)
 
     nexusClient.account.setActiveModule(ownableValidatorModule)
+    console.log(nexusClient.account.getActiveModule().address)
   })
 
   test("should add accountTwo as owner", async () => {
@@ -250,6 +256,7 @@ describe("modules.ownableValidator", async () => {
 
   test("should uninstall ownable validator with 2 signatures", async () => {
     const [installedValidators] = await nexusClient.getInstalledValidators()
+    console.log("installedValidators", installedValidators)
     const prevModule = await nexusClient.getPreviousModule({
       module: {
         address: ownableValidatorModule.address,

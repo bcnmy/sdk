@@ -13,7 +13,7 @@ type SupportedModule = "smartSession" | "ownable"
 type ToValidatorModuleParameters = {
   account: SmartAccount
   signer: Signer
-  meta?: ModuleImplementation["meta"]
+  data?: ModuleImplementation["data"]
 }
 
 const MODULE_HELPERS: Record<
@@ -31,15 +31,13 @@ const MODULE_HELPERS: Record<
   }
 }
 
-export const safeActivate = (
+export const activateModule = (
   client: Client,
   supportedModule: SupportedModule,
-  meta?: ModuleImplementation["meta"]
+  data?: ModuleImplementation["data"]
 ) => {
   const nexusAccount = parseAccount((client as NexusClient)?.account)
   const activeModule = nexusAccount?.getActiveModule()
-
-  if (!activeModule) throw new Error("No activated module")
 
   if (
     !addressEquals(
@@ -57,7 +55,7 @@ export const safeActivate = (
     const validatorParameters: ToValidatorModuleParameters = {
       account: nexusAccount,
       signer,
-      meta
+      data
     }
 
     nexusAccount.setActiveModule(

@@ -19,9 +19,9 @@ export type ModuleImplementation<extend extends object = object> = {
   accountAddress: Hex
   /** Extend the Module with custom properties. */
   extend?: extend | undefined
-  /** metadata associated with the module */
+  /** data associated with the module */
   // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-  meta?: Record<string, any>
+  data?: Record<string, any>
 }
 
 /**
