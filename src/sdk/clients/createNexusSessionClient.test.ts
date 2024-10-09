@@ -24,9 +24,7 @@ import type { MasterClient, NetworkConfig } from "../../test/testUtils"
 import addresses from "../__contracts/addresses"
 import { isSessionEnabled } from "../modules/validators/smartSessionValidator/Helper"
 import type { CreateSessionDataParams } from "../modules/validators/smartSessionValidator/Types"
-import {
-  createSessions,
-} from "../modules/validators/smartSessionValidator/decorators"
+import { createSessions } from "../modules/validators/smartSessionValidator/decorators"
 import { useSession } from "../modules/validators/smartSessionValidator/decorators/useSession"
 import { type NexusClient, createNexusClient } from "./createNexusClient"
 import { createNexusSessionClient } from "./createNexusSessionClient"
