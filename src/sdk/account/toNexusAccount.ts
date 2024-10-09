@@ -200,9 +200,9 @@ export const toNexusAccount = async (
       if (e.shortMessage?.includes(ERROR_MESSAGES.MISSING_ACCOUNT_CONTRACT)) {
         throw new Error(
           "Failed to compute account address. Possible reasons:\n" +
-          "- The factory contract does not have the function 'computeAccountAddress'\n" +
-          "- The parameters passed to the factory contract function may be invalid\n" +
-          "- The provided factory address is not a contract"
+            "- The factory contract does not have the function 'computeAccountAddress'\n" +
+            "- The parameters passed to the factory contract function may be invalid\n" +
+            "- The provided factory address is not a contract"
         )
       }
       throw e
