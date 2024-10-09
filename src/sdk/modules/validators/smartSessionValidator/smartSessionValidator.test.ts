@@ -27,9 +27,11 @@ import {
   type NexusClient,
   createNexusClient
 } from "../../../clients/createNexusClient"
+import { createNexusSessionClient } from "../../../clients/createNexusSessionClient"
 import { isSessionEnabled } from "./Helper"
 import type { CreateSessionDataParams } from "./Types"
 import { smartSessionValidatorActions } from "./decorators"
+import { useSession } from "./decorators/useSession"
 import { toSmartSessionValidatorModule } from "./tosmartSessionValidatorModule"
 
 describe("modules.smartSessionValidator.write", async () => {
@@ -45,7 +47,7 @@ describe("modules.smartSessionValidator.write", async () => {
   let recipient: Account
   let recipientAddress: Address
   let cachedPermissionId: Hex
-
+  let sessionAccount: Account // Session key signer
   beforeAll(async () => {
     network = await toNetwork()
 
@@ -53,6 +55,7 @@ describe("modules.smartSessionValidator.write", async () => {
     bundlerUrl = network.bundlerUrl
     eoaAccount = getTestAccount(0)
     recipient = getTestAccount(1)
+    sessionAccount = getTestAccount(2)
     recipientAddress = recipient.address
 
     testClient = toTestClient(chain, getTestAccount(5))
@@ -182,7 +185,7 @@ describe("modules.smartSessionValidator.write", async () => {
     expect(isInstalledBefore).toBe(true)
 
     // make EOA owner of SA session key as well
-    const sessionKeyEOA = eoaAccount.address
+    const sessionKeyEOA = sessionAccount.address
 
     // Todo: Add a negative test case for time range policy
     const sessionRequestedInfo: CreateSessionDataParams = {
@@ -244,12 +247,14 @@ describe("modules.smartSessionValidator.write", async () => {
     })
     expect(isEnabled).toBe(true)
 
-    const smartSessionValidator = await toSmartSessionValidatorModule({
-      client: nexusClient.account.client as PublicClient,
-      initData: encodePacked(["address"], [eoaAccount.address]),
-      deInitData: "0x",
-      nexusAccountAddress: nexusClient.account.address,
-      activePermissionId: cachedPermissionId
+    const nexusSessionClient = await createNexusSessionClient({
+      chain,
+      accountAddress: nexusClient.account.address,
+      signer: sessionAccount,
+      transport: http(),
+      bundlerTransport: http(bundlerUrl),
+      permissionId: cachedPermissionId,
+      bundlerUrl
     })
 
     const pubClient = nexusClient.account.client as PublicClient
@@ -266,15 +271,8 @@ describe("modules.smartSessionValidator.write", async () => {
     //   timestamp: 9727001666n
     // })
 
-    // set active validation module
-    nexusClient.account.setActiveModule(smartSessionValidator)
-
-    const smartSessionNexusClient = nexusClient.extend(
-      smartSessionValidatorActions()
-    )
-
-    const userOpHash = await smartSessionNexusClient.useSession({
-      account: nexusClient.account,
+    const userOpHash = await useSession(nexusSessionClient, {
+      account: nexusSessionClient.account,
       actions: [
         {
           target: TEST_CONTRACTS.Counter.address,

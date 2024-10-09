@@ -25,7 +25,7 @@ export type SmartSessionValidatorModuleImplementation = ModuleImplementation & {
  * This module provides validation functionality using the session key and permissions for a Nexus account.
  *
  * @param nexusAccountAddress The address of the Nexus account.
- * @param client The client instance.
+ * @param client The nexusclient.
  * @param initData Initialization data for the module.
  * @param deInitData De-initialization data for the module.
  * @returns A promise that resolves to a Smart Session Validator Module instance.
@@ -56,8 +56,6 @@ export const toSmartSessionValidatorModule = async ({
   client: Client
   activePermissionId: Hex
 }): Promise<ToSmartSessionValidatorModuleReturnType> => {
-  // Note: session key signer (applies in case of K1 based simple session validator algorithm)
-  // Review: It is wrong if signer is picked from client same as passed to nexus account ownership.
   const signer = await toSigner({ signer: client.account as Account })
 
   return toValidationModule({
