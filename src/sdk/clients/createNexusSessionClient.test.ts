@@ -3,29 +3,34 @@ import {
   type Account,
   type Address,
   type Chain,
+  type Hex,
   createWalletClient,
-  toHex,
   toBytes,
-  Hex
+  toHex
 } from "viem"
-import { afterAll, beforeAll, describe, expect, test } from "vitest"
-import { toNetwork } from "../../test/testSetup"
-import { fundAndDeployClients, getTestAccount, killNetwork, toTestClient } from "../../test/testUtils"
-import { PublicClient } from "viem"
-import type { MasterClient, NetworkConfig } from "../../test/testUtils"
-import { createNexusClient, type NexusClient } from "./createNexusClient"
-import { createNexusSessionClient } from "./createNexusSessionClient"
-import addresses from "../__contracts/addresses"
-import { CreateSessionDataParams } from "../modules/validators/smartSessionValidator/Types"
-import { TEST_CONTRACTS } from "../../test/callDatas"
-import { smartSessionValidatorActions } from "../modules/validators/smartSessionValidator/decorators"
-import { isSessionEnabled } from "../modules/validators/smartSessionValidator/Helper"
-import { toNexusAccount } from "../account/toNexusAccount"
+import type { PublicClient } from "viem"
 import { encodePacked } from "viem"
-import { toSmartSessionValidatorModule } from "../modules/validators/smartSessionValidator/tosmartSessionValidatorModule"
-import { CounterAbi } from "../../test/__contracts/abi"
 import { encodeFunctionData } from "viem"
+import { afterAll, beforeAll, describe, expect, test } from "vitest"
+import { CounterAbi } from "../../test/__contracts/abi"
+import { TEST_CONTRACTS } from "../../test/callDatas"
+import { toNetwork } from "../../test/testSetup"
+import {
+  fundAndDeployClients,
+  getTestAccount,
+  killNetwork,
+  toTestClient
+} from "../../test/testUtils"
+import type { MasterClient, NetworkConfig } from "../../test/testUtils"
+import addresses from "../__contracts/addresses"
+import { toNexusAccount } from "../account/toNexusAccount"
+import { isSessionEnabled } from "../modules/validators/smartSessionValidator/Helper"
+import type { CreateSessionDataParams } from "../modules/validators/smartSessionValidator/Types"
+import { smartSessionValidatorActions } from "../modules/validators/smartSessionValidator/decorators"
 import { useSession } from "../modules/validators/smartSessionValidator/decorators/useSession"
+import { toSmartSessionValidatorModule } from "../modules/validators/smartSessionValidator/tosmartSessionValidatorModule"
+import { type NexusClient, createNexusClient } from "./createNexusClient"
+import { createNexusSessionClient } from "./createNexusSessionClient"
 
 describe("nexus.client", async () => {
   let network: NetworkConfig
@@ -63,7 +68,7 @@ describe("nexus.client", async () => {
       signer: eoaAccount,
       chain,
       transport: http(),
-      bundlerTransport: http(bundlerUrl),
+      bundlerTransport: http(bundlerUrl)
     })
 
     await fundAndDeployClients(testClient, [nexusClient])
@@ -173,7 +178,6 @@ describe("nexus.client", async () => {
   }, 60000)
 
   test("should make use of already enabled session (USE mode) to increment a counter using a session key", async () => {
-
     const nexusSessionClient = await createNexusSessionClient({
       chain,
       // account: nexusClient.account,
@@ -183,7 +187,7 @@ describe("nexus.client", async () => {
       bundlerTransport: http(bundlerUrl),
       sessionKeyEOA: eoaAccount.address,
       permissionId: cachedPermissionId,
-      bundlerUrl,
+      bundlerUrl
     })
 
     const isEnabled = await isSessionEnabled({
@@ -223,7 +227,6 @@ describe("nexus.client", async () => {
       hash: userOpHash
     })
     expect(receipt.success).toBe(true)
-
 
     const counterAfter = await pubClient.readContract({
       address: TEST_CONTRACTS.Counter.address,
