@@ -6,7 +6,7 @@ import {
   type Hex,
   createWalletClient,
   toBytes,
-  toHex,
+  toHex
 } from "viem"
 import type { PublicClient } from "viem"
 import { encodeFunctionData } from "viem"
@@ -24,7 +24,9 @@ import type { MasterClient, NetworkConfig } from "../../test/testUtils"
 import addresses from "../__contracts/addresses"
 import { isSessionEnabled } from "../modules/validators/smartSessionValidator/Helper"
 import type { CreateSessionDataParams } from "../modules/validators/smartSessionValidator/Types"
-import { createSessions, smartSessionValidatorActions } from "../modules/validators/smartSessionValidator/decorators"
+import {
+  createSessions,
+} from "../modules/validators/smartSessionValidator/decorators"
 import { useSession } from "../modules/validators/smartSessionValidator/decorators/useSession"
 import { type NexusClient, createNexusClient } from "./createNexusClient"
 import { createNexusSessionClient } from "./createNexusSessionClient"
@@ -123,7 +125,7 @@ describe("nexus.client", async () => {
     const sessionKeyEOA = sessionAccountAddress
 
     const sessionRequestedInfo: CreateSessionDataParams = {
-      sessionPublicKey: sessionKeyEOA, // session key signer 
+      sessionPublicKey: sessionKeyEOA, // session key signer
       sessionValidatorAddress: TEST_CONTRACTS.SimpleSessionValidator.address,
       sessionKeyData: toHex(toBytes(sessionKeyEOA)),
       sessionValidAfter: 0,
@@ -140,12 +142,10 @@ describe("nexus.client", async () => {
       ]
     }
 
-    const createSessionsResponse = await createSessions(nexusClient,
-      {
-        account: nexusClient.account,
-        sessionRequestedInfo: [sessionRequestedInfo]
-      }
-    )
+    const createSessionsResponse = await createSessions(nexusClient, {
+      account: nexusClient.account,
+      sessionRequestedInfo: [sessionRequestedInfo]
+    })
 
     expect(createSessionsResponse.userOpHash).toBeDefined()
     expect(createSessionsResponse.permissionIds).toBeDefined()

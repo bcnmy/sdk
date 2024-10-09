@@ -1,5 +1,6 @@
 import {
   http,
+  type Account,
   type Address,
   type Chain,
   type Client,
@@ -7,12 +8,10 @@ import {
   type EstimateFeesPerGasReturnType,
   type Hex,
   type Prettify,
-  type PublicClient,
   type RpcSchema,
   type Transport,
   createWalletClient,
-  encodePacked,
-  Account
+  encodePacked
 } from "viem"
 import type {
   PaymasterActions,
