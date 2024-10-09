@@ -18,7 +18,6 @@ import type {
   SmartAccount,
   UserOperationRequest
 } from "viem/account-abstraction"
-import type { Call } from "../account/utils/Types"
 
 import type { UnknownSigner } from "../account/utils/toSigner"
 import { toSmartSessionValidatorModule } from "../modules/validators/smartSessionValidator/tosmartSessionValidatorModule"
