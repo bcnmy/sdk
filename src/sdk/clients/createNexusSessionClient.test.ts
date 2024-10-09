@@ -42,8 +42,6 @@ describe("nexus.client", async () => {
   let cachedPermissionId: Hex
   let nexusClient: NexusClient
 
-  const dummyAddress = "0xf0479e036343bC66dc49dd374aFAF98402D0Ae5f"
-
   beforeAll(async () => {
     network = await toNetwork()
 

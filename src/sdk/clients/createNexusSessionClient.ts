@@ -25,19 +25,9 @@ import { toSmartSessionValidatorModule } from "../modules/validators/smartSessio
 import type { ToValidationModuleReturnType } from "../modules/validators/toValidationModule"
 import { type NexusClient, createNexusClient } from "./createNexusClient"
 
-// Review: Marked for removal.
-/**
- * Parameters for sending a transaction
- */
-export type SendTransactionParameters = {
-  calls: Call | Call[]
-}
-// UseSessionParameters
-
 /**
  * Configuration for creating a Session Nexus Client
  */
-// Review: Could create our own type with only things needed for session client.
 export type NexusSessionClientConfig<
   transport extends Transport = Transport,
   chain extends Chain | undefined = Chain | undefined,
@@ -88,7 +78,7 @@ export type NexusSessionClientConfig<
             | undefined
         }
       | undefined
-    /** Owner of the session. */
+    /** Session key signer */
     signer: UnknownSigner
     /** Index of the account. */
     index?: bigint
@@ -98,9 +88,6 @@ export type NexusSessionClientConfig<
     factoryAddress?: Address
     /** Address of the account. */
     accountAddress: Address
-    //  @note Review. Since we are passing a signer (session owner) we can get the address from there.
-    // /** Session key EOA */
-    // sessionKeyEOA: Address
     /** Permission ID */
     permissionId: Hex
 
@@ -156,7 +143,7 @@ export async function createNexusSessionClient(
   })
 
   const nexusClient = await createNexusClient({
-    signer: sessionClient.account, // session signer should be able to sign for SA at accountAddress
+    signer: sessionClient.account, // any mock signer works here so we're providing sessionClient.account
     activeModule: smartSessionValidator,
     chain,
     transport: http(),
