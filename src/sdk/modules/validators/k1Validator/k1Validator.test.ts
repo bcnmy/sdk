@@ -76,7 +76,7 @@ describe("modules.k1Validator.write", async () => {
       // supplying key = 123n will pass it on
       // supplying no key and just getNonce will make it a timestamp
       // Note: ignore ts error below.
-      nonce: await nexusClient.account.getNonce({key: 123n, nonceKey: 123n })
+      nonce: await nexusClient.account.getNonce({ key: 123n })
 
       // Note: one can directly supply fixed or just use below for 2D nonce
       // nonce: await nexusClient.account.getNonce()

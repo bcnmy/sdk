@@ -174,12 +174,16 @@ describe("modules.ownableValidator", async () => {
       ["bytes", "bytes"],
       [signature1 ?? "0x", signature2 ?? "0x"]
     )
-    const userOpHash = await ownableNexusClient.removeOwner({
-      account: nexusClient.account,
-      owner: recipientAddress,
-      signatureOverride: multiSignature,
-      // nonce: userOp.nonce
-    })
+    userOp.signature = multiSignature
+    const userOpHash = await nexusClient.sendUserOperation(userOp)
+    // @note Can also use the removeOwner decorator but it requires a signature override and the user op nonce,
+    // otherwise it will try to use a different nonce and siganture will be invalid
+    // const userOpHash = await ownableNexusClient.removeOwner({
+    //   account: nexusClient.account,
+    //   owner: recipientAddress,
+    //   signatureOverride: multiSignature,
+    //   nonce: userOp.nonce
+    // })
     expect(userOpHash).toBeDefined()
     const { success: userOpSuccess } =
       await nexusClient.waitForUserOperationReceipt({ hash: userOpHash })
@@ -244,19 +248,14 @@ describe("modules.ownableValidator", async () => {
       ["bytes", "bytes"],
       [signature1 ?? "0x", signature2 ?? "0x"]
     )
-    const userOperationHashResponse = await nexusClient.sendUserOperation({
-      calls: [
-        {
-          to: zeroAddress,
-          data: "0x"
-        }
-      ],
-      signature: multiSignature,
-      // nonce: userOp.nonce
-    })
+    userOp.signature = multiSignature
+    const userOperationHashResponse =
+      await nexusClient.sendUserOperation(userOp)
     expect(userOpHash).toBeDefined()
     const { success: userOpSuccess } =
-      await nexusClient.waitForUserOperationReceipt({ hash: userOperationHashResponse })
+      await nexusClient.waitForUserOperationReceipt({
+        hash: userOperationHashResponse
+      })
     expect(userOpSuccess).toBe(true)
   })
 
@@ -313,7 +312,7 @@ describe("modules.ownableValidator", async () => {
           to: nexusClient.account.address,
           data: uninstallCallData
         }
-      ],
+      ]
     })
     const userOpHash = await nexusClient.account.getUserOpHash(userOp)
     expect(userOpHash).toBeDefined()
@@ -327,22 +326,17 @@ describe("modules.ownableValidator", async () => {
     const multiSignature = getOwnableValidatorSignature({
       signatures: [signature1 ?? "0x", signature2 ?? "0x"]
     })
-    const uninstallHash = await nexusClient.uninstallModule({
-      module: {
-        address: ownableValidatorModule.address,
-        type: "validator",
-        data: "0x"
-      },
-      signatureOverride: multiSignature,
-      // Note: If you supply nonceKey in prepareUserOperation by calling getNonce then do either of the below.
-      // 1. supply exact nonce
-      // nonce: userOp.nonce
-
-      // todo category. update decorators to make this work.
-      //2. supply nonceKey. uninstallModule should be able to handle this and make call to getNonce()
-
-      //3. supply nonce with getNonce call using same nonceKey.
-    })
+    userOp.signature = multiSignature
+    const uninstallHash = await nexusClient.sendUserOperation(userOp)
+    // const uninstallHash = await nexusClient.uninstallModule({
+    //   module: {
+    //     address: ownableValidatorModule.address,
+    //     type: "validator",
+    //     data: "0x"
+    //   },
+    //   signatureOverride: multiSignature,
+    //   nonce: userOp.nonce
+    // })
     expect(uninstallHash).toBeDefined()
     const { success: userOpSuccess } =
       await nexusClient.waitForUserOperationReceipt({ hash: uninstallHash })

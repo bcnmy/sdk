@@ -58,15 +58,15 @@ export function packUserOp(
   const hashedPaymasterAndData = keccak256(
     userOperation.paymaster
       ? concat([
-          userOperation.paymaster,
-          pad(toHex(userOperation.paymasterVerificationGasLimit || BigInt(0)), {
-            size: 16
-          }),
-          pad(toHex(userOperation.paymasterPostOpGasLimit || BigInt(0)), {
-            size: 16
-          }),
-          userOperation.paymasterData || "0x"
-        ])
+        userOperation.paymaster,
+        pad(toHex(userOperation.paymasterVerificationGasLimit || BigInt(0)), {
+          size: 16
+        }),
+        pad(toHex(userOperation.paymasterPostOpGasLimit || BigInt(0)), {
+          size: 16
+        }),
+        userOperation.paymasterData || "0x"
+      ])
       : "0x"
   )
 
@@ -281,7 +281,7 @@ export const getAccountMeta = async (
         chainId: decoded?.[3]
       }
     }
-  } catch (error) {}
+  } catch (error) { }
   return {
     name: NEXUS_DOMAIN_NAME,
     version: NEXUS_DOMAIN_VERSION,
@@ -314,17 +314,17 @@ export function bigIntReplacer(_key: string, value: any): any {
 
 export function numberTo3Bytes(key: bigint): Uint8Array {
   // todo: check range
-  const buffer = new Uint8Array(3);
-  buffer[0] = Number((key >> 16n) & 0xFFn);
-  buffer[1] = Number((key >> 8n) & 0xFFn);
-  buffer[2] = Number(key & 0xFFn);
-  return buffer;
+  const buffer = new Uint8Array(3)
+  buffer[0] = Number((key >> 16n) & 0xffn)
+  buffer[1] = Number((key >> 8n) & 0xffn)
+  buffer[2] = Number(key & 0xffn)
+  return buffer
 }
 
 export function toHexString(byteArray: Uint8Array): string {
   return Array.from(byteArray)
-    .map(byte => byte.toString(16).padStart(2, '0'))  // Convert each byte to hex and pad to 2 digits
-    .join('');  // Join all hex values together into a single string
+    .map((byte) => byte.toString(16).padStart(2, "0")) // Convert each byte to hex and pad to 2 digits
+    .join("") // Join all hex values together into a single string
 }
 
 export const getAccountDomainStructFields = async (

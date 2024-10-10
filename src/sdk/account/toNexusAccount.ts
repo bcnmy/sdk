@@ -337,15 +337,10 @@ export const toNexusAccount = async (
    */
   const getNonce = async (parameters?: {
     key?: bigint
-    validationMode?: "0x00" | "0x01",
-    // Note: necessary because otherwise getNonce() plain call makes use of timestamp as key.
-    nonceKey?: bigint 
+    validationMode?: "0x00" | "0x01"
   }): Promise<bigint> => {
     try {
-      // console.log("parameters", parameters)
-      // harmless modulo
-      const defaultedKey = BigInt(parameters?.nonceKey ?? 0n) % TIMESTAMP_ADJUSTMENT
-      // console.log("defaultedKey", defaultedKey)
+      const defaultedKey = BigInt(parameters?.key ?? 0n) % TIMESTAMP_ADJUSTMENT
       const defaultedValidationMode = parameters?.validationMode ?? "0x00"
       const key: string = concat([
         toHex(defaultedKey, { size: 3 }),
