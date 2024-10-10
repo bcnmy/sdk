@@ -21,7 +21,7 @@ import { signTypedData } from "viem/actions"
 import { getAction } from "viem/utils"
 
 // // @Review
-// // This type helps providing other signer types 
+// // This type helps providing other signer types
 // type MinimalSigner = {
 //   signMessage(message: any): Promise<string>
 //   signTypedData(domain: any, types: any, value: any): Promise<string>
