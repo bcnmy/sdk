@@ -1,4 +1,4 @@
-import { Wallet } from "ethers"
+import { Wallet, getBytes } from "ethers"
 import {
   type Account,
   type Address,
@@ -12,7 +12,8 @@ import {
   type Transport,
   type WalletClient,
   createWalletClient,
-  custom
+  custom,
+  getAddress
 } from "viem"
 import { toAccount } from "viem/accounts"
 
@@ -36,12 +37,13 @@ export async function toSigner({
 }): Promise<LocalAccount> {
   if (signer instanceof Wallet) {
     return toAccount({
-      address: (await signer.getAddress()) as Hex,
-      async signMessage({ message }) {
+      address: getAddress(signer.address),
+      async signMessage({ message }): Promise<Hex> {
         if (typeof message === "string") {
-          return signer.signMessage(message) as Promise<Hex>
+          return (await signer.signMessage(message)) as Hex
         }
-        return signer.signMessage(message.raw) as Promise<Hex>
+        // For ethers, raw messages need to be converted to Uint8Array
+        return (await signer.signMessage(getBytes(message.raw))) as Hex
       },
       async signTransaction(_) {
         throw new Error("Not supported")

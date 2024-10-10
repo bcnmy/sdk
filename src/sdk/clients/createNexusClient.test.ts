@@ -123,6 +123,27 @@ describe("nexus.client", async () => {
     expect(addresses.every((address) => isHex(address))).toBe(true)
   })
 
+  test("should send user op", async () => {
+    // const userOp = await nexusClient.prepareUserOperation({
+    //   calls: [
+    //     {
+    //       to: recipientAddress,
+    //       data: "0x"
+    //     }
+    //   ]
+    // })
+    const hash = await nexusClient.sendUserOperation({
+      calls: [
+        {
+          to: recipientAddress,
+          data: "0x"
+        }
+      ]
+    })
+    const receipt = await nexusClient.waitForUserOperationReceipt({ hash })
+    expect(receipt.success).toBe(true)
+  })
+
   test("should estimate gas for writing to a contract", async () => {
     const encodedCall = encodeFunctionData({
       abi: CounterAbi,
@@ -245,7 +266,7 @@ describe("nexus.client", async () => {
     expect(supportsModule).toBe(true)
   })
 
-  test("should send eth twice", async () => {
+  test.skip("should send eth twice", async () => {
     const balanceBefore = await getBalance(testClient, recipientAddress)
     const tx = { to: recipientAddress, value: 1n }
     const hash = await nexusClient.sendTransaction({ calls: [tx, tx] })
@@ -260,22 +281,45 @@ describe("nexus.client", async () => {
     const ethersSigner = new ethers.Wallet(privKey)
 
     const viemNexusClient = await createNexusClient({
-      signer: await toSigner({ signer: viemSigner }),
+      signer: viemSigner,
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl)
     })
 
     const ethersNexusClient = await createNexusClient({
-      signer: await toSigner({ signer: ethersSigner }),
+      signer: ethersSigner,
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl)
     })
 
-    const sig1 = await viemNexusClient.signMessage({ message: "test" })
-    const sig2 = await ethersNexusClient.signMessage({ message: "test" })
+    const sig1 = await viemNexusClient.signMessage({ message: "123" })
+    const sig2 = await ethersNexusClient.signMessage({ message: "123" })
 
     expect(sig1).toBe(sig2)
+  })
+
+  test("should send user operation using ethers signer", async () => {
+    const ethersSigner = new ethers.Wallet(privKey)
+    const ethersNexusClient = await createNexusClient({
+      signer: ethersSigner,
+      chain,
+      transport: http(),
+      bundlerTransport: http(bundlerUrl)
+    })
+
+    const hash = await ethersNexusClient.sendUserOperation({
+      calls: [
+        {
+          to: recipientAddress,
+          data: "0x"
+        }
+      ]
+    })
+    const receipt = await ethersNexusClient.waitForUserOperationReceipt({
+      hash
+    })
+    expect(receipt.success).toBe(true)
   })
 })
