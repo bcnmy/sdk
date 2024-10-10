@@ -49,22 +49,18 @@ export async function toSigner({
       address: getAddress(signer.address as string),
       async signMessage({ message }): Promise<Hex> {
         if (typeof message === "string") {
-          // @ts-ignore
           return (await signer.signMessage(message)) as Hex
         }
         // For ethers, raw messages need to be converted to Uint8Array
         if (typeof message.raw === "string") {
-          // @ts-ignore
           return (await signer.signMessage(hexToBytes(message.raw))) as Hex
         }
-        // @ts-ignore
         return (await signer.signMessage(message.raw)) as Hex
       },
       async signTransaction(_) {
         throw new Error("Not supported")
       },
       async signTypedData(typedData) {
-        // @ts-ignore
         return signer.signTypedData(
           typedData.domain as any,
           typedData.types as any,
@@ -102,7 +98,6 @@ export async function toSigner({
 
     walletClient = createWalletClient({
       account: address,
-      // @ts-ignore
       transport: custom(signer as EIP1193Provider)
     })
   }
