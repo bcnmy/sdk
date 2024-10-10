@@ -106,7 +106,6 @@ describe("nexus.client", async () => {
     expect(balance > 0)
   })
 
-  // @note @todo this test is only valid for anvil
   test("should have account addresses", async () => {
     const addresses = await Promise.all([
       eoaAccount.address,

@@ -51,9 +51,11 @@ export type Module<
       /**
        * Signs a user operation hash.
        * @param userOpHash - The user operation hash to sign.
+       // Review:
+       * @param params - Optional parameters for generating the signature.
        * @returns A promise that resolves to a hexadecimal string representing the signature.
        */
-      signUserOpHash: (userOpHash: Hex) => Promise<Hex>
+      signUserOpHash: (userOpHash: Hex, params?: any) => Promise<Hex>
     }
   >
 >

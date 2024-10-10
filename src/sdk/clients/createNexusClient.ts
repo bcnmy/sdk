@@ -29,6 +29,7 @@ import {
   smartAccountActions
 } from "./decorators/smartAccount"
 
+// Review: below is not used anywhere.
 /**
  * Parameters for sending a transaction
  */
@@ -152,8 +153,7 @@ export type NexusClientConfig<
     factoryAddress?: Address
     /** Owner module */
     k1ValidatorAddress?: Address
-    accountName?: string
-    accountKey?: string
+    accountAddress?: Address
   }
 >
 
@@ -185,21 +185,19 @@ export async function createNexusClient(
     index = 0n,
     key = "nexus client",
     name = "Nexus Client",
-    accountName,
-    accountKey,
     activeModule,
     factoryAddress = contracts.k1ValidatorFactory.address,
     k1ValidatorAddress = contracts.k1Validator.address,
     bundlerTransport,
     transport,
+    accountAddress,
     ...bundlerConfig
   } = parameters
 
   if (!chain) throw new Error("Missing chain")
 
   const nexusAccount = await toNexusAccount({
-    name: accountName,
-    key: accountKey,
+    accountAddress,
     transport,
     chain,
     signer,

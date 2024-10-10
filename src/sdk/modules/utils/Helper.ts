@@ -181,7 +181,11 @@ export type AnyReferenceValue = BaseReferenceValue | HardcodedReference
  */
 export function parseReferenceValue(referenceValue: AnyReferenceValue): Hex {
   let result: Hex
-  if ((referenceValue as HardcodedReference)?.raw) {
+  // Handle 20-byte Ethereum address
+  if (isHex(referenceValue) && referenceValue.length === 42) {
+    // Remove '0x' prefix, pad to 32 bytes (64 characters) on the left, then add '0x' prefix back
+    result = `0x${"0".repeat(24)}${referenceValue.slice(2)}` as Hex
+  } else if ((referenceValue as HardcodedReference)?.raw) {
     result = (referenceValue as HardcodedReference)?.raw
   } else if (typeof referenceValue === "bigint") {
     result = pad(toHex(referenceValue), { size: 32 }) as Hex
@@ -190,6 +194,7 @@ export function parseReferenceValue(referenceValue: AnyReferenceValue): Hex {
   } else if (typeof referenceValue === "boolean") {
     result = pad(toHex(referenceValue), { size: 32 }) as Hex
   } else if (isHex(referenceValue)) {
+    // review
     result = referenceValue
   } else if (typeof referenceValue === "string") {
     result = pad(referenceValue as Hex, { size: 32 })
@@ -201,4 +206,17 @@ export function parseReferenceValue(referenceValue: AnyReferenceValue): Hex {
     throw new Error(ERROR_MESSAGES.INVALID_HEX)
   }
   return result
+}
+
+export function sanitizeSignature(signature: Hex): Hex {
+  let sanitizedSignature = signature
+  const potentiallyIncorrectV = Number.parseInt(signature.slice(-2), 16)
+  if (![27, 28].includes(potentiallyIncorrectV)) {
+    const correctV = potentiallyIncorrectV + 27
+    sanitizedSignature = signature.slice(0, -2) + correctV.toString(16)
+  }
+  if (sanitizedSignature.slice(0, 2) !== "0x") {
+    sanitizedSignature = `0x${sanitizedSignature}`
+  }
+  return sanitizedSignature as Hex
 }
