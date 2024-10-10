@@ -114,6 +114,7 @@
   },
   "peerDependencies": {
     "typescript": "^5",
+    "@rhinestone/module-sdk": "^0.1.22",
     "viem": "^2.20.0"
   },
   "commitlint": {
@@ -124,8 +125,5 @@
   "simple-git-hooks": {
     "pre-commit": "bun run format && bun run lint:fix",
     "commit-msg": "npx --no -- commitlint --edit ${1}"
-  },
-  "dependencies": {
-    "@rhinestone/module-sdk": "^0.1.17"
   }
 }
