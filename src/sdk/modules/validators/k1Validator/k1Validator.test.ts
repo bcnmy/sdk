@@ -62,7 +62,7 @@ describe("modules.k1Validator.write", async () => {
     await killNetwork([network?.rpcPort, network?.bundlerPort])
   })
 
-  test.skip("should send eth", async () => {
+  test("should send eth", async () => {
     const balanceBefore = await getBalance(testClient, recipientAddress)
     const hash = await nexusClient.sendTransaction({
       calls: [
@@ -70,13 +70,22 @@ describe("modules.k1Validator.write", async () => {
           to: recipientAddress,
           value: 1n
         }
-      ]
+      ],
+      // Note
+      // supplying key = 0 will pass it on
+      // supplying key = 123n will pass it on
+      // supplying no key and just getNonce will make it a timestamp
+      // Note: ignore ts error below.
+      nonce: await nexusClient.account.getNonce({ key: 123n })
+
+      // Note: one can directly supply fixed or just use below for 2D nonce
+      // nonce: await nexusClient.account.getNonce()
     })
-    const { success } = await nexusClient.waitForUserOperationReceipt({ hash })
+    const { status } = await testClient.waitForTransactionReceipt({ hash })
+    expect(status).toBe("success")
     const balanceAfter = await getBalance(testClient, recipientAddress)
-    expect(success).toBe(true)
     expect(balanceAfter - balanceBefore).toBe(1n)
-  })
+  }, 90000)
 
   test("k1Validator properties", async () => {
     const k1Validator = await toK1ValidatorModule({
