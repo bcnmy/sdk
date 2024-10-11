@@ -79,7 +79,7 @@ describe("modules.k1Validator.write", async () => {
   })
 
   test("k1Validator properties", async () => {
-    const k1Validator = await toK1ValidatorModule({
+    const k1Validator = toK1ValidatorModule({
       signer: nexusClient.account.signer,
       accountAddress: nexusClient.account.address
     })

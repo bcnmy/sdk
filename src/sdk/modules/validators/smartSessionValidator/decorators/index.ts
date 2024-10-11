@@ -11,20 +11,24 @@ export type SmartSessionValidatorActions<
   createSessions: (
     args: CreateSessionsParameters<TSmartAccount>
   ) => Promise<CreateSessionsResponse>
-  useSession: (args: UseSessionParameters<TSmartAccount>) => Promise<Hash>
+  useSession: (
+    args: UseSessionParameters<TSmartAccount> & { data: SmartSessionMetaData }
+  ) => Promise<Hash>
 }
 
-export function smartSessionValidatorActions(
-  moduleData?: SmartSessionMetaData
-) {
+export function smartSessionValidatorActions() {
   return <TSmartAccount extends SmartAccount | undefined>(
     client: Client<Transport, Chain | undefined, TSmartAccount>
   ): SmartSessionValidatorActions<TSmartAccount> => {
-    activateModule(client, "smartSession", moduleData)
-
     return {
-      createSessions: (args) => createSessions(client, args),
-      useSession: (args) => useSession(client, args)
+      createSessions: (args) => {
+        // activateModule(client, "smartSession")
+        return createSessions(client, args)
+      },
+      useSession: ({ data, ...rest }) => {
+        activateModule(client, "smartSession", data)
+        return useSession(client, rest as UseSessionParameters<TSmartAccount>)
+      }
     }
   }
 }

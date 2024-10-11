@@ -5,7 +5,6 @@ import {
 import { type Hex, type Prettify, encodePacked } from "viem"
 import type { SmartAccount } from "viem/account-abstraction"
 import addresses from "../../../__contracts/addresses"
-import { sanitizeSignature } from "../../utils/Helper"
 import {
   type ToValidationModuleParameters,
   toValidationModule
@@ -41,6 +40,23 @@ export const toSmartSessionsModule = (
     data
   } = parameters
 
+  const isUsingSession = !!data?.permissionId
+
+  const getSignatureForUsingSession = async (userOpHash?: Hex) => {
+    if (!isUsingSession)
+      throw new Error("You must pass a permissionId to use a session")
+    return encodeSmartSessionSignature({
+      mode: data?.mode ?? SmartSessionMode.USE,
+      permissionId: data?.permissionId,
+      signature: !userOpHash
+        ? DUMMY_ECDSA_SIG
+        : await signer.signMessage({
+            message: { raw: userOpHash as Hex }
+          }),
+      enableSessionData: data?.enableSessionData
+    })
+  }
+
   return toValidationModule({
     data,
     signer,
@@ -48,35 +64,22 @@ export const toSmartSessionsModule = (
     address: addresses.SmartSession,
     initData,
     deInitData,
-    extend: {
-      signMessage: async (_message: Uint8Array | string) => {
-        const message =
-          typeof _message === "string" ? _message : { raw: _message }
-        const signature = await signer.signMessage({ message })
-        return sanitizeSignature(signature)
-      },
-      signUserOpHash: async (userOpHash: Hex) => {
-        if (!data || !data?.permissionId)
-          throw new Error("You must pass a permissionId to use a session")
-        const signature = await signer.signMessage({
-          message: { raw: userOpHash as Hex }
-        })
-        return encodeSmartSessionSignature({
-          mode: data?.mode ?? SmartSessionMode.USE,
-          permissionId: data.permissionId,
-          signature,
-          enableSessionData: data.enableSessionData
-        })
-      },
-      getStubSignature: () =>
-        data?.permissionId
-          ? encodeSmartSessionSignature({
-              mode: data?.mode ?? SmartSessionMode.USE,
-              permissionId: data?.permissionId,
-              signature: DUMMY_ECDSA_SIG,
-              enableSessionData: data?.enableSessionData
-            })
-          : console.log("No permissionId found")
+    getStubSignature: async () => {
+      const k1Signature =
+        `0x0000000000000000000000000000000000000000000000000000000000000040000000000000000000000000${addresses.K1Validator.substring(
+          2
+        ).padEnd(
+          40,
+          "0"
+        )}000000000000000000000000000000000000000000000000000000000000004181d4b4981670cb18f99f0b4a66446df1bf5b204d24cfcb659bf38ba27a4359b5711649ec2423c5e1247245eba2964679b6a1dbb85c992ae40b9b00c6935b02ff1b00000000000000000000000000000000000000000000000000000000000000` as Hex
+      return isUsingSession ? getSignatureForUsingSession() : k1Signature
+    },
+    signUserOpHash: async (userOpHash: Hex) => {
+      return isUsingSession
+        ? await getSignatureForUsingSession(userOpHash)
+        : await signer.signMessage({
+            message: { raw: userOpHash }
+          })
     }
   })
 }

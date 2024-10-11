@@ -1,16 +1,18 @@
 import { OWNABLE_VALIDATOR_ADDRESS } from "@rhinestone/module-sdk"
-import type { Client, Hex, LocalAccount } from "viem"
+import type { Address, Client, Hex, LocalAccount } from "viem"
 import type { SmartAccount } from "viem/account-abstraction"
 import { parseAccount } from "viem/accounts"
 import addresses from "../../__contracts/addresses"
 import { type Signer, addressEquals } from "../../account"
 import type { NexusClient } from "../../clients"
+import { toK1ValidatorModule } from "./k1Validator/toK1ValidatorModule"
 import { toOwnableValidatorModule } from "./ownableValidator/toOwnableValidatorModule"
 import { toSmartSessionsModule } from "./smartSessionValidator/toSmartSessionsModule"
 import type { ModuleImplementation } from "./types"
 
-type SupportedModule = "smartSession" | "ownable"
+type SupportedModule = "smartSession" | "ownable" | "k1"
 type ToValidatorModuleParameters = {
+  accountAddress?: Address
   account: SmartAccount
   signer: Signer
   data?: ModuleImplementation["data"]
@@ -27,6 +29,10 @@ const MODULE_HELPERS: Record<
   },
   ownable: {
     func: toOwnableValidatorModule,
+    address: OWNABLE_VALIDATOR_ADDRESS
+  },
+  k1: {
+    func: toK1ValidatorModule,
     address: OWNABLE_VALIDATOR_ADDRESS
   }
 }
@@ -49,10 +55,11 @@ export const activateModule = (
     const eoaAccountAddress = signer?.address
 
     if (!signer || !eoaAccountAddress) {
-      throw new Error("Smart sessions module not activated")
+      throw new Error("Module not activated")
     }
 
     const validatorParameters: ToValidatorModuleParameters = {
+      accountAddress: nexusAccount?.address,
       account: nexusAccount,
       signer,
       data

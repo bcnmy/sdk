@@ -32,7 +32,7 @@ import type { CreateSessionDataParams } from "./Types"
 import { smartSessionValidatorActions } from "./decorators"
 import { toSmartSessionsModule } from "./toSmartSessionsModule"
 
-describe("modules.smartSessionValidator.write", async () => {
+describe("smart.sessions.write", async () => {
   let network: NetworkConfig
   let chain: Chain
   let bundlerUrl: string
@@ -187,7 +187,7 @@ describe("modules.smartSessionValidator.write", async () => {
       smartSessionValidatorActions()
     )
 
-    nexusClient.account.setActiveModule(k1Module)
+    // nexusClient.account.setActiveModule(k1Module)
 
     const createSessionsResponse = await smartSessionNexusClient.createSessions(
       { sessionRequestedInfo }
@@ -241,7 +241,7 @@ describe("modules.smartSessionValidator.write", async () => {
     // nexusClient.account.setActiveModule(smartSessionValidator)
 
     const smartSessionNexusClient = nexusClient.extend(
-      smartSessionValidatorActions({ permissionId: cachedPermissionId })
+      smartSessionValidatorActions()
     )
 
     const userOpHash = await smartSessionNexusClient.useSession({
@@ -256,7 +256,10 @@ describe("modules.smartSessionValidator.write", async () => {
             args: []
           })
         }
-      ]
+      ],
+      data: {
+        permissionId: cachedPermissionId
+      }
     })
 
     expect(userOpHash).toBeDefined()

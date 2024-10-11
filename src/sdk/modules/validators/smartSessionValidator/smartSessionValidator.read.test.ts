@@ -17,7 +17,7 @@ import { testAddresses } from "./../../../../test/callDatas"
 import policies from "./Helper"
 import { ParamCondition } from "./Types"
 
-describe("smart.sessions", async () => {
+describe("smart.sessions.read", async () => {
   let network: NetworkConfig
   let chain: Chain
   let bundlerUrl: string

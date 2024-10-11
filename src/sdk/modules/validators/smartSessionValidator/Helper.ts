@@ -119,7 +119,6 @@ export const isSessionEnabled = async ({
   accountAddress: Address
   permissionId: Hex
 }) => {
-  console.log({ permissionId, accountAddress })
   return (await client.readContract({
     address: addresses.SmartSession,
     abi: SmartSessionAbi,

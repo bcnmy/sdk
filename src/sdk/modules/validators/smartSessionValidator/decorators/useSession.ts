@@ -54,8 +54,7 @@ export async function useSession<
     maxFeePerGas,
     maxPriorityFeePerGas,
     nonce,
-    actions,
-    signatureOverride
+    actions
   } = parameters
 
   if (!account_) {
@@ -79,7 +78,6 @@ export async function useSession<
     maxFeePerGas,
     maxPriorityFeePerGas,
     nonce,
-    account,
-    signature: signatureOverride
+    account
   })
 }

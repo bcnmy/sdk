@@ -52,6 +52,7 @@ export type Module<
        * @param params - Optional parameters for generating the signature.
        * @returns A promise that resolves to a hexadecimal string representing the signature.
        */
+      // biome-ignore lint/suspicious/noExplicitAny: <explanation>
       signUserOpHash: (userOpHash: Hex, params?: any) => Promise<Hex>
       // biome-ignore lint/suspicious/noExplicitAny: <explanation>
       getStubSignature: (params?: any) => Promise<Hex>
