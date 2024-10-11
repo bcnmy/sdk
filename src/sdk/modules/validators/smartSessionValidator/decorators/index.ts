@@ -1,38 +1,47 @@
 import type { Chain, Client, Hash, Transport } from "viem"
 import type { SmartAccount } from "viem/account-abstraction"
 import { activateModule } from "../../activateModule"
-import type { CreateSessionsResponse, SmartSessionMetaData } from "../Types"
+import type { CreateSessionsResponse, UseSessionModuleData } from "../Types"
 import { type CreateSessionsParameters, createSessions } from "./createSessions"
 import { type UseSessionParameters, useSession } from "./useSession"
 
-export type SmartSessionValidatorActions<
+export type SmartSessionCreateActions<
   TSmartAccount extends SmartAccount | undefined
 > = {
   createSessions: (
     args: CreateSessionsParameters<TSmartAccount>
   ) => Promise<CreateSessionsResponse>
+}
+export type SmartSessionUseActions<
+  TSmartAccount extends SmartAccount | undefined
+> = {
   useSession: (
-    args: UseSessionParameters<TSmartAccount> & { data: SmartSessionMetaData }
+    args: UseSessionParameters<TSmartAccount> & { data: UseSessionModuleData }
   ) => Promise<Hash>
 }
 
-export function smartSessionValidatorActions() {
+export function smartSessionCreateActions() {
   return <TSmartAccount extends SmartAccount | undefined>(
     client: Client<Transport, Chain | undefined, TSmartAccount>
-  ): SmartSessionValidatorActions<TSmartAccount> => {
+  ): SmartSessionCreateActions<TSmartAccount> => {
     return {
-      createSessions: (args) => {
-        // activateModule(client, "smartSession")
-        return createSessions(client, args)
-      },
-      useSession: ({ data, ...rest }) => {
-        activateModule(client, "smartSession", data)
-        return useSession(client, rest as UseSessionParameters<TSmartAccount>)
+      createSessions: (args) => createSessions(client, args)
+    }
+  }
+}
+export function smartSessionUseActions() {
+  return <TSmartAccount extends SmartAccount | undefined>(
+    client: Client<Transport, Chain | undefined, TSmartAccount>
+  ): SmartSessionUseActions<TSmartAccount> => {
+    return {
+      useSession: (args) => {
+        activateModule(client, "smartSession", args.data)
+        return useSession(client, args)
       }
     }
   }
 }
 
-export type { CreateSessionsParameters }
+export type { CreateSessionsParameters, UseSessionParameters }
 
-export { createSessions }
+export { createSessions, useSession }

@@ -20,7 +20,7 @@ export type CreateSessionsResponse = {
 export type SmartSessionModeType =
   (typeof SmartSessionMode)[keyof typeof SmartSessionMode]
 
-export type SmartSessionMetaData = {
+export type UseSessionModuleData = {
   permissionId: Hex
   mode?: SmartSessionModeType
   enableSessionData?: EnableSessionData

@@ -1,3 +1,4 @@
+import { getAddress, getBytes, hexlify } from "ethers"
 import {
   http,
   type Account,
@@ -40,13 +41,17 @@ import {
   createNexusClient
 } from "../clients/createNexusClient"
 import type { NexusAccount } from "./toNexusAccount"
-import { getAccountDomainStructFields, getAccountMeta } from "./utils"
+import {
+  addressEquals,
+  getAccountDomainStructFields,
+  getAccountMeta
+} from "./utils"
 import {
   NEXUS_DOMAIN_TYPEHASH,
   PARENT_TYPEHASH,
   eip1271MagicValue
 } from "./utils/Constants"
-import type { UserOperationStruct } from "./utils/Types"
+import type { BytesLike, UserOperationStruct } from "./utils/Types"
 
 describe("nexus.account", async () => {
   let network: NetworkConfig
@@ -88,6 +93,18 @@ describe("nexus.account", async () => {
   })
   afterAll(async () => {
     await killNetwork([network?.rpcPort, network?.bundlerPort])
+  })
+
+  test("should override account address", async () => {
+    const newNexusClient = await createNexusClient({
+      signer: eoaAccount,
+      chain,
+      transport: http(),
+      bundlerTransport: http(bundlerUrl),
+      accountAddress: "0xf0479e036343bC66dc49dd374aFAF98402D0Ae5f"
+    })
+    const accountAddress = await newNexusClient.account.getAddress()
+    expect(accountAddress).toBe("0xf0479e036343bC66dc49dd374aFAF98402D0Ae5f")
   })
 
   test("should check isValidSignature PersonalSign is valid", async () => {
@@ -377,5 +394,76 @@ describe("nexus.account", async () => {
 
     expect(allowance).toEqual(parseEther("2"))
     expect(nexusResponse).toEqual("0x1626ba7e")
+  })
+
+  test("check that ethers makeNonceKey creates the same key as the SDK", async () => {
+    function makeNonceKey(
+      vMode: BytesLike,
+      validator: Hex,
+      batchId: BytesLike
+    ): string {
+      // Convert the validator address to a Uint8Array
+      const validatorBytes = getBytes(getAddress(validator.toString()))
+
+      // Prepare the validation mode as a 1-byte Uint8Array
+      const validationModeBytes = Uint8Array.from([Number(vMode)])
+
+      // Convert the batchId to a Uint8Array (assuming it's 3 bytes)
+      const batchIdBytes = getBytes(batchId)
+
+      // Create a 24-byte array for the 192-bit key
+      const keyBytes = new Uint8Array(24)
+
+      // Set the batchId in the most significant 3 bytes (positions 0, 1, and 2)
+      keyBytes.set(batchIdBytes, 0)
+
+      // Set the validation mode at the 4th byte (position 3)
+      keyBytes.set(validationModeBytes, 3)
+
+      // Set the validator address starting from the 5th byte (position 4)
+      keyBytes.set(validatorBytes, 4)
+
+      // Return the key as a hex string
+      return hexlify(keyBytes)
+    }
+
+    function numberTo3Bytes(key: bigint): Uint8Array {
+      // todo: check range
+      const buffer = new Uint8Array(3)
+      buffer[0] = Number((key >> 16n) & 0xffn)
+      buffer[1] = Number((key >> 8n) & 0xffn)
+      buffer[2] = Number(key & 0xffn)
+      return buffer
+    }
+
+    function toHexString(key: bigint): string {
+      const key_ = numberTo3Bytes(key)
+      return `0x${Array.from(key_)
+        .map((byte) => byte.toString(16).padStart(2, "0"))
+        .join("")}`
+    }
+
+    const nonce = 5n
+    const nonceAsHex = toHexString(nonce)
+
+    const keyFromEthers = makeNonceKey(
+      "0x00",
+      nexusClient.account.getActiveModule().address,
+      nonceAsHex
+    )
+    const keyFromViem = concat([
+      toHex(nonce, { size: 3 }),
+      "0x00",
+      nexusClient.account.getActiveModule().address
+    ])
+
+    const keyWithHardcodedValues = concat([
+      "0x000005",
+      "0x00",
+      nexusClient.account.getActiveModule().address
+    ])
+
+    expect(addressEquals(keyFromViem, keyFromEthers)).toBe(true)
+    expect(addressEquals(keyWithHardcodedValues, keyFromEthers)).toBe(true)
   })
 })

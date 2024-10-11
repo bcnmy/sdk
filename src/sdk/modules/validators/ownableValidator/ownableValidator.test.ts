@@ -168,11 +168,16 @@ describe("modules.ownableValidator", async () => {
       ["bytes", "bytes"],
       [signature1 ?? "0x", signature2 ?? "0x"]
     )
-    const userOpHash = await ownableNexusClient.removeOwner({
-      account: nexusClient.account,
-      owner: recipientAddress,
-      signatureOverride: multiSignature
-    })
+    userOp.signature = multiSignature
+    const userOpHash = await nexusClient.sendUserOperation(userOp)
+    // @note Can also use the removeOwner decorator but it requires a signature override and the user op nonce,
+    // otherwise it will try to use a different nonce and siganture will be invalid
+    // const userOpHash = await ownableNexusClient.removeOwner({
+    //   account: nexusClient.account,
+    //   owner: recipientAddress,
+    //   signatureOverride: multiSignature,
+    //   nonce: userOp.nonce
+    // })
     expect(userOpHash).toBeDefined()
     const { success: userOpSuccess } =
       await nexusClient.waitForUserOperationReceipt({ hash: userOpHash })
@@ -217,7 +222,7 @@ describe("modules.ownableValidator", async () => {
       ownableValidatorModule.address
     )
 
-    const dummyUserOp = await nexusClient.prepareUserOperation({
+    const userOp = await nexusClient.prepareUserOperation({
       calls: [
         {
           to: zeroAddress,
@@ -226,29 +231,25 @@ describe("modules.ownableValidator", async () => {
       ]
     })
 
-    const dummyUserOpHash = await nexusClient.account.getUserOpHash(dummyUserOp)
+    const userOpHash = await nexusClient.account.getUserOpHash(userOp)
     const signature1 = await eoaAccount?.signMessage?.({
-      message: { raw: dummyUserOpHash }
+      message: { raw: userOpHash }
     })
     const signature2 = await recipient?.signMessage?.({
-      message: { raw: dummyUserOpHash }
+      message: { raw: userOpHash }
     })
     const multiSignature = encodePacked(
       ["bytes", "bytes"],
       [signature1 ?? "0x", signature2 ?? "0x"]
     )
-    const userOpHash = await nexusClient.sendUserOperation({
-      calls: [
-        {
-          to: zeroAddress,
-          data: "0x"
-        }
-      ],
-      signature: multiSignature
-    })
+    userOp.signature = multiSignature
+    const userOperationHashResponse =
+      await nexusClient.sendUserOperation(userOp)
     expect(userOpHash).toBeDefined()
     const { success: userOpSuccess } =
-      await nexusClient.waitForUserOperationReceipt({ hash: userOpHash })
+      await nexusClient.waitForUserOperationReceipt({
+        hash: userOperationHashResponse
+      })
     expect(userOpSuccess).toBe(true)
   })
 
@@ -319,14 +320,17 @@ describe("modules.ownableValidator", async () => {
     const multiSignature = getOwnableValidatorSignature({
       signatures: [signature1 ?? "0x", signature2 ?? "0x"]
     })
-    const uninstallHash = await nexusClient.uninstallModule({
-      module: {
-        address: ownableValidatorModule.address,
-        type: "validator",
-        data: "0x"
-      },
-      signatureOverride: multiSignature
-    })
+    userOp.signature = multiSignature
+    const uninstallHash = await nexusClient.sendUserOperation(userOp)
+    // const uninstallHash = await nexusClient.uninstallModule({
+    //   module: {
+    //     address: ownableValidatorModule.address,
+    //     type: "validator",
+    //     data: "0x"
+    //   },
+    //   signatureOverride: multiSignature,
+    //   nonce: userOp.nonce
+    // })
     expect(uninstallHash).toBeDefined()
     const { success: userOpSuccess } =
       await nexusClient.waitForUserOperationReceipt({ hash: uninstallHash })

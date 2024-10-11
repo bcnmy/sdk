@@ -7,7 +7,7 @@ import { type Signer, addressEquals } from "../../account"
 import type { NexusClient } from "../../clients"
 import { toK1ValidatorModule } from "./k1Validator/toK1ValidatorModule"
 import { toOwnableValidatorModule } from "./ownableValidator/toOwnableValidatorModule"
-import { toSmartSessionsModule } from "./smartSessionValidator/toSmartSessionsModule"
+import { toUseSessionModule } from "./smartSessionValidator/toUseSessionModule"
 import type { ModuleImplementation } from "./types"
 
 type SupportedModule = "smartSession" | "ownable" | "k1"
@@ -24,7 +24,7 @@ const MODULE_HELPERS: Record<
   { func: Function; address: Hex }
 > = {
   smartSession: {
-    func: toSmartSessionsModule,
+    func: toUseSessionModule,
     address: addresses.SmartSession
   },
   ownable: {

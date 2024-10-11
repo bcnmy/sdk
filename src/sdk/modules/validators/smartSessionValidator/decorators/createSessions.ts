@@ -29,7 +29,7 @@ export type CreateSessionsParameters<
   maxFeePerGas?: bigint
   maxPriorityFeePerGas?: bigint
   nonce?: bigint
-  signatureOverride?: Hex
+  publicClient?: PublicClient
   account?: TSmartAccount
 }
 
@@ -142,12 +142,12 @@ export async function createSessions<
   parameters: CreateSessionsParameters<TSmartAccount>
 ): Promise<CreateSessionsResponse> {
   const {
+    publicClient: publicClient_ = client.account?.client as PublicClient,
     account: account_ = client.account,
     maxFeePerGas,
     maxPriorityFeePerGas,
     nonce,
-    sessionRequestedInfo,
-    signatureOverride
+    sessionRequestedInfo
   } = parameters
 
   if (!account_) {
@@ -157,10 +157,9 @@ export async function createSessions<
   }
 
   const account = parseAccount(account_) as SmartAccount
-  const publicClient = account.client
 
   const actionResponse = await getSmartSessionValidatorCreateSessionsAction({
-    client: publicClient as PublicClient,
+    client: publicClient_,
     sessionRequestedInfo
   })
 
@@ -185,8 +184,7 @@ export async function createSessions<
       maxFeePerGas,
       maxPriorityFeePerGas,
       nonce,
-      account,
-      signature: signatureOverride
+      account
     })) as Hex
 
     return {
