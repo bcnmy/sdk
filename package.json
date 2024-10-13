@@ -126,6 +126,8 @@
     "commit-msg": "npx --no -- commitlint --edit ${1}"
   },
   "dependencies": {
-    "@rhinestone/module-sdk": "^0.1.17"
+    "@rhinestone/module-sdk": "^0.1.17",
+    "@simplewebauthn/browser": "^8.3.4",
+    "@simplewebauthn/typescript-types": "^8.3.4"
   }
 }
