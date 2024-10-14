@@ -40,14 +40,13 @@ import {
 } from "viem/account-abstraction"
 import contracts from "../__contracts"
 import { EntrypointAbi, K1ValidatorFactoryAbi } from "../__contracts/abi"
-import type { Call, GetNonceArgs, UserOperationStruct } from "./utils/Types"
+import type { Call, UserOperationStruct } from "./utils/Types"
 
 import {
   ERROR_MESSAGES,
   EXECUTE_BATCH,
   EXECUTE_SINGLE,
   MAGIC_BYTES,
-  MODE_VALIDATION,
   PARENT_TYPEHASH
 } from "./utils/Constants"
 
@@ -63,6 +62,9 @@ import {
   typeToString
 } from "./utils/Utils"
 import { type UnknownSigner, toSigner } from "./utils/toSigner"
+
+// Maximum number that can fit in bytes3
+const TIMESTAMP_ADJUSTMENT = 16777215n
 
 /**
  * Parameters for creating a Nexus Smart Account
@@ -201,7 +203,12 @@ export const toNexusAccount = async (
       })) as Address
     } catch (e: any) {
       if (e.shortMessage?.includes(ERROR_MESSAGES.MISSING_ACCOUNT_CONTRACT)) {
-        throw new Error(ERROR_MESSAGES.ACCOUNT_NOT_DEPLOYED)
+        throw new Error(
+          "Failed to compute account address. Possible reasons:\n" +
+            "- The factory contract does not have the function 'computeAccountAddress'\n" +
+            "- The parameters passed to the factory contract function may be invalid\n" +
+            "- The provided factory address is not a contract"
+        )
       }
       throw e
     }
@@ -337,31 +344,28 @@ export const toNexusAccount = async (
    * @param args - Optional arguments for getting the nonce
    * @returns The nonce
    */
-  const getNonce = async ({
-    validationMode: _validationMode = MODE_VALIDATION,
-    nonceOptions
-  }: GetNonceArgs = {}): Promise<bigint> => {
-    if (nonceOptions) {
-      if (nonceOptions?.nonceOverride) return BigInt(nonceOptions.nonceOverride)
-      if (nonceOptions?.validationMode)
-        _validationMode = nonceOptions.validationMode
-    }
+  const getNonce = async (parameters?: {
+    key?: bigint
+    validationMode?: "0x00" | "0x01"
+  }): Promise<bigint> => {
     try {
+      const defaultedKey = BigInt(parameters?.key ?? 0n) % TIMESTAMP_ADJUSTMENT
+      const defaultedValidationMode = parameters?.validationMode ?? "0x00"
       const key: string = concat([
-        "0x000000",
-        _validationMode,
+        toHex(defaultedKey, { size: 3 }),
+        defaultedValidationMode,
         activeModule.address
       ])
+
       const accountAddress = await getAddress()
       return await entryPointContract.read.getNonce([
         accountAddress,
         BigInt(key)
       ])
     } catch (e) {
-      return BigInt(0)
+      return 0n
     }
   }
-
   /**
    * @description Changes the active module for the account
    * @param newModule - The new module to set as active
