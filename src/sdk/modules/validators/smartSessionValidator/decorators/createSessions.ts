@@ -22,7 +22,6 @@ import type {
   CreateSessionsActionReturnParams,
   CreateSessionsResponse
 } from "../Types"
-// Review: Execution type could either be used from our sdk or from module-sdk
 
 const SIMPLE_SESSION_VALIDATOR_ADDRESS = addresses.SimpleSessionValidator
 

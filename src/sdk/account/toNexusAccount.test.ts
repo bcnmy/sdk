@@ -449,8 +449,6 @@ describe("nexus.account", async () => {
 
     const checkNonce = await nexusClient.account.getNonce({ key: 0n })
     const checkNonceAgain = await nexusClient.account.getNonce({ key: 1234n })
-    console.log({ checkNonce })
-    console.log({ checkNonceAgain })
 
     const keyFromEthers = makeNonceKey(
       "0x00",
@@ -468,8 +466,6 @@ describe("nexus.account", async () => {
       "0x00",
       nexusClient.account.getActiveModule().address
     ])
-
-    // console.log({ keyFromEthers, keyFromViem, keyWithHardcodedValues })
 
     expect(addressEquals(keyFromViem, keyFromEthers)).toBe(true)
     expect(addressEquals(keyWithHardcodedValues, keyFromEthers)).toBe(true)

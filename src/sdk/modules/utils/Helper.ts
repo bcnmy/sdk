@@ -194,7 +194,6 @@ export function parseReferenceValue(referenceValue: AnyReferenceValue): Hex {
   } else if (typeof referenceValue === "boolean") {
     result = pad(toHex(referenceValue), { size: 32 }) as Hex
   } else if (isHex(referenceValue)) {
-    // review
     result = referenceValue
   } else if (typeof referenceValue === "string") {
     result = pad(referenceValue as Hex, { size: 32 })

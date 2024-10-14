@@ -17,7 +17,6 @@ import type {
   UserOperationRequest
 } from "viem/account-abstraction"
 import contracts from "../__contracts"
-import type { Call } from "../account/utils/Types"
 
 import { type NexusAccount, toNexusAccount } from "../account/toNexusAccount"
 import type { UnknownSigner } from "../account/utils/toSigner"
@@ -28,14 +27,6 @@ import {
   type SmartAccountActions,
   smartAccountActions
 } from "./decorators/smartAccount"
-
-// Review: below is not used anywhere.
-/**
- * Parameters for sending a transaction
- */
-export type SendTransactionParameters = {
-  calls: Call | Call[]
-}
 
 /**
  * Nexus Client type

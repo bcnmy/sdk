@@ -131,13 +131,11 @@ export async function createNexusSessionClient(
   })
 
   if (!signer.address) throw new Error("Invalid signer")
-  // Review: review supplying a session signer.
   const smartSessionValidator = await toSmartSessionValidatorModule({
     client: sessionClient,
     initData: encodePacked(["address"], [signer?.address ?? "0x"]),
     deInitData: "0x",
     nexusAccountAddress: accountAddress,
-    // Review: supply of permissionId when initialising module.
     activePermissionId: permissionId
   })
 
