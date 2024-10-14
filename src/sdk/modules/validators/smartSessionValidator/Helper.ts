@@ -112,7 +112,7 @@ export const getPermissionId = async ({
   })) as Hex
 }
 
-export const isSessionEnabled = async ({
+export const isPermissionEnabled = async ({
   client,
   accountAddress,
   permissionId
@@ -124,7 +124,7 @@ export const isSessionEnabled = async ({
   return (await client.readContract({
     address: addresses.SmartSession,
     abi: SmartSessionAbi,
-    functionName: "isSessionEnabled",
+    functionName: "isPermissionEnabled",
     args: [permissionId, accountAddress]
   })) as boolean
 }
@@ -132,7 +132,7 @@ export const isSessionEnabled = async ({
 export const toUniversalActionPolicy = (
   actionConfig: ActionConfig
 ): PolicyData => ({
-  policy: "0x28120dC008C36d95DE5fa0603526f219c1Ba80f6",
+  policy: "0x148CD6c24F4dd23C396E081bBc1aB1D92eeDe2BF",
   initData: encodeAbiParameters(UniActionPolicyAbi, [
     toActionConfig(actionConfig)
   ])

@@ -22,7 +22,7 @@ import {
 } from "../../test/testUtils"
 import type { MasterClient, NetworkConfig } from "../../test/testUtils"
 import addresses from "../__contracts/addresses"
-import { isSessionEnabled } from "../modules/validators/smartSessionValidator/Helper"
+import { isPermissionEnabled } from "../modules/validators/smartSessionValidator/Helper"
 import type { CreateSessionDataParams } from "../modules/validators/smartSessionValidator/Types"
 import { createSessions } from "../modules/validators/smartSessionValidator/decorators"
 import { useSession } from "../modules/validators/smartSessionValidator/decorators/useSession"
@@ -157,7 +157,7 @@ describe("nexus.client", async () => {
 
     expect(receipt.success).toBe(true)
 
-    const isEnabled = await isSessionEnabled({
+    const isEnabled = await isPermissionEnabled({
       client: nexusClient.account.client as PublicClient,
       accountAddress: nexusClient.account.address,
       permissionId: permissionId
@@ -177,7 +177,7 @@ describe("nexus.client", async () => {
       bundlerUrl
     })
 
-    const isEnabled = await isSessionEnabled({
+    const isEnabled = await isPermissionEnabled({
       client: nexusSessionClient.account.client as PublicClient,
       accountAddress: nexusClient.account.address,
       permissionId: cachedPermissionId
@@ -236,7 +236,7 @@ describe("nexus.client", async () => {
       bundlerUrl
     })
 
-    const isEnabled = await isSessionEnabled({
+    const isEnabled = await isPermissionEnabled({
       client: nexusSessionClient.account.client as PublicClient,
       accountAddress: nexusClient.account.address,
       permissionId: cachedPermissionId

@@ -19,7 +19,7 @@ export const TEST_CONTRACTS: Record<
   SmartSession: {
     chainId: 84532,
     name: "SmartSession",
-    address: "0x3834aD7f5f73fAd19C089a924F18e6F3417d1ac2"
+    address: "0xDDFF43A42726df11E34123f747bDce0f755F784d"
   },
   SimpleSessionValidator: {
     chainId: 84532,
@@ -29,7 +29,7 @@ export const TEST_CONTRACTS: Record<
   UniActionPolicy: {
     chainId: 84532,
     name: "UniActionPolicy",
-    address: "0x28120dC008C36d95DE5fa0603526f219c1Ba80f6"
+    address: "0x148CD6c24F4dd23C396E081bBc1aB1D92eeDe2BF"
   },
   Counter: {
     chainId: 84532,

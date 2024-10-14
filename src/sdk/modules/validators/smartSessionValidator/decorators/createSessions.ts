@@ -36,6 +36,8 @@ export type CreateSessionsParameters<
   signatureOverride?: Hex
 }
 
+// Todo: Improve devx of supplying policy specific args and use defaults.
+
 export const getSmartSessionValidatorCreateSessionsAction = async ({
   sessionRequestedInfo,
   client

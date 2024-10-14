@@ -28,11 +28,12 @@ import {
   createNexusClient
 } from "../../../clients/createNexusClient"
 import { createNexusSessionClient } from "../../../clients/createNexusSessionClient"
-import { isSessionEnabled } from "./Helper"
+import { isPermissionEnabled } from "./Helper"
 import type { CreateSessionDataParams } from "./Types"
 import { smartSessionValidatorActions } from "./decorators"
 import { useSession } from "./decorators/useSession"
 import { toSmartSessionValidatorModule } from "./tosmartSessionValidatorModule"
+import { MockRegistryAbi } from "../../../../test/__contracts/abi"
 
 describe("modules.smartSessionValidator.write", async () => {
   let network: NetworkConfig
@@ -75,13 +76,22 @@ describe("modules.smartSessionValidator.write", async () => {
     await killNetwork([network?.rpcPort, network?.bundlerPort])
   })
 
-  test("should send eth", async () => {
+  test("should send eth and trust mock attester", async () => {
     const balanceBefore = await getBalance(testClient, recipientAddress)
     const hash = await nexusClient.sendTransaction({
       calls: [
         {
           to: recipientAddress,
           value: 1n
+        },
+        {
+          to: TEST_CONTRACTS.MockRegistry.address,
+          value: 0n,
+          data: encodeFunctionData({
+            abi: MockRegistryAbi,
+            functionName: "trustAttesters",
+            args: [1, [TEST_CONTRACTS.MockAttester.address]] // Review if more attesters needed
+          })
         }
       ]
     })
@@ -231,7 +241,7 @@ describe("modules.smartSessionValidator.write", async () => {
 
     expect(receipt.success).toBe(true)
 
-    const isEnabled = await isSessionEnabled({
+    const isEnabled = await isPermissionEnabled({
       client: nexusClient.account.client as PublicClient,
       accountAddress: nexusClient.account.address,
       permissionId: permissionId
@@ -240,7 +250,7 @@ describe("modules.smartSessionValidator.write", async () => {
   }, 60000)
 
   test("should make use of already enabled session (USE mode) to increment a counter using a session key", async () => {
-    const isEnabled = await isSessionEnabled({
+    const isEnabled = await isPermissionEnabled({
       client: nexusClient.account.client as PublicClient,
       accountAddress: nexusClient.account.address,
       permissionId: cachedPermissionId

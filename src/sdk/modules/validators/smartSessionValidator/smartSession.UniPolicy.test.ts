@@ -32,7 +32,7 @@ import {
   type NexusClient,
   createNexusClient
 } from "../../../clients/createNexusClient"
-import { isSessionEnabled } from "./Helper"
+import { isPermissionEnabled } from "./Helper"
 import { type CreateSessionDataParams, ParamCondition } from "./Types"
 import { smartSessionValidatorActions } from "./decorators"
 import { toSmartSessionValidatorModule } from "./tosmartSessionValidatorModule"
@@ -242,7 +242,7 @@ describe("modules.smartSessionValidator.write", async () => {
 
     expect(receipt.success).toBe(true)
 
-    const isEnabled = await isSessionEnabled({
+    const isEnabled = await isPermissionEnabled({
       client: nexusClient.account.client as PublicClient,
       accountAddress: nexusClient.account.address,
       permissionId: permissionId
@@ -251,7 +251,7 @@ describe("modules.smartSessionValidator.write", async () => {
   }, 60000)
 
   test("should make use of already enabled session (USE mode) to add balance to MockCallee using a session key", async () => {
-    const isEnabled = await isSessionEnabled({
+    const isEnabled = await isPermissionEnabled({
       client: nexusClient.account.client as PublicClient,
       accountAddress: nexusClient.account.address,
       permissionId: cachedPermissionId
@@ -297,6 +297,7 @@ describe("modules.smartSessionValidator.write", async () => {
       smartSessionValidatorActions()
     )
 
+    // Todo: Review target , value, callData naming vs to, value, data for consistency
     const userOpHash = await smartSessionNexusClient.useSession({
       account: nexusClient.account,
       actions: [
