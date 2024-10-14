@@ -21,9 +21,9 @@ import {
 } from "../../test/testUtils"
 import type { MasterClient, NetworkConfig } from "../../test/testUtils"
 import addresses from "../__contracts/addresses"
-import { isSessionEnabled } from "../modules/validators/smartSessionValidator/Helper"
-import type { CreateSessionDataParams } from "../modules/validators/smartSessionValidator/Types"
-import { smartSessionCreateActions } from "../modules/validators/smartSessionValidator/decorators"
+import { isSessionEnabled } from "../modules/smartSessions/Helpers"
+import type { CreateSessionDataParams } from "../modules/smartSessions/Types"
+import { smartSessionCreateActions } from "../modules/smartSessions/decorators"
 import { type NexusClient, createNexusClient } from "./createNexusClient"
 import { createNexusSessionClient } from "./createNexusSessionClient"
 

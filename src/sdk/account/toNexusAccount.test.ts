@@ -383,7 +383,7 @@ describe("nexus.account", async () => {
       ]
     })
 
-    await testClient.waitForTransactionReceipt({ hash: permitTokenResponse })
+    await nexusClient.waitForTransactionReceipt({ hash: permitTokenResponse })
 
     const allowance = await testClient.readContract({
       address: mockAddresses.TokenWithPermit,
@@ -448,19 +448,19 @@ describe("nexus.account", async () => {
 
     const keyFromEthers = makeNonceKey(
       "0x00",
-      nexusClient.account.getActiveModule().address,
+      nexusClient.account.getModule().address,
       nonceAsHex
     )
     const keyFromViem = concat([
       toHex(nonce, { size: 3 }),
       "0x00",
-      nexusClient.account.getActiveModule().address
+      nexusClient.account.getModule().address
     ])
 
     const keyWithHardcodedValues = concat([
       "0x000005",
       "0x00",
-      nexusClient.account.getActiveModule().address
+      nexusClient.account.getModule().address
     ])
 
     expect(addressEquals(keyFromViem, keyFromEthers)).toBe(true)

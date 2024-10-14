@@ -1,6 +1,6 @@
 import type { Chain, Client, Hash, Transport } from "viem"
 import type { SmartAccount } from "viem/account-abstraction"
-import { activateModule } from "../../activateModule"
+import { activateModule } from "../../utils/activateModule"
 import type { CreateSessionsResponse, UseSessionModuleData } from "../Types"
 import { type CreateSessionsParameters, createSessions } from "./createSessions"
 import { type UseSessionParameters, useSession } from "./useSession"
@@ -35,7 +35,7 @@ export function smartSessionUseActions() {
   ): SmartSessionUseActions<TSmartAccount> => {
     return {
       useSession: (args) => {
-        activateModule(client, "smartSession", args.data)
+        activateModule("smartSession", client.account, args.data)
         return useSession(client, args)
       }
     }

@@ -12,29 +12,26 @@ import {
   zeroAddress
 } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
-import { toNetwork } from "../../../../test/testSetup"
+import { toNetwork } from "../../../test/testSetup"
 import {
   fundAndDeployClients,
   getTestAccount,
   killNetwork,
   toTestClient
-} from "../../../../test/testUtils"
-import type { MasterClient, NetworkConfig } from "../../../../test/testUtils"
-import addresses from "../../../__contracts/addresses"
+} from "../../../test/testUtils"
+import type { MasterClient, NetworkConfig } from "../../../test/testUtils"
+import addresses from "../../__contracts/addresses"
 import {
   type NexusClient,
   createNexusClient
-} from "../../../clients/createNexusClient"
-import { parseModuleTypeId } from "../../../clients/decorators/erc7579/supportsModule"
-import {
-  type ToK1ValidatorModuleReturnType,
-  toK1ValidatorModule
-} from "../k1Validator/toK1ValidatorModule"
-import { addOwner, ownableValidatorActions, setThreshold } from "./decorators"
+} from "../../clients/createNexusClient"
+import { parseModuleTypeId } from "../../clients/decorators/erc7579/supportsModule"
+import { type ToK1ReturnType, toK1 } from "../k1/toK1"
+import { addOwner, ownableActions, setThreshold } from "./decorators"
 import {
   type ToOwnableValidatorModuleReturnType,
-  toOwnableValidatorModule
-} from "./toOwnableValidatorModule"
+  toOwnables
+} from "./toOwnables"
 
 describe("modules.ownableValidator", async () => {
   let network: NetworkConfig
@@ -49,7 +46,7 @@ describe("modules.ownableValidator", async () => {
   let recipient: Account
   let recipientAddress: Address
   let ownableValidatorModule: ToOwnableValidatorModuleReturnType
-  let k1ValidatorModule: ToK1ValidatorModuleReturnType
+  let k1Module: ToK1ReturnType
 
   beforeAll(async () => {
     network = await toNetwork()
@@ -72,12 +69,12 @@ describe("modules.ownableValidator", async () => {
     nexusAccountAddress = await nexusClient.account.getCounterFactualAddress()
     await fundAndDeployClients(testClient, [nexusClient])
 
-    ownableValidatorModule = toOwnableValidatorModule({
+    ownableValidatorModule = toOwnables({
       account: nexusClient.account,
       signer: eoaAccount
     })
 
-    k1ValidatorModule = toK1ValidatorModule({
+    k1Module = toK1({
       accountAddress: nexusClient.account.address,
       signer: eoaAccount
     })
@@ -88,13 +85,13 @@ describe("modules.ownableValidator", async () => {
   })
 
   test("should be able to extend the client, and activate the module", async () => {
-    const ownableNexusClient = nexusClient.extend(ownableValidatorActions())
+    const ownableNexusClient = nexusClient.extend(ownableActions())
     expect(Object.keys(ownableNexusClient)).toContain("addOwner")
-    expect(nexusClient.account.getActiveModule().address).toBe(
+    expect(nexusClient.account.getModule().address).toBe(
       ownableValidatorModule.address
     )
-    // reactivate k1ValidatorModule
-    nexusClient.account.setActiveModule(k1ValidatorModule)
+    // reactivate k1Module
+    nexusClient.account.setModule(k1Module)
   })
 
   test("should return values if module not installed", async () => {
@@ -109,24 +106,18 @@ describe("modules.ownableValidator", async () => {
       module: {
         address: ownableValidatorModule.address,
         type: "validator",
-        data: encodeAbiParameters(
-          [
-            { name: "threshold", type: "uint256" },
-            { name: "owners", type: "address[]" }
-          ],
-          [BigInt(1), [eoaAccount.address]]
-        )
+        data: ownableValidatorModule.initData
       }
     })
     const { success: installSuccess } =
       await nexusClient.waitForUserOperationReceipt({ hash: installHash })
     expect(installSuccess).toBe(true)
 
-    nexusClient.account.setActiveModule(ownableValidatorModule)
+    nexusClient.account.setModule(ownableValidatorModule)
   })
 
   test("should add accountTwo as owner", async () => {
-    const ownableNexusClient = nexusClient.extend(ownableValidatorActions())
+    const ownableNexusClient = nexusClient.extend(ownableActions())
 
     const userOpHash = await ownableNexusClient.addOwner({
       account: nexusClient.account,
@@ -143,11 +134,11 @@ describe("modules.ownableValidator", async () => {
   })
 
   test("should remove an owner", async () => {
-    expect(nexusClient.account.getActiveModule().address).toBe(
+    expect(nexusClient.account.getModule().address).toBe(
       ownableValidatorModule.address
     )
 
-    const ownableNexusClient = nexusClient.extend(ownableValidatorActions())
+    const ownableNexusClient = nexusClient.extend(ownableActions())
 
     const removeOwnerTx = await ownableValidatorModule.getRemoveOwnerTx(
       recipient.address
@@ -218,7 +209,7 @@ describe("modules.ownableValidator", async () => {
   }, 90000)
 
   test("should require 2 signatures to send user operation", async () => {
-    expect(nexusClient.account.getActiveModule().address).toBe(
+    expect(nexusClient.account.getModule().address).toBe(
       ownableValidatorModule.address
     )
 

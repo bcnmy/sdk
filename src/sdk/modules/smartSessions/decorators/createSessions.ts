@@ -2,9 +2,9 @@ import type { ActionData, PolicyData, Session } from "@rhinestone/module-sdk"
 import type { Chain, Client, Hex, PublicClient, Transport } from "viem"
 import { type SmartAccount, sendUserOperation } from "viem/account-abstraction"
 import { encodeFunctionData, getAction, parseAccount } from "viem/utils"
-import { SmartSessionAbi } from "../../../../__contracts/abi/SmartSessionAbi"
-import addresses from "../../../../__contracts/addresses"
-import { AccountNotFoundError } from "../../../../account/utils/AccountNotFound"
+import { SmartSessionAbi } from "../../../__contracts/abi/SmartSessionAbi"
+import addresses from "../../../__contracts/addresses"
+import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
 import {
   createActionConfig,
   createActionData,
@@ -12,7 +12,7 @@ import {
   getPermissionId,
   toTimeRangePolicy,
   toUniversalActionPolicy
-} from "../Helper"
+} from "../Helpers"
 import type { CreateSessionDataParams } from "../Types"
 import type {
   CreateSessionsActionReturnParams,
@@ -152,7 +152,7 @@ export async function createSessions<
 
   if (!account_) {
     throw new AccountNotFoundError({
-      docsPath: "/docs/actions/wallet/sendTransaction"
+      docsPath: "/nexus/nexus-client/methods#sendtransaction"
     })
   }
 

@@ -1,5 +1,4 @@
 import { http, type Account, type Address, type Chain, isHex } from "viem"
-import type { BundlerClient } from "viem/account-abstraction"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { toNetwork } from "../../test/testSetup"
 import {

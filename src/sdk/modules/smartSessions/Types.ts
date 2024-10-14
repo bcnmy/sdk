@@ -3,8 +3,8 @@ import type {
   SmartSessionMode
 } from "@rhinestone/module-sdk"
 import type { AbiFunction, Address, Hex } from "viem"
-import type { AnyReferenceValue } from "../../utils/Helper"
-import type { Execution } from "../../utils/Types"
+import type { AnyReferenceValue } from "../utils/Helpers"
+import type { Execution } from "../utils/Types"
 
 export type CreateSessionsActionReturnParams = {
   permissionIds: Hex[]

@@ -21,6 +21,8 @@ export const DefaultGasLimit = {
 }
 
 export const ERROR_MESSAGES = {
+  SMART_SESSION_DATA_REQUIRED:
+    "Data is required for using smart session module",
   MISSING_ACCOUNT_CONTRACT:
     'The contract function "computeAccountAddress" returned no data ("0x")',
   INVALID_HEX:

@@ -1,5 +1,5 @@
 import type { Address } from "viem"
-import { smartSessionUseActions } from "../modules/validators/smartSessionValidator/decorators"
+import { smartSessionUseActions } from "../modules/smartSessions/decorators"
 import { type NexusClientConfig, createNexusClient } from "./createNexusClient"
 
 export type NexusSessionClientConfig = NexusClientConfig & {

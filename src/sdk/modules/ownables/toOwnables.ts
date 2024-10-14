@@ -19,12 +19,12 @@ import {
   encodeAbiParameters
 } from "viem"
 import type { SmartAccount } from "viem/account-abstraction"
-import type { Call } from "../../../account/utils/Types"
+import type { Call } from "../../account/utils/Types"
+import type { GenericModule, GenericModuleImplementation } from "../utils/Types"
 import {
   type ToValidationModuleParameters,
   toValidationModule
-} from "../toValidationModule"
-import type { Module, ModuleImplementation } from "../types"
+} from "../utils/toValidationModule"
 
 type ToOwnableValidatorModuleParameters = Omit<
   ToValidationModuleParameters,
@@ -35,11 +35,11 @@ type ToOwnableValidatorModuleParameters = Omit<
 }
 
 export type ToOwnableValidatorModuleReturnType = Prettify<
-  Module<OwnableValidatorModuleImplementation>
+  GenericModule<OwnableValidatorModuleParameters>
 >
 
-export type OwnableValidatorModuleImplementation = Assign<
-  ModuleImplementation,
+export type OwnableValidatorModuleParameters = Assign<
+  GenericModuleImplementation,
   {
     /**
      * Retrieves the list of owners for the Ownable Validator.
@@ -102,7 +102,7 @@ export type OwnableValidatorModuleImplementation = Assign<
  * @returns A promise that resolves to an Ownable Validator Module instance.
  *
  * @example
- * const module = await toOwnableValidatorModule({
+ * const module = await toOwnables({
  *   accountAddress: '0x1234...',
  *   client: nexusClient,
  *   initData: '0x...',
@@ -114,7 +114,7 @@ export type OwnableValidatorModuleImplementation = Assign<
  * const threshold = await module.getThreshold();
  * const addOwnerTx = await module.getAddOwnerTx('0x5678...');
  */
-export const toOwnableValidatorModule = (
+export const toOwnables = (
   parameters: ToOwnableValidatorModuleParameters
 ): ToOwnableValidatorModuleReturnType => {
   const {
@@ -142,38 +142,6 @@ export const toOwnableValidatorModule = (
     address: OWNABLE_VALIDATOR_ADDRESS,
     initData,
     deInitData,
-    getAddOwnerTx: async (owner: Hex): Promise<Call> => {
-      const action = (await getAddOwnableValidatorOwnerAction({
-        account: nexusAccount,
-        client,
-        owner
-      })) as Execution
-      return {
-        to: action.target,
-        value: BigInt(action.value.toString()),
-        data: action.callData
-      }
-    },
-    getRemoveOwnerTx: async (owner: Hex): Promise<Call> => {
-      const action = (await getRemoveOwnableValidatorOwnerAction({
-        account: nexusAccount,
-        client: client as PublicClient,
-        owner
-      })) as Execution
-      return {
-        to: action.target,
-        value: BigInt(action.value.toString()),
-        data: action.callData
-      }
-    },
-    getSetThresholdTx: (threshold: number): Call => {
-      const action = getSetOwnableValidatorThresholdAction({ threshold })
-      return {
-        to: action.target,
-        value: BigInt(action.value.toString()),
-        data: action.callData
-      }
-    },
     getStubSignature: async (): Promise<Hex> => {
       const isInstalled = await isModuleInstalled({
         account: nexusAccount,
@@ -198,19 +166,53 @@ export const toOwnableValidatorModule = (
       }
       return getOwnableValidatorMockSignature({ threshold })
     },
-    getOwners: async (): Promise<Hex[]> => {
-      return await getOwnableValidatorOwners({
-        account: nexusAccount,
-        client: client as PublicClient
-      })
-    },
-    getThreshold: async (): Promise<number> => {
-      return await getOwnableValidatorThreshold({
-        account: nexusAccount,
-        client: client as PublicClient
-      })
-    },
-    client,
-    type: "validator"
+    extend: {
+      getAddOwnerTx: async (owner: Hex): Promise<Call> => {
+        const action = (await getAddOwnableValidatorOwnerAction({
+          account: nexusAccount,
+          client,
+          owner
+        })) as Execution
+        return {
+          to: action.target,
+          value: BigInt(action.value.toString()),
+          data: action.callData
+        }
+      },
+      getRemoveOwnerTx: async (owner: Hex): Promise<Call> => {
+        const action = (await getRemoveOwnableValidatorOwnerAction({
+          account: nexusAccount,
+          client: client as PublicClient,
+          owner
+        })) as Execution
+        return {
+          to: action.target,
+          value: BigInt(action.value.toString()),
+          data: action.callData
+        }
+      },
+      getSetThresholdTx: (threshold: number): Call => {
+        const action = getSetOwnableValidatorThresholdAction({ threshold })
+        return {
+          to: action.target,
+          value: BigInt(action.value.toString()),
+          data: action.callData
+        }
+      },
+      getOwners: async (): Promise<Hex[]> => {
+        return await getOwnableValidatorOwners({
+          account: nexusAccount,
+          client: client as PublicClient
+        })
+      },
+      getThreshold: async (): Promise<number> => {
+        return await getOwnableValidatorThreshold({
+          account: nexusAccount,
+          client: client as PublicClient
+        })
+      },
+      client,
+      type: "validator"
+    }
   })
 }

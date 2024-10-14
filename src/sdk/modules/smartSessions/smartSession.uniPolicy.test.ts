@@ -15,27 +15,27 @@ import {
   toHex
 } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
-import { MockCalleeAbi } from "../../../../test/__contracts/abi/MockCalleeAbi"
-import { TEST_CONTRACTS } from "../../../../test/callDatas"
-import { toNetwork } from "../../../../test/testSetup"
+import { MockCalleeAbi } from "../../../test/__contracts/abi/MockCalleeAbi"
+import { TEST_CONTRACTS } from "../../../test/callDatas"
+import { toNetwork } from "../../../test/testSetup"
 import {
   fundAndDeployClients,
   getTestAccount,
   killNetwork,
   toTestClient
-} from "../../../../test/testUtils"
-import type { MasterClient, NetworkConfig } from "../../../../test/testUtils"
-import addresses from "../../../__contracts/addresses"
+} from "../../../test/testUtils"
+import type { MasterClient, NetworkConfig } from "../../../test/testUtils"
+import addresses from "../../__contracts/addresses"
 import {
   type NexusClient,
   createNexusClient
-} from "../../../clients/createNexusClient"
-import { createNexusSessionClient } from "../../../clients/createNexusSessionClient"
-import { isSessionEnabled } from "./Helper"
+} from "../../clients/createNexusClient"
+import { createNexusSessionClient } from "../../clients/createNexusSessionClient"
+import { isSessionEnabled } from "./Helpers"
 import { type CreateSessionDataParams, ParamCondition } from "./Types"
 import { smartSessionCreateActions } from "./decorators"
 
-describe("smart.sessions.uni.policy", async () => {
+describe("modules.smartSessions.uniPolicy", async () => {
   let network: NetworkConfig
   let chain: Chain
   let bundlerUrl: string

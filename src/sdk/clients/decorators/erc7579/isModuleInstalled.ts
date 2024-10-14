@@ -13,14 +13,14 @@ import type {
 } from "viem/account-abstraction"
 import { call, readContract } from "viem/actions"
 import { getAction, parseAccount } from "viem/utils"
-import type { Module } from "."
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
+import type { ModuleMeta } from "./index.js"
 import { parseModuleTypeId } from "./supportsModule"
 
 export type IsModuleInstalledParameters<
   TSmartAccount extends SmartAccount | undefined
 > = GetSmartAccountParameter<TSmartAccount> & {
-  module: Module
+  module: ModuleMeta
 }
 
 /**
@@ -57,7 +57,7 @@ export async function isModuleInstalled<
 
   if (!account_) {
     throw new AccountNotFoundError({
-      docsPath: "/docs/actions/wallet/sendTransaction"
+      docsPath: "/nexus/nexus-client/methods#sendtransaction"
     })
   }
 

@@ -61,7 +61,7 @@ export async function sendTransaction<
 
     if (!account_) {
       throw new AccountNotFoundError({
-        docsPath: "/docs/actions/wallet/sendTransaction"
+        docsPath: "/nexus/nexus-client/methods#sendtransaction"
       })
     }
 

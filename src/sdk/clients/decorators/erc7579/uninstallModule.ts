@@ -14,14 +14,14 @@ import {
 } from "viem/account-abstraction"
 import { getAction } from "viem/utils"
 import { parseAccount } from "viem/utils"
-import { type Module, getInstalledValidators, getPreviousModule } from "."
+import { type ModuleMeta, getInstalledValidators, getPreviousModule } from "."
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
 import { parseModuleTypeId } from "./supportsModule"
 
 export type UninstallModuleParameters<
   TSmartAccount extends SmartAccount | undefined
 > = GetSmartAccountParameter<TSmartAccount> & {
-  module: Module
+  module: ModuleMeta
   maxFeePerGas?: bigint
   maxPriorityFeePerGas?: bigint
   nonce?: bigint
@@ -67,7 +67,7 @@ export async function uninstallModule<
 
   if (!account_) {
     throw new AccountNotFoundError({
-      docsPath: "/docs/actions/wallet/sendTransaction"
+      docsPath: "/nexus/nexus-client/methods#sendtransaction"
     })
   }
 

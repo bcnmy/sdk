@@ -1,24 +1,26 @@
-import { type Hex, type Prettify, encodePacked } from "viem"
-import addresses from "../../../__contracts/addresses"
-import { sanitizeSignature } from "../../utils/Helper"
+import {
+  type Hex,
+  type Prettify,
+  type SignableMessage,
+  encodePacked
+} from "viem"
+import addresses from "../../__contracts/addresses"
+import { sanitizeSignature } from "../utils/Helpers"
+import type { GenericModule, GenericModuleImplementation } from "../utils/Types"
 import {
   type ToValidationModuleParameters,
   toValidationModule
-} from "../toValidationModule"
-import type { Module, ModuleImplementation } from "../types"
+} from "../utils/toValidationModule"
 
-export type ToK1ValidatorModuleParameters = ToValidationModuleParameters & {
+export type ToK1Parameters = ToValidationModuleParameters & {
   address?: Hex
 }
 
-export type ToK1ValidatorModuleReturnType = Prettify<
-  Module<K1ValidatorModuleImplementation>
+export type ToK1ReturnType = Prettify<
+  GenericModule<K1ValidatorModuleParameters>
 >
 
-export type K1ValidatorModuleImplementation = ModuleImplementation & {
-  signUserOpHash: (userOpHash: Hex) => Promise<Hex>
-  getStubSignature: () => Promise<Hex>
-}
+export type K1ValidatorModuleParameters = GenericModuleImplementation
 
 /**
  * Creates a K1 Validator Module instance.
@@ -31,7 +33,7 @@ export type K1ValidatorModuleImplementation = ModuleImplementation & {
  * @returns A promise that resolves to a K1 Validator Module instance.
  *
  * @example
- * const module = await toK1ValidatorModule({
+ * const module = await toK1({
  *   accountAddress: '0x1234...',
  *   client: nexusClient,
  *   initData: '0x...',
@@ -43,9 +45,7 @@ export type K1ValidatorModuleImplementation = ModuleImplementation & {
  * const userOpSignature = await module.signUserOpHash('0x...');
  * const messageSignature = await module.signMessage('Hello, world!');
  */
-export const toK1ValidatorModule = (
-  parameters: ToK1ValidatorModuleParameters
-): ToK1ValidatorModuleReturnType => {
+export const toK1 = (parameters: ToK1Parameters): ToK1ReturnType => {
   const {
     signer,
     initData = encodePacked(["address"], [signer.address]),
@@ -71,12 +71,8 @@ export const toK1ValidatorModule = (
         })
         return signature as Hex
       },
-      signMessage: async (_message: Uint8Array | string) => {
-        const message =
-          typeof _message === "string" ? _message : { raw: _message }
-        const signature = await signer.signMessage({ message })
-        return sanitizeSignature(signature)
-      }
+      signMessage: async (message: SignableMessage) =>
+        sanitizeSignature(await signer.signMessage({ message }))
     }
   })
 }

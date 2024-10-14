@@ -10,10 +10,10 @@ import {
   toBytes,
   toHex
 } from "viem"
-import { parseReferenceValue } from "../.."
-import { UniActionPolicyAbi } from "../../../__contracts/abi"
-import { SmartSessionAbi } from "../../../__contracts/abi/SmartSessionAbi"
-import addresses from "../../../__contracts/addresses"
+import { UniActionPolicyAbi } from "../../__contracts/abi"
+import { SmartSessionAbi } from "../../__contracts/abi/SmartSessionAbi"
+import addresses from "../../__contracts/addresses"
+import { parseReferenceValue } from "../utils/Helpers"
 import type {
   ActionConfig,
   RawActionConfig,

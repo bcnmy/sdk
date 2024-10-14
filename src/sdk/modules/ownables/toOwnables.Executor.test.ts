@@ -16,6 +16,7 @@ import {
 } from "viem"
 import { waitForTransactionReceipt } from "viem/actions"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
+import { testAddresses } from "../../../test/callDatas"
 import { toNetwork } from "../../../test/testSetup"
 import {
   fundAndDeployClients,
@@ -24,16 +25,11 @@ import {
   toTestClient
 } from "../../../test/testUtils"
 import type { MasterClient, NetworkConfig } from "../../../test/testUtils"
-import type { Signer } from "../../account/utils/toSigner"
 import {
   type NexusClient,
   createNexusClient
 } from "../../clients/createNexusClient"
-import {
-  type ToK1ValidatorModuleReturnType,
-  toK1ValidatorModule
-} from "../validators/k1Validator/toK1ValidatorModule"
-import { testAddresses } from "./../../../test/callDatas"
+import { type ToK1ReturnType, toK1 } from "../k1/toK1"
 
 describe("modules.ownableExecutor", async () => {
   let network: NetworkConfig
@@ -47,7 +43,7 @@ describe("modules.ownableExecutor", async () => {
   let nexusAccountAddress: Address
   let recipient: Account
   let recipientAddress: Address
-  let k1ValidatorModule: ToK1ValidatorModuleReturnType
+  let k1Module: ToK1ReturnType
   beforeAll(async () => {
     network = await toNetwork()
 
@@ -69,12 +65,12 @@ describe("modules.ownableExecutor", async () => {
     nexusAccountAddress = await nexusClient.account.getCounterFactualAddress()
     await fundAndDeployClients(testClient, [nexusClient])
 
-    const k1ValidatorModule = toK1ValidatorModule({
+    const k1Module = toK1({
       signer: eoaAccount,
       accountAddress: nexusClient.account.address
     })
 
-    nexusClient.account.setActiveModule(k1ValidatorModule)
+    nexusClient.account.setModule(k1Module)
   })
 
   afterAll(async () => {
