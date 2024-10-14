@@ -1,9 +1,9 @@
 // The contents of this folder is auto-generated. Please do not edit as your changes are likely to be overwritten
 
 export const addresses = {
-  Nexus: "0xF8D3DA2e4cE3256bB92C60774106c27551B27BF1",
-  K1Validator: "0x80105c20307425fb378aaF765e5587048f785413",
-  K1ValidatorFactory: "0xBD7576A2665f4494f78f9E6C397500F5a8Dc3ECd",
+  Nexus: "0x3AdEa1898eb7d9FbD49242618782717A1f86DA14",
+  K1Validator: "0x5aec3f1c43B920a4dc21d500617fb37B8db1992C",
+  K1ValidatorFactory: "0xB19db8087aCc0Bcb8Fb559dDF2fD483978EA136F",
   UniActionPolicy: "0x28120dC008C36d95DE5fa0603526f219c1Ba80f6",
   TimeframePolicy: "0x0B7BB9bD65858593D97f12001FaDa94828307805",
   SmartSession: "0x3834aD7f5f73fAd19C089a924F18e6F3417d1ac2",

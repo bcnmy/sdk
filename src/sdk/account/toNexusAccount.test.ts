@@ -25,7 +25,7 @@ import {
 } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { TokenWithPermitAbi } from "../../test/__contracts/abi/TokenWithPermitAbi"
-import { mockAddresses } from "../../test/__contracts/mockAddresses"
+import { TEST_CONTRACTS } from "../../test/callDatas"
 import { toNetwork } from "../../test/testSetup"
 import {
   fundAndDeployClients,
@@ -36,7 +36,6 @@ import {
 import type { MasterClient, NetworkConfig } from "../../test/testUtils"
 import { NexusAbi } from "../__contracts/abi/NexusAbi"
 import { addresses } from "../__contracts/addresses"
-import { TEST_CONTRACTS } from "../../test/callDatas"
 import {
   type NexusClient,
   createNexusClient
