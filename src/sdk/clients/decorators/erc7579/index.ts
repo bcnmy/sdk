@@ -1,9 +1,9 @@
-import type { Address, Chain, Client, Hash, Hex, Transport } from "viem"
+import type { Chain, Client, Hash, Hex, Transport } from "viem"
 import type {
   GetSmartAccountParameter,
   SmartAccount
 } from "viem/account-abstraction"
-import type { ModuleType, SafeHookType } from "../../../modules/utils/Types.js"
+import type { ModuleType } from "../../../modules/utils/Types.js"
 import { accountId } from "./accountId.js"
 import { type GetActiveHookParameters, getActiveHook } from "./getActiveHook.js"
 import {
@@ -146,24 +146,23 @@ export function erc7579Actions() {
   })
 }
 
-// Review: if this should be imported from module-sdk
-export type Module = {
-  address: Address
-  data?: Hex
-  additionalContext?: Hex
-  type: ModuleType
+// export type Module = {
+//   address: Address
+//   data?: Hex
+//   additionalContext?: Hex
+//   type: ModuleType
 
-  /* ---- kernel module params ---- */
-  // these param needed for installing validator, executor, fallback handler
-  hook?: Address
-  /* ---- end kernel module params ---- */
+//   /* ---- kernel module params ---- */
+//   // these param needed for installing validator, executor, fallback handler
+//   hook?: Address
+//   /* ---- end kernel module params ---- */
 
-  /* ---- safe module params ---- */
-  // these two params needed for installing hooks
-  hookType?: SafeHookType
-  selector?: Hex
+//   /* ---- safe module params ---- */
+//   // these two params needed for installing hooks
+//   hookType?: SafeHookType
+//   selector?: Hex
 
-  // these two params needed for installing fallback handlers
-  functionSig?: Hex
-  callType?: CallType
-}
+//   // these two params needed for installing fallback handlers
+//   functionSig?: Hex
+//   callType?: CallType
+// }

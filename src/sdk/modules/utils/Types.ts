@@ -1,7 +1,6 @@
 import type { Address, Chain, Hex } from "viem"
 
-// Review:
-export type ModuleVersion = "1.0.0-beta" // | 'V1_0_1'
+export type ModuleVersion = "1.0.0" // | 'V1_0_1'
 
 export type SignerData = {
   /** This is not the public as provided by viem, key but address for the given pvKey */

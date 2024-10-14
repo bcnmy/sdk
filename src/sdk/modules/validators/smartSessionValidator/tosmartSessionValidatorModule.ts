@@ -50,7 +50,7 @@ export const toSmartSessionValidatorModule = async ({
   client,
   activePermissionId = "0x"
 }: {
-  nexusAccountAddress: Hex // Review: name. this vs accountAddress
+  nexusAccountAddress: Hex
   initData: Hex
   deInitData: Hex
   client: Client

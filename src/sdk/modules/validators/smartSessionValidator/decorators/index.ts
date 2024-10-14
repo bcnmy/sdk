@@ -29,4 +29,4 @@ export function smartSessionValidatorActions() {
 
 export type { CreateSessionsParameters }
 
-export { createSessions }
+export { createSessions, useSession }
