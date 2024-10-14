@@ -46,6 +46,11 @@ export const TEST_CONTRACTS: Record<
     name: "MockToken",
     address: "0x0006be192b4E06770eaa624AE7648DBF9051221c"
   },
+  TokenWithPermit: {
+    chainId: 84532,
+    name: "TokenWithPermit",
+    address: "0x51fdb803fD49f0f5bd03de0400a8F17dA2Aa6999"
+  },
   MockAttester: {
     chainId: 84532,
     name: "MockAttester",

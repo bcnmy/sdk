@@ -36,6 +36,7 @@ import {
 import type { MasterClient, NetworkConfig } from "../../test/testUtils"
 import { NexusAbi } from "../__contracts/abi/NexusAbi"
 import { addresses } from "../__contracts/addresses"
+import { TEST_CONTRACTS } from "../../test/callDatas"
 import {
   type NexusClient,
   createNexusClient
@@ -301,7 +302,7 @@ describe("nexus.account", async () => {
     const appDomain = {
       chainId: chain.id,
       name: "TokenWithPermit",
-      verifyingContract: mockAddresses.TokenWithPermit,
+      verifyingContract: TEST_CONTRACTS.TokenWithPermit.address,
       version: "1"
     }
 
@@ -321,7 +322,7 @@ describe("nexus.account", async () => {
       )
     )
     const nonce = (await testClient.readContract({
-      address: mockAddresses.TokenWithPermit,
+      address: TEST_CONTRACTS.TokenWithPermit.address,
       abi: TokenWithPermitAbi,
       functionName: "nonces",
       args: [nexusAccountAddress]
@@ -370,7 +371,7 @@ describe("nexus.account", async () => {
     })
 
     const permitTokenResponse = await nexusClient.writeContract({
-      address: mockAddresses.TokenWithPermit,
+      address: TEST_CONTRACTS.TokenWithPermit.address,
       abi: TokenWithPermitAbi,
       functionName: "permitWith1271",
       chain: network.chain,
@@ -386,7 +387,7 @@ describe("nexus.account", async () => {
     await testClient.waitForTransactionReceipt({ hash: permitTokenResponse })
 
     const allowance = await testClient.readContract({
-      address: mockAddresses.TokenWithPermit,
+      address: TEST_CONTRACTS.TokenWithPermit.address,
       abi: TokenWithPermitAbi,
       functionName: "allowance",
       args: [nexusAccountAddress, nexusAccountAddress]

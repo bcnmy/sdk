@@ -21,6 +21,11 @@ export const K1ValidatorAbi = [
   },
   {
     inputs: [],
+    name: "OwnerCannotBeZeroAddress",
+    type: "error"
+  },
+  {
+    inputs: [],
     name: "ZeroAddressNotAllowed",
     type: "error"
   },
