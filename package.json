@@ -6,7 +6,7 @@
   "typings": "./dist/_types/index.d.ts",
   "homepage": "https://biconomy.io",
   "sideEffects": false,
-  "name": "@biconomy/sdk-canary",
+  "name": "@biconomy/sdk",
   "author": "Biconomy",
   "version": "0.0.0",
   "description": "SDK for Biconomy integration with support for account abstraction, smart accounts, ERC-4337.",
