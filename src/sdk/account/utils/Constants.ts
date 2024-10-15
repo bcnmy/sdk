@@ -21,6 +21,7 @@ export const DefaultGasLimit = {
 }
 
 export const ERROR_MESSAGES = {
+  SIGNER_REQUIRED_FOR_CREATE_SESSION: "Signer is required",
   ACCOUNT_REQUIRED: "Account is required",
   MODULE_NOT_ACTIVATED: "Module not activated",
   SMART_SESSION_DATA_REQUIRED:

@@ -100,22 +100,7 @@ describe("modules.ownableValidator", async () => {
   test("should install ownable validator and perform operations", async () => {
     const ownableNexusClient = nexusClient.extend(ownableActions())
 
-    const installHash = await ownableNexusClient.install({
-      account: nexusClient.account,
-      module: {
-        module: ownableModule.address,
-        type: "validator",
-        initData: ownableModule.initData
-      }
-    })
-
-    // const installHash = await ownableNexusClient.installModule({
-    //   module: {
-    //     module: ownableModule.address,
-    //     type: "validator",
-    //     initData: ownableModule.initData
-    //   }
-    // })
+    const installHash = await ownableNexusClient.install()
 
     const { success: installSuccess } =
       await ownableNexusClient.waitForUserOperationReceipt({

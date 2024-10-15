@@ -5,14 +5,12 @@ import type {
   SmartAccount
 } from "viem/account-abstraction"
 import { getAction, parseAccount } from "viem/utils"
+import addresses from "../../../__contracts/addresses"
 import type { NexusAccount } from "../../../account/toNexusAccount"
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
+import { ERROR_MESSAGES } from "../../../account/utils/Constants"
 import { installModule } from "../../../clients/decorators/erc7579/installModule"
-import {
-  type UseSessionModuleGetInitDataArgs,
-  getInitData
-} from "../toUseSessions"
-import addresses from "../../../__contracts/addresses"
+import type { UseSessionModuleGetInitDataArgs } from "../toUseSessions"
 
 export type InstallSessionsParameters<
   TSmartAccount extends SmartAccount | undefined,
@@ -48,16 +46,15 @@ export async function install<
   }
 
   const account = parseAccount(account_) as NexusAccount
+  const signerAddress = initArgs?.signerAddress ?? account?.signer?.address
+
+  if (!signerAddress) {
+    throw new Error(ERROR_MESSAGES.SIGNER_REQUIRED_FOR_CREATE_SESSION)
+  }
 
   const module = module_ ?? {
     module: addresses.SmartSession,
-    type: "validator",
-    initData: getInitData(
-      initArgs ?? {
-        fieldName: "address",
-        signerAddress: account.signer.address
-      }
-    )
+    type: "validator"
   }
 
   return getAction(

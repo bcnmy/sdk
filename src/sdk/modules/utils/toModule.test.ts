@@ -46,7 +46,6 @@ describe("modules.toModule", async () => {
       initData: "0x",
       deInitData: "0x",
       signer: eoaAccount,
-      getInitData: () => "0x",
       extend: {
         randomExtension: 1
       }
@@ -58,7 +57,6 @@ describe("modules.toModule", async () => {
         "address": "0x0000000000000000000000000000000000000000",
         "deInitData": "0x",
         "getData": [Function],
-        "getInitData": [Function],
         "getStubSignature": [Function],
         "initData": "0x",
         "module": "0x0000000000000000000000000000000000000000",

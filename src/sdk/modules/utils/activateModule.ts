@@ -13,10 +13,10 @@ import { toOwnables } from "../ownables/toOwnables"
 import { toUseSessions } from "../smartSessions/toUseSessions"
 import type { Module } from "./toModule"
 
-type SupportedModule = "smartSession" | "ownable" | "k1"
+type SupportedModule = "useSession" | "ownable" | "k1"
 
 const MODULE_ADDRESSES = {
-  smartSession: addresses.SmartSession,
+  useSession: addresses.SmartSession,
   ownable: OWNABLE_VALIDATOR_ADDRESS,
   k1: addresses.K1Validator
 }
@@ -42,7 +42,7 @@ export const activateModule = (
     }
 
     switch (supportedModule) {
-      case "smartSession": {
+      case "useSession": {
         if (!data) throw new Error(ERROR_MESSAGES.SMART_SESSION_DATA_REQUIRED)
         module = toUseSessions({
           account: modularAccount,

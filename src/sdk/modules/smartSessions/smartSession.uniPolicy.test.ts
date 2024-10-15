@@ -111,12 +111,10 @@ describe("modules.smartSessions.uniPolicy", async () => {
     })
 
     if (!isInstalledBefore) {
-      const hash = await nexusClient.installModule({
-        module: {
-          module: addresses.SmartSession,
-          type: "validator"
-        }
-      })
+      const smartSessionNexusClient = nexusClient.extend(
+        smartSessionCreateActions()
+      )
+      const hash = await smartSessionNexusClient.install()
 
       const { success: installSuccess } =
         await nexusClient.waitForUserOperationReceipt({ hash })

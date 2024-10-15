@@ -21,12 +21,11 @@ export type ToK1ReturnType = Prettify<
 export type K1ValidatorModuleParameters = GenericModuleParameters
 
 export type K1ModuleGetInitDataArgs = {
-  fieldName: "address"
   signerAddress: Address
 }
 
-const getInitData = ({ fieldName, signerAddress }: K1ModuleGetInitDataArgs) =>
-  encodePacked([fieldName], [signerAddress])
+const getK1InitData = ({ signerAddress }: K1ModuleGetInitDataArgs) =>
+  encodePacked(["address"], [signerAddress])
 
 /**
  * Creates a K1 Validator Module instance.
@@ -56,7 +55,6 @@ export const toK1 = (parameters: ToK1Parameters): ToK1ReturnType => {
     signer,
     initData: initData_,
     initArgs: initArgs_ = {
-      fieldName: "address",
       signerAddress: signer.address
     },
     deInitData = "0x",
@@ -64,7 +62,7 @@ export const toK1 = (parameters: ToK1Parameters): ToK1ReturnType => {
     address = addresses.K1Validator
   } = parameters
 
-  const initData = initData_ ?? getInitData(initArgs_)
+  const initData = initData_ ?? getK1InitData(initArgs_)
 
   return toModule({
     signer,
@@ -72,7 +70,6 @@ export const toK1 = (parameters: ToK1Parameters): ToK1ReturnType => {
     accountAddress,
     initData,
     deInitData,
-    getInitData,
     extend: {
       getStubSignature: async () => {
         const dynamicPart = address.substring(2).padEnd(40, "0")

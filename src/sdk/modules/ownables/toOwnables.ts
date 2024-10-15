@@ -10,7 +10,6 @@ import {
   getSetOwnableValidatorThresholdAction,
   isModuleInstalled
 } from "@rhinestone/module-sdk"
-import type { Module as ModuleMeta } from "@rhinestone/module-sdk"
 import {
   type Address,
   type Assign,
@@ -30,11 +29,7 @@ type ToOwnableModuleParameters = Omit<ToModuleParameters, "accountAddress"> & {
   client?: PublicClient
 }
 
-export type OwnableModule = Prettify<
-  GenericModule<OwnableModuleParameters> & {
-    getInitData: (args: OwnablesModuleGetInitDataArgs) => Hex
-  }
->
+export type OwnableModule = Prettify<GenericModule<OwnableModuleParameters>>
 
 export type OwnablesModuleGetInitDataArgs = {
   threshold: bigint
@@ -94,7 +89,7 @@ export type OwnableModuleParameters = Assign<
   }
 >
 
-export const getInitData = ({
+export const getOwnablesInitData = ({
   threshold,
   owners
 }: OwnablesModuleGetInitDataArgs) =>
@@ -105,11 +100,6 @@ export const getInitData = ({
     ],
     [threshold, owners]
   )
-
-export const OWNABLE_MODULE_META: ModuleMeta = {
-  type: "validator",
-  module: OWNABLE_VALIDATOR_ADDRESS
-}
 
 export const toOwnables = (
   parameters: ToOwnableModuleParameters
@@ -128,7 +118,7 @@ export const toOwnables = (
     type: "nexus"
   })
 
-  const initData = initData_ ?? getInitData(initArgs_)
+  const initData = initData_ ?? getOwnablesInitData(initArgs_)
 
   return toModule({
     signer,
@@ -136,7 +126,6 @@ export const toOwnables = (
     address: OWNABLE_VALIDATOR_ADDRESS,
     initData,
     deInitData,
-    getInitData,
     getStubSignature: async (): Promise<Hex> => {
       const isInstalled = await isModuleInstalled({
         account: nexusAccount,

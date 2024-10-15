@@ -1,3 +1,4 @@
+import type { ModuleType } from "@rhinestone/module-sdk/module"
 import {
   http,
   type Account,
@@ -178,20 +179,20 @@ describe("modules.smartSessions", async () => {
   test.concurrent(
     "should install smartSessionValidator with no init data",
     async () => {
+      const module = {
+        type: "validator" as ModuleType,
+        module: addresses.SmartSession
+      }
+
       const isInstalledBefore = await nexusClient.isModuleInstalled({
-        module: {
-          type: "validator",
-          module: addresses.SmartSession
-        }
+        module
       })
 
       if (!isInstalledBefore) {
-        const hash = await nexusClient.installModule({
-          module: {
-            module: addresses.SmartSession,
-            type: "validator"
-          }
-        })
+        const smartSessionNexusClient = nexusClient.extend(
+          smartSessionCreateActions()
+        )
+        const hash = await smartSessionNexusClient.install()
 
         const { success: installSuccess } =
           await nexusClient.waitForUserOperationReceipt({ hash })
@@ -199,10 +200,7 @@ describe("modules.smartSessions", async () => {
       }
 
       const isInstalledAfter = await nexusClient.isModuleInstalled({
-        module: {
-          type: "validator",
-          module: addresses.SmartSession
-        }
+        module
       })
       expect(isInstalledAfter).toBe(true)
     }

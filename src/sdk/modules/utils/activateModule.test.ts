@@ -94,7 +94,7 @@ describe("modules.activateModule", async () => {
       const activeModule = nexusAccount.getModule()
       const activeModuleAddress = activeModule?.address
 
-      expect(() => activateModule("smartSession", nexusAccount)).toThrow(
+      expect(() => activateModule("useSession", nexusAccount)).toThrow(
         ERROR_MESSAGES.SMART_SESSION_DATA_REQUIRED
       )
     }

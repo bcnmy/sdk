@@ -61,8 +61,6 @@ export type GenericModuleParameters<extend extends object = object> = {
   extend?: extend | undefined
   /** data associated with the module */
   data?: Record<string, AnyData>
-  /** Args passed to call initData */
-  getInitData: (args?: AnyData) => Hex
   /** Args passed to getInitData */
   initArgs?: AnyData
 }
