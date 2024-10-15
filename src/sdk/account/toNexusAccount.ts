@@ -3,6 +3,7 @@ import {
   type Account,
   type Address,
   type Chain,
+  type Client,
   type ClientConfig,
   type Hex,
   type Prettify,
@@ -15,7 +16,6 @@ import {
   type UnionPartialBy,
   concat,
   concatHex,
-  createWalletClient,
   domainSeparator,
   encodeAbiParameters,
   encodeFunctionData,
@@ -61,7 +61,6 @@ import {
   packUserOp,
   typeToString
 } from "./utils/Utils"
-import { type UnknownSigner, toSigner } from "./utils/toSigner"
 
 // Maximum number that can fit in bytes3
 const TIMESTAMP_ADJUSTMENT = 16777215n
@@ -70,12 +69,8 @@ const TIMESTAMP_ADJUSTMENT = 16777215n
  * Parameters for creating a Nexus Smart Account
  */
 export type ToNexusSmartAccountParameters = {
-  /** The blockchain network */
-  chain: Chain
-  /** The transport configuration */
-  transport: ClientConfig["transport"]
-  /** The signer account or address */
-  signer: UnknownSigner
+  /** The client */
+  client: Client<Transport, Chain, Account>
   /** Optional index for the account */
   index?: bigint | undefined
   /** Optional active validation module */
@@ -147,10 +142,8 @@ export const toNexusAccount = async (
   parameters: ToNexusSmartAccountParameters
 ): Promise<NexusAccount> => {
   const {
-    chain,
-    transport,
-    signer: _signer,
     index = 0n,
+    client,
     activeModule: activeModule_,
     factoryAddress = contracts.k1ValidatorFactory.address,
     k1ValidatorAddress = contracts.k1Validator.address,
@@ -158,17 +151,10 @@ export const toNexusAccount = async (
     name = "Nexus Account"
   } = parameters
 
-  const signer = await toSigner({ signer: _signer })
+  const masterClient = client.extend(walletActions).extend(publicActions)
 
-  const masterClient = createWalletClient({
-    account: signer,
-    chain,
-    transport,
-    key,
-    name
-  })
-    .extend(walletActions)
-    .extend(publicActions)
+  masterClient.key = key
+  masterClient.name = name
 
   const signerAddress = masterClient.account.address
   const entryPointContract = getContract({
@@ -272,7 +258,7 @@ export const toNexusAccount = async (
     const userOpHash = keccak256(packedUserOp as Hex)
     const enc = encodeAbiParameters(
       parseAbiParameters("bytes32, address, uint256"),
-      [userOpHash, contracts.entryPoint.address, BigInt(chain.id)]
+      [userOpHash, contracts.entryPoint.address, BigInt(client.chain.id)]
     )
     return keccak256(enc)
   }
@@ -516,8 +502,7 @@ export const toNexusAccount = async (
         chainId?: number | undefined
       }
     ): Promise<Hex> => {
-      const { chainId = masterClient.chain.id, ...userOpWithoutSender } =
-        parameters
+      const { chainId = client.chain.id, ...userOpWithoutSender } = parameters
       const address = await getCounterFactualAddress()
 
       const userOperation = {

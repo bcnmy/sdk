@@ -10,6 +10,7 @@ import {
   toBytes,
   toHex
 } from "viem"
+import { createClient } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { CounterAbi } from "../../../../test/__contracts/abi/CounterAbi"
 import { TEST_CONTRACTS } from "../../../../test/callDatas"
@@ -23,6 +24,7 @@ import {
 } from "../../../../test/testUtils"
 import type { MasterClient, NetworkConfig } from "../../../../test/testUtils"
 import addresses from "../../../__contracts/addresses"
+import { toNexusAccount } from "../../../account"
 import {
   type NexusClient,
   createNexusClient
@@ -60,10 +62,12 @@ describe("modules.smartSessionValidator.write", async () => {
 
     testClient = toTestClient(chain, getTestAccount(5))
 
+    const nexusAccount = await toNexusAccount({
+      client: testClient
+    })
+
     nexusClient = await createNexusClient({
-      signer: eoaAccount,
-      chain,
-      transport: http(),
+      account: nexusAccount,
       bundlerTransport: http(bundlerUrl)
     })
 
@@ -247,14 +251,21 @@ describe("modules.smartSessionValidator.write", async () => {
     })
     expect(isEnabled).toBe(true)
 
-    const nexusSessionClient = await createNexusSessionClient({
+    // We use same account instance
+    const sessionClient = createClient({
       chain,
-      accountAddress: nexusClient.account.address,
-      signer: sessionAccount,
-      transport: http(),
+      account: sessionAccount,
+      transport: http()
+    })
+    const userNexusAccountClone = await toNexusAccount({
+      client: sessionClient,
+      accountAddress: nexusClient.account.address
+    })
+
+    const nexusSessionClient = await createNexusSessionClient({
+      account: userNexusAccountClone,
       bundlerTransport: http(bundlerUrl),
-      permissionId: cachedPermissionId,
-      bundlerUrl
+      permissionId: cachedPermissionId
     })
 
     const pubClient = nexusClient.account.client as PublicClient

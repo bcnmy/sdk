@@ -67,6 +67,7 @@ export const toSmartSessionValidatorModule = async ({
     getStubSignature: async (
       moduleSignatureMetadata?: ModuleSignatureMetadata
     ) => {
+      console.log(signer, "signer signing the user op from getStubSignature")
       const signature = encodeSmartSessionSignature({
         mode: moduleSignatureMetadata?.mode
           ? moduleSignatureMetadata.mode
@@ -83,6 +84,7 @@ export const toSmartSessionValidatorModule = async ({
       userOpHash: Hex,
       moduleSignatureMetadata?: ModuleSignatureMetadata
     ) => {
+      console.log(signer, "signer signing the user op")
       const signature = await signer.signMessage({
         message: { raw: userOpHash as Hex }
       })

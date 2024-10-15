@@ -1,6 +1,4 @@
 import {
-  http,
-  type Account,
   type Address,
   type Chain,
   type Client,
@@ -10,7 +8,6 @@ import {
   type Prettify,
   type RpcSchema,
   type Transport,
-  createWalletClient,
   encodePacked
 } from "viem"
 import type {
@@ -19,7 +16,7 @@ import type {
   UserOperationRequest
 } from "viem/account-abstraction"
 
-import type { UnknownSigner } from "../account/utils/toSigner"
+import type { NexusAccount } from "../account/toNexusAccount"
 import { toSmartSessionValidatorModule } from "../modules/validators/smartSessionValidator/tosmartSessionValidatorModule"
 import type { ToValidationModuleReturnType } from "../modules/validators/toValidationModule"
 import { type NexusClient, createNexusClient } from "./createNexusClient"
@@ -36,16 +33,10 @@ export type NexusSessionClientConfig<
 > = Prettify<
   Pick<
     ClientConfig<transport, chain, account, rpcSchema>,
-    | "account"
-    | "cacheTime"
-    | "chain"
-    | "key"
-    | "name"
-    | "pollingInterval"
-    | "rpcSchema"
+    "cacheTime" | "chain" | "key" | "name" | "pollingInterval" | "rpcSchema"
   > & {
     /** RPC URL. */
-    transport: transport
+    // transport: transport
     /** Bundler URL. */
     bundlerTransport: transport
     /** Client that points to an Execution RPC URL. */
@@ -78,22 +69,16 @@ export type NexusSessionClientConfig<
         }
       | undefined
     /** Session key signer */
-    signer: UnknownSigner
+    // signer: UnknownSigner
+    account: NexusAccount
     /** Index of the account. */
     index?: bigint
     /** Active module of the account. */
     activeModule?: ToValidationModuleReturnType
     /** Factory address of the account. */
     factoryAddress?: Address
-    /** Address of the account. */
-    accountAddress: Address
     /** Permission ID */
     permissionId: Hex
-
-    // Note: maybe someone can just supply bundlerTransport from outside so this is not needed.
-    /** Bundler URL */
-    bundlerUrl: string
-
     /** Owner module */
     k1ValidatorAddress?: Address
   }
@@ -113,39 +98,32 @@ export async function createNexusSessionClient(
   parameters: NexusSessionClientConfig
 ): Promise<NexusClient> {
   // Note: I only need these if I was ever to do toNexusAccount here.
-  const {
-    client: client_,
-    chain = parameters.chain ?? client_?.chain,
-    signer,
-    accountAddress,
-    bundlerUrl,
-    permissionId
-  } = parameters
+  const { account, permissionId, bundlerTransport } = parameters
 
-  if (!chain) throw new Error("Missing chain")
+  if (!account.client.chain) throw new Error("Missing chain")
 
-  const sessionClient = createWalletClient({
-    account: signer as Account,
-    chain,
-    transport: http()
-  })
+  // const sessionClient = createWalletClient({
+  //   account: signer as Account,
+  //   chain,
+  //   transport: http()
+  // })
 
-  if (!signer.address) throw new Error("Invalid signer")
+  // if (!signer.address) throw new Error("Invalid signer")
   const smartSessionValidator = await toSmartSessionValidatorModule({
-    client: sessionClient,
-    initData: encodePacked(["address"], [signer?.address ?? "0x"]),
+    client: account.client,
+    initData: encodePacked(
+      ["address"],
+      [account.client.account?.address ?? "0x"]
+    ),
     deInitData: "0x",
-    nexusAccountAddress: accountAddress,
+    nexusAccountAddress: account.address,
     activePermissionId: permissionId
   })
 
   const nexusClient = await createNexusClient({
-    signer: sessionClient.account, // any mock signer works here so we're providing sessionClient.account
+    account: account,
     activeModule: smartSessionValidator,
-    chain,
-    transport: http(),
-    bundlerTransport: http(bundlerUrl),
-    accountAddress
+    bundlerTransport
   })
   return nexusClient
 }

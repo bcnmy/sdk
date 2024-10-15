@@ -14,6 +14,7 @@ import {
   toFunctionSelector,
   toHex
 } from "viem"
+import { createClient } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { parseReferenceValue } from "../.."
 // import { MockTokenAbi } from "../../../../test/__contracts/abi"
@@ -28,6 +29,7 @@ import {
 } from "../../../../test/testUtils"
 import type { MasterClient, NetworkConfig } from "../../../../test/testUtils"
 import addresses from "../../../__contracts/addresses"
+import { toNexusAccount } from "../../../account"
 import {
   type NexusClient,
   createNexusClient
@@ -62,10 +64,12 @@ describe("modules.smartSessionValidator.write", async () => {
 
     testClient = toTestClient(chain, getTestAccount(5))
 
+    const nexusAccount = await toNexusAccount({
+      client: testClient
+    })
+
     nexusClient = await createNexusClient({
-      signer: eoaAccount,
-      chain,
-      transport: http(),
+      account: nexusAccount,
       bundlerTransport: http(bundlerUrl)
     })
 
@@ -258,8 +262,30 @@ describe("modules.smartSessionValidator.write", async () => {
     })
     expect(isEnabled).toBe(true)
 
+    // Example
+    // AI Agent creates a client
+    const client = createClient({
+      chain,
+      transport: http(),
+      account: eoaAccount // this will be the EOA allowed to sign tx for the user, mantained by AI Agent
+    })
+
+    // AI Agent will create an instance of the user's Nexus Account
+    const userNexusAccountClone = await toNexusAccount({
+      client: client,
+      accountAddress: nexusClient.account.address // override the address to use the user's smart account address instead of counterfactual address of the AI Agent EOA
+    })
+
+    // AI Agent creates a nexus client in order to call bundler actions
+    const sessionNexusClient = await createNexusClient({
+      account: userNexusAccountClone,
+      bundlerTransport: http(bundlerUrl)
+    })
+
+    // AI Agent creates a smart session validator module
+    // @note this is an extra step, it's easier to use the "createNexusSessionClient"
     const smartSessionValidator = await toSmartSessionValidatorModule({
-      client: nexusClient.account.client as PublicClient,
+      client: client,
       initData: encodePacked(["address"], [eoaAccount.address]),
       deInitData: "0x",
       nexusAccountAddress: nexusClient.account.address,
@@ -291,12 +317,14 @@ describe("modules.smartSessionValidator.write", async () => {
     // })
 
     // set active validation module
-    nexusClient.account.setActiveModule(smartSessionValidator)
+    sessionNexusClient.account.setActiveModule(smartSessionValidator)
 
-    const smartSessionNexusClient = nexusClient.extend(
+    // @note again this is an extra step, it's easier to use the "createNexusSessionClient"
+    const smartSessionNexusClient = sessionNexusClient.extend(
       smartSessionValidatorActions()
     )
 
+    // @note again this is an extra step, it's easier to use the "createNexusSessionClient"
     const userOpHash = await smartSessionNexusClient.useSession({
       account: nexusClient.account,
       actions: [

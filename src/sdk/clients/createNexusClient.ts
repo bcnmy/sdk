@@ -18,8 +18,7 @@ import type {
 } from "viem/account-abstraction"
 import contracts from "../__contracts"
 
-import { type NexusAccount, toNexusAccount } from "../account/toNexusAccount"
-import type { UnknownSigner } from "../account/utils/toSigner"
+import type { NexusAccount } from "../account/toNexusAccount"
 import type { ToValidationModuleReturnType } from "../modules/validators/toValidationModule"
 import { createBicoBundlerClient } from "./createBicoBundlerClient"
 import { type Erc7579Actions, erc7579Actions } from "./decorators/erc7579"
@@ -88,25 +87,19 @@ export type NexusClientConfig<
   transport extends Transport = Transport,
   chain extends Chain | undefined = Chain | undefined,
   account extends SmartAccount | undefined = SmartAccount | undefined,
-  client extends Client | undefined = Client | undefined,
   rpcSchema extends RpcSchema | undefined = undefined
 > = Prettify<
   Pick<
     ClientConfig<transport, chain, account, rpcSchema>,
-    | "account"
-    | "cacheTime"
-    | "chain"
-    | "key"
-    | "name"
-    | "pollingInterval"
-    | "rpcSchema"
+    "cacheTime" | "chain" | "key" | "name" | "pollingInterval" | "rpcSchema"
   > & {
+    account: NexusAccount
     /** RPC URL. */
-    transport: transport
+    // transport: transport
     /** Bundler URL. */
     bundlerTransport: transport
     /** Client that points to an Execution RPC URL. */
-    client?: client | Client | undefined
+    // client?: client | Client | undefined
     /** Paymaster configuration. */
     paymaster?:
       | true
@@ -135,7 +128,7 @@ export type NexusClientConfig<
         }
       | undefined
     /** Owner of the account. */
-    signer: UnknownSigner
+    // signer: UnknownSigner
     /** Index of the account. */
     index?: bigint
     /** Active module of the account. */
@@ -144,7 +137,6 @@ export type NexusClientConfig<
     factoryAddress?: Address
     /** Owner module */
     k1ValidatorAddress?: Address
-    accountAddress?: Address
   }
 >
 
@@ -170,40 +162,25 @@ export async function createNexusClient(
   parameters: NexusClientConfig
 ): Promise<NexusClient> {
   const {
-    client: client_,
-    chain = parameters.chain ?? client_?.chain,
-    signer,
+    account,
     index = 0n,
     key = "nexus client",
     name = "Nexus Client",
     activeModule,
-    factoryAddress = contracts.k1ValidatorFactory.address,
-    k1ValidatorAddress = contracts.k1Validator.address,
     bundlerTransport,
-    transport,
-    accountAddress,
     ...bundlerConfig
   } = parameters
 
-  if (!chain) throw new Error("Missing chain")
+  if (!account.client.chain) throw new Error("Missing chain")
 
-  const nexusAccount = await toNexusAccount({
-    accountAddress,
-    transport,
-    chain,
-    signer,
-    index,
-    activeModule,
-    factoryAddress,
-    k1ValidatorAddress
-  })
+  if (activeModule) account.setActiveModule(activeModule)
 
   const bundler_ = createBicoBundlerClient({
     ...bundlerConfig,
-    chain,
+    chain: account.client.chain,
     key,
     name,
-    account: nexusAccount,
+    account,
     transport: bundlerTransport
   })
     .extend(erc7579Actions())

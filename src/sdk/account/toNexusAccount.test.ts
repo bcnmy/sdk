@@ -40,7 +40,7 @@ import {
   type NexusClient,
   createNexusClient
 } from "../clients/createNexusClient"
-import type { NexusAccount } from "./toNexusAccount"
+import { type NexusAccount, toNexusAccount } from "./toNexusAccount"
 import {
   addressEquals,
   getAccountDomainStructFields,
@@ -75,19 +75,20 @@ describe("nexus.account", async () => {
     testClient = toTestClient(chain, getTestAccount(5))
 
     walletClient = createWalletClient({
-      account: eoaAccount,
+      account: getTestAccount(5),
       chain,
       transport: http()
     })
 
+    nexusAccount = await toNexusAccount({
+      client: testClient
+    })
+
     nexusClient = await createNexusClient({
-      signer: eoaAccount,
-      chain,
-      transport: http(),
+      account: nexusAccount,
       bundlerTransport: http(bundlerUrl)
     })
 
-    nexusAccount = nexusClient.account
     nexusAccountAddress = await nexusClient.account.getCounterFactualAddress()
     await fundAndDeployClients(testClient, [nexusClient])
   })
@@ -96,12 +97,13 @@ describe("nexus.account", async () => {
   })
 
   test("should override account address", async () => {
-    const newNexusClient = await createNexusClient({
-      signer: eoaAccount,
-      chain,
-      transport: http(),
-      bundlerTransport: http(bundlerUrl),
+    const overriddenNexusAccount = await toNexusAccount({
+      client: testClient,
       accountAddress: "0xf0479e036343bC66dc49dd374aFAF98402D0Ae5f"
+    })
+    const newNexusClient = await createNexusClient({
+      account: overriddenNexusAccount,
+      bundlerTransport: http(bundlerUrl)
     })
     const accountAddress = await newNexusClient.account.getAddress()
     expect(accountAddress).toBe("0xf0479e036343bC66dc49dd374aFAF98402D0Ae5f")
@@ -268,7 +270,7 @@ describe("nexus.account", async () => {
     )
 
     const signature = await walletClient.signMessage({
-      account: eoaAccount,
+      account: getTestAccount(5),
       message: { raw: toBytes(dataToSign) }
     })
 

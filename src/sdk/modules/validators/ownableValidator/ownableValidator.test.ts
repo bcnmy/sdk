@@ -6,6 +6,7 @@ import {
   type Chain,
   type Hex,
   type PublicClient,
+  createClient,
   encodeAbiParameters,
   encodeFunctionData,
   encodePacked,
@@ -22,6 +23,7 @@ import {
 } from "../../../../test/testUtils"
 import type { MasterClient, NetworkConfig } from "../../../../test/testUtils"
 import addresses from "../../../__contracts/addresses"
+import { toNexusAccount } from "../../../account"
 import {
   type NexusClient,
   createNexusClient
@@ -62,10 +64,18 @@ describe("modules.ownableValidator", async () => {
 
     testClient = toTestClient(chain, getTestAccount(5))
 
-    nexusClient = await createNexusClient({
-      signer: eoaAccount,
+    const client = createClient({
       chain,
-      transport: http(),
+      account: eoaAccount,
+      transport: http()
+    })
+
+    const nexusAccount = await toNexusAccount({
+      client
+    })
+
+    nexusClient = await createNexusClient({
+      account: nexusAccount,
       bundlerTransport: http(bundlerUrl)
     })
 
@@ -129,6 +139,7 @@ describe("modules.ownableValidator", async () => {
     expect(installSuccess).toBe(true)
 
     nexusClient.account.setActiveModule(ownableValidatorModule)
+    expect(nexusClient.account?.getActiveModule()).toBe(ownableValidatorModule)
   })
 
   test("should add accountTwo as owner", async () => {
@@ -152,8 +163,6 @@ describe("modules.ownableValidator", async () => {
     expect(nexusClient.account.getActiveModule().address).toBe(
       ownableValidatorModule.address
     )
-
-    const ownableNexusClient = nexusClient.extend(ownableValidatorActions())
 
     const removeOwnerTx = await ownableValidatorModule.getRemoveOwnerTx(
       recipient.address

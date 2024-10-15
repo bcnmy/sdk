@@ -8,6 +8,7 @@ import {
   parseEther,
   toBytes
 } from "viem"
+import { createClient } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { CounterAbi } from "../../test/__contracts/abi"
 import mockAddresses from "../../test/__contracts/mockAddresses"
@@ -21,6 +22,7 @@ import {
 } from "../../test/testUtils"
 import type { MasterClient, NetworkConfig } from "../../test/testUtils"
 import { addresses } from "../__contracts/addresses"
+import { type NexusAccount, toNexusAccount } from "../account/toNexusAccount"
 import { ERROR_MESSAGES } from "../account/utils/Constants"
 import { getAccountMeta, makeInstallDataAndHash } from "../account/utils/Utils"
 import { getChain } from "../account/utils/getChain"
@@ -38,6 +40,7 @@ describe("nexus.client", async () => {
   let recipientAddress: Address
   let nexusClient: NexusClient
   let nexusAccountAddress: Address
+  let nexusAccount: NexusAccount
 
   beforeAll(async () => {
     network = await toNetwork()
@@ -50,10 +53,18 @@ describe("nexus.client", async () => {
 
     testClient = toTestClient(chain, getTestAccount(5))
 
-    nexusClient = await createNexusClient({
-      signer: eoaAccount,
+    const client = createClient({
       chain,
-      transport: http(),
+      account: eoaAccount,
+      transport: http()
+    })
+
+    nexusAccount = await toNexusAccount({
+      client: client
+    })
+
+    nexusClient = await createNexusClient({
+      account: nexusAccount,
       bundlerTransport: http(bundlerUrl)
     })
 

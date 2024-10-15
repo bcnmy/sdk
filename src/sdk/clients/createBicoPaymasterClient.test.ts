@@ -73,9 +73,7 @@ describe.runIf(paymasterTruthy)("bico.paymaster", async () => {
     })
 
     nexusAccount = await toNexusAccount({
-      signer: account,
-      chain,
-      transport: http(),
+      client: walletClient as any,
       k1ValidatorAddress,
       factoryAddress
     })
@@ -88,9 +86,7 @@ describe.runIf(paymasterTruthy)("bico.paymaster", async () => {
     nexusAccountAddress = await nexusAccount.getCounterFactualAddress()
 
     nexusClient = await createNexusClient({
-      signer: account,
-      chain,
-      transport: http(),
+      account: nexusAccount,
       bundlerTransport: http(bundlerUrl),
       k1ValidatorAddress,
       factoryAddress,

@@ -7,6 +7,7 @@ import {
   encodePacked
 } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
+import { toNexusAccount } from "../../.."
 import { toNetwork } from "../../../../test/testSetup"
 import {
   fundAndDeployClients,
@@ -47,10 +48,12 @@ describe("modules.k1Validator.write", async () => {
 
     testClient = toTestClient(chain, getTestAccount(5))
 
+    const nexusAccount = await toNexusAccount({
+      client: testClient
+    })
+
     nexusClient = await createNexusClient({
-      signer: eoaAccount,
-      chain,
-      transport: http(),
+      account: nexusAccount,
       bundlerTransport: http(bundlerUrl)
     })
 

@@ -8,6 +8,7 @@ import {
   toTestClient
 } from "../../../../test/testUtils"
 import type { MasterClient, NetworkConfig } from "../../../../test/testUtils"
+import { toNexusAccount } from "../../../account"
 import {
   type NexusClient,
   createNexusClient
@@ -40,10 +41,12 @@ describe("smart.sessions", async () => {
     recipientAddress = recipient.address
     testClient = toTestClient(chain, getTestAccount(5))
 
+    const nexusAccount = await toNexusAccount({
+      client: testClient
+    })
+
     nexusClient = await createNexusClient({
-      signer: eoaAccount,
-      chain,
-      transport: http(),
+      account: nexusAccount,
       bundlerTransport: http(bundlerUrl)
     })
 

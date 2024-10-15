@@ -1,4 +1,10 @@
-import { http, type Account, type Address, type Chain, isHex } from "viem"
+import {
+  http,
+  type Account,
+  type Address,
+  type Chain,
+  createClient
+} from "viem"
 import type { BundlerClient } from "viem/account-abstraction"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { toNetwork } from "../../test/testSetup"
@@ -36,10 +42,14 @@ describe("bico.bundler", async () => {
     eoaAccount = getTestAccount(0)
     testClient = toTestClient(chain, getTestAccount(5))
 
-    nexusAccount = await toNexusAccount({
-      signer: eoaAccount,
+    const client = createClient({
       chain,
+      account: eoaAccount,
       transport: http()
+    })
+
+    nexusAccount = await toNexusAccount({
+      client: client
     })
 
     bicoBundler = createBicoBundlerClient({ bundlerUrl, account: nexusAccount })

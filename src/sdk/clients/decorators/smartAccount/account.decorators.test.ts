@@ -1,5 +1,6 @@
 import { http, type Account, type Address, type Chain, isHex } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
+import { toNexusAccount } from "../../.."
 import { CounterAbi } from "../../../../test/__contracts/abi"
 import { mockAddresses } from "../../../../test/__contracts/mockAddresses"
 import { toNetwork } from "../../../../test/testSetup"
@@ -37,10 +38,12 @@ describe("account.decorators", async () => {
     recipientAddress = recipient.address
     testClient = toTestClient(chain, getTestAccount(5))
 
+    const nexusAccount = await toNexusAccount({
+      client: testClient
+    })
+
     nexusClient = await createNexusClient({
-      signer: eoaAccount,
-      chain,
-      transport: http(),
+      account: nexusAccount,
       bundlerTransport: http(bundlerUrl)
     })
     nexusAccountAddress = await nexusClient.account.getCounterFactualAddress()

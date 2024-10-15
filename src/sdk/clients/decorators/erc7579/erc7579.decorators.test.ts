@@ -20,6 +20,7 @@ import {
   toTestClient
 } from "../../../../test/testUtils"
 import contracts from "../../../__contracts"
+import { toNexusAccount } from "../../../account"
 import { type NexusClient, createNexusClient } from "../../createNexusClient"
 
 describe("erc7579.decorators", async () => {
@@ -45,10 +46,12 @@ describe("erc7579.decorators", async () => {
     recipientAddress = recipient.address
     testClient = toTestClient(chain, getTestAccount(5))
 
+    const nexusAccount = await toNexusAccount({
+      client: testClient
+    })
+
     nexusClient = await createNexusClient({
-      signer: eoaAccount,
-      chain,
-      transport: http(),
+      account: nexusAccount,
       bundlerTransport: http(bundlerUrl)
     })
 
