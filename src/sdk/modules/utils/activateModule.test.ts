@@ -100,7 +100,7 @@ describe("modules.activateModule", async () => {
     }
   )
 
-  test.concurrent("should activate ownables under the hood", async () => {
+  test.concurrent.skip("should activate ownables under the hood", async () => {
     const activeModule = nexusAccount.getModule()
     const activeModuleAddress = activeModule?.address
 

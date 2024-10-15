@@ -1,4 +1,5 @@
 import {
+  type Address,
   type Hex,
   type Prettify,
   type SignableMessage,
@@ -6,13 +7,10 @@ import {
 } from "viem"
 import addresses from "../../__contracts/addresses"
 import { sanitizeSignature } from "../utils/Helpers"
-import type { GenericModule, GenericModuleImplementation } from "../utils/Types"
-import {
-  type ToValidationModuleParameters,
-  toValidationModule
-} from "../utils/toValidationModule"
+import type { GenericModule, GenericModuleParameters } from "../utils/Types"
+import { type ToModuleParameters, toModule } from "../utils/toModule"
 
-export type ToK1Parameters = ToValidationModuleParameters & {
+export type ToK1Parameters = ToModuleParameters & {
   address?: Hex
 }
 
@@ -20,7 +18,15 @@ export type ToK1ReturnType = Prettify<
   GenericModule<K1ValidatorModuleParameters>
 >
 
-export type K1ValidatorModuleParameters = GenericModuleImplementation
+export type K1ValidatorModuleParameters = GenericModuleParameters
+
+export type K1ModuleGetInitDataArgs = {
+  fieldName: "address"
+  signerAddress: Address
+}
+
+const getInitData = ({ fieldName, signerAddress }: K1ModuleGetInitDataArgs) =>
+  encodePacked([fieldName], [signerAddress])
 
 /**
  * Creates a K1 Validator Module instance.
@@ -48,18 +54,25 @@ export type K1ValidatorModuleParameters = GenericModuleImplementation
 export const toK1 = (parameters: ToK1Parameters): ToK1ReturnType => {
   const {
     signer,
-    initData = encodePacked(["address"], [signer.address]),
+    initData: initData_,
+    initArgs: initArgs_ = {
+      fieldName: "address",
+      signerAddress: signer.address
+    },
     deInitData = "0x",
     accountAddress,
     address = addresses.K1Validator
   } = parameters
 
-  return toValidationModule({
+  const initData = initData_ ?? getInitData(initArgs_)
+
+  return toModule({
     signer,
     address,
     accountAddress,
     initData,
     deInitData,
+    getInitData,
     extend: {
       getStubSignature: async () => {
         const dynamicPart = address.substring(2).padEnd(40, "0")

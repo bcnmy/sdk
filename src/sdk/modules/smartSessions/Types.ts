@@ -26,9 +26,6 @@ export type UseSessionModuleData = {
   enableSessionData?: EnableSessionData
 }
 
-// TODO: finalise & describe the types
-// Review: Should we move smart session specific types to smartSessionValidator module?
-
 export type CreateSessionDataParams = {
   sessionPublicKey?: Hex // Works in case of session validator address is K1 algorithm. for other validators made up sessionData is needed
 

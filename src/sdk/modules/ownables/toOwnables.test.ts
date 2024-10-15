@@ -28,10 +28,7 @@ import {
 import { parseModuleTypeId } from "../../clients/decorators/erc7579/supportsModule"
 import { type ToK1ReturnType, toK1 } from "../k1/toK1"
 import { addOwner, ownableActions, setThreshold } from "./decorators"
-import {
-  type ToOwnableValidatorModuleReturnType,
-  toOwnables
-} from "./toOwnables"
+import { type OwnableModule, toOwnables } from "./toOwnables"
 
 describe("modules.ownableValidator", async () => {
   let network: NetworkConfig
@@ -45,7 +42,7 @@ describe("modules.ownableValidator", async () => {
   let nexusAccountAddress: Address
   let recipient: Account
   let recipientAddress: Address
-  let ownableValidatorModule: ToOwnableValidatorModuleReturnType
+  let ownableModule: OwnableModule
   let k1Module: ToK1ReturnType
 
   beforeAll(async () => {
@@ -69,9 +66,10 @@ describe("modules.ownableValidator", async () => {
     nexusAccountAddress = await nexusClient.account.getCounterFactualAddress()
     await fundAndDeployClients(testClient, [nexusClient])
 
-    ownableValidatorModule = toOwnables({
+    ownableModule = toOwnables({
       account: nexusClient.account,
-      signer: eoaAccount
+      signer: eoaAccount,
+      initArgs: { threshold: 1n, owners: [eoaAccount.address] }
     })
 
     k1Module = toK1({
@@ -87,33 +85,46 @@ describe("modules.ownableValidator", async () => {
   test("should be able to extend the client, and activate the module", async () => {
     const ownableNexusClient = nexusClient.extend(ownableActions())
     expect(Object.keys(ownableNexusClient)).toContain("addOwner")
-    expect(nexusClient.account.getModule().address).toBe(
-      ownableValidatorModule.address
+    expect(ownableNexusClient?.account?.getModule().address).toBe(
+      k1Module.address
     )
-    // reactivate k1Module
-    nexusClient.account.setModule(k1Module)
   })
 
   test("should return values if module not installed", async () => {
-    const owners = await ownableValidatorModule.getOwners()
-    const threshold = await ownableValidatorModule.getThreshold()
+    const owners = await ownableModule.getOwners()
+    const threshold = await ownableModule.getThreshold()
     expect(owners).toEqual([])
     expect(threshold).toBe(0)
   })
 
   test("should install ownable validator and perform operations", async () => {
-    const installHash = await nexusClient.installModule({
+    const ownableNexusClient = nexusClient.extend(ownableActions())
+
+    const installHash = await ownableNexusClient.install({
+      account: nexusClient.account,
       module: {
-        address: ownableValidatorModule.address,
+        module: ownableModule.address,
         type: "validator",
-        data: ownableValidatorModule.initData
+        initData: ownableModule.initData
       }
     })
+
+    // const installHash = await ownableNexusClient.installModule({
+    //   module: {
+    //     module: ownableModule.address,
+    //     type: "validator",
+    //     initData: ownableModule.initData
+    //   }
+    // })
+
     const { success: installSuccess } =
-      await nexusClient.waitForUserOperationReceipt({ hash: installHash })
+      await ownableNexusClient.waitForUserOperationReceipt({
+        hash: installHash
+      })
+
     expect(installSuccess).toBe(true)
 
-    nexusClient.account.setModule(ownableValidatorModule)
+    // ownableNexusClient.account.setModule(ownableModule)
   })
 
   test("should add accountTwo as owner", async () => {
@@ -129,18 +140,16 @@ describe("modules.ownableValidator", async () => {
     })
     expect(receipt.success).toBe(true)
 
-    const owners = await ownableValidatorModule.getOwners()
+    const owners = await ownableModule.getOwners()
     expect(owners).toContain(recipient.address)
   })
 
   test("should remove an owner", async () => {
-    expect(nexusClient.account.getModule().address).toBe(
-      ownableValidatorModule.address
-    )
+    expect(nexusClient.account.getModule().address).toBe(ownableModule.address)
 
     const ownableNexusClient = nexusClient.extend(ownableActions())
 
-    const removeOwnerTx = await ownableValidatorModule.getRemoveOwnerTx(
+    const removeOwnerTx = await ownableModule.getRemoveOwnerTx(
       recipient.address
     )
 
@@ -178,7 +187,7 @@ describe("modules.ownableValidator", async () => {
   test("should add owner and set threshold to 2", async () => {
     const isInstalled = await nexusClient.isModuleInstalled({
       module: {
-        address: ownableValidatorModule.address,
+        module: ownableModule.address,
         type: "validator"
       }
     })
@@ -204,14 +213,12 @@ describe("modules.ownableValidator", async () => {
     const { success: userOpSuccess } =
       await nexusClient.waitForUserOperationReceipt({ hash: userOpHash2 })
     expect(userOpSuccess).toBe(true)
-    const newThreshold = await ownableValidatorModule.getThreshold()
+    const newThreshold = await ownableModule.getThreshold()
     expect(newThreshold).toBe(2)
   }, 90000)
 
   test("should require 2 signatures to send user operation", async () => {
-    expect(nexusClient.account.getModule().address).toBe(
-      ownableValidatorModule.address
-    )
+    expect(nexusClient.account.getModule().address).toBe(ownableModule.address)
 
     const userOp = await nexusClient.prepareUserOperation({
       calls: [
@@ -248,7 +255,7 @@ describe("modules.ownableValidator", async () => {
     const [installedValidators] = await nexusClient.getInstalledValidators()
     const prevModule = await nexusClient.getPreviousModule({
       module: {
-        address: ownableValidatorModule.address,
+        module: ownableModule.address,
         type: "validator"
       },
       installedValidators
@@ -286,7 +293,7 @@ describe("modules.ownableValidator", async () => {
       functionName: "uninstallModule",
       args: [
         parseModuleTypeId("validator"),
-        getAddress(ownableValidatorModule.address),
+        getAddress(ownableModule.address),
         deInitData
       ]
     })
@@ -315,7 +322,7 @@ describe("modules.ownableValidator", async () => {
     const uninstallHash = await nexusClient.sendUserOperation(userOp)
     // const uninstallHash = await nexusClient.uninstallModule({
     //   module: {
-    //     address: ownableValidatorModule.address,
+    //     address: ownableModule.address,
     //     type: "validator",
     //     data: "0x"
     //   },

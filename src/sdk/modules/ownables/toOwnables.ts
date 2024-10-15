@@ -10,7 +10,9 @@ import {
   getSetOwnableValidatorThresholdAction,
   isModuleInstalled
 } from "@rhinestone/module-sdk"
+import type { Module as ModuleMeta } from "@rhinestone/module-sdk"
 import {
+  type Address,
   type Assign,
   type Hex,
   type Prettify,
@@ -20,26 +22,27 @@ import {
 } from "viem"
 import type { SmartAccount } from "viem/account-abstraction"
 import type { Call } from "../../account/utils/Types"
-import type { GenericModule, GenericModuleImplementation } from "../utils/Types"
-import {
-  type ToValidationModuleParameters,
-  toValidationModule
-} from "../utils/toValidationModule"
-
-type ToOwnableValidatorModuleParameters = Omit<
-  ToValidationModuleParameters,
-  "accountAddress"
-> & {
+import type { GenericModule, GenericModuleParameters } from "../utils/Types"
+import { type ToModuleParameters, toModule } from "../utils/toModule"
+type ToOwnableModuleParameters = Omit<ToModuleParameters, "accountAddress"> & {
   account: SmartAccount
+  initArgs?: OwnablesModuleGetInitDataArgs
   client?: PublicClient
 }
 
-export type ToOwnableValidatorModuleReturnType = Prettify<
-  GenericModule<OwnableValidatorModuleParameters>
+export type OwnableModule = Prettify<
+  GenericModule<OwnableModuleParameters> & {
+    getInitData: (args: OwnablesModuleGetInitDataArgs) => Hex
+  }
 >
 
-export type OwnableValidatorModuleParameters = Assign<
-  GenericModuleImplementation,
+export type OwnablesModuleGetInitDataArgs = {
+  threshold: bigint
+  owners: Address[]
+}
+
+export type OwnableModuleParameters = Assign<
+  GenericModuleParameters,
   {
     /**
      * Retrieves the list of owners for the Ownable Validator.
@@ -91,43 +94,32 @@ export type OwnableValidatorModuleParameters = Assign<
   }
 >
 
-/**
- * Creates an Ownable Validator Module instance.
- * This module allows management of owners and thresholds for a Nexus account.
- *
- * @param accountAddress The address of the Nexus account.
- * @param client The client instance.
- * @param initData Initialization data for the module.
- * @param deInitData De-initialization data for the module.
- * @returns A promise that resolves to an Ownable Validator Module instance.
- *
- * @example
- * const module = await toOwnables({
- *   accountAddress: '0x1234...',
- *   client: nexusClient,
- *   initData: '0x...',
- *   deInitData: '0x...'
- * });
- *
- * // Use the module
- * const owners = await module.getOwners();
- * const threshold = await module.getThreshold();
- * const addOwnerTx = await module.getAddOwnerTx('0x5678...');
- */
+export const getInitData = ({
+  threshold,
+  owners
+}: OwnablesModuleGetInitDataArgs) =>
+  encodeAbiParameters(
+    [
+      { name: "threshold", type: "uint256" },
+      { name: "owners", type: "address[]" }
+    ],
+    [threshold, owners]
+  )
+
+export const OWNABLE_MODULE_META: ModuleMeta = {
+  type: "validator",
+  module: OWNABLE_VALIDATOR_ADDRESS
+}
+
 export const toOwnables = (
-  parameters: ToOwnableValidatorModuleParameters
-): ToOwnableValidatorModuleReturnType => {
+  parameters: ToOwnableModuleParameters
+): OwnableModule => {
   const {
     account,
     signer,
     client = account.client as PublicClient,
-    initData = encodeAbiParameters(
-      [
-        { name: "threshold", type: "uint256" },
-        { name: "owners", type: "address[]" }
-      ],
-      [BigInt(1), [signer.address]]
-    ),
+    initData: initData_,
+    initArgs: initArgs_ = { threshold: 1, owners: [signer.address] },
     deInitData = "0x"
   } = parameters
 
@@ -136,12 +128,15 @@ export const toOwnables = (
     type: "nexus"
   })
 
-  return toValidationModule({
+  const initData = initData_ ?? getInitData(initArgs_)
+
+  return toModule({
     signer,
     accountAddress: account.address,
     address: OWNABLE_VALIDATOR_ADDRESS,
     initData,
     deInitData,
+    getInitData,
     getStubSignature: async (): Promise<Hex> => {
       const isInstalled = await isModuleInstalled({
         account: nexusAccount,

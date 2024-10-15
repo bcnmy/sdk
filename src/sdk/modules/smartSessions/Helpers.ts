@@ -94,7 +94,6 @@ export const toActionConfig = (config: ActionConfig): RawActionConfig => {
   }
 }
 
-// Review: presently created local helper
 export const getPermissionId = async ({
   client,
   session

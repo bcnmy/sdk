@@ -15,9 +15,9 @@ import {
   killNetwork,
   toTestClient
 } from "../../../test/testUtils"
-import { type Module, toValidationModule } from "./toValidationModule"
+import { type Module, toModule } from "./toModule"
 
-describe("modules.toValidatorModule", async () => {
+describe("modules.toModule", async () => {
   let network: NetworkConfig
   let chain: Chain
   let bundlerUrl: string
@@ -40,12 +40,13 @@ describe("modules.toValidatorModule", async () => {
   })
 
   test.concurrent("should create a generic module", async () => {
-    const validatorModule = toValidationModule({
+    const validatorModule = toModule({
       accountAddress: eoaAccount.address,
       address: "0x0000000000000000000000000000000000000000",
       initData: "0x",
       deInitData: "0x",
       signer: eoaAccount,
+      getInitData: () => "0x",
       extend: {
         randomExtension: 1
       }
@@ -57,8 +58,10 @@ describe("modules.toValidatorModule", async () => {
         "address": "0x0000000000000000000000000000000000000000",
         "deInitData": "0x",
         "getData": [Function],
+        "getInitData": [Function],
         "getStubSignature": [Function],
         "initData": "0x",
+        "module": "0x0000000000000000000000000000000000000000",
         "randomExtension": 1,
         "setData": [Function],
         "signMessage": [Function],

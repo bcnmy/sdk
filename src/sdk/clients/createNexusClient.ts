@@ -17,25 +17,16 @@ import type {
   UserOperationRequest
 } from "viem/account-abstraction"
 import contracts from "../__contracts"
-import type { Call } from "../account/utils/Types"
 
 import { type NexusAccount, toNexusAccount } from "../account/toNexusAccount"
 import type { UnknownSigner } from "../account/utils/toSigner"
-import type { Module } from "../modules/utils/toValidationModule"
+import type { Module } from "../modules/utils/toModule"
 import { createBicoBundlerClient } from "./createBicoBundlerClient"
 import { type Erc7579Actions, erc7579Actions } from "./decorators/erc7579"
 import {
   type SmartAccountActions,
   smartAccountActions
 } from "./decorators/smartAccount"
-
-// Review: below is not used anywhere.
-/**
- * Parameters for sending a transaction
- */
-export type SendTransactionParameters = {
-  calls: Call | Call[]
-}
 
 /**
  * Nexus Client type

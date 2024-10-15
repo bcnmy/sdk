@@ -1,8 +1,7 @@
 import type { Address, Assign, Chain, Hex, SignableMessage } from "viem"
 import type { Signer } from "./../../account/utils/toSigner"
 
-// Review:
-export type ModuleVersion = "1.0.0-beta" // | 'V1_0_1'
+export type ModuleVersion = "1.0.0" // | 'V1_0_1'
 
 export type SignerData = {
   /** This is not the public as provided by viem, key but address for the given pvKey */
@@ -42,12 +41,12 @@ export const moduleTypeIds: ModuleTypeIds = {
   hook: 4
 }
 // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-type AnyData = any
+export type AnyData = any
 /**
  * Represents the base implementation of a module.
  * @template extend - Type for extending the module with custom properties.
  */
-export type GenericModuleImplementation<extend extends object = object> = {
+export type GenericModuleParameters<extend extends object = object> = {
   /** The hexadecimal address of the module. */
   address: Hex
   /** Initialization data for the module. */
@@ -62,6 +61,10 @@ export type GenericModuleImplementation<extend extends object = object> = {
   extend?: extend | undefined
   /** data associated with the module */
   data?: Record<string, AnyData>
+  /** Args passed to call initData */
+  getInitData: (args?: AnyData) => Hex
+  /** Args passed to getInitData */
+  initArgs?: AnyData
 }
 
 /**
@@ -69,8 +72,7 @@ export type GenericModuleImplementation<extend extends object = object> = {
  * @template implementation - The base implementation of the module.
  */
 export type GenericModule<
-  implementation extends
-    GenericModuleImplementation = GenericModuleImplementation
+  implementation extends GenericModuleParameters = GenericModuleParameters
 > = Assign<
   implementation["extend"],
   Assign<
@@ -102,6 +104,8 @@ export type GenericModule<
       getData: () => Record<string, AnyData>
       /** For setting module data. */
       setData: (data: Record<string, AnyData>) => void
+      /** For compatibility with module-sdk. */
+      module: Hex
     }
   >
 >

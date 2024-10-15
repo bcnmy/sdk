@@ -51,7 +51,6 @@ import {
 } from "./utils/Constants"
 
 import { toK1 } from "../modules/k1/toK1"
-import type { Module } from "../modules/utils/toValidationModule"
 import {
   type TypedDataWith712,
   eip712WrapHash,
@@ -62,6 +61,7 @@ import {
   typeToString
 } from "./utils/Utils"
 import { type Signer, type UnknownSigner, toSigner } from "./utils/toSigner"
+import type { Module } from "../modules/utils/toModule"
 
 /**
  * Parameters for creating a Nexus Smart Account

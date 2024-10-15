@@ -1,3 +1,4 @@
+import type { Module as ModuleMeta } from "@rhinestone/module-sdk"
 import {
   type Chain,
   type Client,
@@ -14,7 +15,6 @@ import type {
 import { call, readContract } from "viem/actions"
 import { getAction, parseAccount } from "viem/utils"
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
-import type { ModuleMeta } from "./index.js"
 import { parseModuleTypeId } from "./supportsModule"
 
 export type IsModuleInstalledParameters<
@@ -52,7 +52,7 @@ export async function isModuleInstalled<
 ): Promise<boolean> {
   const {
     account: account_ = client.account,
-    module: { address, data, type }
+    module: { module, initData, type }
   } = parameters
 
   if (!account_) {
@@ -100,7 +100,7 @@ export async function isModuleInstalled<
     )({
       abi,
       functionName: "isModuleInstalled",
-      args: [parseModuleTypeId(type), getAddress(address), data ?? "0x"],
+      args: [parseModuleTypeId(type), getAddress(module), initData ?? "0x"],
       address: account.address
     })) as unknown as Promise<boolean>
   } catch (error) {
@@ -118,7 +118,7 @@ export async function isModuleInstalled<
         data: encodeFunctionData({
           abi,
           functionName: "isModuleInstalled",
-          args: [parseModuleTypeId(type), getAddress(address), data ?? "0x"]
+          args: [parseModuleTypeId(type), getAddress(module), initData ?? "0x"]
         })
       })
 

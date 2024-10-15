@@ -1,23 +1,27 @@
 import type { Hex, Prettify, SignableMessage } from "viem"
 import type { Signer } from "../../account/utils/toSigner.js"
 import { sanitizeSignature } from "./Helpers.js"
-import type { GenericModule, GenericModuleImplementation } from "./Types.js"
+import type {
+  AnyData,
+  GenericModule,
+  GenericModuleParameters
+} from "./Types.js"
 
 export type Module<
-  implementation extends
-    GenericModuleImplementation = GenericModuleImplementation
+  implementation extends GenericModuleParameters = GenericModuleParameters
 > = Prettify<GenericModule<implementation>>
 
-export type ToValidationModuleParameters = {
+export type ToModuleParameters = {
   signer: Signer
   accountAddress: Hex
   initData?: Hex
   deInitData?: Hex
+  initArgs?: AnyData
 }
 
-export function toValidationModule<
-  _implementation extends GenericModuleImplementation
->(implementation: _implementation): Module<_implementation> {
+export function toModule<_implementation extends GenericModuleParameters>(
+  implementation: _implementation
+): Module<_implementation> {
   const {
     accountAddress,
     address,
@@ -33,6 +37,7 @@ export function toValidationModule<
 
   return {
     address,
+    module: address,
     accountAddress,
     signer,
     type: "validator",
@@ -49,7 +54,7 @@ export function toValidationModule<
     signMessage: async (message: SignableMessage) =>
       sanitizeSignature(await signer.signMessage({ message })),
     getData: () => data_,
-    setData: (data: NonNullable<GenericModuleImplementation["data"]>) => {
+    setData: (data: Record<string, AnyData>) => {
       data_ = data
     },
     ...extend,

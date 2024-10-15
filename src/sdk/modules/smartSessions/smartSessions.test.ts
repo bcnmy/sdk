@@ -181,14 +181,14 @@ describe("modules.smartSessions", async () => {
       const isInstalledBefore = await nexusClient.isModuleInstalled({
         module: {
           type: "validator",
-          address: addresses.SmartSession
+          module: addresses.SmartSession
         }
       })
 
       if (!isInstalledBefore) {
         const hash = await nexusClient.installModule({
           module: {
-            address: addresses.SmartSession,
+            module: addresses.SmartSession,
             type: "validator"
           }
         })
@@ -201,7 +201,7 @@ describe("modules.smartSessions", async () => {
       const isInstalledAfter = await nexusClient.isModuleInstalled({
         module: {
           type: "validator",
-          address: addresses.SmartSession
+          module: addresses.SmartSession
         }
       })
       expect(isInstalledAfter).toBe(true)
@@ -248,7 +248,7 @@ describe("modules.smartSessions", async () => {
     const isInstalledBefore = await nexusClient.isModuleInstalled({
       module: {
         type: "validator",
-        address: addresses.SmartSession
+        module: addresses.SmartSession
       }
     })
 
