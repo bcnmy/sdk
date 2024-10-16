@@ -1,5 +1,4 @@
 import type { Address } from "viem"
-import { smartSessionUseActions } from "../modules/smartSessions/decorators"
 import { type NexusClientConfig, createNexusClient } from "./createNexusClient"
 
 export type NexusSessionClientConfig = NexusClientConfig & {
@@ -7,5 +6,4 @@ export type NexusSessionClientConfig = NexusClientConfig & {
 }
 export const createNexusSessionClient = async (
   parameters: NexusSessionClientConfig
-) =>
-  (await createNexusClient({ ...parameters })).extend(smartSessionUseActions())
+) => await createNexusClient({ ...parameters })

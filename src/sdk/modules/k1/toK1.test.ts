@@ -21,7 +21,6 @@ import {
   type NexusClient,
   createNexusClient
 } from "../../clients/createNexusClient"
-import { k1Actions } from "./decorators"
 import { toK1 } from "./toK1"
 
 describe("modules.k1Validator", async () => {
@@ -112,9 +111,13 @@ describe("modules.k1Validator", async () => {
     })
 
     if (!isInstalledBefore) {
-      const k1NexusClient = nexusClient.extend(k1Actions())
-
-      const hash = await k1NexusClient.install()
+      const hash = await nexusClient.installModule({
+        module: {
+          module: addresses.K1Validator,
+          type: "validator",
+          initData: encodePacked(["address"], [eoaAccount.address])
+        }
+      })
 
       const { success: installSuccess } =
         await nexusClient.waitForUserOperationReceipt({ hash })

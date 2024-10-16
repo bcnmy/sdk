@@ -1,6 +1,4 @@
 import type { Address, Hash, Hex, Log } from "viem"
-import type { SmartAccount } from "viem/account-abstraction"
-import type { Module } from "../../modules/utils/toModule"
 
 export type TStatus = "success" | "reverted"
 
@@ -94,9 +92,4 @@ export type Call = {
   to: Hex
   data?: Hex | undefined
   value?: bigint | undefined
-}
-
-export type ModularSmartAccount = SmartAccount & {
-  getModule: () => Module | undefined
-  setModule: (module: Module) => void
 }

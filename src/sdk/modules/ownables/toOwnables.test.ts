@@ -5,6 +5,7 @@ import {
   type Address,
   type Chain,
   type Hex,
+  type LocalAccount,
   encodeAbiParameters,
   encodeFunctionData,
   encodePacked,
@@ -21,16 +22,17 @@ import {
 } from "../../../test/testUtils"
 import type { MasterClient, NetworkConfig } from "../../../test/testUtils"
 import addresses from "../../__contracts/addresses"
+import type { NexusAccount } from "../../account"
 import {
   type NexusClient,
   createNexusClient
 } from "../../clients/createNexusClient"
 import { parseModuleTypeId } from "../../clients/decorators/erc7579/supportsModule"
-import { type ToK1ReturnType, toK1 } from "../k1/toK1"
-import { addOwner, ownableActions, setThreshold } from "./decorators"
-import { type OwnableModule, toOwnables } from "./toOwnables"
+import type { Module } from "../utils/Types"
+import { type OwnableActions, ownableActions } from "./decorators"
+import { toOwnables } from "./toOwnables"
 
-describe("modules.ownableValidator", async () => {
+describe("modules.ownables", async () => {
   let network: NetworkConfig
   let chain: Chain
   let bundlerUrl: string
@@ -39,11 +41,12 @@ describe("modules.ownableValidator", async () => {
   let testClient: MasterClient
   let eoaAccount: Account
   let nexusClient: NexusClient
-  let nexusAccountAddress: Address
-  let recipient: Account
+  let ownableNexusClient: NexusClient & OwnableActions<NexusAccount>
+  let recipient: LocalAccount
   let recipientAddress: Address
-  let ownableModule: OwnableModule
-  let k1Module: ToK1ReturnType
+  let userThree: LocalAccount
+  let userThreeAddress: Address
+  let ownableModule: Module
 
   beforeAll(async () => {
     network = await toNetwork()
@@ -52,8 +55,10 @@ describe("modules.ownableValidator", async () => {
     bundlerUrl = network.bundlerUrl
     eoaAccount = getTestAccount(0)
     recipient = getTestAccount(1)
-    recipientAddress = recipient.address
+    userThree = getTestAccount(2)
 
+    recipientAddress = recipient.address
+    userThreeAddress = userThree.address
     testClient = toTestClient(chain, getTestAccount(5))
 
     nexusClient = await createNexusClient({
@@ -63,18 +68,15 @@ describe("modules.ownableValidator", async () => {
       bundlerTransport: http(bundlerUrl)
     })
 
-    nexusAccountAddress = await nexusClient.account.getCounterFactualAddress()
     await fundAndDeployClients(testClient, [nexusClient])
 
     ownableModule = toOwnables({
       account: nexusClient.account,
       signer: eoaAccount,
-      initArgs: { threshold: 1n, owners: [eoaAccount.address] }
-    })
-
-    k1Module = toK1({
-      accountAddress: nexusClient.account.address,
-      signer: eoaAccount
+      moduleInitArgs: {
+        threshold: 1n,
+        owners: [eoaAccount.address]
+      }
     })
   })
 
@@ -82,25 +84,13 @@ describe("modules.ownableValidator", async () => {
     await killNetwork([network?.rpcPort, network?.bundlerPort])
   })
 
-  test("should be able to extend the client, and activate the module", async () => {
-    const ownableNexusClient = nexusClient.extend(ownableActions())
-    expect(Object.keys(ownableNexusClient)).toContain("addOwner")
-    expect(ownableNexusClient?.account?.getModule().address).toBe(
-      k1Module.address
-    )
-  })
-
-  test("should return values if module not installed", async () => {
-    const owners = await ownableModule.getOwners()
-    const threshold = await ownableModule.getThreshold()
-    expect(owners).toEqual([])
-    expect(threshold).toBe(0)
-  })
-
   test("should install ownable validator and perform operations", async () => {
-    const ownableNexusClient = nexusClient.extend(ownableActions())
+    const installHash = await nexusClient.installModule({
+      module: ownableModule.moduleInitData
+    })
 
-    const installHash = await ownableNexusClient.install()
+    // @ts-ignore
+    ownableNexusClient = nexusClient.extend(ownableActions(ownableModule))
 
     const { success: installSuccess } =
       await ownableNexusClient.waitForUserOperationReceipt({
@@ -108,35 +98,26 @@ describe("modules.ownableValidator", async () => {
       })
 
     expect(installSuccess).toBe(true)
-
-    // ownableNexusClient.account.setModule(ownableModule)
   })
 
   test("should add accountTwo as owner", async () => {
-    const ownableNexusClient = nexusClient.extend(ownableActions())
-
-    const userOpHash = await ownableNexusClient.addOwner({
-      account: nexusClient.account,
-      owner: recipientAddress
+    const hash = await ownableNexusClient.addOwner({
+      owner: userThreeAddress
     })
-    expect(userOpHash).toBeDefined()
-    const receipt = await nexusClient.waitForUserOperationReceipt({
-      hash: userOpHash
+    expect(hash).toBeDefined()
+    const receipt = await ownableNexusClient.waitForUserOperationReceipt({
+      hash
     })
     expect(receipt.success).toBe(true)
 
-    const owners = await ownableModule.getOwners()
-    expect(owners).toContain(recipient.address)
+    const owners = await ownableNexusClient.getOwners()
+    expect(owners).toContain(userThreeAddress)
   })
 
   test("should remove an owner", async () => {
-    expect(nexusClient.account.getModule().address).toBe(ownableModule.address)
-
-    const ownableNexusClient = nexusClient.extend(ownableActions())
-
-    const removeOwnerTx = await ownableModule.getRemoveOwnerTx(
-      recipient.address
-    )
+    const removeOwnerTx = await ownableNexusClient.getRemoveOwnerTx({
+      owner: userThreeAddress
+    })
 
     const userOp = await nexusClient.prepareUserOperation({
       calls: [removeOwnerTx]
@@ -179,26 +160,24 @@ describe("modules.ownableValidator", async () => {
     expect(isInstalled).toBe(true)
 
     // Add owner
-    const userOpHash1 = await addOwner(nexusClient, {
-      account: nexusClient.account,
+    const userOpHash1 = await ownableNexusClient.addOwner({
       owner: recipientAddress
     })
     expect(userOpHash1).toBeDefined()
-    const receipt = await nexusClient.waitForUserOperationReceipt({
+    const receipt = await ownableNexusClient.waitForUserOperationReceipt({
       hash: userOpHash1
     })
     expect(receipt.success).toBe(true)
 
     // Set threshold
-    const userOpHash2 = await setThreshold(nexusClient, {
-      account: nexusClient.account,
+    const userOpHash2 = await ownableNexusClient.setThreshold({
       threshold: 2
     })
     expect(userOpHash2).toBeDefined()
     const { success: userOpSuccess } =
       await nexusClient.waitForUserOperationReceipt({ hash: userOpHash2 })
     expect(userOpSuccess).toBe(true)
-    const newThreshold = await ownableModule.getThreshold()
+    const newThreshold = await ownableNexusClient.getThreshold()
     expect(newThreshold).toBe(2)
   }, 90000)
 

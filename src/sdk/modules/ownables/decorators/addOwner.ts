@@ -1,15 +1,12 @@
 import { getAddOwnableValidatorOwnerAction } from "@rhinestone/module-sdk"
 import type { Chain, Client, Hex, PublicClient, Transport } from "viem"
-import {
-  type GetSmartAccountParameter,
-  type SmartAccount,
-  sendUserOperation
-} from "viem/account-abstraction"
+import { type SmartAccount, sendUserOperation } from "viem/account-abstraction"
 import { getAction, parseAccount } from "viem/utils"
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
 
 export type AddOwnerParameters<TSmartAccount extends SmartAccount | undefined> =
-  GetSmartAccountParameter<TSmartAccount> & {
+  {
+    account?: TSmartAccount
     owner: Hex
     maxFeePerGas?: bigint
     maxPriorityFeePerGas?: bigint

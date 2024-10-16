@@ -1,30 +1,31 @@
+import type { Module as ModuleMeta } from "@rhinestone/module-sdk"
 import {
   type Address,
   type Hex,
-  type Prettify,
   type SignableMessage,
   encodePacked
 } from "viem"
 import addresses from "../../__contracts/addresses"
 import { sanitizeSignature } from "../utils/Helpers"
-import type { GenericModule, GenericModuleParameters } from "../utils/Types"
+import type { Module, ModuleParameters } from "../utils/Types"
 import { type ToModuleParameters, toModule } from "../utils/toModule"
-
 export type ToK1Parameters = ToModuleParameters & {
   address?: Hex
 }
 
-export type ToK1ReturnType = Prettify<
-  GenericModule<K1ValidatorModuleParameters>
->
-
-export type K1ValidatorModuleParameters = GenericModuleParameters
+export type K1ValidatorModuleParameters = ModuleParameters
 
 export type K1ModuleGetInitDataArgs = {
   signerAddress: Address
 }
 
-const getK1InitData = ({ signerAddress }: K1ModuleGetInitDataArgs) =>
+export const getK1ModuleInitData = (): ModuleMeta => ({
+  module: addresses.K1Validator,
+  type: "validator",
+  initData: "0x"
+})
+
+export const getK1InitData = ({ signerAddress }: K1ModuleGetInitDataArgs) =>
   encodePacked(["address"], [signerAddress])
 
 /**
@@ -50,7 +51,7 @@ const getK1InitData = ({ signerAddress }: K1ModuleGetInitDataArgs) =>
  * const userOpSignature = await module.signUserOpHash('0x...');
  * const messageSignature = await module.signMessage('Hello, world!');
  */
-export const toK1 = (parameters: ToK1Parameters): ToK1ReturnType => {
+export const toK1 = (parameters: ToK1Parameters): Module => {
   const {
     signer,
     initData: initData_,
@@ -70,19 +71,18 @@ export const toK1 = (parameters: ToK1Parameters): ToK1ReturnType => {
     accountAddress,
     initData,
     deInitData,
-    extend: {
-      getStubSignature: async () => {
-        const dynamicPart = address.substring(2).padEnd(40, "0")
-        return `0x0000000000000000000000000000000000000000000000000000000000000040000000000000000000000000${dynamicPart}000000000000000000000000000000000000000000000000000000000000004181d4b4981670cb18f99f0b4a66446df1bf5b204d24cfcb659bf38ba27a4359b5711649ec2423c5e1247245eba2964679b6a1dbb85c992ae40b9b00c6935b02ff1b00000000000000000000000000000000000000000000000000000000000000` as Hex
-      },
-      signUserOpHash: async (userOpHash: Hex) => {
-        const signature = await signer.signMessage({
-          message: { raw: userOpHash as Hex }
-        })
-        return signature as Hex
-      },
-      signMessage: async (message: SignableMessage) =>
-        sanitizeSignature(await signer.signMessage({ message }))
-    }
+    moduleInitData: getK1ModuleInitData(),
+    getStubSignature: async () => {
+      const dynamicPart = address.substring(2).padEnd(40, "0")
+      return `0x0000000000000000000000000000000000000000000000000000000000000040000000000000000000000000${dynamicPart}000000000000000000000000000000000000000000000000000000000000004181d4b4981670cb18f99f0b4a66446df1bf5b204d24cfcb659bf38ba27a4359b5711649ec2423c5e1247245eba2964679b6a1dbb85c992ae40b9b00c6935b02ff1b00000000000000000000000000000000000000000000000000000000000000` as Hex
+    },
+    signUserOpHash: async (userOpHash: Hex) => {
+      const signature = await signer.signMessage({
+        message: { raw: userOpHash as Hex }
+      })
+      return signature as Hex
+    },
+    signMessage: async (message: SignableMessage) =>
+      sanitizeSignature(await signer.signMessage({ message }))
   })
 }

@@ -31,9 +31,15 @@ import {
   createNexusClient
 } from "../../clients/createNexusClient"
 import { createNexusSessionClient } from "../../clients/createNexusSessionClient"
+import type { Module } from "../utils/Types"
 import { isSessionEnabled } from "./Helpers"
-import { type CreateSessionDataParams, ParamCondition } from "./Types"
-import { smartSessionCreateActions } from "./decorators"
+import {
+  type CreateSessionDataParams,
+  ParamCondition,
+  type Rule
+} from "./Types"
+import { smartSessionCreateActions, smartSessionUseActions } from "./decorators"
+import { toSmartSessions } from "./toSmartSessions"
 
 describe("modules.smartSessions.uniPolicy", async () => {
   let network: NetworkConfig
@@ -45,9 +51,11 @@ describe("modules.smartSessions.uniPolicy", async () => {
   let eoaAccount: LocalAccount
   let nexusClient: NexusClient
   let nexusAccountAddress: Address
-  let sessionKeyAccount: Account
+  let sessionKeyAccount: LocalAccount
   let sessionPublicKey: Address
   let cachedPermissionId: Hex
+
+  let sessionsModule: Module
 
   beforeAll(async () => {
     network = await toNetwork()
@@ -68,6 +76,12 @@ describe("modules.smartSessions.uniPolicy", async () => {
     })
 
     nexusAccountAddress = await nexusClient.account.getCounterFactualAddress()
+
+    sessionsModule = toSmartSessions({
+      account: nexusClient.account,
+      signer: eoaAccount
+    })
+
     await fundAndDeployClients(testClient, [nexusClient])
   })
 
@@ -104,17 +118,13 @@ describe("modules.smartSessions.uniPolicy", async () => {
 
   test("should install smartSessionValidator with no init data", async () => {
     const isInstalledBefore = await nexusClient.isModuleInstalled({
-      module: {
-        type: "validator",
-        module: addresses.SmartSession
-      }
+      module: sessionsModule.moduleInitData
     })
 
     if (!isInstalledBefore) {
-      const smartSessionNexusClient = nexusClient.extend(
-        smartSessionCreateActions()
-      )
-      const hash = await smartSessionNexusClient.install()
+      const hash = await nexusClient.installModule({
+        module: sessionsModule.moduleInitData
+      })
 
       const { success: installSuccess } =
         await nexusClient.waitForUserOperationReceipt({ hash })
@@ -154,7 +164,7 @@ describe("modules.smartSessions.uniPolicy", async () => {
       .toString(16)
       .padStart(64, "0")}`
 
-    const rules = [
+    const rules: Rule[] = [
       {
         condition: ParamCondition.EQUAL,
         offsetIndex: 0,
@@ -208,7 +218,7 @@ describe("modules.smartSessions.uniPolicy", async () => {
     ]
 
     const smartSessionNexusClient = nexusClient.extend(
-      smartSessionCreateActions()
+      smartSessionCreateActions(sessionsModule)
     )
 
     const createSessionsResponse = await smartSessionNexusClient.createSessions(
@@ -264,15 +274,27 @@ describe("modules.smartSessions.uniPolicy", async () => {
     //   timestamp: 9727001666n
     // })
 
-    const dappSessionClient = await createNexusSessionClient({
+    const useSessionsModule = toSmartSessions({
+      account: nexusClient.account,
+      signer: sessionKeyAccount,
+      permission: {
+        permissionId: cachedPermissionId
+      }
+    })
+
+    const smartSessionNexusClient = await createNexusSessionClient({
       chain,
-      accountAddress: nexusClient.account.address, // this will the the user's SA address
-      signer: sessionKeyAccount, // session signer (unused)
+      accountAddress: nexusClient.account.address,
+      signer: sessionKeyAccount,
       transport: http(),
       bundlerTransport: http(bundlerUrl)
     })
 
-    const userOpHash = await dappSessionClient.useSession({
+    const useSmartSessionNexusClient = smartSessionNexusClient.extend(
+      smartSessionUseActions(useSessionsModule)
+    )
+
+    const userOpHash = await useSmartSessionNexusClient.useSession({
       account: nexusClient.account,
       actions: [
         {
@@ -284,10 +306,7 @@ describe("modules.smartSessions.uniPolicy", async () => {
             args: [nexusAccountAddress, balToAddUint, balToAddBytes32 as Hex]
           })
         }
-      ],
-      data: {
-        permissionId: cachedPermissionId
-      }
+      ]
     })
 
     expect(userOpHash).toBeDefined()

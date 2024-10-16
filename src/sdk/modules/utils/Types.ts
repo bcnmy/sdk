@@ -1,6 +1,7 @@
-import type { Address, Assign, Chain, Hex, SignableMessage } from "viem"
+import type { Module as ModuleMeta } from "@rhinestone/module-sdk"
+import type { Address, Chain, Hex, SignableMessage } from "viem"
+import type { SmartAccount } from "viem/account-abstraction"
 import type { Signer } from "./../../account/utils/toSigner"
-
 export type ModuleVersion = "1.0.0" // | 'V1_0_1'
 
 export type SignerData = {
@@ -42,11 +43,29 @@ export const moduleTypeIds: ModuleTypeIds = {
 }
 // biome-ignore lint/suspicious/noExplicitAny: <explanation>
 export type AnyData = any
-/**
- * Represents the base implementation of a module.
- * @template extend - Type for extending the module with custom properties.
- */
-export type GenericModuleParameters<extend extends object = object> = {
+
+export type ModuleActions = {
+  /**
+   * Signs a message.
+   * @param message - The message to sign, either as a Uint8Array or string.
+   * @returns A promise that resolves to a hexadecimal string representing the signature.
+   */
+  signMessage: (message: SignableMessage) => Promise<Hex>
+  /**
+         * Signs a user operation hash.
+         * @param userOpHash - The user operation hash to sign.
+         // Review:
+         * @param params - Optional parameters for generating the signature.
+         * @returns A promise that resolves to a hexadecimal string representing the signature.
+         */
+  signUserOpHash: (userOpHash: Hex) => Promise<Hex>
+  /**
+   * Gets the stub signature of the module.
+   */
+  getStubSignature: () => Promise<Hex>
+}
+
+export type ModuleParameters = {
   /** The hexadecimal address of the module. */
   address: Hex
   /** Initialization data for the module. */
@@ -57,53 +76,27 @@ export type GenericModuleParameters<extend extends object = object> = {
   signer: Signer
   /** The smart account address */
   accountAddress: Hex
-  /** Extend the Module with custom properties. */
-  extend?: extend | undefined
-  /** data associated with the module */
-  data?: Record<string, AnyData>
-  /** Args passed to getInitData */
+  /** The module initData */
+  moduleInitData: ModuleMeta
+  /** The module initArgs */
+  moduleInitArgs?: AnyData
+  /** The initArgs for initData */
   initArgs?: AnyData
+} & Partial<ModuleActions>
+
+export type Module = ModuleParameters &
+  ModuleActions & {
+    /** For compatibility with module-sdk. */
+    module: Hex
+    /** Signer of the Module. */
+    signer: Signer
+    /** Type of module. */
+    type: ModuleType
+  }
+
+export type Modularity = {
+  getModule: () => Module | undefined
+  setModule: (module: Module) => void
 }
 
-/**
- * Represents a fully implemented module with extended functionality.
- * @template implementation - The base implementation of the module.
- */
-export type GenericModule<
-  implementation extends GenericModuleParameters = GenericModuleParameters
-> = Assign<
-  implementation["extend"],
-  Assign<
-    implementation,
-    {
-      /** Signer of the Module. */
-      signer: Signer
-      /** Type of module. */
-      type: ModuleType
-      /**
-       * Signs a message.
-       * @param message - The message to sign, either as a Uint8Array or string.
-       * @returns A promise that resolves to a hexadecimal string representing the signature.
-       */
-      signMessage: (message: SignableMessage) => Promise<Hex>
-      /**
-       * Signs a user operation hash.
-       * @param userOpHash - The user operation hash to sign.
-       // Review:
-       * @param params - Optional parameters for generating the signature.
-       * @returns A promise that resolves to a hexadecimal string representing the signature.
-       */
-      signUserOpHash: (userOpHash: Hex) => Promise<Hex>
-      /**
-       * Gets the stub signature of the module.
-       */
-      getStubSignature: () => Promise<Hex>
-      /** For retrieving module data. */
-      getData: () => Record<string, AnyData>
-      /** For setting module data. */
-      setData: (data: Record<string, AnyData>) => void
-      /** For compatibility with module-sdk. */
-      module: Hex
-    }
-  >
->
+export type ModularSmartAccount = SmartAccount & Modularity

@@ -4,4 +4,4 @@ export * from "./utils/Helpers"
 
 export * from "./k1/toK1"
 export * from "./ownables/toOwnables"
-export * from "./smartSessions/toUseSessions"
+export * from "./smartSessions/toSmartSessions"

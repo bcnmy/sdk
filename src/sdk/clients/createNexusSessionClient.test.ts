@@ -7,7 +7,7 @@ import {
   toBytes,
   toHex
 } from "viem"
-import type { PublicClient } from "viem"
+import type { LocalAccount, PublicClient } from "viem"
 import { encodeFunctionData } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { CounterAbi } from "../../test/__contracts/abi"
@@ -23,7 +23,12 @@ import type { MasterClient, NetworkConfig } from "../../test/testUtils"
 import addresses from "../__contracts/addresses"
 import { isSessionEnabled } from "../modules/smartSessions/Helpers"
 import type { CreateSessionDataParams } from "../modules/smartSessions/Types"
-import { smartSessionCreateActions } from "../modules/smartSessions/decorators"
+import {
+  smartSessionCreateActions,
+  smartSessionUseActions
+} from "../modules/smartSessions/decorators"
+import { toSmartSessions } from "../modules/smartSessions/toSmartSessions"
+import type { Module } from "../modules/utils/Types"
 import { type NexusClient, createNexusClient } from "./createNexusClient"
 import { createNexusSessionClient } from "./createNexusSessionClient"
 
@@ -34,12 +39,14 @@ describe("nexus.session.client", async () => {
 
   // Test utils
   let testClient: MasterClient
-  let eoaAccount: Account
-  let sessionKeyAccount: Account
+  let eoaAccount: LocalAccount
+  let nexusClient: NexusClient
+  let nexusAccountAddress: Address
+  let sessionKeyAccount: LocalAccount
   let sessionPublicKey: Address
   let cachedPermissionId: Hex
-  let nexusClient: NexusClient
-  let nexusAccountAddress: Hex
+
+  let sessionsModule: Module
 
   beforeAll(async () => {
     network = await toNetwork()
@@ -59,33 +66,26 @@ describe("nexus.session.client", async () => {
       bundlerTransport: http(bundlerUrl)
     })
     nexusAccountAddress = await nexusClient.account.getCounterFactualAddress()
+
+    sessionsModule = toSmartSessions({
+      account: nexusClient.account,
+      signer: eoaAccount
+    })
+
     await fundAndDeployClients(testClient, [nexusClient])
   })
   afterAll(async () => {
     await killNetwork([network?.rpcPort, network?.bundlerPort])
   })
 
-  // test("should match account address", async () => {
-  //   const accountAddress = await nexusSessionClient.account.getAddress()
-  //   expect(accountAddress).toBe(dummyAddress)
-  // })
-
   test("should install smartSessionValidator with no init data", async () => {
     const isInstalledBefore = await nexusClient.isModuleInstalled({
-      module: {
-        type: "validator",
-        module: addresses.SmartSession,
-        initData: "0x"
-      }
+      module: sessionsModule.moduleInitData
     })
 
     if (!isInstalledBefore) {
       const hash = await nexusClient.installModule({
-        module: {
-          module: addresses.SmartSession,
-          type: "validator",
-          initData: "0x"
-        }
+        module: sessionsModule.moduleInitData
       })
 
       const { success: installSuccess } =
@@ -96,8 +96,7 @@ describe("nexus.session.client", async () => {
     const isInstalledAfter = await nexusClient.isModuleInstalled({
       module: {
         type: "validator",
-        module: addresses.SmartSession,
-        initData: "0x"
+        module: addresses.SmartSession
       }
     })
     expect(isInstalledAfter).toBe(true)
@@ -105,10 +104,7 @@ describe("nexus.session.client", async () => {
 
   test("should create a session to increment a counter (USE MODE)", async () => {
     const isInstalledBefore = await nexusClient.isModuleInstalled({
-      module: {
-        type: "validator",
-        module: addresses.SmartSession
-      }
+      module: sessionsModule
     })
 
     expect(isInstalledBefore).toBe(true)
@@ -134,7 +130,9 @@ describe("nexus.session.client", async () => {
       }
     ]
 
-    const nexusSessionClient = nexusClient.extend(smartSessionCreateActions())
+    const nexusSessionClient = nexusClient.extend(
+      smartSessionCreateActions(sessionsModule)
+    )
 
     const createSessionsResponse = await nexusSessionClient.createSessions({
       sessionRequestedInfo
@@ -159,29 +157,33 @@ describe("nexus.session.client", async () => {
   }, 60000)
 
   test("session signer should use session to increment a counter for a user (USE MODE)", async () => {
-    const dappSessionClient = await createNexusSessionClient({
+    const counterBefore = await testClient.readContract({
+      address: TEST_CONTRACTS.Counter.address,
+      abi: CounterAbi,
+      functionName: "getNumber"
+    })
+
+    const useSessionsModule = toSmartSessions({
+      account: nexusClient.account,
+      signer: sessionKeyAccount,
+      permission: {
+        permissionId: cachedPermissionId
+      }
+    })
+
+    const smartSessionNexusClient = await createNexusSessionClient({
       chain,
-      accountAddress: nexusClient.account.address, // this will the the user's SA address
-      signer: sessionKeyAccount, // session signer (unused)
+      accountAddress: nexusClient.account.address,
+      signer: sessionKeyAccount,
       transport: http(),
       bundlerTransport: http(bundlerUrl)
     })
 
-    const isEnabled = await isSessionEnabled({
-      client: testClient as unknown as PublicClient,
-      accountAddress: nexusClient.account.address,
-      permissionId: cachedPermissionId
-    })
-    expect(isEnabled).toBe(true)
+    const useSmartSessionNexusClient = smartSessionNexusClient.extend(
+      smartSessionUseActions(useSessionsModule)
+    )
 
-    const counterBefore = await testClient.readContract({
-      address: TEST_CONTRACTS.Counter.address,
-      abi: CounterAbi,
-      functionName: "getNumber",
-      args: []
-    })
-
-    const userOpHash = await dappSessionClient.useSession({
+    const userOpHash = await useSmartSessionNexusClient.useSession({
       actions: [
         {
           target: TEST_CONTRACTS.Counter.address,
@@ -192,16 +194,14 @@ describe("nexus.session.client", async () => {
             args: []
           })
         }
-      ],
-      data: {
-        permissionId: cachedPermissionId
-      }
+      ]
     })
 
     expect(userOpHash).toBeDefined()
-    const receipt = await dappSessionClient.waitForUserOperationReceipt({
-      hash: userOpHash
-    })
+    const receipt =
+      await useSmartSessionNexusClient.waitForUserOperationReceipt({
+        hash: userOpHash
+      })
     expect(receipt.success).toBe(true)
 
     const counterAfter = await testClient.readContract({
@@ -215,13 +215,25 @@ describe("nexus.session.client", async () => {
   }, 60000)
 
   test("session signer is not allowed to send unauthorised action", async () => {
-    const dappSessionClient = await createNexusSessionClient({
+    const useSessionsModule = toSmartSessions({
+      account: nexusClient.account,
+      signer: sessionKeyAccount,
+      permission: {
+        permissionId: cachedPermissionId
+      }
+    })
+
+    const smartSessionNexusClient = await createNexusSessionClient({
       chain,
-      accountAddress: nexusClient.account.address, // this will the the user's SA address
-      signer: sessionKeyAccount, // session signer
+      accountAddress: nexusClient.account.address,
+      signer: sessionKeyAccount,
       transport: http(),
       bundlerTransport: http(bundlerUrl)
     })
+
+    const useSmartSessionNexusClient = smartSessionNexusClient.extend(
+      smartSessionUseActions(useSessionsModule)
+    )
 
     const isEnabled = await isSessionEnabled({
       client: testClient as unknown as PublicClient,
@@ -240,7 +252,7 @@ describe("nexus.session.client", async () => {
     // @note session signer is only allowed to call incrementNumber
 
     expect(
-      dappSessionClient.useSession({
+      useSmartSessionNexusClient.useSession({
         actions: [
           {
             target: TEST_CONTRACTS.Counter.address,
@@ -250,10 +262,7 @@ describe("nexus.session.client", async () => {
               functionName: "decrementNumber"
             })
           }
-        ],
-        data: {
-          permissionId: cachedPermissionId
-        }
+        ]
       })
     ).rejects.toThrow()
 

@@ -15,7 +15,7 @@ import {
   killNetwork,
   toTestClient
 } from "../../../test/testUtils"
-import { type Module, toModule } from "./toModule"
+import { toModule } from "./toModule"
 
 describe("modules.toModule", async () => {
   let network: NetworkConfig
@@ -46,8 +46,10 @@ describe("modules.toModule", async () => {
       initData: "0x",
       deInitData: "0x",
       signer: eoaAccount,
-      extend: {
-        randomExtension: 1
+      moduleInitData: {
+        module: "0x0000000000000000000000000000000000000000",
+        type: "validator",
+        initData: "0x"
       }
     })
 
@@ -56,12 +58,14 @@ describe("modules.toModule", async () => {
         "accountAddress": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
         "address": "0x0000000000000000000000000000000000000000",
         "deInitData": "0x",
-        "getData": [Function],
         "getStubSignature": [Function],
         "initData": "0x",
         "module": "0x0000000000000000000000000000000000000000",
-        "randomExtension": 1,
-        "setData": [Function],
+        "moduleInitData": {
+          "initData": "0x",
+          "module": "0x0000000000000000000000000000000000000000",
+          "type": "validator",
+        },
         "signMessage": [Function],
         "signUserOpHash": [Function],
         "signer": {

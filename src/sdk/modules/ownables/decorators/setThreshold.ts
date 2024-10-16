@@ -1,21 +1,17 @@
 import { getSetOwnableValidatorThresholdAction } from "@rhinestone/module-sdk"
 import type { Chain, Client, Hex, Transport } from "viem"
-import {
-  type GetSmartAccountParameter,
-  type SmartAccount,
-  sendUserOperation
-} from "viem/account-abstraction"
+import { type SmartAccount, sendUserOperation } from "viem/account-abstraction"
 import { getAction, parseAccount } from "viem/utils"
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
 
 export type SetThresholdParameters<
   TSmartAccount extends SmartAccount | undefined
-> = GetSmartAccountParameter<TSmartAccount> & {
+> = {
+  account?: TSmartAccount
   threshold: number
   maxFeePerGas?: bigint
   maxPriorityFeePerGas?: bigint
   nonce?: bigint
-  signatureOverride?: Hex
 }
 
 /**
@@ -45,8 +41,7 @@ export async function setThreshold<
     maxFeePerGas,
     maxPriorityFeePerGas,
     nonce,
-    threshold,
-    signatureOverride
+    threshold
   } = parameters
 
   if (!account_) {
@@ -74,7 +69,6 @@ export async function setThreshold<
     maxFeePerGas,
     maxPriorityFeePerGas,
     nonce,
-    account,
-    signature: signatureOverride
+    account
   })
 }

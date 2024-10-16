@@ -1,44 +1,35 @@
-import type { Hex, Prettify, SignableMessage } from "viem"
+import type { Module as ModuleMeta } from "@rhinestone/module-sdk"
+import type { Hex, SignableMessage } from "viem"
 import type { Signer } from "../../account/utils/toSigner.js"
 import { sanitizeSignature } from "./Helpers.js"
-import type {
-  AnyData,
-  GenericModule,
-  GenericModuleParameters
-} from "./Types.js"
-
-export type Module<
-  implementation extends GenericModuleParameters = GenericModuleParameters
-> = Prettify<GenericModule<implementation>>
+import type { AnyData, Module, ModuleParameters } from "./Types.js"
 
 export type ToModuleParameters = {
   signer: Signer
   accountAddress: Hex
   initData?: Hex
+  moduleInitData?: ModuleMeta
   deInitData?: Hex
+  moduleInitArgs?: AnyData
   initArgs?: AnyData
 }
 
-export function toModule<_implementation extends GenericModuleParameters>(
-  implementation: _implementation
-): Module<_implementation> {
+export function toModule(implementation: ModuleParameters): Module {
   const {
     accountAddress,
     address,
-    extend,
     initData,
     deInitData,
     signer,
-    data,
+    moduleInitData,
     ...rest
   } = implementation
-
-  let data_ = data ?? {}
 
   return {
     address,
     module: address,
     accountAddress,
+    moduleInitData,
     signer,
     type: "validator",
     initData,
@@ -53,11 +44,6 @@ export function toModule<_implementation extends GenericModuleParameters>(
       }),
     signMessage: async (message: SignableMessage) =>
       sanitizeSignature(await signer.signMessage({ message })),
-    getData: () => data_,
-    setData: (data: Record<string, AnyData>) => {
-      data_ = data
-    },
-    ...extend,
     ...rest
-  } as Module<_implementation>
+  }
 }

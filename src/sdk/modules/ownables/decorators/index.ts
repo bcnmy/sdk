@@ -1,52 +1,78 @@
-import type { Module as ModuleMeta } from "@rhinestone/module-sdk"
-import type { Chain, Client, Hash, Transport } from "viem"
+import type { Address, Chain, Client, Hash, Hex, Transport } from "viem"
 import type { SmartAccount } from "viem/account-abstraction"
-import { activateModule } from "../../utils/activateModule"
+import type { Call } from "../../../account/utils/Types"
+import type { ModularSmartAccount, Module } from "../../utils/Types"
 import { type AddOwnerParameters, addOwner } from "./addOwner"
-import { type InstallOwnablesParameters, install } from "./install"
+import { getAddOwnerTx } from "./getAddOwnerTx"
+import { type GetOwnersParameters, getOwners } from "./getOwners"
+import {
+  type GetRemoveOwnerTxParameters,
+  getRemoveOwnerTx
+} from "./getRemoveOwnerTx"
+import {
+  type GetSetThresholdTxParameters,
+  getSetThresholdTx
+} from "./getSetThresholdTx"
+import { type GetThresholdParameters, getThreshold } from "./getThreshold"
+import {
+  type PrepareSignaturesParameters,
+  prepareSignatures
+} from "./prepareSignatures"
 import { type RemoveOwnerParameters, removeOwner } from "./removeOwner"
 import { type SetThresholdParameters, setThreshold } from "./setThreshold"
-
-export type OwnableValidatorActions<
-  TSmartAccount extends SmartAccount | undefined,
-  TModuleMeta extends ModuleMeta | undefined
-> = {
-  install: (
-    args?: InstallOwnablesParameters<TSmartAccount, TModuleMeta>
-  ) => Promise<Hash>
+export type OwnableActions<TSmartAccount extends SmartAccount | undefined> = {
+  getRemoveOwnerTx: (
+    args: GetRemoveOwnerTxParameters<TSmartAccount>
+  ) => Promise<Call>
   addOwner: (args: AddOwnerParameters<TSmartAccount>) => Promise<Hash>
   removeOwner: (args: RemoveOwnerParameters<TSmartAccount>) => Promise<Hash>
   setThreshold: (args: SetThresholdParameters<TSmartAccount>) => Promise<Hash>
+  getOwners: (args?: GetOwnersParameters<TSmartAccount>) => Promise<Address[]>
+  getSetThresholdTx: (
+    args: GetSetThresholdTxParameters<TSmartAccount>
+  ) => Promise<Call>
+  getAddOwnerTx: (args: AddOwnerParameters<TSmartAccount>) => Promise<Call>
+  prepareSignatures: (
+    args: PrepareSignaturesParameters<TSmartAccount>
+  ) => Promise<Hex>
+  getThreshold: (
+    args?: GetThresholdParameters<TSmartAccount>
+  ) => Promise<number>
 }
 
-export function ownableActions() {
-  return <
-    TSmartAccount extends SmartAccount | undefined,
-    TModuleMeta extends ModuleMeta | undefined
-  >(
-    client: Client<Transport, Chain | undefined, TSmartAccount>
-  ): OwnableValidatorActions<TSmartAccount, TModuleMeta> => {
+export function ownableActions(ownableModule: Module) {
+  return <TModularSmartAccount extends ModularSmartAccount | undefined>(
+    client: Client<Transport, Chain | undefined, TModularSmartAccount>
+  ): OwnableActions<TModularSmartAccount> => {
+    client?.account?.setModule(ownableModule)
     return {
-      install: (args) => {
-        activateModule("k1", client.account)
-        return install(client, args)
+      getThreshold: (args) => {
+        return getThreshold(client, args)
+      },
+      prepareSignatures: (args) => {
+        return prepareSignatures(client, args)
+      },
+      getAddOwnerTx: (args) => {
+        return getAddOwnerTx(client, args)
+      },
+      getOwners: (args) => {
+        return getOwners(client, args)
+      },
+      getSetThresholdTx: (args) => {
+        return getSetThresholdTx(client, args)
+      },
+      getRemoveOwnerTx: (args) => {
+        return getRemoveOwnerTx(client, args)
       },
       addOwner: (args) => {
-        activateModule("ownable", client.account)
         return addOwner(client, args)
       },
       removeOwner: (args) => {
-        activateModule("ownable", client.account)
         return removeOwner(client, args)
       },
       setThreshold: (args) => {
-        activateModule("ownable", client.account)
         return setThreshold(client, args)
       }
     }
   }
 }
-
-export type { AddOwnerParameters }
-
-export { addOwner, removeOwner, setThreshold }

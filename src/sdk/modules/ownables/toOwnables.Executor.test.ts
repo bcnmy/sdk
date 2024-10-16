@@ -29,7 +29,8 @@ import {
   type NexusClient,
   createNexusClient
 } from "../../clients/createNexusClient"
-import { type ToK1ReturnType, toK1 } from "../k1/toK1"
+import { toK1 } from "../k1/toK1"
+import type { Module } from "../utils/Types"
 
 describe("modules.ownableExecutor", async () => {
   let network: NetworkConfig
@@ -43,7 +44,7 @@ describe("modules.ownableExecutor", async () => {
   let nexusAccountAddress: Address
   let recipient: Account
   let recipientAddress: Address
-  let k1Module: ToK1ReturnType
+  let k1Module: Module
   beforeAll(async () => {
     network = await toNetwork()
 
