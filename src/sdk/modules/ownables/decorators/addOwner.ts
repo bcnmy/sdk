@@ -11,7 +11,6 @@ export type AddOwnerParameters<TSmartAccount extends SmartAccount | undefined> =
     maxFeePerGas?: bigint
     maxPriorityFeePerGas?: bigint
     nonce?: bigint
-    signatureOverride?: Hex
   }
 
 /**
@@ -39,8 +38,7 @@ export async function addOwner<TSmartAccount extends SmartAccount | undefined>(
     maxFeePerGas,
     maxPriorityFeePerGas,
     nonce,
-    owner,
-    signatureOverride
+    owner
   } = parameters
 
   if (!account_) {
@@ -77,7 +75,6 @@ export async function addOwner<TSmartAccount extends SmartAccount | undefined>(
     maxFeePerGas,
     maxPriorityFeePerGas,
     nonce,
-    account,
-    signature: signatureOverride
+    account
   })
 }

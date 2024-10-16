@@ -7,19 +7,19 @@ import {
 } from "viem"
 import addresses from "../../__contracts/addresses"
 import { sanitizeSignature } from "../utils/Helpers"
-import type { Module, ModuleParameters } from "../utils/Types"
+import type { Module } from "../utils/Types"
 import { type ToModuleParameters, toModule } from "../utils/toModule"
 export type ToK1Parameters = ToModuleParameters & {
   address?: Hex
 }
 
-export type K1ValidatorModuleParameters = ModuleParameters
-
 export type K1ModuleGetInitDataArgs = {
   signerAddress: Address
 }
 
-export const getK1ModuleInitData = (): ModuleMeta => ({
+export const getK1ModuleInitData = (
+  _: K1ModuleGetInitDataArgs
+): ModuleMeta => ({
   module: addresses.K1Validator,
   type: "validator",
   initData: "0x"
@@ -58,12 +58,15 @@ export const toK1 = (parameters: ToK1Parameters): Module => {
     initArgs: initArgs_ = {
       signerAddress: signer.address
     },
+    moduleInitArgs: moduleInitArgs_,
+    moduleInitData: moduleInitData_,
     deInitData = "0x",
     accountAddress,
     address = addresses.K1Validator
   } = parameters
 
   const initData = initData_ ?? getK1InitData(initArgs_)
+  const moduleInitData = moduleInitData_ ?? getK1ModuleInitData(moduleInitArgs_)
 
   return toModule({
     signer,
@@ -71,7 +74,7 @@ export const toK1 = (parameters: ToK1Parameters): Module => {
     accountAddress,
     initData,
     deInitData,
-    moduleInitData: getK1ModuleInitData(),
+    moduleInitData,
     getStubSignature: async () => {
       const dynamicPart = address.substring(2).padEnd(40, "0")
       return `0x0000000000000000000000000000000000000000000000000000000000000040000000000000000000000000${dynamicPart}000000000000000000000000000000000000000000000000000000000000004181d4b4981670cb18f99f0b4a66446df1bf5b204d24cfcb659bf38ba27a4359b5711649ec2423c5e1247245eba2964679b6a1dbb85c992ae40b9b00c6935b02ff1b00000000000000000000000000000000000000000000000000000000000000` as Hex

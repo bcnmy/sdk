@@ -43,14 +43,16 @@ export const getOwnablesModuleInitData = (
     [parameters.threshold, parameters.owners]
   )
 })
-export const getOwnablesInitData = (): Hex => "0x"
+export const getOwnablesInitData = (_?: GetOwnablesModuleInitDataParams): Hex =>
+  "0x"
 
 export const toOwnables = (parameters: ToOwnableModuleParameters): Module => {
   const {
     account,
     signer,
     client = account.client as PublicClient,
-    initData = "0x",
+    initData: initData_ = "0x",
+    initArgs: initArgs_,
     moduleInitArgs: moduleInitArgs_ = {
       threshold: 1,
       owners: [signer.address]
@@ -64,6 +66,7 @@ export const toOwnables = (parameters: ToOwnableModuleParameters): Module => {
   })
 
   const moduleInitData = getOwnablesModuleInitData(moduleInitArgs_)
+  const initData = initData_ ?? getOwnablesInitData(initArgs_)
 
   return toModule({
     signer,

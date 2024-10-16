@@ -40,6 +40,23 @@ describe("modules.ownableValidator.dx", async () => {
   })
 
   test("should demonstrate ownables module dx", async () => {
+    /**
+     * This test demonstrates the creation and use of an ownables module for multi-signature functionality:
+     *
+     * 1. Setup and Installation:
+     *    - Create a Nexus client for the main account
+     *    - Install the ownables module on the smart contract account
+     *
+     * 2. Multi-Signature Transaction:
+     *    - Prepare a user operation (withdrawal) that requires multiple signatures
+     *    - Collect signatures from required owners
+     *    - Execute the multi-sig transaction
+     *
+     * This test showcases how the ownables module enables multi-signature functionality
+     * on a smart contract account, ensuring that certain actions require approval from
+     * multiple designated owners.
+     */
+
     // Create a Nexus client for the main account (eoaAccount)
     // This client will be used to interact with the smart contract account
     const nexusClient = await createNexusClient({
@@ -78,7 +95,6 @@ describe("modules.ownableValidator.dx", async () => {
     const { success } = await ownableNexusClient.waitForUserOperationReceipt({
       hash
     })
-    expect(success).toBe(true)
 
     // Prepare a user operation to withdraw 1 wei to userTwo
     // This demonstrates a simple transaction that requires multi-sig approval

@@ -13,6 +13,8 @@ import {
 } from "viem/account-abstraction"
 import { getAction, parseAccount } from "viem/utils"
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
+import { bigIntReplacer } from "../../../account/utils/Helpers"
+import { Logger } from "../../../account/utils/Logger"
 
 /**
  * Creates, signs, and sends a new transaction to the network using a smart account.
@@ -69,11 +71,7 @@ export async function sendTransaction<
 
     if (!to) throw new Error("Missing to address")
 
-    userOpHash = await getAction(
-      client,
-      sendUserOperation,
-      "sendUserOperation"
-    )({
+    const sendUserOperationArgs = {
       calls: [
         {
           to,
@@ -86,7 +84,16 @@ export async function sendTransaction<
       maxPriorityFeePerGas,
       signature,
       nonce: nonce ? BigInt(nonce) : undefined
-    })
+    }
+
+    const { account: _, ...logableArgs } = sendUserOperationArgs
+    Logger.log(JSON.stringify(logableArgs, bigIntReplacer, 2))
+
+    userOpHash = await getAction(
+      client,
+      sendUserOperation,
+      "sendUserOperation"
+    )(sendUserOperationArgs)
   } else {
     userOpHash = await getAction(
       client,

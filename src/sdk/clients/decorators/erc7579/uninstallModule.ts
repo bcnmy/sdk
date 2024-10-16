@@ -26,7 +26,6 @@ export type UninstallModuleParameters<
   maxFeePerGas?: bigint
   maxPriorityFeePerGas?: bigint
   nonce?: bigint
-  signatureOverride?: Hex
 }
 
 /**
@@ -53,17 +52,14 @@ export async function uninstallModule<
   TSmartAccount extends SmartAccount | undefined
 >(
   client: Client<Transport, Chain | undefined, TSmartAccount>,
-  parameters: UninstallModuleParameters<TSmartAccount> & {
-    signatureOverride?: Hex
-  }
+  parameters: UninstallModuleParameters<TSmartAccount>
 ): Promise<Hex> {
   const {
     account: account_ = client.account,
     maxFeePerGas,
     maxPriorityFeePerGas,
     nonce,
-    module: { module, initData, type },
-    signatureOverride
+    module: { module, initData, type }
   } = parameters
 
   if (!account_) {
@@ -132,7 +128,6 @@ export async function uninstallModule<
     maxFeePerGas,
     maxPriorityFeePerGas,
     nonce,
-    account,
-    signature: signatureOverride
+    account
   })
 }

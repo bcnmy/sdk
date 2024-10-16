@@ -15,7 +15,6 @@ export type RemoveOwnerParameters<
   maxFeePerGas?: bigint
   maxPriorityFeePerGas?: bigint
   nonce?: bigint
-  signatureOverride?: Hex
 }
 
 /**
@@ -45,8 +44,7 @@ export async function removeOwner<
     maxFeePerGas,
     maxPriorityFeePerGas,
     nonce,
-    owner,
-    signatureOverride
+    owner
   } = parameters
 
   if (!account_) {
@@ -83,7 +81,6 @@ export async function removeOwner<
     maxFeePerGas,
     maxPriorityFeePerGas,
     nonce,
-    account,
-    signature: signatureOverride
+    account
   })
 }
