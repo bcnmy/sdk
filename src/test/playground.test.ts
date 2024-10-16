@@ -2,14 +2,18 @@ import {
   http,
   type Address,
   type Chain,
+  type Client,
   type PrivateKeyAccount,
   type PublicClient,
   type WalletClient,
   createPublicClient,
   createWalletClient
 } from "viem"
+import type { Account } from "viem"
+import type { Transport } from "viem"
 import type { UserOperationReceipt } from "viem/account-abstraction"
 import { beforeAll, describe, expect, test } from "vitest"
+import { type NexusAccount, toNexusAccount } from "../sdk"
 import { playgroundTrue } from "../sdk/account/utils/Utils"
 import { createBicoPaymasterClient } from "../sdk/clients/createBicoPaymasterClient"
 import {
@@ -21,8 +25,8 @@ import type { NetworkConfig } from "./testUtils"
 
 // Remove the following lines to use the default factory and validator addresses
 // These are relevant only for now on base sopelia chain and are likely to change
-const k1ValidatorAddress = "0x663E709f60477f07885230E213b8149a7027239B"
-const factoryAddress = "0x887Ca6FaFD62737D0E79A2b8Da41f0B15A864778"
+const k1ValidatorAddress = "0x000000017D8e9Eb74CEcb09a3532f8E18E883521"
+const factoryAddress = "0x00000001cdE7c53f30b20Bd36015C48652F3faaC"
 
 describe.skipIf(!playgroundTrue)("playground", () => {
   let network: NetworkConfig
@@ -38,6 +42,7 @@ describe.skipIf(!playgroundTrue)("playground", () => {
   let recipientAddress: Address
   let nexusClient: NexusClient
   let nexusAccountAddress: Address
+  let nexusAccount: NexusAccount
 
   beforeAll(async () => {
     network = await toNetwork("PUBLIC_TESTNET")
@@ -59,6 +64,12 @@ describe.skipIf(!playgroundTrue)("playground", () => {
       chain,
       transport: http()
     })
+
+    nexusAccount = await toNexusAccount({
+      client: walletClient as Client<Transport, Chain, Account>,
+      k1ValidatorAddress,
+      factoryAddress
+    })
   })
 
   test("should have factory and k1Validator deployed", async () => {
@@ -76,12 +87,8 @@ describe.skipIf(!playgroundTrue)("playground", () => {
 
   test("should init the smart account", async () => {
     nexusClient = await createNexusClient({
-      signer: eoaAccount,
-      chain,
-      transport: http(),
-      bundlerTransport: http(bundlerUrl),
-      k1ValidatorAddress,
-      factoryAddress
+      account: nexusAccount,
+      bundlerTransport: http(bundlerUrl)
     })
   })
 
@@ -144,9 +151,7 @@ describe.skipIf(!playgroundTrue)("playground", () => {
     }
 
     nexusClient = await createNexusClient({
-      signer: eoaAccount,
-      chain,
-      transport: http(),
+      account: nexusAccount,
       bundlerTransport: http(bundlerUrl),
       k1ValidatorAddress,
       factoryAddress,
@@ -169,9 +174,7 @@ describe.skipIf(!playgroundTrue)("playground", () => {
   test("should send sequential user ops", async () => {
     const start = performance.now()
     const nexusClient = await createNexusClient({
-      signer: eoaAccount,
-      chain,
-      transport: http(),
+      account: nexusAccount,
       bundlerTransport: http(bundlerUrl),
       k1ValidatorAddress,
       factoryAddress
@@ -197,9 +200,7 @@ describe.skipIf(!playgroundTrue)("playground", () => {
   test("should send parallel user ops", async () => {
     const start = performance.now()
     const nexusClient = await createNexusClient({
-      signer: eoaAccount,
-      chain,
-      transport: http(),
+      account: nexusAccount,
       bundlerTransport: http(bundlerUrl),
       k1ValidatorAddress,
       factoryAddress
