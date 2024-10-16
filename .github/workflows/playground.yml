@@ -25,4 +25,3 @@ jobs:
           BUNDLER_URL: ${{ secrets.BUNDLER_URL }}
           CHAIN_ID: 84532
           CI: true
-          TEST: true

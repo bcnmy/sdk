@@ -6,7 +6,7 @@
     "removeComments": true,
     "verbatimModuleSyntax": false,
     "noEmit": false,
-    "rootDir": "../src/sdk"
+    "rootDir": "../src/sdk",
   },
   "exclude": [
     "../src/test/**/*.*",
