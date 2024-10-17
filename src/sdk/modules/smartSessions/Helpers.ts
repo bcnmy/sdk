@@ -143,15 +143,7 @@ export const getPermissionId = async ({
   })) as Hex
 }
 
-/**
- * Checks if a session is enabled for a given account.
- *
- * @param client - The PublicClient to use for the contract call.
- * @param accountAddress - The address of the account.
- * @param permissionId - The permission ID to check.
- * @returns A promise that resolves to a boolean indicating if the session is enabled.
- */
-export const isSessionEnabled = ({
+export const isPermissionEnabled = async ({
   client,
   accountAddress,
   permissionId
@@ -163,7 +155,7 @@ export const isSessionEnabled = ({
   client.readContract({
     address: addresses.SmartSession,
     abi: SmartSessionAbi,
-    functionName: "isSessionEnabled",
+    functionName: "isPermissionEnabled",
     args: [permissionId, accountAddress]
   })
 
@@ -176,7 +168,7 @@ export const isSessionEnabled = ({
 export const toUniversalActionPolicy = (
   actionConfig: ActionConfig
 ): PolicyData => ({
-  policy: "0x28120dC008C36d95DE5fa0603526f219c1Ba80f6",
+  policy: "0x148CD6c24F4dd23C396E081bBc1aB1D92eeDe2BF",
   initData: encodeAbiParameters(UniActionPolicyAbi, [
     toActionConfig(actionConfig)
   ])
