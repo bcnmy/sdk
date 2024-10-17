@@ -22,6 +22,7 @@ import { TEST_CONTRACTS } from "../../../../test/callDatas"
 import { toNetwork } from "../../../../test/testSetup"
 import {
   fundAndDeployClients,
+  getBalance,
   getTestAccount,
   killNetwork,
   toTestClient
@@ -36,6 +37,7 @@ import { isPermissionEnabled } from "./Helper"
 import { type CreateSessionDataParams, ParamCondition } from "./Types"
 import { smartSessionValidatorActions } from "./decorators"
 import { toSmartSessionValidatorModule } from "./tosmartSessionValidatorModule"
+import { MockRegistryAbi } from "../../../../test/__contracts/abi"
 
 describe("modules.smartSessionValidator.write", async () => {
   let network: NetworkConfig
@@ -52,7 +54,7 @@ describe("modules.smartSessionValidator.write", async () => {
   let cachedPermissionId: Hex
 
   beforeAll(async () => {
-    network = await toNetwork()
+    network = await toNetwork("BASE_SEPOLIA_FORKED")
 
     chain = network.chain
     bundlerUrl = network.bundlerUrl
@@ -76,6 +78,31 @@ describe("modules.smartSessionValidator.write", async () => {
   afterAll(async () => {
     await killNetwork([network?.rpcPort, network?.bundlerPort])
   })
+
+  test("should send eth, register and attest modules, and trust mock attester", async () => {
+    const balanceBefore = await getBalance(testClient, recipientAddress)
+    const hash = await nexusClient.sendTransaction({
+      calls: [
+        {
+          to: recipientAddress,
+          value: 1n
+        },
+        {
+          to: TEST_CONTRACTS.MockRegistry.address,
+          value: 0n,
+          data: encodeFunctionData({
+            abi: MockRegistryAbi,
+            functionName: "trustAttesters",
+            args: [1, [TEST_CONTRACTS.MockAttester.address]] // Review if more attesters needed
+          })
+        }
+      ]
+    })
+    const { status } = await testClient.waitForTransactionReceipt({ hash })
+    expect(status).toBe("success")
+    const balanceAfter = await getBalance(testClient, recipientAddress)
+    expect(balanceAfter - balanceBefore).toBe(1n)
+  }, 100000)
 
   test("should add balance to mock callee", async () => {
     const mockContract = getContract({

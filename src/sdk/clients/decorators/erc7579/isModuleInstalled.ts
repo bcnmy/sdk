@@ -92,8 +92,6 @@ export async function isModuleInstalled<
     }
   ] as const
 
-  console.log(module, "module123")
-
   try {
     return (await getAction(
       publicClient,

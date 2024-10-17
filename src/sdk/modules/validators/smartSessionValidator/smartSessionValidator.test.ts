@@ -100,7 +100,7 @@ describe("modules.smartSessionValidator.write", async () => {
     expect(status).toBe("success")
     const balanceAfter = await getBalance(testClient, recipientAddress)
     expect(balanceAfter - balanceBefore).toBe(1n)
-  }, 200000)
+  }, 100000)
 
   test("smartSessionValidator properties", async () => {
     const smartSessionValidator = await toSmartSessionValidatorModule({
