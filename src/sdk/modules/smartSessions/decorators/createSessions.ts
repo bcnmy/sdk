@@ -1,10 +1,11 @@
 import type { ActionData, PolicyData, Session } from "@rhinestone/module-sdk"
 import type { Chain, Client, Hex, PublicClient, Transport } from "viem"
-import { type SmartAccount, sendUserOperation } from "viem/account-abstraction"
+import { sendUserOperation } from "viem/account-abstraction"
 import { encodeFunctionData, getAction, parseAccount } from "viem/utils"
 import { SmartSessionAbi } from "../../../__contracts/abi/SmartSessionAbi"
 import addresses from "../../../__contracts/addresses"
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
+import type { ModularSmartAccount } from "../../utils/Types"
 import {
   createActionConfig,
   createActionData,
@@ -21,17 +22,35 @@ import type {
 
 const SIMPLE_SESSION_VALIDATOR_ADDRESS = addresses.SimpleSessionValidator
 
+/**
+ * Parameters for creating sessions in a modular smart account.
+ *
+ * @template TModularSmartAccount - Type of the modular smart account, extending ModularSmartAccount or undefined.
+ */
 export type CreateSessionsParameters<
-  TSmartAccount extends SmartAccount | undefined
+  TModularSmartAccount extends ModularSmartAccount | undefined
 > = {
+  /** Array of session data parameters for creating multiple sessions. */
   sessionRequestedInfo: CreateSessionDataParams[]
+  /** The maximum fee per gas unit the transaction is willing to pay. */
   maxFeePerGas?: bigint
+  /** The maximum priority fee per gas unit the transaction is willing to pay. */
   maxPriorityFeePerGas?: bigint
+  /** The nonce of the transaction. If not provided, it will be determined automatically. */
   nonce?: bigint
+  /** Optional public client for blockchain interactions. */
   publicClient?: PublicClient
-  account?: TSmartAccount
+  /** The modular smart account to create sessions for. If not provided, the client's account will be used. */
+  account?: TModularSmartAccount
 }
 
+/**
+ * Generates the action data for creating sessions in the SmartSessionValidator.
+ *
+ * @param sessionRequestedInfo - Array of session data parameters.
+ * @param client - The public client for blockchain interactions.
+ * @returns A promise that resolves to the action data and permission IDs, or an Error.
+ */
 export const getSmartSessionValidatorCreateSessionsAction = async ({
   sessionRequestedInfo,
   client
@@ -118,27 +137,54 @@ export const getSmartSessionValidatorCreateSessionsAction = async ({
 }
 
 /**
- * Adds n amount of sessions to the SmartSessionValidator module of a given smart account.
+ * Adds multiple sessions to the SmartSessionValidator module of a given smart account.
  *
- * @param client - The client instance.
+ * This function prepares and sends a user operation to create multiple sessions
+ * for the specified modular smart account. Each session can have its own policies
+ * and permissions.
+ *
+ * @template TModularSmartAccount - Type of the modular smart account, extending ModularSmartAccount or undefined.
+ * @param client - The client used to interact with the blockchain.
  * @param parameters - Parameters including the smart account, required session specific policies info, and optional gas settings.
- * @returns The hash of the user operation as a hexadecimal string.
- * @returns An array of permission ids corresponding to the sessions enabled.
+ * @returns A promise that resolves to an object containing the user operation hash and an array of permission IDs.
+ *
  * @throws {AccountNotFoundError} If the account is not found.
+ * @throws {Error} If there's an error getting the enable sessions action.
  *
  * @example
+ * ```typescript
  * import { createSessions } from '@biconomy/sdk'
  *
- * const userOpHash = await createSessions(nexusClient, {
- *   sessionRequestedInfo: '0x...'
- * })
- * console.log(userOpHash) // '0x...'
+ * const result = await createSessions(nexusClient, {
+ *   sessionRequestedInfo: [
+ *     {
+ *       sessionKeyData: '0x...',
+ *       actionPoliciesInfo: [
+ *         {
+ *           contractAddress: '0x...',
+ *           functionSelector: '0x...',
+ *           rules: [...],
+ *           valueLimit: 1000000000000000000n
+ *         }
+ *       ],
+ *       sessionValidUntil: 1234567890
+ *     }
+ *   ]
+ * });
+ * console.log(result.userOpHash); // '0x...'
+ * console.log(result.permissionIds); // ['0x...', '0x...']
+ * ```
+ *
+ * @remarks
+ * - Ensure that the client has sufficient gas to cover the transaction.
+ * - The number of sessions created is determined by the length of the `sessionRequestedInfo` array.
+ * - Each session's policies and permissions are determined by the `actionPoliciesInfo` provided.
  */
 export async function createSessions<
-  TSmartAccount extends SmartAccount | undefined
+  TModularSmartAccount extends ModularSmartAccount | undefined
 >(
-  client: Client<Transport, Chain | undefined, TSmartAccount>,
-  parameters: CreateSessionsParameters<TSmartAccount>
+  client: Client<Transport, Chain | undefined, TModularSmartAccount>,
+  parameters: CreateSessionsParameters<TModularSmartAccount>
 ): Promise<CreateSessionsResponse> {
   const {
     publicClient: publicClient_ = client.account?.client as PublicClient,
@@ -155,7 +201,7 @@ export async function createSessions<
     })
   }
 
-  const account = parseAccount(account_) as SmartAccount
+  const account = parseAccount(account_) as ModularSmartAccount
 
   const actionResponse = await getSmartSessionValidatorCreateSessionsAction({
     client: publicClient_,

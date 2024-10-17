@@ -6,67 +6,107 @@ import type { AbiFunction, Address, Hex } from "viem"
 import type { AnyReferenceValue } from "../utils/Helpers"
 import type { Execution } from "../utils/Types"
 
+/**
+ * Represents the data structure for a smart session.
+ * Smart sessions allow for delegated and controlled access to a user's account.
+ */
+export type SessionData = {
+  /** Hex-encoded address of the account granting the session. */
+  granter: Hex
+
+  /** Hex-encoded public key for the session. Used for signature verification. */
+  sessionPublicKey: Hex
+
+  /** Module-specific data containing session configuration and permissions. */
+  moduleData: UseSessionModuleData
+
+  /** Optional. The private key for signing session transactions. */
+  sessionPrivateKey?: Hex
+}
+
+/**
+ * Represents the return parameters for creating sessions action.
+ */
 export type CreateSessionsActionReturnParams = {
+  /** Array of permission IDs for the created sessions. */
   permissionIds: Hex[]
+  /** The execution object for the action. */
   action: Execution
 }
 
+/**
+ * Represents the response for creating sessions.
+ */
 export type CreateSessionsResponse = {
+  /** The hash of the user operation. */
   userOpHash: Hex
+  /** Array of permission IDs for the created sessions. */
   permissionIds: Hex[]
 }
 
-// Types related to smart sessions
+/**
+ * Represents the possible modes for a smart session.
+ */
 export type SmartSessionModeType =
   (typeof SmartSessionMode)[keyof typeof SmartSessionMode]
 
+/**
+ * Represents the data structure for using a session module.
+ */
 export type UseSessionModuleData = {
+  /** The permission ID for the session. */
   permissionId: Hex
+  /** The mode of the smart session. */
   mode?: SmartSessionModeType
+  /** Data for enabling the session. */
   enableSessionData?: EnableSessionData
 }
 
+/**
+ * Parameters for creating a session.
+ */
 export type CreateSessionDataParams = {
-  sessionPublicKey?: Hex // Works in case of session validator address is K1 algorithm. for other validators made up sessionData is needed
-
-  sessionValidatorAddress: Address // constant for a type of validator
-
-  sessionValidatorType?: string // usually simple K1 validator. ECDSA session key
-
+  /** Public key for the session. Required for K1 algorithm validators. */
+  sessionPublicKey?: Hex
+  /** Address of the session validator. */
+  sessionValidatorAddress: Address
+  /** Type of the session validator. Usually "simple K1 validator". */
+  sessionValidatorType?: string
+  /** Data for the session key. */
   sessionKeyData: Hex
-
+  /** Optional salt for the session. */
   salt?: Hex
-
-  // session validity means this will be applied as UseropPolicy through time frame policy
+  /** Timestamp until which the session is valid. */
   sessionValidUntil?: number
-
+  /** Timestamp after which the session becomes valid. */
   sessionValidAfter?: number
-
+  /** Array of action policy data for the session. */
   actionPoliciesInfo: ActionPolicyData[]
-
-  // useful for enable mode
-  // Note: could create a new type for enable mode.
-  // which all chains we want to enable this particular session on
+  /** Chain IDs where the session should be enabled. Useful for enable mode. */
   chainIds?: bigint[]
 }
 
+/**
+ * Represents the data structure for an action policy.
+ */
 export type ActionPolicyData = {
   /** The address of the contract to be included in the policy */
   contractAddress: Hex
-
   /** The specific function selector from the contract to be included in the policy */
   functionSelector: string | AbiFunction
-
+  /** Timestamp until which the policy is valid */
   validUntil: number
-
+  /** Timestamp after which the policy becomes valid */
   validAfter: number
-
+  /** Array of rules for the policy */
   rules: Rule[]
-
   /** The maximum value that can be transferred in a single transaction */
   valueLimit: bigint
 }
 
+/**
+ * Enum representing different parameter conditions for rules.
+ */
 export enum ParamCondition {
   EQUAL = 0,
   GREATER_THAN = 1,
@@ -76,44 +116,25 @@ export enum ParamCondition {
   NOT_EQUAL = 5
 }
 
-// rule object to be passed by chad devs
+/**
+ * Represents a rule for action policies.
+ */
 export type Rule = {
-  /**
-   * EQUAL = 0,
-   * GREATER_THAN = 1,
-   * LESS_THAN = 2,
-   * GREATER_THAN_OR_EQUAL = 3,
-   * LESS_THAN_OR_EQUAL = 4,
-   * NOT_EQUAL = 5
-   */
+  /** The condition to apply to the parameter */
   condition: ParamCondition
-  /**
-   * The offset in the calldata where the value to be checked is located.
-   * The offset is in multiples of 32 bytes. (Note: not the offsetIndex)
-   * The offsetIndex is generally the index of the arg in the method that you wish to target.
-   * The exception is when the arg is in an array
-   * In this case, the offsetIndex needs to be figured out using its position in the array
-   * (See the 'use-of-dynamic-types' example below for how to figure out the offsetIndex for an array)
-   *
-   * https://docs.soliditylang.org/en/develop/abi-spec.html#use-of-dynamic-types
-   *
-   * */
+  /** The offset index in the calldata where the value to be checked is located */
   offsetIndex: number
-  /**
-   * If the rule is limited, the usage object will contain the limit and the used values.
-   */
+  /** Indicates if the rule has a usage limit */
   isLimited: boolean
-  /**
-   * The reference value to compare against. You can pass in the raw hex value or a human-friendly value.
-   * Use the raw hex value if you are sure of the value you are passing in.
-   */
+  /** The reference value to compare against */
   ref: AnyReferenceValue
-  /**
-   * The usage object will contain the limit and the used values, and is only required if the isLimited property is true.
-   */
+  /** The usage object containing limit and used values (required if isLimited is true) */
   usage: LimitUsage
 }
 
+/**
+ * Represents a raw parameter rule.
+ */
 export type RawParamRule = {
   condition: ParamCondition
   offset: bigint
@@ -122,16 +143,25 @@ export type RawParamRule = {
   usage: LimitUsage
 }
 
+/**
+ * Represents a set of raw parameter rules.
+ */
 export type RawParamRules = {
   length: number
   rules: RawParamRule[]
 }
 
+/**
+ * Represents the usage limit for a rule.
+ */
 export type LimitUsage = {
   limit: bigint
   used: bigint
 }
 
+/**
+ * Represents the configuration for an action.
+ */
 export type ActionConfig = {
   valueLimitPerUse: bigint
   paramRules: {
@@ -140,11 +170,17 @@ export type ActionConfig = {
   }
 }
 
+/**
+ * Represents the raw configuration for an action.
+ */
 export type RawActionConfig = {
   valueLimitPerUse: bigint
   paramRules: RawParamRules
 }
 
+/**
+ * Represents the parameters for spending limits.
+ */
 export type SpendingLimitsParams = {
   token: Address
   limit: bigint

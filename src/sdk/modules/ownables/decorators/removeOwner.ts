@@ -1,43 +1,59 @@
 import { getRemoveOwnableValidatorOwnerAction } from "@rhinestone/module-sdk"
 import type { Chain, Client, Hex, PublicClient, Transport } from "viem"
-import {
-  type GetSmartAccountParameter,
-  type SmartAccount,
-  sendUserOperation
-} from "viem/account-abstraction"
+import { type SmartAccount, sendUserOperation } from "viem/account-abstraction"
 import { getAction, parseAccount } from "viem/utils"
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
+import type { ModularSmartAccount } from "../../utils/Types"
 
+/**
+ * Parameters for removing an owner from a smart account.
+ *
+ * @template TModularSmartAccount - Type of the smart account, extending SmartAccount or undefined.
+ */
 export type RemoveOwnerParameters<
-  TSmartAccount extends SmartAccount | undefined
-> = GetSmartAccountParameter<TSmartAccount> & {
+  TModularSmartAccount extends ModularSmartAccount | undefined
+> = {
+  /** The smart account to remove the owner from. If not provided, the client's account will be used. */
+  account?: TModularSmartAccount
+  /** The address of the owner to be removed. */
   owner: Hex
+  /** The maximum fee per gas unit the transaction is willing to pay. */
   maxFeePerGas?: bigint
+  /** The maximum priority fee per gas unit the transaction is willing to pay. */
   maxPriorityFeePerGas?: bigint
+  /** The nonce of the transaction. If not provided, it will be determined automatically. */
   nonce?: bigint
 }
 
 /**
- * Removes an owner from the OwnableValidator module of a given smart account.
+ * Removes an owner from a smart account.
  *
- * @param client - The client instance.
- * @param parameters - Parameters including the smart account, owner address to remove, and optional gas settings.
- * @returns The hash of the user operation as a hexadecimal string.
- * @throws {AccountNotFoundError} If the account is not found.
+ * This function prepares and sends a user operation to remove an existing owner from the specified smart account.
+ * It handles the creation of the necessary action data and sends the user operation.
+ *
+ * @template TModularSmartAccount - Type of the smart account, extending SmartAccount or undefined.
+ * @param client - The client used to interact with the blockchain.
+ * @param parameters - The parameters for removing the owner.
+ * @returns A promise that resolves to the hash of the sent user operation.
+ *
+ * @throws {AccountNotFoundError} If no account is provide
+ * @throws {Error} If there's an error getting the remove owner action.
  *
  * @example
+ * ```typescript
  * import { removeOwner } from '@biconomy/sdk'
  *
  * const userOpHash = await removeOwner(nexusClient, {
  *   owner: '0x...'
  * })
  * console.log(userOpHash) // '0x...'
+ * ```
  */
 export async function removeOwner<
-  TSmartAccount extends SmartAccount | undefined
+  TModularSmartAccount extends ModularSmartAccount | undefined
 >(
-  client: Client<Transport, Chain | undefined, TSmartAccount>,
-  parameters: RemoveOwnerParameters<TSmartAccount>
+  client: Client<Transport, Chain | undefined, TModularSmartAccount>,
+  parameters: RemoveOwnerParameters<TModularSmartAccount>
 ): Promise<Hex> {
   const {
     account: account_ = client.account,

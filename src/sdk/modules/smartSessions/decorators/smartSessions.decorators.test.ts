@@ -6,6 +6,7 @@ import {
   type Chain,
   type LocalAccount
 } from "viem"
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { toNetwork } from "../../../../test/testSetup"
 import {
@@ -24,6 +25,7 @@ import { createNexusSessionClient } from "../../../clients/createNexusSessionCli
 import type { Module } from "../../utils/Types"
 import { toSmartSessions } from "../toSmartSessions"
 import { smartSessionCreateActions, smartSessionUseActions } from "./"
+
 describe("modules.smartSessions.decorators", async () => {
   let network: NetworkConfig
   let chain: Chain
@@ -45,7 +47,7 @@ describe("modules.smartSessions.decorators", async () => {
     chain = network.chain
     bundlerUrl = network.bundlerUrl
     eoaAccount = getTestAccount(0)
-    sessionKeyAccount = getTestAccount(1)
+    sessionKeyAccount = privateKeyToAccount(generatePrivateKey()) // Generally belongs to the dapp
     sessionPublicKey = sessionKeyAccount.address
     testClient = toTestClient(chain, getTestAccount(5))
 
@@ -90,7 +92,7 @@ describe("modules.smartSessions.decorators", async () => {
     const useSessionsModule = toSmartSessions({
       account: nexusClient.account,
       signer: sessionKeyAccount,
-      permission: {
+      moduleData: {
         permissionId: "0x"
       }
     })
