@@ -1,4 +1,4 @@
-import type { Module } from "@rhinestone/module-sdk"
+import type { Module as ModuleMeta } from "@rhinestone/module-sdk"
 import {
   type Chain,
   type Client,
@@ -20,7 +20,7 @@ import { parseModuleTypeId } from "./supportsModule"
 export type UninstallModulesParameters<
   TSmartAccount extends SmartAccount | undefined
 > = GetSmartAccountParameter<TSmartAccount> & {
-  modules: Module[]
+  modules: ModuleMeta[]
   maxFeePerGas?: bigint
   maxPriorityFeePerGas?: bigint
   nonce?: bigint
@@ -61,7 +61,7 @@ export async function uninstallModules<
 
   if (!account_) {
     throw new AccountNotFoundError({
-      docsPath: "/docs/actions/wallet/sendTransaction"
+      docsPath: "/nexus/nexus-client/methods#sendtransaction"
     })
   }
 

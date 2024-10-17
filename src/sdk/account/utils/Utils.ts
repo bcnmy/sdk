@@ -1,4 +1,3 @@
-import { config } from "dotenv"
 import {
   type Address,
   type Client,
@@ -37,8 +36,6 @@ import type {
   EIP712DomainReturn,
   UserOperationStruct
 } from "./Types"
-
-config()
 
 /**
  * pack the userOperation
@@ -356,8 +353,8 @@ export const getAccountDomainStructFields = async (
     keccak256(encodePacked(["uint256[]"], [extensions]))
   ])
 }
-export const playgroundTrue = process.env.RUN_PLAYGROUND === "true"
-export const isTesting = process.env.TEST === "true"
+export const playgroundTrue = process?.env?.RUN_PLAYGROUND === "true"
+export const isTesting = process?.env?.TEST === "true"
 
 export const safeMultiplier = (bI: bigint, multiplier: number): bigint =>
   BigInt(Math.round(Number(bI) * multiplier))

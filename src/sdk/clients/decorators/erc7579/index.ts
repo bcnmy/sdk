@@ -51,15 +51,9 @@ import {
 
 export type Erc7579Actions<TSmartAccount extends SmartAccount | undefined> = {
   accountId: (args?: GetSmartAccountParameter<TSmartAccount>) => Promise<string>
-  installModule: (
-    args: InstallModuleParameters<TSmartAccount> & {
-      signatureOverride?: Hex
-    }
-  ) => Promise<Hash>
+  installModule: (args: InstallModuleParameters<TSmartAccount>) => Promise<Hash>
   installModules: (
-    args: InstallModulesParameters<TSmartAccount> & {
-      signatureOverride?: Hex
-    }
+    args: InstallModulesParameters<TSmartAccount>
   ) => Promise<Hash>
   isModuleInstalled: (
     args: IsModuleInstalledParameters<TSmartAccount>
@@ -71,14 +65,10 @@ export type Erc7579Actions<TSmartAccount extends SmartAccount | undefined> = {
     args: SupportsModuleParameters<TSmartAccount>
   ) => Promise<boolean>
   uninstallModule: (
-    args: UninstallModuleParameters<TSmartAccount> & {
-      signatureOverride?: Hex
-    }
+    args: UninstallModuleParameters<TSmartAccount>
   ) => Promise<Hash>
   uninstallModules: (
-    args: UninstallModulesParameters<TSmartAccount> & {
-      signatureOverride?: Hex
-    }
+    args: UninstallModulesParameters<TSmartAccount>
   ) => Promise<Hash>
   getInstalledValidators: (
     args?: GetInstalledValidatorsParameters<TSmartAccount>
@@ -145,24 +135,3 @@ export function erc7579Actions() {
     getPreviousModule: (args) => getPreviousModule(client, args)
   })
 }
-
-// export type Module = {
-//   address: Address
-//   data?: Hex
-//   additionalContext?: Hex
-//   type: ModuleType
-
-//   /* ---- kernel module params ---- */
-//   // these param needed for installing validator, executor, fallback handler
-//   hook?: Address
-//   /* ---- end kernel module params ---- */
-
-//   /* ---- safe module params ---- */
-//   // these two params needed for installing hooks
-//   hookType?: SafeHookType
-//   selector?: Hex
-
-//   // these two params needed for installing fallback handlers
-//   functionSig?: Hex
-//   callType?: CallType
-// }

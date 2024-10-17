@@ -10,14 +10,15 @@ import {
   toBytes,
   toHex
 } from "viem"
-import { parseReferenceValue } from "../.."
-import { UniActionPolicyAbi } from "../../../__contracts/abi"
-import { SmartSessionAbi } from "../../../__contracts/abi/SmartSessionAbi"
-import addresses from "../../../__contracts/addresses"
+import { UniActionPolicyAbi } from "../../__contracts/abi"
+import { SmartSessionAbi } from "../../__contracts/abi/SmartSessionAbi"
+import addresses from "../../__contracts/addresses"
+import { parseReferenceValue } from "../utils/Helpers"
 import type {
   ActionConfig,
   RawActionConfig,
   Rule,
+  SessionData,
   SpendingLimitsParams
 } from "./Types"
 
@@ -25,6 +26,11 @@ const TIMEFRAME_POLICY_ADDRESS = addresses.TimeframePolicy
 
 export const MAX_RULES = 16
 
+/**
+ * Generates a random salt as a hexadecimal string.
+ *
+ * @returns A 32-byte hexadecimal string prefixed with '0x'.
+ */
 export const generateSalt = (): Hex => {
   const randomBytes = new Uint8Array(32)
   crypto.getRandomValues(randomBytes)
@@ -33,19 +39,32 @@ export const generateSalt = (): Hex => {
   ).join("")}` as Hex
 }
 
+/**
+ * Creates an ActionConfig object from rules and a value limit.
+ *
+ * @param rules - An array of Rule objects.
+ * @param valueLimit - The maximum value allowed for the action.
+ * @returns An ActionConfig object.
+ */
 export const createActionConfig = (
   rules: Rule[],
   valueLimit: bigint
-): ActionConfig => {
-  return {
-    paramRules: {
-      length: rules.length,
-      rules: rules
-    },
-    valueLimitPerUse: valueLimit
-  }
-}
+): ActionConfig => ({
+  paramRules: {
+    length: rules.length,
+    rules: rules
+  },
+  valueLimitPerUse: valueLimit
+})
 
+/**
+ * Creates an ActionData object.
+ *
+ * @param contractAddress - The address of the contract.
+ * @param functionSelector - The function selector or AbiFunction.
+ * @param policies - An array of PolicyData objects.
+ * @returns An ActionData object.
+ */
 export const createActionData = (
   contractAddress: Address,
   functionSelector: string | AbiFunction,
@@ -60,6 +79,12 @@ export const createActionData = (
   }
 }
 
+/**
+ * Converts an ActionConfig to a RawActionConfig.
+ *
+ * @param config - The ActionConfig to convert.
+ * @returns A RawActionConfig object.
+ */
 export const toActionConfig = (config: ActionConfig): RawActionConfig => {
   // Ensure we always have 16 rules, filling with default values if necessary
   const filledRules = [...config.paramRules.rules]
@@ -96,6 +121,13 @@ export const toActionConfig = (config: ActionConfig): RawActionConfig => {
   }
 }
 
+/**
+ * Gets the permission ID for a given session.
+ *
+ * @param client - The PublicClient to use for the contract call.
+ * @param session - The Session object.
+ * @returns A promise that resolves to the permission ID as a Hex string.
+ */
 export const getPermissionId = async ({
   client,
   session
@@ -119,15 +151,20 @@ export const isPermissionEnabled = async ({
   client: PublicClient
   accountAddress: Address
   permissionId: Hex
-}) => {
-  return (await client.readContract({
+}) =>
+  client.readContract({
     address: addresses.SmartSession,
     abi: SmartSessionAbi,
     functionName: "isPermissionEnabled",
     args: [permissionId, accountAddress]
-  })) as boolean
-}
+  })
 
+/**
+ * Converts an ActionConfig to a UniversalActionPolicy.
+ *
+ * @param actionConfig - The ActionConfig to convert.
+ * @returns A PolicyData object representing the UniversalActionPolicy.
+ */
 export const toUniversalActionPolicy = (
   actionConfig: ActionConfig
 ): PolicyData => ({
@@ -137,6 +174,13 @@ export const toUniversalActionPolicy = (
   ])
 })
 
+/**
+ * Creates a TimeRangePolicy.
+ *
+ * @param validUntil - The timestamp until which the policy is valid.
+ * @param validAfter - The timestamp after which the policy is valid.
+ * @returns A PolicyData object representing the TimeRangePolicy.
+ */
 export const toTimeRangePolicy = (
   validUntil: number,
   validAfter: number
@@ -161,11 +205,20 @@ export const toTimeRangePolicy = (
   return timeFramePolicyData
 }
 
+/**
+ * A PolicyData object representing a sudo policy.
+ */
 export const sudoPolicy: PolicyData = {
   policy: "0x529Ad04F4D83aAb25144a90267D4a1443B84f5A6",
   initData: "0x"
 }
 
+/**
+ * Converts SpendingLimitsParams to a SpendingLimitsPolicy.
+ *
+ * @param params - An array of SpendingLimitsParams.
+ * @returns A PolicyData object representing the SpendingLimitsPolicy.
+ */
 export const toSpendingLimitsPolicy = (
   params: SpendingLimitsParams
 ): PolicyData => {
@@ -178,6 +231,9 @@ export const toSpendingLimitsPolicy = (
   }
 }
 
+/**
+ * An object containing policy conversion functions.
+ */
 export const policies = {
   to: {
     universalAction: toUniversalActionPolicy,
@@ -185,5 +241,25 @@ export const policies = {
   },
   sudo: sudoPolicy
 } as const
+
+/**
+ * Zips SessionData into a compact string representation.
+ *
+ * @param sessionData - The SessionData object to be zipped.
+ * @returns A string representing the zipped SessionData.
+ */
+export function zipSessionData(sessionData: SessionData): string {
+  return JSON.stringify(sessionData)
+}
+
+/**
+ * Unzips a string representation back into a SessionData object.
+ *
+ * @param zippedData - The string representing the zipped SessionData.
+ * @returns The unzipped SessionData object.
+ */
+export function unzipSessionData(zippedData: string): SessionData {
+  return JSON.parse(zippedData) as SessionData
+}
 
 export default policies

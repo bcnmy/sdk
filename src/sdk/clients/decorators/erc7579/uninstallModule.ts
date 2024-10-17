@@ -1,4 +1,4 @@
-import type { Module } from "@rhinestone/module-sdk"
+import type { Module as ModuleMeta } from "@rhinestone/module-sdk"
 import {
   type Chain,
   type Client,
@@ -15,15 +15,14 @@ import {
 } from "viem/account-abstraction"
 import { getAction } from "viem/utils"
 import { parseAccount } from "viem/utils"
+import { getInstalledValidators, getPreviousModule } from "."
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
-import { getInstalledValidators } from "./getInstalledValidators"
-import { getPreviousModule } from "./getPreviousModule"
 import { parseModuleTypeId } from "./supportsModule"
 
 export type UninstallModuleParameters<
   TSmartAccount extends SmartAccount | undefined
 > = GetSmartAccountParameter<TSmartAccount> & {
-  module: Module
+  module: ModuleMeta
   maxFeePerGas?: bigint
   maxPriorityFeePerGas?: bigint
   nonce?: bigint
@@ -53,22 +52,19 @@ export async function uninstallModule<
   TSmartAccount extends SmartAccount | undefined
 >(
   client: Client<Transport, Chain | undefined, TSmartAccount>,
-  parameters: UninstallModuleParameters<TSmartAccount> & {
-    signatureOverride?: Hex
-  }
+  parameters: UninstallModuleParameters<TSmartAccount>
 ): Promise<Hex> {
   const {
     account: account_ = client.account,
     maxFeePerGas,
     maxPriorityFeePerGas,
     nonce,
-    module: { module, initData, type },
-    signatureOverride
+    module: { module, initData, type }
   } = parameters
 
   if (!account_) {
     throw new AccountNotFoundError({
-      docsPath: "/docs/actions/wallet/sendTransaction"
+      docsPath: "/nexus/nexus-client/methods#sendtransaction"
     })
   }
 
@@ -77,7 +73,7 @@ export async function uninstallModule<
 
   const prevModule = await getPreviousModule(client, {
     module: {
-      address: module,
+      module,
       type
     },
     installedValidators,
@@ -132,7 +128,6 @@ export async function uninstallModule<
     maxFeePerGas,
     maxPriorityFeePerGas,
     nonce,
-    account,
-    signature: signatureOverride
+    account
   })
 }

@@ -21,6 +21,11 @@ export const DefaultGasLimit = {
 }
 
 export const ERROR_MESSAGES = {
+  SIGNER_REQUIRED_FOR_CREATE_SESSION: "Signer is required",
+  ACCOUNT_REQUIRED: "Account is required",
+  MODULE_NOT_ACTIVATED: "Module not activated",
+  SMART_SESSION_DATA_REQUIRED:
+    "Data is required for using smart session module",
   MISSING_ACCOUNT_CONTRACT:
     'The contract function "computeAccountAddress" returned no data ("0x")',
   INVALID_HEX:

@@ -50,8 +50,8 @@ import {
   PARENT_TYPEHASH
 } from "./utils/Constants"
 
-import { toK1ValidatorModule } from "../modules/validators/k1Validator/toK1ValidatorModule"
-import type { ToValidationModuleReturnType } from "../modules/validators/toValidationModule"
+import { toK1 } from "../modules/k1/toK1"
+import type { Module } from "../modules/utils/Types"
 import {
   type TypedDataWith712,
   eip712WrapHash,
@@ -61,10 +61,7 @@ import {
   packUserOp,
   typeToString
 } from "./utils/Utils"
-import { type UnknownSigner, toSigner } from "./utils/toSigner"
-
-// Maximum number that can fit in bytes3
-const TIMESTAMP_ADJUSTMENT = 16777215n
+import { type Signer, type UnknownSigner, toSigner } from "./utils/toSigner"
 
 /**
  * Parameters for creating a Nexus Smart Account
@@ -79,7 +76,7 @@ export type ToNexusSmartAccountParameters = {
   /** Optional index for the account */
   index?: bigint | undefined
   /** Optional active validation module */
-  activeModule?: ToValidationModuleReturnType
+  module?: Module
   /** Optional factory address */
   factoryAddress?: Address
   /** Optional K1 validator address */
@@ -119,10 +116,11 @@ export type NexusSmartAccountImplementation = SmartAccountImplementation<
     encodeExecute: (call: Call) => Promise<Hex>
     encodeExecuteBatch: (calls: readonly Call[]) => Promise<Hex>
     getUserOpHash: (userOp: Partial<UserOperationStruct>) => Promise<Hex>
-    setActiveModule: (validationModule: ToValidationModuleReturnType) => void
-    getActiveModule: () => ToValidationModuleReturnType
+    setModule: (validationModule: Module) => void
+    getModule: () => Module
     factoryData: Hex
     factoryAddress: Address
+    signer: Signer
   }
 >
 
@@ -151,7 +149,7 @@ export const toNexusAccount = async (
     transport,
     signer: _signer,
     index = 0n,
-    activeModule: activeModule_,
+    module: module_,
     factoryAddress = contracts.k1ValidatorFactory.address,
     k1ValidatorAddress = contracts.k1Validator.address,
     key = "nexus account",
@@ -201,6 +199,7 @@ export const toNexusAccount = async (
         functionName: "computeAccountAddress",
         args: [signerAddress, index, [], 0]
       })) as Address
+      // biome-ignore lint/suspicious/noExplicitAny: <explanation>
     } catch (e: any) {
       if (e.shortMessage?.includes(ERROR_MESSAGES.MISSING_ACCOUNT_CONTRACT)) {
         throw new Error(
@@ -216,15 +215,15 @@ export const toNexusAccount = async (
     return _accountAddress
   }
 
-  let activeModule =
-    activeModule_ ??
-    (await toK1ValidatorModule({
+  let module =
+    module_ ??
+    toK1({
       address: k1ValidatorAddress,
       accountAddress: await getAddress(),
       initData: signerAddress,
       deInitData: "0x",
-      client: masterClient
-    }))
+      signer
+    })
 
   /**
    * @description Gets the counterfactual address of the account
@@ -235,6 +234,7 @@ export const toNexusAccount = async (
     if (_accountAddress) return _accountAddress
     try {
       await entryPointContract.simulate.getSenderAddress([getInitCode()])
+      // biome-ignore lint/suspicious/noExplicitAny: <explanation>
     } catch (e: any) {
       if (e?.cause?.data?.errorName === "SenderAddressResult") {
         _accountAddress = e?.cause.data.args[0] as Address
@@ -349,12 +349,13 @@ export const toNexusAccount = async (
     validationMode?: "0x00" | "0x01"
   }): Promise<bigint> => {
     try {
+      const TIMESTAMP_ADJUSTMENT = 16777215n
       const defaultedKey = BigInt(parameters?.key ?? 0n) % TIMESTAMP_ADJUSTMENT
       const defaultedValidationMode = parameters?.validationMode ?? "0x00"
       const key: string = concat([
         toHex(defaultedKey, { size: 3 }),
         defaultedValidationMode,
-        activeModule.address
+        module.address
       ])
 
       const accountAddress = await getAddress()
@@ -368,13 +369,11 @@ export const toNexusAccount = async (
   }
   /**
    * @description Changes the active module for the account
-   * @param newModule - The new module to set as active
+   * @param module - The new module to set as active
    * @returns void
    */
-  const setActiveModule = (
-    validationModule: ToValidationModuleReturnType
-  ): void => {
-    activeModule = validationModule
+  const setModule = (validationModule: Module): void => {
+    module = validationModule
   }
 
   /**
@@ -386,13 +385,11 @@ export const toNexusAccount = async (
   const signMessage = async ({
     message
   }: { message: SignableMessage }): Promise<Hex> => {
-    const tempSignature = await activeModule.signer.signMessage({
-      message
-    })
+    const tempSignature = await module.signMessage(message)
 
     const signature = encodePacked(
       ["address", "bytes"],
-      [activeModule.address, tempSignature]
+      [module.address, tempSignature]
     )
 
     const erc6492Signature = concat([
@@ -474,7 +471,7 @@ export const toNexusAccount = async (
       appDomainSeparator
     )
 
-    let signature = await activeModule.signMessage(toBytes(wrappedTypedHash))
+    let signature = await module.signMessage({ raw: toBytes(wrappedTypedHash) })
 
     const contentsType = toBytes(typeToString(types as TypedDataWith712)[1])
 
@@ -488,7 +485,7 @@ export const toNexusAccount = async (
 
     signature = encodePacked(
       ["address", "bytes"],
-      [activeModule.address, signatureData]
+      [module.address, signatureData]
     )
 
     return signature
@@ -508,7 +505,7 @@ export const toNexusAccount = async (
         : encodeExecuteBatch(calls)
     },
     getFactoryArgs: async () => ({ factory: factoryAddress, factoryData }),
-    getStubSignature: async (): Promise<Hex> => activeModule.getStubSignature(),
+    getStubSignature: async (): Promise<Hex> => module.getStubSignature(),
     signMessage,
     signTypedData,
     signUserOperation: async (
@@ -531,7 +528,7 @@ export const toNexusAccount = async (
         entryPointVersion: "0.7",
         userOperation
       })
-      return await activeModule.signUserOpHash(hash)
+      return await module.signUserOpHash(hash)
     },
     getNonce,
     extend: {
@@ -542,10 +539,11 @@ export const toNexusAccount = async (
       encodeExecute,
       encodeExecuteBatch,
       getUserOpHash,
-      setActiveModule,
-      getActiveModule: () => activeModule,
+      setModule,
+      getModule: () => module,
       factoryData,
-      factoryAddress
+      factoryAddress,
+      signer
     }
   })
 }

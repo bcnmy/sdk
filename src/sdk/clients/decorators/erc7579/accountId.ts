@@ -41,7 +41,7 @@ export async function accountId<TSmartAccount extends SmartAccount | undefined>(
 
   if (!account_) {
     throw new AccountNotFoundError({
-      docsPath: "/docs/actions/wallet/sendTransaction"
+      docsPath: "/nexus/nexus-client/methods#sendtransaction"
     })
   }
 
