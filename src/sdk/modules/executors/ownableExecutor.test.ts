@@ -89,7 +89,7 @@ describe("modules.ownableExecutor", async () => {
     const isInstalled = await nexusClient.isModuleInstalled({
       module: {
         type: "executor",
-        address: testAddresses.OwnableExecutor
+        module: testAddresses.OwnableExecutor
       }
     })
     expect(isInstalled).toBe(false)
@@ -97,8 +97,8 @@ describe("modules.ownableExecutor", async () => {
     const userOpHash = await nexusClient.installModule({
       module: {
         type: "executor",
-        address: testAddresses.OwnableExecutor,
-        data: encodePacked(["address"], [eoaAccount.address])
+        module: testAddresses.OwnableExecutor,
+        initData: encodePacked(["address"], [eoaAccount.address])
       }
     })
     expect(userOpHash).toBeDefined()
@@ -110,7 +110,7 @@ describe("modules.ownableExecutor", async () => {
     const isInstalledAfter = await nexusClient.isModuleInstalled({
       module: {
         type: "executor",
-        address: testAddresses.OwnableExecutor
+        module: testAddresses.OwnableExecutor
       }
     })
     expect(isInstalledAfter).toBe(true)

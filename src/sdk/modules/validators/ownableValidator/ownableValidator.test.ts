@@ -113,9 +113,9 @@ describe("modules.ownableValidator", async () => {
     // Install ownable validator
     const installHash = await nexusClient.installModule({
       module: {
-        address: ownableValidatorModule.address,
+        module: ownableValidatorModule.address,
         type: "validator",
-        data: encodeAbiParameters(
+        initData: encodeAbiParameters(
           [
             { name: "threshold", type: "uint256" },
             { name: "owners", type: "address[]" }
@@ -193,7 +193,7 @@ describe("modules.ownableValidator", async () => {
   test("should add owner and set threshold to 2", async () => {
     const isInstalled = await nexusClient.isModuleInstalled({
       module: {
-        address: ownableValidatorModule.address,
+        module: ownableValidatorModule.address,
         type: "validator"
       }
     })

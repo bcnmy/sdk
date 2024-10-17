@@ -81,7 +81,6 @@ export const TEST_CONTRACTS: Record<
     name: "WalletConnect CoSigner",
     address: "0x24084171C36Fa6dfdf41D9C89A51F600ed35A731"
   },
-  // Review: addresses and need
   MockK1Validator: {
     chainId: 84532,
     name: "MockK1Validator",
