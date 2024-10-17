@@ -124,9 +124,8 @@ describe("nexus.session.client", async () => {
         }
       ]
     })
-    const { success: trustAttestersSuccess } =
-      await nexusClient.waitForUserOperationReceipt({ hash: trustAttestersHash })
-    expect(trustAttestersSuccess).toBe(true)
+    const { status } = await testClient.waitForTransactionReceipt({ hash: trustAttestersHash })
+    expect(status).toBe("success")
 
     // session key signer address is declared here
     const sessionRequestedInfo: CreateSessionDataParams[] = [
