@@ -8,6 +8,6 @@ export const addresses = {
   UniActionPolicy: "0x148CD6c24F4dd23C396E081bBc1aB1D92eeDe2BF",
   TimeframePolicy: "0x0B7BB9bD65858593D97f12001FaDa94828307805",
   SmartSession: "0xDDFF43A42726df11E34123f747bDce0f755F784d",
-  SimpleSessionValidator: "0xAAAdFd794A1781e4Fd3eA64985F107a7Ac2b3872" // K1 algorithm - single session key
+  SimpleSessionValidator: "0x41f143f4B5f19AfCd2602F6ADE18E75e9b5E37d3" // K1 algorithm - single session key
 } as const
 export default addresses

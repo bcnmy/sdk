@@ -24,7 +24,7 @@ export const TEST_CONTRACTS: Record<
   SimpleSessionValidator: {
     chainId: 84532,
     name: "Simple Session Validator",
-    address: "0xAAAdFd794A1781e4Fd3eA64985F107a7Ac2b3872"
+    address: "0x41f143f4B5f19AfCd2602F6ADE18E75e9b5E37d3"
   },
   UniActionPolicy: {
     chainId: 84532,

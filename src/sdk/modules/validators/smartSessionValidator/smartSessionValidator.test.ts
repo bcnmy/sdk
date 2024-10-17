@@ -51,7 +51,7 @@ describe("modules.smartSessionValidator.write", async () => {
   let cachedPermissionId: Hex
   let sessionAccount: Account // Session key signer
   beforeAll(async () => {
-    network = await toNetwork()
+    network = await toNetwork("BASE_SEPOLIA_FORKED")
 
     chain = network.chain
     bundlerUrl = network.bundlerUrl
@@ -85,60 +85,6 @@ describe("modules.smartSessionValidator.write", async () => {
           to: recipientAddress,
           value: 1n
         },
-        /*{
-          to: TEST_CONTRACTS.MockRegistry.address,
-          value: 0n,
-          data: encodeFunctionData({
-            abi: MockRegistryAbi,
-            functionName: "registerModule",
-            args: ["0xdbca873b13c783c0c9c6ddfc4280e505580bf6cc3dac83f8a0f7b44acaafca4f", TEST_CONTRACTS.SmartSession.address, "0x", "0x"]
-          })
-        },
-        {
-          to: TEST_CONTRACTS.MockRegistry.address,
-          value: 0n,
-          data: encodeFunctionData({
-            abi: MockRegistryAbi,
-            functionName: "registerModule",
-            args: ["0xdbca873b13c783c0c9c6ddfc4280e505580bf6cc3dac83f8a0f7b44acaafca4f", TEST_CONTRACTS.UniActionPolicy.address, "0x", "0x"]
-          })
-        },
-        {
-          to: TEST_CONTRACTS.MockRegistry.address,
-          value: 0n,
-          data: encodeFunctionData({
-            abi: MockRegistryAbi,
-            functionName: "registerModule",
-            args: ["0xdbca873b13c783c0c9c6ddfc4280e505580bf6cc3dac83f8a0f7b44acaafca4f", TEST_CONTRACTS.TimeFramePolicy.address, "0x", "0x"]
-          })
-        },
-        {
-          to: TEST_CONTRACTS.MockAttester.address,
-          value: 0n,
-          data: encodeFunctionData({
-            abi: MockAttesterAbi,
-            functionName: "attest",
-            args: [TEST_CONTRACTS.MockRegistry.address, "0x93d46fcca4ef7d66a413c7bde08bb1ff14bacbd04c4069bb24cd7c21729d7bf1", [TEST_CONTRACTS.SmartSession.address, 0, "0x", [BigInt(1)]]]
-          })
-        },
-        {
-          to: TEST_CONTRACTS.MockAttester.address,
-          value: 0n,
-          data: encodeFunctionData({
-            abi: MockAttesterAbi,
-            functionName: "attest",
-            args: [TEST_CONTRACTS.MockRegistry.address, "0x93d46fcca4ef7d66a413c7bde08bb1ff14bacbd04c4069bb24cd7c21729d7bf1", [TEST_CONTRACTS.UniActionPolicy.address, 0, "0x", [BigInt(5)]]]
-          })
-        },
-        {
-          to: TEST_CONTRACTS.MockAttester.address,
-          value: 0n,
-          data: encodeFunctionData({
-            abi: MockAttesterAbi,
-            functionName: "attest",
-            args: [TEST_CONTRACTS.MockRegistry.address, "0x93d46fcca4ef7d66a413c7bde08bb1ff14bacbd04c4069bb24cd7c21729d7bf1", [TEST_CONTRACTS.TimeFramePolicy.address, 0, "0x", [BigInt(5)]]]
-          })
-        },*/
         {
           to: TEST_CONTRACTS.MockRegistry.address,
           value: 0n,
