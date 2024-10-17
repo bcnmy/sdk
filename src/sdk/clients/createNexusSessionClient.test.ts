@@ -49,7 +49,7 @@ describe("nexus.session.client", async () => {
   let sessionsModule: Module
 
   beforeAll(async () => {
-    network = await toNetwork()
+    network = await toNetwork("BASE_SEPOLIA_FORKED")
 
     chain = network.chain
     bundlerUrl = network.bundlerUrl
