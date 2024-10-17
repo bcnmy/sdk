@@ -45,7 +45,7 @@ import policies, {
 import type { CreateSessionDataParams, Rule, SessionData } from "./Types"
 import { ParamCondition } from "./Types"
 import { smartSessionCreateActions, smartSessionUseActions } from "./decorators"
-import { toSmartSessions } from "./toSmartSessions"
+import { toSmartSessionsValidator } from "./toSmartSessionsValidator"
 
 describe("modules.smartSessions.dx", async () => {
   let network: NetworkConfig
@@ -110,7 +110,7 @@ describe("modules.smartSessions.dx", async () => {
     await fundAndDeployClients(testClient, [usersNexusClient])
 
     // Create a smart sessions module for the user's account
-    sessionsModule = toSmartSessions({
+    sessionsModule = toSmartSessionsValidator({
       account: usersNexusClient.account,
       signer: eoaAccount
     })
@@ -119,6 +119,11 @@ describe("modules.smartSessions.dx", async () => {
     const hash = await usersNexusClient.installModule({
       module: sessionsModule.moduleInitData
     })
+
+    // Extend the Nexus client with smart session creation actions
+    const nexusSessionClient = usersNexusClient.extend(
+      smartSessionCreateActions(sessionsModule)
+    )
 
     // Wait for the module installation transaction to be mined and check its success
     const { success: installSuccess } =
@@ -147,11 +152,6 @@ describe("modules.smartSessions.dx", async () => {
         ]
       }
     ]
-
-    // Extend the Nexus client with smart session creation actions
-    const nexusSessionClient = usersNexusClient.extend(
-      smartSessionCreateActions(sessionsModule)
-    )
 
     // Create the smart session
     const createSessionsResponse = await nexusSessionClient.createSessions({
@@ -198,7 +198,7 @@ describe("modules.smartSessions.dx", async () => {
     })
 
     // Create a new smart sessions module with the session key
-    const useSessionsModule = toSmartSessions({
+    const useSessionsModule = toSmartSessionsValidator({
       account: smartSessionNexusClient.account,
       signer: sessionKeyAccount,
       moduleData: usersSessionData.moduleData
@@ -265,7 +265,7 @@ describe("modules.smartSessions", async () => {
       bundlerTransport: http(bundlerUrl)
     })
 
-    sessionsModule = toSmartSessions({
+    sessionsModule = toSmartSessionsValidator({
       account: nexusClient.account,
       signer: eoaAccount
     })
@@ -358,7 +358,7 @@ describe("modules.smartSessions", async () => {
   test.concurrent(
     "should have valid smartSessionValidator properties",
     async () => {
-      const smartSessionValidator = toSmartSessions({
+      const smartSessionValidator = toSmartSessionsValidator({
         account: nexusClient.account,
         signer: eoaAccount
       })
@@ -458,7 +458,7 @@ describe("modules.smartSessions", async () => {
       bundlerTransport: http(bundlerUrl)
     })
 
-    const useSessionsModule = toSmartSessions({
+    const useSessionsModule = toSmartSessionsValidator({
       account: smartSessionNexusClient.account,
       signer: sessionKeyAccount,
       moduleData: {
@@ -536,7 +536,7 @@ describe("modules.smartSessions.uniPolicy", async () => {
 
     nexusAccountAddress = await nexusClient.account.getCounterFactualAddress()
 
-    sessionsModule = toSmartSessions({
+    sessionsModule = toSmartSessionsValidator({
       account: nexusClient.account,
       signer: eoaAccount
     })
@@ -741,7 +741,7 @@ describe("modules.smartSessions.uniPolicy", async () => {
       bundlerTransport: http(bundlerUrl)
     })
 
-    const useSessionsModule = toSmartSessions({
+    const useSessionsModule = toSmartSessionsValidator({
       account: smartSessionNexusClient.account,
       signer: sessionKeyAccount,
       moduleData: {

@@ -21,7 +21,10 @@ import {
   type NexusClient,
   createNexusClient
 } from "../../../clients/createNexusClient"
-import { getOwnablesModuleInitData, toOwnables } from "../toOwnables"
+import {
+  getOwnablesModuleInitData,
+  toOwnableValidator
+} from "../toOwnableValidator"
 
 describe("modules.ownables.decorators", async () => {
   let network: NetworkConfig
@@ -66,7 +69,7 @@ describe("modules.ownables.decorators", async () => {
   })
 
   test.concurrent("should batch test ownable decorators", async () => {
-    const ownableModule = toOwnables({
+    const ownableModule = toOwnableValidator({
       account: nexusClient.account,
       signer: eoaAccount,
       moduleInitArgs: {

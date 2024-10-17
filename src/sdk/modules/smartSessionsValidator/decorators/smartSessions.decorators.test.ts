@@ -23,8 +23,8 @@ import {
 } from "../../../clients/createNexusClient"
 import { createNexusSessionClient } from "../../../clients/createNexusSessionClient"
 import type { Module } from "../../utils/Types"
-import { toSmartSessions } from "../toSmartSessions"
 import { smartSessionCreateActions, smartSessionUseActions } from "./"
+import { toSmartSessionsValidator } from "../toSmartSessionsValidator"
 
 describe("modules.smartSessions.decorators", async () => {
   let network: NetworkConfig
@@ -67,7 +67,7 @@ describe("modules.smartSessions.decorators", async () => {
   })
 
   test("should test create smart session decorators", async () => {
-    const sessionsModule = toSmartSessions({
+    const sessionsModule = toSmartSessionsValidator({
       account: nexusClient.account,
       signer: eoaAccount
     })
@@ -89,7 +89,7 @@ describe("modules.smartSessions.decorators", async () => {
   })
 
   test("should test use smart session decorators", async () => {
-    const useSessionsModule = toSmartSessions({
+    const useSessionsModule = toSmartSessionsValidator({
       account: nexusClient.account,
       signer: sessionKeyAccount,
       moduleData: {
