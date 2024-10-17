@@ -1,37 +1,48 @@
 import { getAddOwnableValidatorOwnerAction } from "@rhinestone/module-sdk"
 import type { Chain, Client, Hex, PublicClient, Transport } from "viem"
-import { type SmartAccount, sendUserOperation } from "viem/account-abstraction"
+import { sendUserOperation } from "viem/account-abstraction"
 import { getAction, parseAccount } from "viem/utils"
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
-
-export type AddOwnerParameters<TSmartAccount extends SmartAccount | undefined> =
-  {
-    account?: TSmartAccount
-    owner: Hex
-    maxFeePerGas?: bigint
-    maxPriorityFeePerGas?: bigint
-    nonce?: bigint
-  }
+import type { ModularSmartAccount } from "../../utils/Types"
 
 /**
- * Adds an owner to the OwnableValidator module of a given smart account.
+ * Parameters for adding an owner to a smart account.
  *
- * @param client - The client instance.
- * @param parameters - Parameters including the smart account, new owner address, and optional gas settings.
- * @returns The hash of the user operation as a hexadecimal string.
- * @throws {AccountNotFoundError} If the account is not found.
- *
- * @example
- * import { addOwner } from '@biconomy/sdk'
- *
- * const userOpHash = await addOwner(nexusClient, {
- *   owner: '0x...'
- * })
- * console.log(userOpHash) // '0x...'
+ * @template TModularSmartAccount - The type of the smart account, which can be a ModularSmartAccount or undefined.
  */
-export async function addOwner<TSmartAccount extends SmartAccount | undefined>(
-  client: Client<Transport, Chain | undefined, TSmartAccount>,
-  parameters: AddOwnerParameters<TSmartAccount>
+export type AddOwnerParameters<
+  TModularSmartAccount extends ModularSmartAccount | undefined
+> = {
+  /** The smart account to add the owner to. If not provided, the client's account will be used. */
+  account?: TModularSmartAccount
+  /** The address of the new owner to be added. */
+  owner: Hex
+  /** The maximum fee per gas unit the transaction is willing to pay. */
+  maxFeePerGas?: bigint
+  /** The maximum priority fee per gas unit the transaction is willing to pay. */
+  maxPriorityFeePerGas?: bigint
+  /** The nonce of the transaction. If not provided, it will be determined automatically. */
+  nonce?: bigint
+}
+
+/**
+ * Adds a new owner to a smart account.
+ *
+ * This function prepares and sends a user operation to add a new owner to the specified smart account.
+ * It handles the creation of the necessary action data and sends the user operation.
+ *
+ * @template TModularSmartAccount - The type of the smart account, which can be a ModularSmartAccount or undefined.
+ * @param client - The client used to interact with the blockchain.
+ * @param parameters - The parameters for adding the new owner.
+ * @returns A promise that resolves to the hash of the sent user operation.
+ * @throws {AccountNotFoundError} If no account is provided and the client doesn't have an associated account.
+ * @throws {Error} If there's an error getting the add owner action.
+ */
+export async function addOwner<
+  TModularSmartAccount extends ModularSmartAccount | undefined
+>(
+  client: Client<Transport, Chain | undefined, TModularSmartAccount>,
+  parameters: AddOwnerParameters<TModularSmartAccount>
 ): Promise<Hex> {
   const {
     account: account_ = client.account,
@@ -47,7 +58,7 @@ export async function addOwner<TSmartAccount extends SmartAccount | undefined>(
     })
   }
 
-  const account = parseAccount(account_) as SmartAccount
+  const account = parseAccount(account_) as ModularSmartAccount
   const publicClient = account.client
 
   const action = await getAddOwnableValidatorOwnerAction({

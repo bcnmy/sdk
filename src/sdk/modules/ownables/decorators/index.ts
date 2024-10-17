@@ -1,5 +1,4 @@
 import type { Address, Chain, Client, Hash, Hex, Transport } from "viem"
-import type { SmartAccount } from "viem/account-abstraction"
 import type { Call } from "../../../account/utils/Types"
 import type { ModularSmartAccount, Module } from "../../utils/Types"
 import { type AddOwnerParameters, addOwner } from "./addOwner"
@@ -20,23 +19,33 @@ import {
 } from "./prepareSignatures"
 import { type RemoveOwnerParameters, removeOwner } from "./removeOwner"
 import { type SetThresholdParameters, setThreshold } from "./setThreshold"
-export type OwnableActions<TSmartAccount extends SmartAccount | undefined> = {
+export type OwnableActions<
+  TModularSmartAccount extends ModularSmartAccount | undefined
+> = {
   getRemoveOwnerTx: (
-    args: GetRemoveOwnerTxParameters<TSmartAccount>
+    args: GetRemoveOwnerTxParameters<TModularSmartAccount>
   ) => Promise<Call>
-  addOwner: (args: AddOwnerParameters<TSmartAccount>) => Promise<Hash>
-  removeOwner: (args: RemoveOwnerParameters<TSmartAccount>) => Promise<Hash>
-  setThreshold: (args: SetThresholdParameters<TSmartAccount>) => Promise<Hash>
-  getOwners: (args?: GetOwnersParameters<TSmartAccount>) => Promise<Address[]>
+  addOwner: (args: AddOwnerParameters<TModularSmartAccount>) => Promise<Hash>
+  removeOwner: (
+    args: RemoveOwnerParameters<TModularSmartAccount>
+  ) => Promise<Hash>
+  setThreshold: (
+    args: SetThresholdParameters<TModularSmartAccount>
+  ) => Promise<Hash>
+  getOwners: (
+    args?: GetOwnersParameters<TModularSmartAccount>
+  ) => Promise<Address[]>
   getSetThresholdTx: (
-    args: GetSetThresholdTxParameters<TSmartAccount>
+    args: GetSetThresholdTxParameters<TModularSmartAccount>
   ) => Promise<Call>
-  getAddOwnerTx: (args: AddOwnerParameters<TSmartAccount>) => Promise<Call>
+  getAddOwnerTx: (
+    args: AddOwnerParameters<TModularSmartAccount>
+  ) => Promise<Call>
   prepareSignatures: (
-    args: PrepareSignaturesParameters<TSmartAccount>
+    args: PrepareSignaturesParameters<TModularSmartAccount>
   ) => Promise<Hex>
   getThreshold: (
-    args?: GetThresholdParameters<TSmartAccount>
+    args?: GetThresholdParameters<TModularSmartAccount>
   ) => Promise<number>
 }
 

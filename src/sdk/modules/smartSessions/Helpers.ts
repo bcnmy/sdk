@@ -18,6 +18,7 @@ import type {
   ActionConfig,
   RawActionConfig,
   Rule,
+  SessionData,
   SpendingLimitsParams
 } from "./Types"
 
@@ -182,5 +183,25 @@ export const policies = {
   },
   sudo: sudoPolicy
 } as const
+
+/**
+ * Zips SessionData into a compact string representation.
+ *
+ * @param sessionData - The SessionData object to be zipped.
+ * @returns A string representing the zipped SessionData.
+ */
+export function zipSessionData(sessionData: SessionData): string {
+  return JSON.stringify(sessionData)
+}
+
+/**
+ * Unzips a string representation back into a SessionData object.
+ *
+ * @param zippedData - The string representing the zipped SessionData.
+ * @returns The unzipped SessionData object.
+ */
+export function unzipSessionData(zippedData: string): SessionData {
+  return JSON.parse(zippedData) as SessionData
+}
 
 export default policies

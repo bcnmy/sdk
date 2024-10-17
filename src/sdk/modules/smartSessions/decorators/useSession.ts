@@ -1,27 +1,27 @@
 import type { Chain, Client, Hex, Transport } from "viem"
-import { type SmartAccount, sendUserOperation } from "viem/account-abstraction"
+import { sendUserOperation } from "viem/account-abstraction"
 import { getAction, parseAccount } from "viem/utils"
 import type { NexusAccount } from "../../../account/toNexusAccount"
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
-import type { Execution } from "../../utils/Types"
+import type { Execution, ModularSmartAccount } from "../../utils/Types"
 
 // If the session is enabled for multiple actions, it is possible to send a batch transaction. hence it accepts an array of executions.
 // permisisonId corresponds to already enabled session.
 export type UseSessionParameters<
-  TSmartAccount extends SmartAccount | undefined
+  TModularSmartAccount extends ModularSmartAccount | undefined
 > = {
   actions: Execution[]
   maxFeePerGas?: bigint
   maxPriorityFeePerGas?: bigint
   nonce?: bigint
-  account?: TSmartAccount
+  account?: TModularSmartAccount
 }
 
 export async function useSession<
-  TSmartAccount extends SmartAccount | undefined
+  TModularSmartAccount extends ModularSmartAccount | undefined
 >(
-  client: Client<Transport, Chain | undefined, TSmartAccount>,
-  parameters: UseSessionParameters<TSmartAccount>
+  client: Client<Transport, Chain | undefined, TModularSmartAccount>,
+  parameters: UseSessionParameters<TModularSmartAccount>
 ): Promise<Hex> {
   const {
     account: account_ = client.account,

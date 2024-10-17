@@ -6,6 +6,26 @@ import type { AbiFunction, Address, Hex } from "viem"
 import type { AnyReferenceValue } from "../utils/Helpers"
 import type { Execution } from "../utils/Types"
 
+/**
+ * Represents the data structure for a smart session.
+ * Smart sessions allow for delegated and controlled access to a user's account.
+ *
+ * @property granter - The address of the account granting the session permissions.
+ * @property sessionPublicKey - The public key used to verify session signatures.
+ * @property moduleData - Module-specific data for the session.
+ * @property sessionPrivateKey - Optional. The private key for signing session transactions.
+ */
+export type SessionData = {
+  /** Hex-encoded address of the account granting the session. */
+  granter: Hex
+
+  /** Hex-encoded public key for the session. Used for signature verification. */
+  sessionPublicKey: Hex
+
+  /** Module-specific data containing session configuration and permissions. */
+  moduleData: UseSessionModuleData
+}
+
 export type CreateSessionsActionReturnParams = {
   permissionIds: Hex[]
   action: Execution

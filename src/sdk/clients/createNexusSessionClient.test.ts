@@ -163,20 +163,20 @@ describe("nexus.session.client", async () => {
       functionName: "getNumber"
     })
 
-    const useSessionsModule = toSmartSessions({
-      account: nexusClient.account,
-      signer: sessionKeyAccount,
-      permission: {
-        permissionId: cachedPermissionId
-      }
-    })
-
     const smartSessionNexusClient = await createNexusSessionClient({
       chain,
       accountAddress: nexusClient.account.address,
       signer: sessionKeyAccount,
       transport: http(),
       bundlerTransport: http(bundlerUrl)
+    })
+
+    const useSessionsModule = toSmartSessions({
+      account: smartSessionNexusClient.account,
+      signer: sessionKeyAccount,
+      moduleData: {
+        permissionId: cachedPermissionId
+      }
     })
 
     const useSmartSessionNexusClient = smartSessionNexusClient.extend(
@@ -218,7 +218,7 @@ describe("nexus.session.client", async () => {
     const useSessionsModule = toSmartSessions({
       account: nexusClient.account,
       signer: sessionKeyAccount,
-      permission: {
+      moduleData: {
         permissionId: cachedPermissionId
       }
     })

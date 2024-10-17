@@ -1,5 +1,4 @@
 import type { Chain, Client, Hash, Transport } from "viem"
-import type { SmartAccount } from "viem/account-abstraction"
 import type { ModularSmartAccount, Module } from "../../utils/Types"
 import type { CreateSessionsResponse } from "../Types"
 import { type CreateSessionsParameters, createSessions } from "./createSessions"
@@ -13,9 +12,11 @@ export type SmartSessionCreateActions<
   ) => Promise<CreateSessionsResponse>
 }
 export type SmartSessionUseActions<
-  TSmartAccount extends SmartAccount | undefined
+  TModularSmartAccount extends ModularSmartAccount | undefined
 > = {
-  useSession: (args: UseSessionParameters<TSmartAccount>) => Promise<Hash>
+  useSession: (
+    args: UseSessionParameters<TModularSmartAccount>
+  ) => Promise<Hash>
 }
 
 export function smartSessionCreateActions(_: Module) {

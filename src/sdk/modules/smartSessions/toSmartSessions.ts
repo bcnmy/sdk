@@ -4,8 +4,8 @@ import {
 } from "@rhinestone/module-sdk"
 import type { Module as ModuleMeta } from "@rhinestone/module-sdk"
 import { type Address, type Hex, encodePacked } from "viem"
-import type { SmartAccount } from "viem/account-abstraction"
 import addresses from "../../__contracts/addresses"
+import type { ModularSmartAccount } from "../utils/Types"
 import type { Module, ModuleParameters } from "../utils/Types"
 import { type ToModuleParameters, toModule } from "../utils/toModule"
 import type { UseSessionModuleData } from "./Types"
@@ -14,7 +14,7 @@ const DUMMY_ECDSA_SIG =
   "0xe8b94748580ca0b4993c9a1b86b5be851bfc076ff5ce3a1ff65bf16392acfcb800f9b4f1aef1555c7fce5599fffb17e7c635502154a0333ba21f3ae491839af51c"
 
 export type SmartSessionImplementation = ModuleParameters & {
-  permission?: UseSessionModuleData
+  moduleData?: UseSessionModuleData
 }
 
 export type UseSessionModuleGetInitDataArgs = {
@@ -25,8 +25,8 @@ export type UseSessionModuleParameters = Omit<
   ToModuleParameters,
   "accountAddress"
 > & {
-  account: SmartAccount
-  permission?: UseSessionModuleData
+  account: ModularSmartAccount
+  moduleData?: UseSessionModuleData
 }
 
 export const getUseSessionModuleInitData = (
@@ -53,7 +53,7 @@ export const toSmartSessions = (
     initData: initData_,
     moduleInitArgs: moduleInitArgs_ = { signerAddress: signer.address },
     initArgs: initArgs_ = { signerAddress: signer.address },
-    permission: {
+    moduleData: {
       permissionId = "0x",
       mode = SmartSessionMode.USE,
       enableSessionData
