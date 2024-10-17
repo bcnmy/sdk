@@ -23,8 +23,8 @@ import {
 } from "../../../clients/createNexusClient"
 import { createNexusSessionClient } from "../../../clients/createNexusSessionClient"
 import type { Module } from "../../utils/Types"
-import { smartSessionCreateActions, smartSessionUseActions } from "./"
 import { toSmartSessionsValidator } from "../toSmartSessionsValidator"
+import { smartSessionCreateActions, smartSessionUseActions } from "./"
 
 describe("modules.smartSessions.decorators", async () => {
   let network: NetworkConfig

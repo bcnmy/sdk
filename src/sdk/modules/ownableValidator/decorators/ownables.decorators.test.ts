@@ -21,10 +21,7 @@ import {
   type NexusClient,
   createNexusClient
 } from "../../../clients/createNexusClient"
-import {
-  getOwnablesModuleInitData,
-  toOwnableValidator
-} from "../toOwnableValidator"
+import { toOwnableValidator } from "../toOwnableValidator"
 
 describe("modules.ownables.decorators", async () => {
   let network: NetworkConfig

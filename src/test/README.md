@@ -57,7 +57,7 @@ localhostTest("should be used in the following way", async({ config: { bundlerUr
 ```
 
 > **Note:** 
-> Please avoid using multiple nested describe() blocks in a single test file, as it is unnecessary and can lead to confusion regarding network scope.
+> Please avoid using multiple nested describe blocks in a single test file, as it is unnecessary and can lead to confusion regarding network scope.
 > Using *many* test files is preferable, as describe blocks run in parallel. 
 
 ## Testing on Testnets or New Chains
