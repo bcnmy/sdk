@@ -377,9 +377,7 @@ export const safeTopUp = async (
 ) => {
   try {
     return await topUp(testClient, recipient, amount, token)
-  } catch (error) {
-    Logger.error(`Error topping up account: ${error}`)
-  }
+  } catch (error) {}
 }
 
 export const topUp = async (
@@ -398,8 +396,6 @@ export const topUp = async (
     )
     return await Promise.resolve()
   }
-
-  Logger.log(`topping up (${recipient}): (${balanceOfRecipient}).`)
 
   if (token) {
     const hash = await testClient.writeContract({

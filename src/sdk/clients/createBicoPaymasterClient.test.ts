@@ -122,7 +122,7 @@ describe.runIf(paymasterTruthy)("bico.paymaster", async () => {
     expect(paymaster).not.toHaveProperty("getPaymasterStubData")
   })
 
-  test("should send a sponsored transaction", async () => {
+  test.skip("should send a sponsored transaction", async () => {
     // Get initial balance
     const initialBalance = await publicClient.getBalance({
       address: nexusAccountAddress

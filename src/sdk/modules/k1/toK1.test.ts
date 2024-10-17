@@ -3,27 +3,27 @@ import {
   type Account,
   type Address,
   type Chain,
-  type PublicClient,
+  type Hex,
   encodePacked
 } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
-import { toNetwork } from "../../../../test/testSetup"
+import { toNetwork } from "../../../test/testSetup"
 import {
   fundAndDeployClients,
   getBalance,
   getTestAccount,
   killNetwork,
   toTestClient
-} from "../../../../test/testUtils"
-import type { MasterClient, NetworkConfig } from "../../../../test/testUtils"
-import addresses from "../../../__contracts/addresses"
+} from "../../../test/testUtils"
+import type { MasterClient, NetworkConfig } from "../../../test/testUtils"
+import addresses from "../../__contracts/addresses"
 import {
   type NexusClient,
   createNexusClient
-} from "../../../clients/createNexusClient"
-import { toK1ValidatorModule } from "./toK1ValidatorModule"
+} from "../../clients/createNexusClient"
+import { toK1 } from "./toK1"
 
-describe("modules.k1Validator.write", async () => {
+describe("modules.k1Validator", async () => {
   let network: NetworkConfig
   let chain: Chain
   let bundlerUrl: string
@@ -32,9 +32,9 @@ describe("modules.k1Validator.write", async () => {
   let testClient: MasterClient
   let eoaAccount: Account
   let nexusClient: NexusClient
-  let nexusAccountAddress: Address
   let recipient: Account
   let recipientAddress: Address
+  let nexusAccountAddress: Hex
 
   beforeAll(async () => {
     network = await toNetwork()
@@ -81,24 +81,20 @@ describe("modules.k1Validator.write", async () => {
       // Note: one can directly supply fixed or just use below for 2D nonce
       // nonce: await nexusClient.account.getNonce()
     })
-    const { status } = await testClient.waitForTransactionReceipt({ hash })
+    const { status } = await nexusClient.waitForTransactionReceipt({ hash })
     expect(status).toBe("success")
     const balanceAfter = await getBalance(testClient, recipientAddress)
     expect(balanceAfter - balanceBefore).toBe(1n)
   }, 90000)
 
   test("k1Validator properties", async () => {
-    const k1Validator = await toK1ValidatorModule({
-      client: nexusClient.account.client as PublicClient,
-      initData: encodePacked(["address"], [eoaAccount.address]),
-      deInitData: "0x",
+    const k1Validator = toK1({
+      signer: nexusClient.account.signer,
       accountAddress: nexusClient.account.address
     })
     expect(k1Validator.signMessage).toBeDefined()
     expect(k1Validator.signUserOpHash).toBeDefined()
-    expect(k1Validator.getStubSignature).toBeDefined()
     expect(k1Validator.address).toBeDefined()
-    expect(k1Validator.client).toBeDefined()
     expect(k1Validator.initData).toBeDefined()
     expect(k1Validator.deInitData).toBeDefined()
     expect(k1Validator.signer).toBeDefined()
