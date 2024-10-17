@@ -38,10 +38,10 @@ import {
   createNexusClient
 } from "../../clients/createNexusClient"
 import { parseModuleTypeId } from "../../clients/decorators/erc7579/supportsModule"
-import { toK1 } from "../k1/toK1"
+import { toK1Validator } from "../k1Validator/toK1Validator"
 import type { Module } from "../utils/Types"
 import { type OwnableActions, ownableActions } from "./decorators"
-import { toOwnables } from "./toOwnables"
+import { toOwnableValidator } from "./toOwnableValidator"
 
 describe("modules.ownableValidator.dx", async () => {
   let network: NetworkConfig
@@ -104,7 +104,7 @@ describe("modules.ownableValidator.dx", async () => {
     // Create an ownables module with the following configuration:
     // - Threshold: 2 (requires 2 signatures for approval)
     // - Owners: userThree and userTwo
-    const ownableModule = toOwnables({
+    const ownableModule = toOwnableValidator({
       account: nexusClient.account,
       signer: eoaAccount,
       moduleInitArgs: {
@@ -209,7 +209,7 @@ describe("modules.ownables", async () => {
 
     await fundAndDeployClients(testClient, [nexusClient])
 
-    ownableModule = toOwnables({
+    ownableModule = toOwnableValidator({
       account: nexusClient.account,
       signer: eoaAccount,
       moduleInitArgs: {
@@ -476,7 +476,7 @@ describe("modules.ownableExecutor", async () => {
     nexusAccountAddress = await nexusClient.account.getCounterFactualAddress()
     await fundAndDeployClients(testClient, [nexusClient])
 
-    const k1Module = toK1({
+    const k1Module = toK1Validator({
       signer: eoaAccount,
       accountAddress: nexusClient.account.address
     })

@@ -45,7 +45,7 @@ import policies, {
 import type { CreateSessionDataParams, Rule, SessionData } from "./Types"
 import { ParamCondition } from "./Types"
 import { smartSessionCreateActions, smartSessionUseActions } from "./decorators"
-import { toSmartSessions } from "./toSmartSessions"
+import { toSmartSessions } from "./toSmartSessionsValidator"
 
 describe("modules.smartSessions.dx", async () => {
   let network: NetworkConfig
@@ -120,6 +120,11 @@ describe("modules.smartSessions.dx", async () => {
       module: sessionsModule.moduleInitData
     })
 
+    // Extend the Nexus client with smart session creation actions
+    const nexusSessionClient = usersNexusClient.extend(
+      smartSessionCreateActions(sessionsModule)
+    )
+
     // Wait for the module installation transaction to be mined and check its success
     const { success: installSuccess } =
       await usersNexusClient.waitForUserOperationReceipt({ hash })
@@ -147,11 +152,6 @@ describe("modules.smartSessions.dx", async () => {
         ]
       }
     ]
-
-    // Extend the Nexus client with smart session creation actions
-    const nexusSessionClient = usersNexusClient.extend(
-      smartSessionCreateActions(sessionsModule)
-    )
 
     // Create the smart session
     const createSessionsResponse = await nexusSessionClient.createSessions({
