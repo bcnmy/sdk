@@ -74,7 +74,7 @@ export const getUseSessionInitData = ({
  *
  * @example
  * ```typescript
- * const smartSessionsModule = toSmartSessions({
+ * const smartSessionsModule = toSmartSessionsValidator({
  *   account: mySmartAccount,
  *   signer: mySigner,
  *   moduleData: {
@@ -90,7 +90,7 @@ export const getUseSessionInitData = ({
  * - It uses the SmartSession address from the predefined addresses.
  * - The default session mode is USE if not specified.
  */
-export const toSmartSessions = (
+export const toSmartSessionsValidator = (
   parameters: UseSessionModuleParameters
 ): Module => {
   const {

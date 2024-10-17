@@ -50,7 +50,7 @@ import {
   PARENT_TYPEHASH
 } from "./utils/Constants"
 
-import { toK1 } from "../modules/k1/toK1"
+import { toK1Validator } from "../modules/k1Validator/toK1Validator"
 import type { Module } from "../modules/utils/Types"
 import {
   type TypedDataWith712,
@@ -217,7 +217,7 @@ export const toNexusAccount = async (
 
   let module =
     module_ ??
-    toK1({
+    toK1Validator({
       address: k1ValidatorAddress,
       accountAddress: await getAddress(),
       initData: signerAddress,

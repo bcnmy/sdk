@@ -64,7 +64,7 @@ Here's an example of how to use the Smart Sessions module:
 
 ```typescript
 // 1. Create the module
-const sessionsModule = toSmartSessions({
+const sessionsModule = toSmartSessionsValidator({
   account: nexusClient.account,
   signer: eoaAccount
 })
