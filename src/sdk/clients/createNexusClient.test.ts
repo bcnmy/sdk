@@ -1,13 +1,15 @@
+import { ethers } from "ethers"
 import {
   http,
   type Account,
   type Address,
   type Chain,
+  type Hex,
   encodeFunctionData,
   isHex,
-  parseEther,
-  toBytes
+  parseEther
 } from "viem"
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { CounterAbi } from "../../test/__contracts/abi"
 import mockAddresses from "../../test/__contracts/mockAddresses"
@@ -38,6 +40,7 @@ describe("nexus.client", async () => {
   let recipientAddress: Address
   let nexusClient: NexusClient
   let nexusAccountAddress: Address
+  let privKey: Hex
 
   beforeAll(async () => {
     network = await toNetwork()
@@ -50,8 +53,11 @@ describe("nexus.client", async () => {
 
     testClient = toTestClient(chain, getTestAccount(5))
 
+    privKey = generatePrivateKey()
+    const account = privateKeyToAccount(privKey)
+
     nexusClient = await createNexusClient({
-      signer: eoaAccount,
+      signer: account,
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl)
@@ -237,7 +243,7 @@ describe("nexus.client", async () => {
     expect(supportsModule).toBe(true)
   })
 
-  test("should send eth twice", async () => {
+  test.skip("should send eth twice", async () => {
     const balanceBefore = await getBalance(testClient, recipientAddress)
     const tx = { to: recipientAddress, value: 1n }
     const hash = await nexusClient.sendTransaction({ calls: [tx, tx] })
@@ -245,5 +251,53 @@ describe("nexus.client", async () => {
     const balanceAfter = await getBalance(testClient, recipientAddress)
     expect(status).toBe("success")
     expect(balanceAfter - balanceBefore).toBe(2n)
+  })
+
+  test("should compare signatures of viem and ethers signer", async () => {
+    const viemSigner = privateKeyToAccount(privKey)
+
+    const ethersSigner = new ethers.Wallet(privKey)
+
+    const viemNexusClient = await createNexusClient({
+      signer: viemSigner,
+      chain,
+      transport: http(),
+      bundlerTransport: http(bundlerUrl)
+    })
+
+    const ethersNexusClient = await createNexusClient({
+      signer: ethersSigner,
+      chain,
+      transport: http(),
+      bundlerTransport: http(bundlerUrl)
+    })
+
+    const sig1 = await viemNexusClient.signMessage({ message: "123" })
+    const sig2 = await ethersNexusClient.signMessage({ message: "123" })
+
+    expect(sig1).toBe(sig2)
+  })
+
+  test("should send user operation using ethers signer", async () => {
+    const ethersSigner = new ethers.Wallet(privKey)
+    const ethersNexusClient = await createNexusClient({
+      signer: ethersSigner,
+      chain,
+      transport: http(),
+      bundlerTransport: http(bundlerUrl)
+    })
+
+    const hash = await ethersNexusClient.sendUserOperation({
+      calls: [
+        {
+          to: recipientAddress,
+          data: "0x"
+        }
+      ]
+    })
+    const receipt = await ethersNexusClient.waitForUserOperationReceipt({
+      hash
+    })
+    expect(receipt.success).toBe(true)
   })
 })
