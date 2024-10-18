@@ -17,6 +17,7 @@ import {
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
+import { MockRegistryAbi } from "../../../test/__contracts/abi"
 import { CounterAbi } from "../../../test/__contracts/abi/CounterAbi"
 import { MockCalleeAbi } from "../../../test/__contracts/abi/MockCalleeAbi"
 import { TEST_CONTRACTS } from "../../../test/callDatas"
@@ -46,8 +47,7 @@ import policies, {
 import type { CreateSessionDataParams, Rule, SessionData } from "./Types"
 import { ParamCondition } from "./Types"
 import { smartSessionCreateActions, smartSessionUseActions } from "./decorators"
-import { MockRegistryAbi } from "../../../test/__contracts/abi"
-import { toSmartSessions } from "./toSmartSessions"
+import { toSmartSessionsValidator } from "./toSmartSessionsValidator"
 
 describe("modules.smartSessions.dx", async () => {
   let network: NetworkConfig
@@ -112,7 +112,7 @@ describe("modules.smartSessions.dx", async () => {
     await fundAndDeployClients(testClient, [usersNexusClient])
 
     // Create a smart sessions module for the user's account
-    sessionsModule = toSmartSessions({
+    sessionsModule = toSmartSessionsValidator({
       account: usersNexusClient.account,
       signer: eoaAccount
     })
@@ -122,13 +122,18 @@ describe("modules.smartSessions.dx", async () => {
       module: sessionsModule.moduleInitData
     })
 
+    // Extend the Nexus client with smart session creation actions
+    const nexusSessionClient = usersNexusClient.extend(
+      smartSessionCreateActions(sessionsModule)
+    )
+
     // Wait for the module installation transaction to be mined and check its success
     const { success: installSuccess } =
       await usersNexusClient.waitForUserOperationReceipt({ hash })
 
     expect(installSuccess).toBe(true)
 
-    // Trust the mock attester. 
+    // Trust the mock attester.
     // We're running on a fork of base sepolia, where necessary modules are registered on the registry and mock attestations are done.
     const trustAttestersHash = await usersNexusClient.sendTransaction({
       calls: [
@@ -144,7 +149,9 @@ describe("modules.smartSessions.dx", async () => {
       ]
     })
 
-    const { status } = await testClient.waitForTransactionReceipt({ hash: trustAttestersHash })
+    const { status } = await testClient.waitForTransactionReceipt({
+      hash: trustAttestersHash
+    })
     expect(status).toBe("success")
 
     // Define the session parameters
@@ -168,11 +175,6 @@ describe("modules.smartSessions.dx", async () => {
         ]
       }
     ]
-
-    // Extend the Nexus client with smart session creation actions
-    const nexusSessionClient = usersNexusClient.extend(
-      smartSessionCreateActions(sessionsModule)
-    )
 
     // Create the smart session
     const createSessionsResponse = await nexusSessionClient.createSessions({
@@ -219,7 +221,7 @@ describe("modules.smartSessions.dx", async () => {
     })
 
     // Create a new smart sessions module with the session key
-    const useSessionsModule = toSmartSessions({
+    const useSessionsModule = toSmartSessionsValidator({
       account: smartSessionNexusClient.account,
       signer: sessionKeyAccount,
       moduleData: usersSessionData.moduleData
@@ -286,7 +288,7 @@ describe("modules.smartSessions", async () => {
       bundlerTransport: http(bundlerUrl)
     })
 
-    sessionsModule = toSmartSessions({
+    sessionsModule = toSmartSessionsValidator({
       account: nexusClient.account,
       signer: eoaAccount
     })
@@ -379,7 +381,7 @@ describe("modules.smartSessions", async () => {
   test.concurrent(
     "should have valid smartSessionValidator properties",
     async () => {
-      const smartSessionValidator = toSmartSessions({
+      const smartSessionValidator = toSmartSessionsValidator({
         account: nexusClient.account,
         signer: eoaAccount
       })
@@ -424,7 +426,7 @@ describe("modules.smartSessions", async () => {
 
     expect(isInstalledBefore).toBe(true)
 
-    // Trust the mock attester. 
+    // Trust the mock attester.
     // We're running on a fork of base sepolia, where necessary modules are registered on the registry and mock attestations are done.
     const trustAttestersHash = await nexusClient.sendTransaction({
       calls: [
@@ -439,7 +441,9 @@ describe("modules.smartSessions", async () => {
         }
       ]
     })
-    const { status } = await testClient.waitForTransactionReceipt({ hash: trustAttestersHash })
+    const { status } = await testClient.waitForTransactionReceipt({
+      hash: trustAttestersHash
+    })
     expect(status).toBe("success")
 
     // session key signer address is declared here
@@ -497,7 +501,7 @@ describe("modules.smartSessions", async () => {
       bundlerTransport: http(bundlerUrl)
     })
 
-    const useSessionsModule = toSmartSessions({
+    const useSessionsModule = toSmartSessionsValidator({
       account: smartSessionNexusClient.account,
       signer: sessionKeyAccount,
       moduleData: {
@@ -575,7 +579,7 @@ describe("modules.smartSessions.uniPolicy", async () => {
 
     nexusAccountAddress = await nexusClient.account.getCounterFactualAddress()
 
-    sessionsModule = toSmartSessions({
+    sessionsModule = toSmartSessionsValidator({
       account: nexusClient.account,
       signer: eoaAccount
     })
@@ -648,7 +652,7 @@ describe("modules.smartSessions.uniPolicy", async () => {
 
     expect(isInstalledBefore).toBe(true)
 
-    // Trust the mock attester. 
+    // Trust the mock attester.
     // We're running on a fork of base sepolia, where necessary modules are registered on the registry and mock attestations are done.
     const trustAttestersHash = await nexusClient.sendTransaction({
       calls: [
@@ -663,7 +667,9 @@ describe("modules.smartSessions.uniPolicy", async () => {
         }
       ]
     })
-    const { status } = await testClient.waitForTransactionReceipt({ hash: trustAttestersHash })
+    const { status } = await testClient.waitForTransactionReceipt({
+      hash: trustAttestersHash
+    })
     expect(status).toBe("success")
 
     const functionSelector = "addBalance(address,uint256,bytes32)"
@@ -798,7 +804,7 @@ describe("modules.smartSessions.uniPolicy", async () => {
       bundlerTransport: http(bundlerUrl)
     })
 
-    const useSessionsModule = toSmartSessions({
+    const useSessionsModule = toSmartSessionsValidator({
       account: smartSessionNexusClient.account,
       signer: sessionKeyAccount,
       moduleData: {

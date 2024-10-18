@@ -21,7 +21,7 @@ import {
   type NexusClient,
   createNexusClient
 } from "../../clients/createNexusClient"
-import { toK1 } from "./toK1"
+import { toK1Validator } from "./toK1Validator"
 
 describe("modules.k1Validator", async () => {
   let network: NetworkConfig
@@ -88,7 +88,7 @@ describe("modules.k1Validator", async () => {
   }, 90000)
 
   test("k1Validator properties", async () => {
-    const k1Validator = toK1({
+    const k1Validator = toK1Validator({
       signer: nexusClient.account.signer,
       accountAddress: nexusClient.account.address
     })

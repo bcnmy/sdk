@@ -9,7 +9,7 @@ import addresses from "../../__contracts/addresses"
 import { sanitizeSignature } from "../utils/Helpers"
 import type { Module } from "../utils/Types"
 import { type ToModuleParameters, toModule } from "../utils/toModule"
-export type ToK1Parameters = ToModuleParameters & {
+export type ToK1ValidatorParameters = ToModuleParameters & {
   address?: Hex
 }
 
@@ -39,7 +39,7 @@ export const getK1InitData = ({ signerAddress }: K1ModuleGetInitDataArgs) =>
  * @returns A promise that resolves to a K1 Validator Module instance.
  *
  * @example
- * const module = await toK1({
+ * const module = await toK1Validator({
  *   accountAddress: '0x1234...',
  *   client: nexusClient,
  *   initData: '0x...',
@@ -51,7 +51,7 @@ export const getK1InitData = ({ signerAddress }: K1ModuleGetInitDataArgs) =>
  * const userOpSignature = await module.signUserOpHash('0x...');
  * const messageSignature = await module.signMessage('Hello, world!');
  */
-export const toK1 = (parameters: ToK1Parameters): Module => {
+export const toK1Validator = (parameters: ToK1ValidatorParameters): Module => {
   const {
     signer,
     initData: initData_,

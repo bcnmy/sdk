@@ -21,13 +21,13 @@ import {
 } from "../../test/testUtils"
 import type { MasterClient, NetworkConfig } from "../../test/testUtils"
 import addresses from "../__contracts/addresses"
-import { isPermissionEnabled } from "../modules/smartSessions/Helpers"
-import type { CreateSessionDataParams } from "../modules/smartSessions/Types"
+import { isPermissionEnabled } from "../modules/smartSessionsValidator/Helpers"
+import type { CreateSessionDataParams } from "../modules/smartSessionsValidator/Types"
 import {
   smartSessionCreateActions,
   smartSessionUseActions
-} from "../modules/smartSessions/decorators"
-import { toSmartSessions } from "../modules/smartSessions/toSmartSessions"
+} from "../modules/smartSessionsValidator/decorators"
+import { toSmartSessionsValidator } from "../modules/smartSessionsValidator/toSmartSessionsValidator"
 import type { Module } from "../modules/utils/Types"
 import { type NexusClient, createNexusClient } from "./createNexusClient"
 import { createNexusSessionClient } from "./createNexusSessionClient"
@@ -67,7 +67,7 @@ describe("nexus.session.client", async () => {
     })
     nexusAccountAddress = await nexusClient.account.getCounterFactualAddress()
 
-    sessionsModule = toSmartSessions({
+    sessionsModule = toSmartSessionsValidator({
       account: nexusClient.account,
       signer: eoaAccount
     })
@@ -109,7 +109,7 @@ describe("nexus.session.client", async () => {
 
     expect(isInstalledBefore).toBe(true)
 
-    // Trust the mock attester. 
+    // Trust the mock attester.
     // We're running on a fork of base sepolia, where necessary modules are registered on the registry and mock attestations are done.
     const trustAttestersHash = await nexusClient.sendTransaction({
       calls: [
@@ -124,7 +124,9 @@ describe("nexus.session.client", async () => {
         }
       ]
     })
-    const { status } = await testClient.waitForTransactionReceipt({ hash: trustAttestersHash })
+    const { status } = await testClient.waitForTransactionReceipt({
+      hash: trustAttestersHash
+    })
     expect(status).toBe("success")
 
     // session key signer address is declared here
@@ -189,7 +191,7 @@ describe("nexus.session.client", async () => {
       bundlerTransport: http(bundlerUrl)
     })
 
-    const useSessionsModule = toSmartSessions({
+    const useSessionsModule = toSmartSessionsValidator({
       account: smartSessionNexusClient.account,
       signer: sessionKeyAccount,
       moduleData: {
@@ -233,7 +235,7 @@ describe("nexus.session.client", async () => {
   }, 60000)
 
   test("session signer is not allowed to send unauthorised action", async () => {
-    const useSessionsModule = toSmartSessions({
+    const useSessionsModule = toSmartSessionsValidator({
       account: nexusClient.account,
       signer: sessionKeyAccount,
       moduleData: {

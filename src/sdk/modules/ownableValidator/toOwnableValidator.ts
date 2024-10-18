@@ -24,7 +24,10 @@ import { type ToModuleParameters, toModule } from "../utils/toModule"
  * Parameters for creating an Ownable module.
  * Extends ToModuleParameters but replaces 'accountAddress' with 'account'.
  */
-type ToOwnableModuleParameters = Omit<ToModuleParameters, "accountAddress"> & {
+type ToOwnableValidatorModuleParameters = Omit<
+  ToModuleParameters,
+  "accountAddress"
+> & {
   /** The modular smart account to associate with this module. */
   account: ModularSmartAccount
   /** Optional initialization arguments for the module. */
@@ -89,7 +92,7 @@ export const getOwnablesInitData = (_?: GetOwnablesModuleInitDataParams): Hex =>
  *
  * @example
  * ```typescript
- * const ownableModule = toOwnables({
+ * const ownableModule = toOwnableValidator({
  *   account: mySmartAccount,
  *   signer: mySigner,
  *   moduleInitArgs: {
@@ -104,7 +107,9 @@ export const getOwnablesInitData = (_?: GetOwnablesModuleInitDataParams): Hex =>
  * - If not installed, it will use the threshold from the initialization parameters.
  * - The function generates a mock signature based on the threshold.
  */
-export const toOwnables = (parameters: ToOwnableModuleParameters): Module => {
+export const toOwnableValidator = (
+  parameters: ToOwnableValidatorModuleParameters
+): Module => {
   const {
     account,
     signer,
