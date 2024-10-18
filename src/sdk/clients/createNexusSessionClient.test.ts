@@ -1,16 +1,8 @@
-import {
-  http,
-  type Account,
-  type Address,
-  type Chain,
-  type Hex,
-  toBytes,
-  toHex
-} from "viem"
+import { http, type Address, type Chain, type Hex, toBytes, toHex } from "viem"
 import type { LocalAccount, PublicClient } from "viem"
 import { encodeFunctionData } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
-import { CounterAbi, MockRegistryAbi } from "../../test/__contracts/abi"
+import { CounterAbi } from "../../test/__contracts/abi"
 import { testAddresses } from "../../test/callDatas"
 import { toNetwork } from "../../test/testSetup"
 import {
@@ -112,23 +104,16 @@ describe("nexus.session.client", async () => {
 
     expect(isInstalledBefore).toBe(true)
 
-    // Trust the mock attester.
-    // We're running on a fork of base sepolia, where necessary modules are registered on the registry and mock attestations are done.
-    const trustAttestersHash = await nexusClient.sendTransaction({
-      calls: [
-        {
-          to: testAddresses.MockRegistry,
-          value: 0n,
-          data: encodeFunctionData({
-            abi: MockRegistryAbi,
-            functionName: "trustAttesters",
-            args: [1, [testAddresses.MockAttester]] // Review if more attesters needed
-          })
-        }
-      ]
+    const nexusSessionClient = nexusClient.extend(
+      smartSessionCreateActions(sessionsModule)
+    )
+
+    const trustAttestersHash = await nexusSessionClient.trustAttesters()
+    const userOpReceipt = await nexusSessionClient.waitForUserOperationReceipt({
+      hash: trustAttestersHash
     })
     const { status } = await testClient.waitForTransactionReceipt({
-      hash: trustAttestersHash
+      hash: userOpReceipt.receipt.transactionHash
     })
     expect(status).toBe("success")
 
@@ -152,10 +137,6 @@ describe("nexus.session.client", async () => {
         ]
       }
     ]
-
-    const nexusSessionClient = nexusClient.extend(
-      smartSessionCreateActions(sessionsModule)
-    )
 
     const createSessionsResponse = await nexusSessionClient.createSessions({
       sessionRequestedInfo
