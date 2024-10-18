@@ -2,9 +2,13 @@ import type { ActionData, PolicyData, Session } from "@rhinestone/module-sdk"
 import type { Chain, Client, Hex, PublicClient, Transport } from "viem"
 import { sendUserOperation } from "viem/account-abstraction"
 import { encodeFunctionData, getAction, parseAccount } from "viem/utils"
-import { SmartSessionAbi } from "../../../__contracts/abi/SmartSessionAbi"
-import addresses from "../../../__contracts/addresses"
+import { ERROR_MESSAGES } from "../../../account"
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
+import {
+  SIMPLE_SESSION_VALIDATOR_ADDRESS,
+  SMART_SESSIONS_ADDRESS
+} from "../../../constants"
+import { SmartSessionAbi } from "../../../constants/abi/SmartSessionAbi"
 import type { ModularSmartAccount } from "../../utils/Types"
 import {
   createActionConfig,
@@ -19,8 +23,6 @@ import type {
   CreateSessionsActionReturnParams,
   CreateSessionsResponse
 } from "../Types"
-
-const SIMPLE_SESSION_VALIDATOR_ADDRESS = addresses.SimpleSessionValidator
 
 /**
  * Parameters for creating sessions in a modular smart account.
@@ -52,9 +54,11 @@ export type CreateSessionsParameters<
  * @returns A promise that resolves to the action data and permission IDs, or an Error.
  */
 export const getSmartSessionValidatorCreateSessionsAction = async ({
+  chainId,
   sessionRequestedInfo,
   client
 }: {
+  chainId: number
   sessionRequestedInfo: CreateSessionDataParams[]
   client: PublicClient
 }): Promise<CreateSessionsActionReturnParams | Error> => {
@@ -97,6 +101,7 @@ export const getSmartSessionValidatorCreateSessionsAction = async ({
     )
 
     const session: Session = {
+      chainId: BigInt(chainId),
       sessionValidator:
         sessionInfo.sessionValidatorAddress ?? SIMPLE_SESSION_VALIDATOR_ADDRESS,
       sessionValidatorInitData: sessionInfo.sessionKeyData, // sessionValidatorInitData: abi.encodePacked(sessionSigner.addr),
@@ -128,7 +133,7 @@ export const getSmartSessionValidatorCreateSessionsAction = async ({
 
   return {
     action: {
-      target: addresses.SmartSession,
+      target: SMART_SESSIONS_ADDRESS,
       value: BigInt(0),
       callData: createSessionsData
     },
@@ -203,7 +208,14 @@ export async function createSessions<
 
   const account = parseAccount(account_) as ModularSmartAccount
 
+  const chainId = publicClient_?.chain?.id
+
+  if (!chainId) {
+    throw new Error(ERROR_MESSAGES.CHAIN_NOT_FOUND)
+  }
+
   const actionResponse = await getSmartSessionValidatorCreateSessionsAction({
+    chainId,
     client: publicClient_,
     sessionRequestedInfo
   })

@@ -1,93 +1,103 @@
 import type { Address, Hex } from "viem"
+import { base, baseSepolia } from "viem/chains"
+import {
+  K1_VALIDATOR_ADDRESS,
+  K1_VALIDATOR_FACTORY_ADDRESS,
+  NEXUS_BOOTSTRAP_ADDRESS,
+  NEXUS_IMPLEMENTATION_ADDRESS,
+  OWNABLE_EXECUTOR_ADDRESS,
+  OWNABLE_VALIDATOR_ADDRESS,
+  SIMPLE_SESSION_VALIDATOR_ADDRESS,
+  SMART_SESSIONS_ADDRESS
+} from "../sdk/constants"
 
 export const TEST_CONTRACTS: Record<
   string,
   { chainId: number; name: string; address: Hex }
 > = {
-  // Rhinestone Ownables
+  // Rhinestone
   OwnableValidator: {
-    chainId: 11155111,
+    chainId: baseSepolia.id,
     name: "OwnableValidator",
-    address: "0x6605F8785E09a245DD558e55F9A0f4A508434503"
+    address: OWNABLE_VALIDATOR_ADDRESS
   },
   OwnableExecutor: {
-    chainId: 11155111,
+    chainId: baseSepolia.id,
     name: "OwnableExecutor",
-    address: "0xc98B026383885F41d9a995f85FC480E9bb8bB891"
+    address: OWNABLE_EXECUTOR_ADDRESS
   },
-  // Smart sessions: TODO: update with latest address
   SmartSession: {
-    chainId: 84532,
+    chainId: baseSepolia.id,
     name: "SmartSession",
-    address: "0xDDFF43A42726df11E34123f747bDce0f755F784d"
+    address: SMART_SESSIONS_ADDRESS
   },
   SimpleSessionValidator: {
-    chainId: 84532,
-    name: "Simple Session Validator",
-    address: "0x41f143f4B5f19AfCd2602F6ADE18E75e9b5E37d3"
+    chainId: baseSepolia.id,
+    name: "SimpleSessionValidator",
+    address: SIMPLE_SESSION_VALIDATOR_ADDRESS
   },
   UniActionPolicy: {
-    chainId: 84532,
+    chainId: baseSepolia.id,
     name: "UniActionPolicy",
     address: "0x148CD6c24F4dd23C396E081bBc1aB1D92eeDe2BF"
   },
   Counter: {
-    chainId: 84532,
+    chainId: baseSepolia.id,
     name: "Counter",
     address: "0x14e4829E655F0b3a1793838dDd47273D5341d416"
   },
   MockCallee: {
-    chainId: 84532,
+    chainId: baseSepolia.id,
     name: "MockCallee",
     address: "0x29FdD9D9A9f8CD8dCa0F4764bf0F959183DF4139"
   },
   MockToken: {
-    chainId: 84532,
+    chainId: baseSepolia.id,
     name: "MockToken",
     address: "0x0006be192b4E06770eaa624AE7648DBF9051221c"
   },
   TokenWithPermit: {
-    chainId: 84532,
+    chainId: baseSepolia.id,
     name: "TokenWithPermit",
     address: "0x51fdb803fD49f0f5bd03de0400a8F17dA2Aa6999"
   },
   MockAttester: {
-    chainId: 84532,
+    chainId: baseSepolia.id,
     name: "MockAttester",
     address: "0xA4C777199658a41688E9488c4EcbD7a2925Cc23A"
   },
   MockRegistry: {
-    chainId: 84532,
+    chainId: baseSepolia.id,
     name: "MockRegistry",
     address: "0x000000000069E2a187AEFFb852bF3cCdC95151B2"
   },
   TimeFramePolicy: {
-    chainId: 84532,
+    chainId: baseSepolia.id,
     name: "TimeFramePolicy",
     address: "0x0B7BB9bD65858593D97f12001FaDa94828307805"
   },
   UsageLimitPolicy: {
-    chainId: 84532,
+    chainId: baseSepolia.id,
     name: "UsageLimitPolicy",
     address: "0x80EF509D2F79eA332540e9698bDbc7B7FA3E1f74"
   },
   ValueLimitPolicy: {
-    chainId: 84532,
+    chainId: baseSepolia.id,
     name: "ValueLimitPolicy",
     address: "0xDe9688b24c00699Ad51961ef90Ce5a9a8C49982B"
   },
   WalletConnectCoSigner: {
-    chainId: 84532,
+    chainId: baseSepolia.id,
     name: "WalletConnect CoSigner",
     address: "0x24084171C36Fa6dfdf41D9C89A51F600ed35A731"
   },
   MockK1Validator: {
-    chainId: 84532,
+    chainId: baseSepolia.id,
     name: "MockK1Validator",
     address: "0x2db5c5A93c71A2562b751Ad3eaB18BFB5fb96374"
   },
   UserOperationBuilder: {
-    chainId: 84532,
+    chainId: baseSepolia.id,
     name: "UserOperationBuilder",
     address: "0xb07D7605a1AAeE4e56915363418229c127fF7C3D"
   }

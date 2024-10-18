@@ -10,9 +10,13 @@ import {
   toBytes,
   toHex
 } from "viem"
-import { UniActionPolicyAbi } from "../../__contracts/abi"
-import { SmartSessionAbi } from "../../__contracts/abi/SmartSessionAbi"
-import addresses from "../../__contracts/addresses"
+import {
+  SMART_SESSIONS_ADDRESS,
+  TIMEFRAME_POLICY_ADDRESS,
+  UNIVERSAL_ACTION_POLICY_ADDRESS
+} from "../../constants"
+import { UniActionPolicyAbi } from "../../constants/abi"
+import { SmartSessionAbi } from "../../constants/abi/SmartSessionAbi"
 import { parseReferenceValue } from "../utils/Helpers"
 import type {
   ActionConfig,
@@ -21,8 +25,6 @@ import type {
   SessionData,
   SpendingLimitsParams
 } from "./Types"
-
-const TIMEFRAME_POLICY_ADDRESS = addresses.TimeframePolicy
 
 export const MAX_RULES = 16
 
@@ -136,7 +138,7 @@ export const getPermissionId = async ({
   session: Session
 }) => {
   return (await client.readContract({
-    address: addresses.SmartSession,
+    address: SMART_SESSIONS_ADDRESS,
     abi: SmartSessionAbi,
     functionName: "getPermissionId",
     args: [session]
@@ -153,7 +155,7 @@ export const isPermissionEnabled = async ({
   permissionId: Hex
 }) =>
   client.readContract({
-    address: addresses.SmartSession,
+    address: SMART_SESSIONS_ADDRESS,
     abi: SmartSessionAbi,
     functionName: "isPermissionEnabled",
     args: [permissionId, accountAddress]
@@ -168,7 +170,7 @@ export const isPermissionEnabled = async ({
 export const toUniversalActionPolicy = (
   actionConfig: ActionConfig
 ): PolicyData => ({
-  policy: "0x148CD6c24F4dd23C396E081bBc1aB1D92eeDe2BF",
+  policy: UNIVERSAL_ACTION_POLICY_ADDRESS,
   initData: encodeAbiParameters(UniActionPolicyAbi, [
     toActionConfig(actionConfig)
   ])

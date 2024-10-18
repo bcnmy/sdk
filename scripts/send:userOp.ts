@@ -9,9 +9,6 @@ import { biconomyPaymasterContext } from "../src/sdk/clients/createBicoPaymaster
 
 config()
 
-const k1ValidatorAddress = "0x663E709f60477f07885230E213b8149a7027239B"
-const factoryAddress = "0x887Ca6FaFD62737D0E79A2b8Da41f0B15A864778"
-
 export const getConfig = () => {
   const chainId = Number.parseInt(process.env.CHAIN_ID || "0")
   const chain = getChain(chainId)
@@ -43,10 +40,16 @@ const main = async () => {
   const nexusAccount = await toNexusAccount({
     signer: account,
     chain,
-    transport: http(),
-    k1ValidatorAddress,
-    factoryAddress
+    transport: http()
   })
+
+  const nexusBalance = await publicClient.getBalance({
+    address: nexusAccount.address
+  })
+
+  if (nexusBalance === 0n) {
+    throw new Error(`Insufficient balance at address: ${nexusAccount.address}`)
+  }
 
   const bicoBundler = createBicoBundlerClient({
     chain,
@@ -93,7 +96,7 @@ const main = async () => {
   console.log(
     `running the ${usesAltoBundler ? "Alto" : "Bico"} bundler with ${
       successCount.length
-    } successful calls`
+    } successful calls and ${results.length - successCount.length} failed calls`
   )
 
   console.time("write methods")

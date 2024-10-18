@@ -1,4 +1,3 @@
-import type { Module as ModuleMeta } from "@rhinestone/module-sdk"
 import type { Client, Hex } from "viem"
 import type {
   GetSmartAccountParameter,
@@ -6,6 +5,7 @@ import type {
 } from "viem/account-abstraction"
 import { getAddress } from "viem/utils"
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
+import type { ModuleMeta } from "../../../modules/utils/Types"
 const SENTINEL_ADDRESS = "0x0000000000000000000000000000000000000001" as const
 
 export type GetPreviousModuleParameters<
@@ -63,12 +63,12 @@ export async function getPreviousModule<
     throw new Error(`Unknown module type ${module.type}`)
   }
 
-  const index = installedModules.indexOf(getAddress(module.module))
+  const index = installedModules.indexOf(getAddress(module.address))
   if (index === 0) {
     return SENTINEL_ADDRESS
   }
   if (index > 0) {
     return installedModules[index - 1]
   }
-  throw new Error(`Module ${module.module} not found in installed modules`)
+  throw new Error(`Module ${module.address} not found in installed modules`)
 }

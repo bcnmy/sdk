@@ -1,13 +1,12 @@
-import type { Module as ModuleMeta } from "@rhinestone/module-sdk"
 import {
   type Address,
   type Hex,
   type SignableMessage,
   encodePacked
 } from "viem"
-import addresses from "../../__contracts/addresses"
+import { K1_VALIDATOR_ADDRESS } from "../../constants"
 import { sanitizeSignature } from "../utils/Helpers"
-import type { Module } from "../utils/Types"
+import type { Module, ModuleMeta } from "../utils/Types"
 import { type ToModuleParameters, toModule } from "../utils/toModule"
 export type ToK1ValidatorParameters = ToModuleParameters & {
   address?: Hex
@@ -20,7 +19,7 @@ export type K1ModuleGetInitDataArgs = {
 export const getK1ModuleInitData = (
   _: K1ModuleGetInitDataArgs
 ): ModuleMeta => ({
-  module: addresses.K1Validator,
+  address: K1_VALIDATOR_ADDRESS,
   type: "validator",
   initData: "0x"
 })
@@ -62,7 +61,7 @@ export const toK1Validator = (parameters: ToK1ValidatorParameters): Module => {
     moduleInitData: moduleInitData_,
     deInitData = "0x",
     accountAddress,
-    address = addresses.K1Validator
+    address = K1_VALIDATOR_ADDRESS
   } = parameters
 
   const initData = initData_ ?? getK1InitData(initArgs_)

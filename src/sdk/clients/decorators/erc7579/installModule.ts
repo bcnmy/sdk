@@ -1,4 +1,3 @@
-import type { Module as ModuleMeta } from "@rhinestone/module-sdk"
 import {
   type Chain,
   type Client,
@@ -14,6 +13,7 @@ import {
 } from "viem/account-abstraction"
 import { getAction, parseAccount } from "viem/utils"
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
+import type { ModuleMeta } from "../../../modules/utils/Types"
 import { parseModuleTypeId } from "./supportsModule"
 
 export type InstallModuleParameters<
@@ -56,7 +56,7 @@ export async function installModule<
     maxFeePerGas,
     maxPriorityFeePerGas,
     nonce,
-    module: { module, initData, type }
+    module: { address, initData, type }
   } = parameters
 
   if (!account_) {
@@ -100,7 +100,7 @@ export async function installModule<
             }
           ],
           functionName: "installModule",
-          args: [parseModuleTypeId(type), getAddress(module), initData ?? "0x"]
+          args: [parseModuleTypeId(type), getAddress(address), initData ?? "0x"]
         })
       }
     ],

@@ -1,4 +1,3 @@
-import type { Module as ModuleMeta } from "@rhinestone/module-sdk"
 import {
   type Chain,
   type Client,
@@ -17,6 +16,7 @@ import { getAction } from "viem/utils"
 import { parseAccount } from "viem/utils"
 import { getInstalledValidators, getPreviousModule } from "."
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
+import type { ModuleMeta } from "../../../modules/utils/Types"
 import { parseModuleTypeId } from "./supportsModule"
 
 export type UninstallModuleParameters<
@@ -59,7 +59,7 @@ export async function uninstallModule<
     maxFeePerGas,
     maxPriorityFeePerGas,
     nonce,
-    module: { module, initData, type }
+    module: { address, initData, type }
   } = parameters
 
   if (!account_) {
@@ -73,7 +73,7 @@ export async function uninstallModule<
 
   const prevModule = await getPreviousModule(client, {
     module: {
-      module,
+      address,
       type
     },
     installedValidators,
@@ -121,7 +121,7 @@ export async function uninstallModule<
             }
           ],
           functionName: "uninstallModule",
-          args: [parseModuleTypeId(type), getAddress(module), deInitData]
+          args: [parseModuleTypeId(type), getAddress(address), deInitData]
         })
       }
     ],

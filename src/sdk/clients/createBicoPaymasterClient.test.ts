@@ -24,11 +24,6 @@ import {
 } from "./createBicoPaymasterClient"
 import { type NexusClient, createNexusClient } from "./createNexusClient"
 
-// Remove the following lines to use the default factory and validator addresses
-// These are relevant only for now on base sopelia chain and are likely to change
-const k1ValidatorAddress = "0x663E709f60477f07885230E213b8149a7027239B"
-const factoryAddress = "0x887Ca6FaFD62737D0E79A2b8Da41f0B15A864778"
-
 describe.runIf(paymasterTruthy)("bico.paymaster", async () => {
   let network: NetworkConfig
   // Nexus Config
@@ -75,9 +70,7 @@ describe.runIf(paymasterTruthy)("bico.paymaster", async () => {
     nexusAccount = await toNexusAccount({
       signer: account,
       chain,
-      transport: http(),
-      k1ValidatorAddress,
-      factoryAddress
+      transport: http()
     })
 
     bicoBundler = createBicoBundlerClient({
@@ -92,8 +85,6 @@ describe.runIf(paymasterTruthy)("bico.paymaster", async () => {
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl),
-      k1ValidatorAddress,
-      factoryAddress,
       paymaster,
       // For "PUBLIC_TESTNET" network, the userOperation we can hardcode estimates
       userOperation: {

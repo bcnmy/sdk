@@ -22,7 +22,6 @@ import {
   toBytes,
   toHex
 } from "viem"
-import { EIP1271Abi } from "../../__contracts/abi"
 import {
   MOCK_MULTI_MODULE_ADDRESS,
   MODULE_ENABLE_MODE_TYPE_HASH,
@@ -30,6 +29,7 @@ import {
   NEXUS_DOMAIN_TYPEHASH,
   NEXUS_DOMAIN_VERSION
 } from "../../account/utils/Constants"
+import { EIP1271Abi } from "../../constants/abi"
 import { type ModuleType, moduleTypeIds } from "../../modules/utils/Types"
 import type {
   AccountMetadata,

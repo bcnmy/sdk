@@ -25,7 +25,7 @@ import {
 } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { TokenWithPermitAbi } from "../../test/__contracts/abi/TokenWithPermitAbi"
-import { TEST_CONTRACTS } from "../../test/callDatas"
+import { testAddresses } from "../../test/callDatas"
 import { toNetwork } from "../../test/testSetup"
 import {
   fundAndDeployClients,
@@ -34,12 +34,11 @@ import {
   toTestClient
 } from "../../test/testUtils"
 import type { MasterClient, NetworkConfig } from "../../test/testUtils"
-import { NexusAbi } from "../__contracts/abi/NexusAbi"
-import { addresses } from "../__contracts/addresses"
 import {
   type NexusClient,
   createNexusClient
 } from "../clients/createNexusClient"
+import { K1_VALIDATOR_ADDRESS, NexusAbi } from "../constants"
 import type { NexusAccount } from "./toNexusAccount"
 import {
   addressEquals,
@@ -284,7 +283,7 @@ describe("nexus.account", async () => {
 
     const finalSignature = encodePacked(
       ["address", "bytes"],
-      [addresses.K1Validator, signatureData]
+      [K1_VALIDATOR_ADDRESS, signatureData]
     )
 
     const contractResponse = await testClient.readContract({
@@ -301,7 +300,7 @@ describe("nexus.account", async () => {
     const appDomain = {
       chainId: chain.id,
       name: "TokenWithPermit",
-      verifyingContract: TEST_CONTRACTS.TokenWithPermit.address,
+      verifyingContract: testAddresses.TokenWithPermit,
       version: "1"
     }
 
@@ -321,7 +320,7 @@ describe("nexus.account", async () => {
       )
     )
     const nonce = (await testClient.readContract({
-      address: TEST_CONTRACTS.TokenWithPermit.address,
+      address: testAddresses.TokenWithPermit,
       abi: TokenWithPermitAbi,
       functionName: "nonces",
       args: [nexusAccountAddress]
@@ -370,7 +369,7 @@ describe("nexus.account", async () => {
     })
 
     const permitTokenResponse = await nexusClient.writeContract({
-      address: TEST_CONTRACTS.TokenWithPermit.address,
+      address: testAddresses.TokenWithPermit,
       abi: TokenWithPermitAbi,
       functionName: "permitWith1271",
       chain: network.chain,
@@ -386,7 +385,7 @@ describe("nexus.account", async () => {
     await nexusClient.waitForTransactionReceipt({ hash: permitTokenResponse })
 
     const allowance = await testClient.readContract({
-      address: TEST_CONTRACTS.TokenWithPermit.address,
+      address: testAddresses.TokenWithPermit,
       abi: TokenWithPermitAbi,
       functionName: "allowance",
       args: [nexusAccountAddress, nexusAccountAddress]
