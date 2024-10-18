@@ -93,7 +93,7 @@ const main = async () => {
   console.log(
     `running the ${usesAltoBundler ? "Alto" : "Bico"} bundler with ${
       successCount.length
-    } successful calls`
+    } successful calls and ${results.length - successCount.length} failed calls`
   )
 
   console.time("write methods")

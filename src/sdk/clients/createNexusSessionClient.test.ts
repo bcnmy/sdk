@@ -11,7 +11,7 @@ import type { LocalAccount, PublicClient } from "viem"
 import { encodeFunctionData } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { CounterAbi, MockRegistryAbi } from "../../test/__contracts/abi"
-import { TEST_CONTRACTS } from "../../test/callDatas"
+import { testAddresses } from "../../test/callDatas"
 import { toNetwork } from "../../test/testSetup"
 import {
   fundAndDeployClients,
@@ -117,12 +117,12 @@ describe("nexus.session.client", async () => {
     const trustAttestersHash = await nexusClient.sendTransaction({
       calls: [
         {
-          to: TEST_CONTRACTS.MockRegistry.address,
+          to: testAddresses.MockRegistry,
           value: 0n,
           data: encodeFunctionData({
             abi: MockRegistryAbi,
             functionName: "trustAttesters",
-            args: [1, [TEST_CONTRACTS.MockAttester.address]] // Review if more attesters needed
+            args: [1, [testAddresses.MockAttester]] // Review if more attesters needed
           })
         }
       ]
@@ -142,7 +142,7 @@ describe("nexus.session.client", async () => {
         sessionValidUntil: 0,
         actionPoliciesInfo: [
           {
-            contractAddress: TEST_CONTRACTS.Counter.address, // counter address
+            contractAddress: testAddresses.Counter, // counter address
             functionSelector: "0x273ea3e3" as Hex, // function selector for increment count
             validUntil: 0,
             validAfter: 0,
@@ -181,7 +181,7 @@ describe("nexus.session.client", async () => {
 
   test("session signer should use session to increment a counter for a user (USE MODE)", async () => {
     const counterBefore = await testClient.readContract({
-      address: TEST_CONTRACTS.Counter.address,
+      address: testAddresses.Counter,
       abi: CounterAbi,
       functionName: "getNumber"
     })
@@ -209,7 +209,7 @@ describe("nexus.session.client", async () => {
     const userOpHash = await useSmartSessionNexusClient.useSession({
       actions: [
         {
-          target: TEST_CONTRACTS.Counter.address,
+          target: testAddresses.Counter,
           value: 0n,
           callData: encodeFunctionData({
             abi: CounterAbi,
@@ -228,7 +228,7 @@ describe("nexus.session.client", async () => {
     expect(receipt.success).toBe(true)
 
     const counterAfter = await testClient.readContract({
-      address: TEST_CONTRACTS.Counter.address,
+      address: testAddresses.Counter,
       abi: CounterAbi,
       functionName: "getNumber",
       args: []
@@ -266,7 +266,7 @@ describe("nexus.session.client", async () => {
     expect(isEnabled).toBe(true)
 
     const counterBefore = await testClient.readContract({
-      address: TEST_CONTRACTS.Counter.address,
+      address: testAddresses.Counter,
       abi: CounterAbi,
       functionName: "getNumber"
     })
@@ -278,7 +278,7 @@ describe("nexus.session.client", async () => {
       useSmartSessionNexusClient.useSession({
         actions: [
           {
-            target: TEST_CONTRACTS.Counter.address,
+            target: testAddresses.Counter,
             value: 0n,
             callData: encodeFunctionData({
               abi: CounterAbi,
@@ -290,7 +290,7 @@ describe("nexus.session.client", async () => {
     ).rejects.toThrow()
 
     const counterAfter = await testClient.readContract({
-      address: TEST_CONTRACTS.Counter.address,
+      address: testAddresses.Counter,
       abi: CounterAbi,
       functionName: "getNumber",
       args: []

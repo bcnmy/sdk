@@ -2,6 +2,7 @@ import type { ActionData, PolicyData, Session } from "@rhinestone/module-sdk"
 import type { Chain, Client, Hex, PublicClient, Transport } from "viem"
 import { sendUserOperation } from "viem/account-abstraction"
 import { encodeFunctionData, getAction, parseAccount } from "viem/utils"
+import { ERROR_MESSAGES } from "../../../account"
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
 import {
   SIMPLE_SESSION_VALIDATOR_ADDRESS,
@@ -53,9 +54,11 @@ export type CreateSessionsParameters<
  * @returns A promise that resolves to the action data and permission IDs, or an Error.
  */
 export const getSmartSessionValidatorCreateSessionsAction = async ({
+  chainId,
   sessionRequestedInfo,
   client
 }: {
+  chainId: number
   sessionRequestedInfo: CreateSessionDataParams[]
   client: PublicClient
 }): Promise<CreateSessionsActionReturnParams | Error> => {
@@ -98,6 +101,7 @@ export const getSmartSessionValidatorCreateSessionsAction = async ({
     )
 
     const session: Session = {
+      chainId: BigInt(chainId),
       sessionValidator:
         sessionInfo.sessionValidatorAddress ?? SIMPLE_SESSION_VALIDATOR_ADDRESS,
       sessionValidatorInitData: sessionInfo.sessionKeyData, // sessionValidatorInitData: abi.encodePacked(sessionSigner.addr),
@@ -204,7 +208,14 @@ export async function createSessions<
 
   const account = parseAccount(account_) as ModularSmartAccount
 
+  const chainId = publicClient_?.chain?.id
+
+  if (!chainId) {
+    throw new Error(ERROR_MESSAGES.CHAIN_NOT_FOUND)
+  }
+
   const actionResponse = await getSmartSessionValidatorCreateSessionsAction({
+    chainId,
     client: publicClient_,
     sessionRequestedInfo
   })

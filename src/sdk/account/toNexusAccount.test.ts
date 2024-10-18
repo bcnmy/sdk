@@ -25,7 +25,7 @@ import {
 } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { TokenWithPermitAbi } from "../../test/__contracts/abi/TokenWithPermitAbi"
-import { TEST_CONTRACTS } from "../../test/callDatas"
+import { testAddresses } from "../../test/callDatas"
 import { toNetwork } from "../../test/testSetup"
 import {
   fundAndDeployClients,
@@ -300,7 +300,7 @@ describe("nexus.account", async () => {
     const appDomain = {
       chainId: chain.id,
       name: "TokenWithPermit",
-      verifyingContract: TEST_CONTRACTS.TokenWithPermit.address,
+      verifyingContract: testAddresses.TokenWithPermit,
       version: "1"
     }
 
@@ -320,7 +320,7 @@ describe("nexus.account", async () => {
       )
     )
     const nonce = (await testClient.readContract({
-      address: TEST_CONTRACTS.TokenWithPermit.address,
+      address: testAddresses.TokenWithPermit,
       abi: TokenWithPermitAbi,
       functionName: "nonces",
       args: [nexusAccountAddress]
@@ -369,7 +369,7 @@ describe("nexus.account", async () => {
     })
 
     const permitTokenResponse = await nexusClient.writeContract({
-      address: TEST_CONTRACTS.TokenWithPermit.address,
+      address: testAddresses.TokenWithPermit,
       abi: TokenWithPermitAbi,
       functionName: "permitWith1271",
       chain: network.chain,
@@ -385,7 +385,7 @@ describe("nexus.account", async () => {
     await nexusClient.waitForTransactionReceipt({ hash: permitTokenResponse })
 
     const allowance = await testClient.readContract({
-      address: TEST_CONTRACTS.TokenWithPermit.address,
+      address: testAddresses.TokenWithPermit,
       abi: TokenWithPermitAbi,
       functionName: "allowance",
       args: [nexusAccountAddress, nexusAccountAddress]
