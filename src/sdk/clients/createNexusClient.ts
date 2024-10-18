@@ -16,10 +16,13 @@ import type {
   SmartAccount,
   UserOperationRequest
 } from "viem/account-abstraction"
-import contracts from "../constants"
 
 import { type NexusAccount, toNexusAccount } from "../account/toNexusAccount"
 import type { UnknownSigner } from "../account/utils/toSigner"
+import {
+  K1_VALIDATOR_ADDRESS,
+  K1_VALIDATOR_FACTORY_ADDRESS
+} from "../constants"
 import type { Module } from "../modules/utils/Types"
 import { createBicoBundlerClient } from "./createBicoBundlerClient"
 import { type Erc7579Actions, erc7579Actions } from "./decorators/erc7579"
@@ -177,8 +180,8 @@ export async function createNexusClient(
     key = "nexus client",
     name = "Nexus Client",
     module,
-    factoryAddress = contracts.k1ValidatorFactory.address,
-    k1ValidatorAddress = contracts.k1Validator.address,
+    factoryAddress = K1_VALIDATOR_FACTORY_ADDRESS,
+    k1ValidatorAddress = K1_VALIDATOR_ADDRESS,
     bundlerTransport,
     transport,
     accountAddress,

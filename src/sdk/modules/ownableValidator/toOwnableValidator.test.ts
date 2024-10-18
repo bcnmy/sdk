@@ -292,7 +292,7 @@ describe("modules.ownables", async () => {
   test("should add owner and set threshold to 2", async () => {
     const isInstalled = await nexusClient.isModuleInstalled({
       module: {
-        module: ownableModule.address,
+        address: ownableModule.address,
         type: "validator"
       }
     })
@@ -358,7 +358,7 @@ describe("modules.ownables", async () => {
     const [installedValidators] = await nexusClient.getInstalledValidators()
     const prevModule = await nexusClient.getPreviousModule({
       module: {
-        module: ownableModule.address,
+        address: ownableModule.address,
         type: "validator"
       },
       installedValidators
@@ -492,7 +492,7 @@ describe("modules.ownableExecutor", async () => {
     const isInstalled = await nexusClient.isModuleInstalled({
       module: {
         type: "executor",
-        module: testAddresses.OwnableExecutor
+        address: testAddresses.OwnableExecutor
       }
     })
     expect(isInstalled).toBe(false)
@@ -500,7 +500,7 @@ describe("modules.ownableExecutor", async () => {
     const userOpHash = await nexusClient.installModule({
       module: {
         type: "executor",
-        module: testAddresses.OwnableExecutor,
+        address: testAddresses.OwnableExecutor,
         initData: encodePacked(["address"], [eoaAccount.address])
       }
     })
@@ -513,7 +513,7 @@ describe("modules.ownableExecutor", async () => {
     const isInstalledAfter = await nexusClient.isModuleInstalled({
       module: {
         type: "executor",
-        module: testAddresses.OwnableExecutor
+        address: testAddresses.OwnableExecutor
       }
     })
     expect(isInstalledAfter).toBe(true)
@@ -552,14 +552,14 @@ describe("modules.ownableExecutor", async () => {
   })
 
   test("added executor EOA should execute user operation on smart account", async () => {
-    const execution = {
-      target: zeroAddress,
-      callData: toHex("0x"),
-      value: 0n
-    }
-
     const executeOnOwnedAccountExecution = getExecuteOnOwnedAccountAction({
-      execution,
+      execution: {
+        target: zeroAddress,
+        callData: toHex("0x"),
+        value: 0n,
+        to: zeroAddress,
+        data: "0x"
+      },
       ownedAccount: nexusClient.account.address
     })
 

@@ -34,6 +34,7 @@ import {
   ENTRY_POINT_V07_CREATECALL,
   TEST_CONTRACTS
 } from "./callDatas"
+
 import * as hardhatExec from "./executables"
 
 config()
@@ -206,7 +207,7 @@ export const toConfiguredAnvil = async ({
     port: rpcPort,
     codeSizeLimit: 1000000000000,
     forkUrl: shouldForkBaseSepolia
-      ? "https://virtual.base-sepolia.rpc.tenderly.co/a3fb720a-a9ef-44b9-9859-cae842c1d3c8"
+      ? "https://virtual.base-sepolia.rpc.tenderly.co/6deb172f-d5d9-4ae3-9d1d-8f04d52714d6"
       : undefined
   }
   const instance = anvil(config)

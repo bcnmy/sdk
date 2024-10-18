@@ -12,7 +12,8 @@ import {
 } from "viem"
 import {
   SMART_SESSIONS_ADDRESS,
-  TIMEFRAME_POLICY_ADDRESS
+  TIMEFRAME_POLICY_ADDRESS,
+  UNIVERSAL_ACTION_POLICY_ADDRESS
 } from "../../constants"
 import { UniActionPolicyAbi } from "../../constants/abi"
 import { SmartSessionAbi } from "../../constants/abi/SmartSessionAbi"
@@ -144,15 +145,7 @@ export const getPermissionId = async ({
   })) as Hex
 }
 
-/**
- * Checks if a session is enabled for a given account.
- *
- * @param client - The PublicClient to use for the contract call.
- * @param accountAddress - The address of the account.
- * @param permissionId - The permission ID to check.
- * @returns A promise that resolves to a boolean indicating if the session is enabled.
- */
-export const isSessionEnabled = ({
+export const isPermissionEnabled = async ({
   client,
   accountAddress,
   permissionId
@@ -164,7 +157,7 @@ export const isSessionEnabled = ({
   client.readContract({
     address: SMART_SESSIONS_ADDRESS,
     abi: SmartSessionAbi,
-    functionName: "isSessionEnabled",
+    functionName: "isPermissionEnabled",
     args: [permissionId, accountAddress]
   })
 
@@ -177,7 +170,7 @@ export const isSessionEnabled = ({
 export const toUniversalActionPolicy = (
   actionConfig: ActionConfig
 ): PolicyData => ({
-  policy: "0x28120dC008C36d95DE5fa0603526f219c1Ba80f6",
+  policy: UNIVERSAL_ACTION_POLICY_ADDRESS,
   initData: encodeAbiParameters(UniActionPolicyAbi, [
     toActionConfig(actionConfig)
   ])

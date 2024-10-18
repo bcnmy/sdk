@@ -1,10 +1,8 @@
-import { textSpanOverlapsWith } from "typescript"
 import {
   http,
   type Account,
   type Address,
   type Chain,
-  encodeAbiParameters,
   encodePacked,
   isHex
 } from "viem"
@@ -79,7 +77,7 @@ describe("erc7579.decorators", async () => {
       nexusClient.isModuleInstalled({
         module: {
           type: "validator",
-          module: K1_VALIDATOR_ADDRESS,
+          address: K1_VALIDATOR_ADDRESS,
           initData: "0x"
         }
       })
@@ -98,7 +96,7 @@ describe("erc7579.decorators", async () => {
     const hash = await nexusClient.installModule({
       module: {
         type: "validator",
-        module: mockAddresses.MockValidator,
+        address: mockAddresses.MockValidator,
         initData: encodePacked(["address"], [eoaAccount.address])
       }
     })
@@ -111,7 +109,7 @@ describe("erc7579.decorators", async () => {
     const hash = await nexusClient.uninstallModule({
       module: {
         type: "validator",
-        module: mockAddresses.MockValidator,
+        address: mockAddresses.MockValidator,
         initData: encodePacked(["address"], [eoaAccount.address])
       }
     })

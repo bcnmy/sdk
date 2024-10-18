@@ -104,4 +104,5 @@ export type ModuleMeta = {
   address: Hex
   type: ModuleType
   initData?: Hex
+  deInitData?: Hex
 }

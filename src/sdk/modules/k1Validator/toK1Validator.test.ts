@@ -105,7 +105,7 @@ describe("modules.k1Validator", async () => {
     const isInstalledBefore = await nexusClient.isModuleInstalled({
       module: {
         type: "validator",
-        module: K1_VALIDATOR_ADDRESS,
+        address: K1_VALIDATOR_ADDRESS,
         initData: encodePacked(["address"], [eoaAccount.address])
       }
     })
@@ -113,7 +113,7 @@ describe("modules.k1Validator", async () => {
     if (!isInstalledBefore) {
       const hash = await nexusClient.installModule({
         module: {
-          module: K1_VALIDATOR_ADDRESS,
+          address: K1_VALIDATOR_ADDRESS,
           type: "validator",
           initData: encodePacked(["address"], [eoaAccount.address])
         }
@@ -127,7 +127,7 @@ describe("modules.k1Validator", async () => {
 
       const hashUninstall = nexusClient.uninstallModule({
         module: {
-          module: K1_VALIDATOR_ADDRESS,
+          address: K1_VALIDATOR_ADDRESS,
           type: "validator",
           deInitData
         }
@@ -139,7 +139,7 @@ describe("modules.k1Validator", async () => {
 
       const hashUninstall = nexusClient.uninstallModule({
         module: {
-          module: K1_VALIDATOR_ADDRESS,
+          address: K1_VALIDATOR_ADDRESS,
           type: "validator",
           deInitData
         }

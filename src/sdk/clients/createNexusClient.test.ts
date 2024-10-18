@@ -219,7 +219,7 @@ describe("nexus.client", async () => {
       nexusClient.isModuleInstalled({
         module: {
           type: "validator",
-          module: K1_VALIDATOR_ADDRESS,
+          address: K1_VALIDATOR_ADDRESS,
           initData: "0x"
         }
       }),
