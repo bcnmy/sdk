@@ -19,17 +19,17 @@ export const TEST_CONTRACTS: Record<
   SmartSession: {
     chainId: 84532,
     name: "SmartSession",
-    address: "0x3834aD7f5f73fAd19C089a924F18e6F3417d1ac2"
+    address: "0xDDFF43A42726df11E34123f747bDce0f755F784d"
   },
   SimpleSessionValidator: {
     chainId: 84532,
     name: "Simple Session Validator",
-    address: "0xAAAdFd794A1781e4Fd3eA64985F107a7Ac2b3872"
+    address: "0x41f143f4B5f19AfCd2602F6ADE18E75e9b5E37d3"
   },
   UniActionPolicy: {
     chainId: 84532,
     name: "UniActionPolicy",
-    address: "0x28120dC008C36d95DE5fa0603526f219c1Ba80f6"
+    address: "0x148CD6c24F4dd23C396E081bBc1aB1D92eeDe2BF"
   },
   Counter: {
     chainId: 84532,
@@ -45,6 +45,11 @@ export const TEST_CONTRACTS: Record<
     chainId: 84532,
     name: "MockToken",
     address: "0x0006be192b4E06770eaa624AE7648DBF9051221c"
+  },
+  TokenWithPermit: {
+    chainId: 84532,
+    name: "TokenWithPermit",
+    address: "0x51fdb803fD49f0f5bd03de0400a8F17dA2Aa6999"
   },
   MockAttester: {
     chainId: 84532,

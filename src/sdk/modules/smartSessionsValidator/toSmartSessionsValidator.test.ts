@@ -17,6 +17,7 @@ import {
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
+import { MockRegistryAbi } from "../../../test/__contracts/abi"
 import { CounterAbi } from "../../../test/__contracts/abi/CounterAbi"
 import { MockCalleeAbi } from "../../../test/__contracts/abi/MockCalleeAbi"
 import { TEST_CONTRACTS } from "../../../test/callDatas"
@@ -24,6 +25,7 @@ import { testAddresses } from "../../../test/callDatas"
 import { toNetwork } from "../../../test/testSetup"
 import {
   fundAndDeployClients,
+  getBalance,
   getTestAccount,
   killNetwork,
   toTestClient
@@ -38,7 +40,7 @@ import { createNexusSessionClient } from "../../clients/createNexusSessionClient
 import { parseReferenceValue } from "../utils/Helpers"
 import type { ModularSmartAccount, Module } from "../utils/Types"
 import policies, {
-  isSessionEnabled,
+  isPermissionEnabled,
   unzipSessionData,
   zipSessionData
 } from "./Helpers"
@@ -64,7 +66,7 @@ describe("modules.smartSessions.dx", async () => {
   let sessionsModule: Module
 
   beforeAll(async () => {
-    network = await toNetwork()
+    network = await toNetwork("BASE_SEPOLIA_FORKED")
 
     chain = network.chain
     bundlerUrl = network.bundlerUrl
@@ -131,6 +133,27 @@ describe("modules.smartSessions.dx", async () => {
 
     expect(installSuccess).toBe(true)
 
+    // Trust the mock attester.
+    // We're running on a fork of base sepolia, where necessary modules are registered on the registry and mock attestations are done.
+    const trustAttestersHash = await usersNexusClient.sendTransaction({
+      calls: [
+        {
+          to: TEST_CONTRACTS.MockRegistry.address,
+          value: 0n,
+          data: encodeFunctionData({
+            abi: MockRegistryAbi,
+            functionName: "trustAttesters",
+            args: [1, [TEST_CONTRACTS.MockAttester.address]] // Review if more attesters needed
+          })
+        }
+      ]
+    })
+
+    const { status } = await testClient.waitForTransactionReceipt({
+      hash: trustAttestersHash
+    })
+    expect(status).toBe("success")
+
     // Define the session parameters
     // This includes the session key, validator, and action policies
     const sessionRequestedInfo: CreateSessionDataParams[] = [
@@ -178,7 +201,7 @@ describe("modules.smartSessions.dx", async () => {
 
     // Zip the session data, and store it for later use by a dapp
     zippedSessionDatum = zipSessionData(sessionData)
-  }, 60000)
+  }, 200000)
 
   test("should demonstrate using a smart session from dapp's perspective", async () => {
     // Now assume the user has left the dapp and the usersNexusClient signer is no longer available
@@ -230,7 +253,7 @@ describe("modules.smartSessions.dx", async () => {
       })
 
     expect(sessionUseSuccess).toBe(true)
-  }, 60000) // Test timeout set to 60 seconds
+  }, 200000) // Test timeout set to 60 seconds
 })
 
 describe("modules.smartSessions", async () => {
@@ -249,7 +272,7 @@ describe("modules.smartSessions", async () => {
   let sessionsModule: Module
 
   beforeAll(async () => {
-    network = await toNetwork()
+    network = await toNetwork("BASE_SEPOLIA_FORKED")
 
     chain = network.chain
     bundlerUrl = network.bundlerUrl
@@ -403,6 +426,26 @@ describe("modules.smartSessions", async () => {
 
     expect(isInstalledBefore).toBe(true)
 
+    // Trust the mock attester.
+    // We're running on a fork of base sepolia, where necessary modules are registered on the registry and mock attestations are done.
+    const trustAttestersHash = await nexusClient.sendTransaction({
+      calls: [
+        {
+          to: TEST_CONTRACTS.MockRegistry.address,
+          value: 0n,
+          data: encodeFunctionData({
+            abi: MockRegistryAbi,
+            functionName: "trustAttesters",
+            args: [1, [TEST_CONTRACTS.MockAttester.address]] // Review if more attesters needed
+          })
+        }
+      ]
+    })
+    const { status } = await testClient.waitForTransactionReceipt({
+      hash: trustAttestersHash
+    })
+    expect(status).toBe("success")
+
     // session key signer address is declared here
     const sessionRequestedInfo: CreateSessionDataParams[] = [
       {
@@ -441,7 +484,7 @@ describe("modules.smartSessions", async () => {
     })
 
     expect(receipt.success).toBe(true)
-  }, 60000)
+  }, 200000)
 
   test("should make use of already enabled session (USE mode) to increment a counter using a session key", async () => {
     const counterBefore = await testClient.readContract({
@@ -497,7 +540,7 @@ describe("modules.smartSessions", async () => {
     })
 
     expect(counterAfter).toBe(counterBefore + BigInt(1))
-  }, 60000)
+  }, 200000)
 })
 
 describe("modules.smartSessions.uniPolicy", async () => {
@@ -517,7 +560,7 @@ describe("modules.smartSessions.uniPolicy", async () => {
   let sessionsModule: Module
 
   beforeAll(async () => {
-    network = await toNetwork()
+    network = await toNetwork("BASE_SEPOLIA_FORKED")
 
     chain = network.chain
     bundlerUrl = network.bundlerUrl
@@ -609,6 +652,26 @@ describe("modules.smartSessions.uniPolicy", async () => {
 
     expect(isInstalledBefore).toBe(true)
 
+    // Trust the mock attester.
+    // We're running on a fork of base sepolia, where necessary modules are registered on the registry and mock attestations are done.
+    const trustAttestersHash = await nexusClient.sendTransaction({
+      calls: [
+        {
+          to: TEST_CONTRACTS.MockRegistry.address,
+          value: 0n,
+          data: encodeFunctionData({
+            abi: MockRegistryAbi,
+            functionName: "trustAttesters",
+            args: [1, [TEST_CONTRACTS.MockAttester.address]]
+          })
+        }
+      ]
+    })
+    const { status } = await testClient.waitForTransactionReceipt({
+      hash: trustAttestersHash
+    })
+    expect(status).toBe("success")
+
     const functionSelector = "addBalance(address,uint256,bytes32)"
 
     const unparsedFunctionSelector = functionSelector as AbiFunction | string
@@ -694,16 +757,16 @@ describe("modules.smartSessions.uniPolicy", async () => {
 
     expect(receipt.success).toBe(true)
 
-    const isEnabled = await isSessionEnabled({
+    const isEnabled = await isPermissionEnabled({
       client: nexusClient.account.client as PublicClient,
       accountAddress: nexusClient.account.address,
       permissionId: cachedPermissionId
     })
     expect(isEnabled).toBe(true)
-  }, 60000)
+  }, 200000)
 
   test("should make use of already enabled session (USE mode) to add balance to MockCallee using a session key", async () => {
-    const isEnabled = await isSessionEnabled({
+    const isEnabled = await isPermissionEnabled({
       client: nexusClient.account.client as PublicClient,
       accountAddress: nexusClient.account.address,
       permissionId: cachedPermissionId
@@ -776,5 +839,5 @@ describe("modules.smartSessions.uniPolicy", async () => {
 
     const balanceAfter = await mockContract.read.bals([nexusAccountAddress])
     expect(balanceAfter[0]).toBeGreaterThan(balancesBefore[0])
-  }, 60000)
+  }, 200000)
 })

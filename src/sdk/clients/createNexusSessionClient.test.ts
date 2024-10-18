@@ -10,7 +10,7 @@ import {
 import type { LocalAccount, PublicClient } from "viem"
 import { encodeFunctionData } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
-import { CounterAbi } from "../../test/__contracts/abi"
+import { CounterAbi, MockRegistryAbi } from "../../test/__contracts/abi"
 import { TEST_CONTRACTS } from "../../test/callDatas"
 import { toNetwork } from "../../test/testSetup"
 import {
@@ -21,7 +21,7 @@ import {
 } from "../../test/testUtils"
 import type { MasterClient, NetworkConfig } from "../../test/testUtils"
 import addresses from "../__contracts/addresses"
-import { isSessionEnabled } from "../modules/smartSessionsValidator/Helpers"
+import { isPermissionEnabled } from "../modules/smartSessionsValidator/Helpers"
 import type { CreateSessionDataParams } from "../modules/smartSessionsValidator/Types"
 import {
   smartSessionCreateActions,
@@ -49,7 +49,7 @@ describe("nexus.session.client", async () => {
   let sessionsModule: Module
 
   beforeAll(async () => {
-    network = await toNetwork()
+    network = await toNetwork("BASE_SEPOLIA_FORKED")
 
     chain = network.chain
     bundlerUrl = network.bundlerUrl
@@ -109,6 +109,26 @@ describe("nexus.session.client", async () => {
 
     expect(isInstalledBefore).toBe(true)
 
+    // Trust the mock attester.
+    // We're running on a fork of base sepolia, where necessary modules are registered on the registry and mock attestations are done.
+    const trustAttestersHash = await nexusClient.sendTransaction({
+      calls: [
+        {
+          to: TEST_CONTRACTS.MockRegistry.address,
+          value: 0n,
+          data: encodeFunctionData({
+            abi: MockRegistryAbi,
+            functionName: "trustAttesters",
+            args: [1, [TEST_CONTRACTS.MockAttester.address]] // Review if more attesters needed
+          })
+        }
+      ]
+    })
+    const { status } = await testClient.waitForTransactionReceipt({
+      hash: trustAttestersHash
+    })
+    expect(status).toBe("success")
+
     // session key signer address is declared here
     const sessionRequestedInfo: CreateSessionDataParams[] = [
       {
@@ -148,7 +168,7 @@ describe("nexus.session.client", async () => {
 
     expect(receipt.success).toBe(true)
 
-    const isEnabled = await isSessionEnabled({
+    const isEnabled = await isPermissionEnabled({
       client: nexusClient.account.client as PublicClient,
       accountAddress: nexusClient.account.address,
       permissionId: cachedPermissionId
@@ -235,7 +255,7 @@ describe("nexus.session.client", async () => {
       smartSessionUseActions(useSessionsModule)
     )
 
-    const isEnabled = await isSessionEnabled({
+    const isEnabled = await isPermissionEnabled({
       client: testClient as unknown as PublicClient,
       accountAddress: nexusClient.account.address,
       permissionId: cachedPermissionId
