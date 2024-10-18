@@ -28,25 +28,39 @@ import { getAction } from "viem/utils"
 //   [key: string]: any
 // }
 
+export type MinimalSigner = {
+  signTransaction: (...args: any[]) => Promise<any>
+  signMessage: (...args: any[]) => Promise<any>
+  signTypedData: (...args: any[]) => Promise<any>
+  getAddress?: () => Promise<any>
+  address?: any
+  provider?: any
+  [key: string]: any
+}
+
 export type Signer = LocalAccount
 export type UnknownSigner = OneOf<
   | EIP1193Provider
   | WalletClient<Transport, Chain | undefined, Account>
   | LocalAccount
   | Account
-  | any
+  | MinimalSigner
 >
 export async function toSigner({
   signer,
   address
 }: {
-  signer: UnknownSigner
+  signer: UnknownSigner & {
+    getAddress: () => Promise<string>
+    signMessage: (message: any) => Promise<string>
+    signTypedData: (domain: any, types: any, value: any) => Promise<string>
+  }
   address?: Address
 }): Promise<LocalAccount> {
   // ethers Wallet does not have type property
-  if (!signer.type) {
+  if ("provider" in signer) {
     return toAccount({
-      address: getAddress(signer.address as string),
+      address: getAddress((await signer.getAddress()) as string),
       async signMessage({ message }): Promise<Hex> {
         if (typeof message === "string") {
           return (await signer.signMessage(message)) as Hex
@@ -69,7 +83,6 @@ export async function toSigner({
       }
     })
   }
-
   if ("type" in signer && signer.type === "local") {
     return signer as LocalAccount
   }
@@ -98,11 +111,13 @@ export async function toSigner({
 
     walletClient = createWalletClient({
       account: address,
+      // @ts-ignore
       transport: custom(signer as EIP1193Provider)
     })
   }
 
   if (!walletClient) {
+    // @ts-ignore
     walletClient = signer as WalletClient<Transport, Chain | undefined, Account>
   }
 

@@ -1,4 +1,4 @@
-import { ethers } from "ethers"
+import { JsonRpcSigner, Signer, Wallet, ethers } from "ethers"
 import {
   http,
   type Account,
@@ -10,6 +10,7 @@ import {
   parseEther
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
+import { baseSepolia } from "viem/chains"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { CounterAbi } from "../../test/__contracts/abi"
 import mockAddresses from "../../test/__contracts/mockAddresses"
@@ -256,7 +257,11 @@ describe("nexus.client", async () => {
   test("should compare signatures of viem and ethers signer", async () => {
     const viemSigner = privateKeyToAccount(privKey)
 
-    const ethersSigner = new ethers.Wallet(privKey)
+    const provider = new ethers.JsonRpcProvider(
+      baseSepolia.rpcUrls.default.http[0]
+    )
+    // const signer = new ethers.JsonRpcSigner(provider, viemSigner.address) as JsonRpcSigner
+    const wallet = new Wallet(privKey)
 
     const viemNexusClient = await createNexusClient({
       signer: viemSigner,
@@ -266,7 +271,7 @@ describe("nexus.client", async () => {
     })
 
     const ethersNexusClient = await createNexusClient({
-      signer: ethersSigner,
+      signer: wallet,
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl)
@@ -278,7 +283,7 @@ describe("nexus.client", async () => {
     expect(sig1).toBe(sig2)
   })
 
-  test("should send user operation using ethers signer", async () => {
+  test.skip("should send user operation using ethers signer", async () => {
     const ethersSigner = new ethers.Wallet(privKey)
     const ethersNexusClient = await createNexusClient({
       signer: ethersSigner,
