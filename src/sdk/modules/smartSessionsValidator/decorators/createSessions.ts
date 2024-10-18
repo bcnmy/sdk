@@ -2,9 +2,12 @@ import type { ActionData, PolicyData, Session } from "@rhinestone/module-sdk"
 import type { Chain, Client, Hex, PublicClient, Transport } from "viem"
 import { sendUserOperation } from "viem/account-abstraction"
 import { encodeFunctionData, getAction, parseAccount } from "viem/utils"
-import { SmartSessionAbi } from "../../../__contracts/abi/SmartSessionAbi"
-import addresses from "../../../__contracts/addresses"
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
+import {
+  SIMPLE_SESSION_VALIDATOR_ADDRESS,
+  SMART_SESSIONS_ADDRESS
+} from "../../../constants"
+import { SmartSessionAbi } from "../../../constants/abi/SmartSessionAbi"
 import type { ModularSmartAccount } from "../../utils/Types"
 import {
   createActionConfig,
@@ -19,8 +22,6 @@ import type {
   CreateSessionsActionReturnParams,
   CreateSessionsResponse
 } from "../Types"
-
-const SIMPLE_SESSION_VALIDATOR_ADDRESS = addresses.SimpleSessionValidator
 
 /**
  * Parameters for creating sessions in a modular smart account.
@@ -128,7 +129,7 @@ export const getSmartSessionValidatorCreateSessionsAction = async ({
 
   return {
     action: {
-      target: addresses.SmartSession,
+      target: SMART_SESSIONS_ADDRESS,
       value: BigInt(0),
       callData: createSessionsData
     },

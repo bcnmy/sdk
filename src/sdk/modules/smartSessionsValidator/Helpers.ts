@@ -10,9 +10,12 @@ import {
   toBytes,
   toHex
 } from "viem"
-import { UniActionPolicyAbi } from "../../__contracts/abi"
-import { SmartSessionAbi } from "../../__contracts/abi/SmartSessionAbi"
-import addresses from "../../__contracts/addresses"
+import {
+  SMART_SESSIONS_ADDRESS,
+  TIMEFRAME_POLICY_ADDRESS
+} from "../../constants"
+import { UniActionPolicyAbi } from "../../constants/abi"
+import { SmartSessionAbi } from "../../constants/abi/SmartSessionAbi"
 import { parseReferenceValue } from "../utils/Helpers"
 import type {
   ActionConfig,
@@ -21,8 +24,6 @@ import type {
   SessionData,
   SpendingLimitsParams
 } from "./Types"
-
-const TIMEFRAME_POLICY_ADDRESS = addresses.TimeframePolicy
 
 export const MAX_RULES = 16
 
@@ -136,7 +137,7 @@ export const getPermissionId = async ({
   session: Session
 }) => {
   return (await client.readContract({
-    address: addresses.SmartSession,
+    address: SMART_SESSIONS_ADDRESS,
     abi: SmartSessionAbi,
     functionName: "getPermissionId",
     args: [session]
@@ -161,7 +162,7 @@ export const isSessionEnabled = ({
   permissionId: Hex
 }) =>
   client.readContract({
-    address: addresses.SmartSession,
+    address: SMART_SESSIONS_ADDRESS,
     abi: SmartSessionAbi,
     functionName: "isSessionEnabled",
     args: [permissionId, accountAddress]

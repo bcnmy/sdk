@@ -29,12 +29,15 @@ import {
   toTestClient
 } from "../../../test/testUtils"
 import type { MasterClient, NetworkConfig } from "../../../test/testUtils"
-import addresses from "../../__contracts/addresses"
 import {
   type NexusClient,
   createNexusClient
 } from "../../clients/createNexusClient"
 import { createNexusSessionClient } from "../../clients/createNexusSessionClient"
+import {
+  SIMPLE_SESSION_VALIDATOR_ADDRESS,
+  SMART_SESSIONS_ADDRESS
+} from "../../constants"
 import { parseReferenceValue } from "../utils/Helpers"
 import type { ModularSmartAccount, Module } from "../utils/Types"
 import policies, {
@@ -136,7 +139,7 @@ describe("modules.smartSessions.dx", async () => {
     const sessionRequestedInfo: CreateSessionDataParams[] = [
       {
         sessionPublicKey, // Public key of the session
-        sessionValidatorAddress: TEST_CONTRACTS.SimpleSessionValidator.address,
+        sessionValidatorAddress: SIMPLE_SESSION_VALIDATOR_ADDRESS,
         sessionKeyData: toHex(toBytes(sessionPublicKey)),
         sessionValidAfter: 0, // Session valid immediately
         sessionValidUntil: 0, // Session valid indefinitely
@@ -407,7 +410,7 @@ describe("modules.smartSessions", async () => {
     const sessionRequestedInfo: CreateSessionDataParams[] = [
       {
         sessionPublicKey, // session key signer
-        sessionValidatorAddress: TEST_CONTRACTS.SimpleSessionValidator.address,
+        sessionValidatorAddress: SIMPLE_SESSION_VALIDATOR_ADDRESS,
         sessionKeyData: toHex(toBytes(sessionPublicKey)),
         sessionValidAfter: 0,
         sessionValidUntil: 0,
@@ -593,7 +596,7 @@ describe("modules.smartSessions.uniPolicy", async () => {
     const isInstalledAfter = await nexusClient.isModuleInstalled({
       module: {
         type: "validator",
-        module: addresses.SmartSession
+        address: SMART_SESSIONS_ADDRESS
       }
     })
     expect(isInstalledAfter).toBe(true)
@@ -603,7 +606,7 @@ describe("modules.smartSessions.uniPolicy", async () => {
     const isInstalledBefore = await nexusClient.isModuleInstalled({
       module: {
         type: "validator",
-        module: addresses.SmartSession
+        address: SMART_SESSIONS_ADDRESS
       }
     })
 
@@ -659,7 +662,7 @@ describe("modules.smartSessions.uniPolicy", async () => {
     const sessionRequestedInfo: CreateSessionDataParams[] = [
       {
         sessionPublicKey,
-        sessionValidatorAddress: TEST_CONTRACTS.SimpleSessionValidator.address,
+        sessionValidatorAddress: SIMPLE_SESSION_VALIDATOR_ADDRESS,
         sessionKeyData: toHex(toBytes(sessionPublicKey)),
         sessionValidAfter: 0,
         sessionValidUntil: 0,

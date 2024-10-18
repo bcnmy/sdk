@@ -1,83 +1,10 @@
 {
-  "type": "module",
+  "name": "@biconomy/sdk",
+  "version": "0.0.4",
+  "author": "Biconomy",
+  "repository": "github:bcnmy/sdk",
   "main": "./dist/_cjs/index.js",
   "module": "./dist/_esm/index.js",
-  "types": "./dist/_types/index.d.ts",
-  "typings": "./dist/_types/index.d.ts",
-  "homepage": "https://biconomy.io",
-  "sideEffects": false,
-  "name": "@biconomy/sdk",
-  "author": "Biconomy",
-  "version": "0.0.4",
-  "description": "SDK for Biconomy integration with support for account abstraction, smart accounts, ERC-4337.",
-  "keywords": [
-    "erc-7579",
-    "modular smart account",
-    "account abstraction",
-    "biconomy",
-    "sdk"
-  ],
-  "license": "MIT",
-  "repository": "github:bcnmy/sdk",
-  "exports": {
-    ".": {
-      "types": "./dist/_types/index.d.ts",
-      "import": "./dist/_esm/index.js",
-      "default": "./dist/_cjs/index.js"
-    },
-    "./account": {
-      "types": "./_types/account/index.d.ts",
-      "import": "./_esm/account/index.js",
-      "default": "./_cjs/account/index.js"
-    },
-    "./bundler": {
-      "types": "./_types/bundler/index.d.ts",
-      "import": "./_esm/bundler/index.js",
-      "default": "./_cjs/bundler/index.js"
-    },
-    "./paymaster": {
-      "types": "./_types/paymaster/index.d.ts",
-      "import": "./_esm/paymaster/index.js",
-      "default": "./_cjs/paymaster/index.js"
-    },
-    "./modules": {
-      "types": "./_types/modules/index.d.ts",
-      "import": "./_esm/modules/index.js",
-      "default": "./_cjs/modules/index.js"
-    }
-  },
-  "files": [
-    "dist/*",
-    "README.md"
-  ],
-  "scripts": {
-    "format": "biome format . --write",
-    "lint": "biome check .",
-    "lint:fix": "bun run lint --apply",
-    "dev": "bun link && concurrently \"bun run esm:watch\" \"bun run cjs:watch\" \"bun run esm:watch:aliases\" \"bun run cjs:watch:aliases\"",
-    "build": "bun run clean && bun run build:cjs && bun run build:esm && bun run build:types",
-    "clean": "rimraf ./dist/_esm ./dist/_cjs ./dist/_types ./dist/tsconfig",
-    "test": "vitest -c ./src/test/vitest.config.ts",
-    "test:watch": "bun run test dev",
-    "playground": "RUN_PLAYGROUND=true vitest -c ./src/test/vitest.config.ts -t=playground",
-    "playground:watch": "RUN_PLAYGROUND=true bun run test -t=playground --watch",
-    "size": "size-limit",
-    "docs": "typedoc --tsconfig ./tsconfig/tsconfig.esm.json",
-    "docs:deploy": "bun run docs && gh-pages -d docs",
-    "changeset": "changeset",
-    "changeset:release": "bun run build && changeset publish",
-    "changeset:version": "changeset version && bun install --lockfile-only",
-    "changeset:release:canary": "original_name=$(bun run scripts/publish:canary.ts | grep ORIGINAL_NAME | cut -d'=' -f2) && npm publish && git checkout package.json && git tag -l '*-canary.*' | xargs git tag -d && git fetch --tags && git reset --hard && git clean -fd && echo \"Published canary version of $original_name as latest\"",
-    "esm:watch": "tsc --project ./tsconfig/tsconfig.esm.json --watch",
-    "cjs:watch": "tsc --project ./tsconfig/tsconfig.cjs.json --watch",
-    "esm:watch:aliases": "tsc-alias -p ./tsconfig/tsconfig.esm.json --watch",
-    "cjs:watch:aliases": "tsc-alias -p ./tsconfig/tsconfig.cjs.json --watch",
-    "build:cjs": "tsc --project ./tsconfig/tsconfig.cjs.json && tsc-alias -p ./tsconfig/tsconfig.cjs.json && echo > ./dist/_cjs/package.json '{\"type\":\"commonjs\"}'",
-    "build:esm": "tsc --project ./tsconfig/tsconfig.esm.json && tsc-alias -p ./tsconfig/tsconfig.esm.json && echo > ./dist/_esm/package.json '{\"type\": \"module\",\"sideEffects\":false}'",
-    "build:types": "tsc --project ./tsconfig/tsconfig.types.json && tsc-alias -p ./tsconfig/tsconfig.types.json",
-    "fetch:deployment": "bun run ./scripts/fetch:deployment.ts && bun run lint --apply-unsafe",
-    "fetch:deployment:raw": "bun run ./scripts/fetch:deployment.ts"
-  },
   "devDependencies": {
     "@biomejs/biome": "1.6.0",
     "@changesets/cli": "^2.27.1",
@@ -116,16 +43,89 @@
     "typescript": "^5",
     "viem": "^2.20.0"
   },
+  "exports": {
+    ".": {
+      "types": "./dist/_types/index.d.ts",
+      "import": "./dist/_esm/index.js",
+      "default": "./dist/_cjs/index.js"
+    },
+    "./account": {
+      "types": "./_types/account/index.d.ts",
+      "import": "./_esm/account/index.js",
+      "default": "./_cjs/account/index.js"
+    },
+    "./bundler": {
+      "types": "./_types/bundler/index.d.ts",
+      "import": "./_esm/bundler/index.js",
+      "default": "./_cjs/bundler/index.js"
+    },
+    "./paymaster": {
+      "types": "./_types/paymaster/index.d.ts",
+      "import": "./_esm/paymaster/index.js",
+      "default": "./_cjs/paymaster/index.js"
+    },
+    "./modules": {
+      "types": "./_types/modules/index.d.ts",
+      "import": "./_esm/modules/index.js",
+      "default": "./_cjs/modules/index.js"
+    }
+  },
   "commitlint": {
     "extends": [
       "@commitlint/config-conventional"
     ]
   },
+  "description": "SDK for Biconomy integration with support for account abstraction, smart accounts, ERC-4337.",
+  "files": [
+    "dist/*",
+    "README.md"
+  ],
+  "homepage": "https://biconomy.io",
+  "keywords": [
+    "erc-7579",
+    "modular smart account",
+    "account abstraction",
+    "biconomy",
+    "sdk"
+  ],
+  "license": "MIT",
+  "scripts": {
+    "format": "biome format . --write",
+    "lint": "biome check .",
+    "lint:fix": "bun run lint --apply",
+    "dev": "bun link && concurrently \"bun run esm:watch\" \"bun run cjs:watch\" \"bun run esm:watch:aliases\" \"bun run cjs:watch:aliases\"",
+    "build": "bun run clean && bun run build:cjs && bun run build:esm && bun run build:types",
+    "clean": "rimraf ./dist/_esm ./dist/_cjs ./dist/_types ./dist/tsconfig",
+    "test": "vitest -c ./src/test/vitest.config.ts",
+    "test:watch": "bun run test dev",
+    "playground": "RUN_PLAYGROUND=true vitest -c ./src/test/vitest.config.ts -t=playground",
+    "playground:watch": "RUN_PLAYGROUND=true bun run test -t=playground --watch",
+    "size": "size-limit",
+    "docs": "typedoc --tsconfig ./tsconfig/tsconfig.esm.json",
+    "docs:deploy": "bun run docs && gh-pages -d docs",
+    "changeset": "changeset",
+    "changeset:release": "bun run build && changeset publish",
+    "changeset:version": "changeset version && bun install --lockfile-only",
+    "changeset:release:canary": "original_name=$(bun run scripts/publish:canary.ts | grep ORIGINAL_NAME | cut -d'=' -f2) && npm publish && git checkout package.json && git tag -l '*-canary.*' | xargs git tag -d && git fetch --tags && git reset --hard && git clean -fd && echo \"Published canary version of $original_name as latest\"",
+    "esm:watch": "tsc --project ./tsconfig/tsconfig.esm.json --watch",
+    "cjs:watch": "tsc --project ./tsconfig/tsconfig.cjs.json --watch",
+    "esm:watch:aliases": "tsc-alias -p ./tsconfig/tsconfig.esm.json --watch",
+    "cjs:watch:aliases": "tsc-alias -p ./tsconfig/tsconfig.cjs.json --watch",
+    "build:cjs": "tsc --project ./tsconfig/tsconfig.cjs.json && tsc-alias -p ./tsconfig/tsconfig.cjs.json && echo > ./dist/_cjs/package.json '{\"type\":\"commonjs\"}'",
+    "build:esm": "tsc --project ./tsconfig/tsconfig.esm.json && tsc-alias -p ./tsconfig/tsconfig.esm.json && echo > ./dist/_esm/package.json '{\"type\": \"module\",\"sideEffects\":false}'",
+    "build:types": "tsc --project ./tsconfig/tsconfig.types.json && tsc-alias -p ./tsconfig/tsconfig.types.json",
+    "fetch:deployment": "bun run ./scripts/fetch:deployment.ts && bun run lint --apply-unsafe",
+    "fetch:deployment:raw": "bun run ./scripts/fetch:deployment.ts"
+  },
+  "sideEffects": false,
   "simple-git-hooks": {
     "pre-commit": "bun run format && bun run lint:fix",
     "commit-msg": "npx --no -- commitlint --edit ${1}"
   },
+  "type": "module",
+  "types": "./dist/_types/index.d.ts",
+  "typings": "./dist/_types/index.d.ts",
   "dependencies": {
-    "@rhinestone/module-sdk": "^0.1.17"
+    "@rhinestone/module-sdk": "^0.1.25"
   }
 }

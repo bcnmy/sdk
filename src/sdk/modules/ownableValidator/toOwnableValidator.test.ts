@@ -31,13 +31,13 @@ import {
   toTestClient
 } from "../../../test/testUtils"
 import type { MasterClient, NetworkConfig } from "../../../test/testUtils"
-import addresses from "../../__contracts/addresses"
 import type { NexusAccount } from "../../account"
 import {
   type NexusClient,
   createNexusClient
 } from "../../clients/createNexusClient"
 import { parseModuleTypeId } from "../../clients/decorators/erc7579/supportsModule"
+import { K1_VALIDATOR_ADDRESS } from "../../constants"
 import { toK1Validator } from "../k1Validator/toK1Validator"
 import type { Module } from "../utils/Types"
 import { type OwnableActions, ownableActions } from "./decorators"
@@ -438,7 +438,7 @@ describe("modules.ownables", async () => {
     expect(userOpSuccess).toBe(true)
     const [installedValidatorsAfter] =
       await nexusClient.getInstalledValidators()
-    expect(installedValidatorsAfter).toEqual([addresses.K1Validator])
+    expect(installedValidatorsAfter).toEqual([K1_VALIDATOR_ADDRESS])
   })
 })
 

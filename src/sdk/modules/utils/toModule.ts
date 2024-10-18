@@ -1,6 +1,6 @@
-import type { Module as ModuleMeta } from "@rhinestone/module-sdk"
 import type { Hex, SignableMessage } from "viem"
 import type { Signer } from "../../account/utils/toSigner.js"
+import type { ModuleMeta } from "../../modules/utils/Types"
 import { sanitizeSignature } from "./Helpers.js"
 import type { AnyData, Module, ModuleParameters } from "./Types.js"
 

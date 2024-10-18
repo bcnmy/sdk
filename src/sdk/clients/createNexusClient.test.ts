@@ -5,8 +5,7 @@ import {
   type Chain,
   encodeFunctionData,
   isHex,
-  parseEther,
-  toBytes
+  parseEther
 } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { CounterAbi } from "../../test/__contracts/abi"
@@ -20,10 +19,10 @@ import {
   topUp
 } from "../../test/testUtils"
 import type { MasterClient, NetworkConfig } from "../../test/testUtils"
-import { addresses } from "../__contracts/addresses"
 import { ERROR_MESSAGES } from "../account/utils/Constants"
 import { getAccountMeta, makeInstallDataAndHash } from "../account/utils/Utils"
 import { getChain } from "../account/utils/getChain"
+import { K1_VALIDATOR_ADDRESS } from "../constants"
 import { type NexusClient, createNexusClient } from "./createNexusClient"
 
 describe("nexus.client", async () => {
@@ -220,7 +219,7 @@ describe("nexus.client", async () => {
       nexusClient.isModuleInstalled({
         module: {
           type: "validator",
-          module: addresses.K1Validator,
+          module: K1_VALIDATOR_ADDRESS,
           initData: "0x"
         }
       }),

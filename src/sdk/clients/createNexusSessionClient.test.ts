@@ -20,7 +20,10 @@ import {
   toTestClient
 } from "../../test/testUtils"
 import type { MasterClient, NetworkConfig } from "../../test/testUtils"
-import addresses from "../__contracts/addresses"
+import {
+  SIMPLE_SESSION_VALIDATOR_ADDRESS,
+  SMART_SESSIONS_ADDRESS
+} from "../constants"
 import { isSessionEnabled } from "../modules/smartSessionsValidator/Helpers"
 import type { CreateSessionDataParams } from "../modules/smartSessionsValidator/Types"
 import {
@@ -96,7 +99,7 @@ describe("nexus.session.client", async () => {
     const isInstalledAfter = await nexusClient.isModuleInstalled({
       module: {
         type: "validator",
-        module: addresses.SmartSession
+        address: SMART_SESSIONS_ADDRESS
       }
     })
     expect(isInstalledAfter).toBe(true)
@@ -113,7 +116,7 @@ describe("nexus.session.client", async () => {
     const sessionRequestedInfo: CreateSessionDataParams[] = [
       {
         sessionPublicKey, // session key signer
-        sessionValidatorAddress: TEST_CONTRACTS.SimpleSessionValidator.address,
+        sessionValidatorAddress: SIMPLE_SESSION_VALIDATOR_ADDRESS,
         sessionKeyData: toHex(toBytes(sessionPublicKey)),
         sessionValidAfter: 0,
         sessionValidUntil: 0,

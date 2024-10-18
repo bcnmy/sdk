@@ -1,10 +1,10 @@
 import {
+  SMART_SESSIONS_ADDRESS,
   SmartSessionMode,
   encodeSmartSessionSignature
 } from "@rhinestone/module-sdk"
-import type { Module as ModuleMeta } from "@rhinestone/module-sdk"
 import { type Address, type Hex, encodePacked } from "viem"
-import addresses from "../../__contracts/addresses"
+import type { ModuleMeta } from "../../modules/utils/Types"
 import type { ModularSmartAccount } from "../utils/Types"
 import type { Module, ModuleParameters } from "../utils/Types"
 import { type ToModuleParameters, toModule } from "../utils/toModule"
@@ -47,7 +47,7 @@ export type UseSessionModuleParameters = Omit<
 export const getUseSessionModuleInitData = (
   _?: UseSessionModuleGetInitDataArgs
 ): ModuleMeta => ({
-  module: addresses.SmartSession,
+  address: SMART_SESSIONS_ADDRESS,
   type: "validator",
   initData: "0x"
 })
@@ -115,7 +115,7 @@ export const toSmartSessionsValidator = (
   return toModule({
     signer,
     accountAddress: account.address,
-    address: addresses.SmartSession,
+    address: SMART_SESSIONS_ADDRESS,
     initData,
     moduleInitData,
     deInitData,

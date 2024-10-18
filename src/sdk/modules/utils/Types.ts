@@ -1,4 +1,3 @@
-import type { Module as ModuleMeta } from "@rhinestone/module-sdk"
 import type { Address, Chain, Hex, SignableMessage } from "viem"
 import type { SmartAccount } from "viem/account-abstraction"
 import type { Signer } from "./../../account/utils/toSigner"
@@ -100,3 +99,9 @@ export type Modularity = {
 }
 
 export type ModularSmartAccount = SmartAccount & Modularity
+
+export type ModuleMeta = {
+  address: Hex
+  type: ModuleType
+  initData?: Hex
+}

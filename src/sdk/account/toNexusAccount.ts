@@ -38,8 +38,7 @@ import {
   getUserOperationHash,
   toSmartAccount
 } from "viem/account-abstraction"
-import contracts from "../__contracts"
-import { EntrypointAbi, K1ValidatorFactoryAbi } from "../__contracts/abi"
+import { EntrypointAbi, K1ValidatorFactoryAbi } from "../constants/abi"
 import type { Call, UserOperationStruct } from "./utils/Types"
 
 import {
@@ -50,6 +49,11 @@ import {
   PARENT_TYPEHASH
 } from "./utils/Constants"
 
+import {
+  ENTRY_POINT_ADDRESS,
+  K1_VALIDATOR_ADDRESS,
+  K1_VALIDATOR_FACTORY_ADDRESS
+} from "../constants"
 import { toK1Validator } from "../modules/k1Validator/toK1Validator"
 import type { Module } from "../modules/utils/Types"
 import {
@@ -150,8 +154,8 @@ export const toNexusAccount = async (
     signer: _signer,
     index = 0n,
     module: module_,
-    factoryAddress = contracts.k1ValidatorFactory.address,
-    k1ValidatorAddress = contracts.k1Validator.address,
+    factoryAddress = K1_VALIDATOR_FACTORY_ADDRESS,
+    k1ValidatorAddress = K1_VALIDATOR_ADDRESS,
     key = "nexus account",
     name = "Nexus Account"
   } = parameters
@@ -170,7 +174,7 @@ export const toNexusAccount = async (
 
   const signerAddress = masterClient.account.address
   const entryPointContract = getContract({
-    address: contracts.entryPoint.address,
+    address: ENTRY_POINT_ADDRESS,
     abi: EntrypointAbi,
     client: {
       public: masterClient,
@@ -272,7 +276,7 @@ export const toNexusAccount = async (
     const userOpHash = keccak256(packedUserOp as Hex)
     const enc = encodeAbiParameters(
       parseAbiParameters("bytes32, address, uint256"),
-      [userOpHash, contracts.entryPoint.address, BigInt(chain.id)]
+      [userOpHash, ENTRY_POINT_ADDRESS, BigInt(chain.id)]
     )
     return keccak256(enc)
   }
@@ -495,7 +499,7 @@ export const toNexusAccount = async (
     client: masterClient,
     entryPoint: {
       abi: EntrypointAbi,
-      address: contracts.entryPoint.address,
+      address: ENTRY_POINT_ADDRESS,
       version: "0.7"
     },
     getAddress,

@@ -16,7 +16,7 @@ import type {
   SmartAccount,
   UserOperationRequest
 } from "viem/account-abstraction"
-import contracts from "../__contracts"
+import contracts from "../constants"
 
 import { type NexusAccount, toNexusAccount } from "../account/toNexusAccount"
 import type { UnknownSigner } from "../account/utils/toSigner"

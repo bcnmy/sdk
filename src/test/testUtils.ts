@@ -1,5 +1,4 @@
 import { config } from "dotenv"
-import { BytesLike, getAddress, getBytes, hexlify } from "ethers"
 import getPort from "get-port"
 // @ts-ignore
 import { type AnvilParameters, alto, anvil } from "prool/instances"
@@ -20,14 +19,16 @@ import {
 } from "viem"
 import { createBundlerClient } from "viem/account-abstraction"
 import { mnemonicToAccount, privateKeyToAccount } from "viem/accounts"
-import contracts from "../sdk/__contracts"
 import { getChain, getCustomChain } from "../sdk/account/utils"
 import { Logger } from "../sdk/account/utils/Logger"
-import { createBicoBundlerClient } from "../sdk/clients/createBicoBundlerClient"
 import {
   type NexusClient,
   createNexusClient
 } from "../sdk/clients/createNexusClient"
+import {
+  ENTRYPOINT_SIMULATIONS_ADDRESS,
+  ENTRY_POINT_ADDRESS
+} from "../sdk/constants"
 import {
   ENTRY_POINT_SIMULATIONS_CREATECALL,
   ENTRY_POINT_V07_CREATECALL,
@@ -162,10 +163,10 @@ export const toBundlerInstance = async ({
   bundlerPort: number
 }): Promise<BundlerInstance> => {
   const instance = alto({
-    entrypoints: [contracts.entryPoint.address],
+    entrypoints: [ENTRY_POINT_ADDRESS],
     rpcUrl: rpcUrl,
     executorPrivateKeys: [pKey],
-    entrypointSimulationContract: contracts.entryPointSimulations.address,
+    entrypointSimulationContract: ENTRYPOINT_SIMULATIONS_ADDRESS,
     safeMode: false,
     port: bundlerPort
   })
