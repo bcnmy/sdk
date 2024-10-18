@@ -2,6 +2,7 @@ import type { Chain, Client, Hash, Transport } from "viem"
 import type { ModularSmartAccount, Module } from "../../utils/Types"
 import type { CreateSessionsResponse } from "../Types"
 import { type CreateSessionsParameters, createSessions } from "./createSessions"
+import { type TrustAttestersParameters, trustAttesters } from "./trustAttesters"
 import { type UseSessionParameters, useSession } from "./useSession"
 
 /**
@@ -21,6 +22,16 @@ export type SmartSessionCreateActions<
   createSessions: (
     args: CreateSessionsParameters<TModularSmartAccount>
   ) => Promise<CreateSessionsResponse>
+
+  /**
+   * Trusts attesters for a modular smart account.
+   *
+   * @param args - Parameters for trusting attesters.
+   * @returns A promise that resolves to the transaction hash.
+   */
+  trustAttesters: (
+    args?: TrustAttestersParameters<TModularSmartAccount>
+  ) => Promise<Hash>
 }
 
 /**
@@ -53,7 +64,8 @@ export function smartSessionCreateActions(_: Module) {
     client: Client<Transport, Chain | undefined, TModularSmartAccount>
   ): SmartSessionCreateActions<TModularSmartAccount> => {
     return {
-      createSessions: (args) => createSessions(client, args)
+      createSessions: (args) => createSessions(client, args),
+      trustAttesters: (args) => trustAttesters(client, args)
     }
   }
 }

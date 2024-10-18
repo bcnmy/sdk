@@ -151,23 +151,17 @@ describe("modules.smartSessions.uniPolicy", async () => {
 
     expect(isInstalledBefore).toBe(true)
 
-    // Trust the mock attester.
-    // We're running on a fork of base sepolia, where necessary modules are registered on the registry and mock attestations are done.
-    const trustAttestersHash = await nexusClient.sendTransaction({
-      calls: [
-        {
-          to: testAddresses.MockRegistry,
-          value: 0n,
-          data: encodeFunctionData({
-            abi: MockRegistryAbi,
-            functionName: "trustAttesters",
-            args: [1, [testAddresses.MockAttester]]
-          })
-        }
-      ]
-    })
+    const smartSessionNexusClient = nexusClient.extend(
+      smartSessionCreateActions(sessionsModule)
+    )
+
+    const trustAttestersHash = await smartSessionNexusClient.trustAttesters()
+    const userOpReceipt =
+      await smartSessionNexusClient.waitForUserOperationReceipt({
+        hash: trustAttestersHash
+      })
     const { status } = await testClient.waitForTransactionReceipt({
-      hash: trustAttestersHash
+      hash: userOpReceipt.receipt.transactionHash
     })
     expect(status).toBe("success")
 
@@ -237,10 +231,6 @@ describe("modules.smartSessions.uniPolicy", async () => {
         ]
       }
     ]
-
-    const smartSessionNexusClient = nexusClient.extend(
-      smartSessionCreateActions(sessionsModule)
-    )
 
     const createSessionsResponse = await smartSessionNexusClient.createSessions(
       { sessionRequestedInfo }

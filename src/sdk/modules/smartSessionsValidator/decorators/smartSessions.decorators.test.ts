@@ -86,6 +86,7 @@ describe("modules.smartSessions.decorators", async () => {
 
     expect(nexusSessionClient).toBeDefined()
     expect(nexusSessionClient.createSessions).toBeTypeOf("function")
+    expect(nexusSessionClient.trustAttesters).toBeTypeOf("function")
   })
 
   test("should test use smart session decorators", async () => {

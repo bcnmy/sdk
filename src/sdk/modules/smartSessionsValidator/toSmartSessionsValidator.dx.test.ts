@@ -120,24 +120,12 @@ describe("modules.smartSessions.dx", async () => {
 
     expect(installSuccess).toBe(true)
 
-    // Trust the mock attester.
-    // We're running on a fork of base sepolia, where necessary modules are registered on the registry and mock attestations are done.
-    const trustAttestersHash = await usersNexusClient.sendTransaction({
-      calls: [
-        {
-          to: testAddresses.MockRegistry,
-          value: 0n,
-          data: encodeFunctionData({
-            abi: MockRegistryAbi,
-            functionName: "trustAttesters",
-            args: [1, [testAddresses.MockAttester]] // Review if more attesters needed
-          })
-        }
-      ]
-    })
-
-    const { status } = await testClient.waitForTransactionReceipt({
+    const trustAttestersHash = await nexusSessionClient.trustAttesters()
+    const userOpReceipt = await nexusSessionClient.waitForUserOperationReceipt({
       hash: trustAttestersHash
+    })
+    const { status } = await testClient.waitForTransactionReceipt({
+      hash: userOpReceipt.receipt.transactionHash
     })
     expect(status).toBe("success")
 
