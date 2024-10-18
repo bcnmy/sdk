@@ -1,3 +1,4 @@
+import type { Module as ModuleMeta } from "@rhinestone/module-sdk"
 import {
   type Chain,
   type Client,
@@ -13,14 +14,13 @@ import {
 } from "viem/account-abstraction"
 import { getAction } from "viem/utils"
 import { parseAccount } from "viem/utils"
-import type { Module } from "."
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
 import { parseModuleTypeId } from "./supportsModule"
 
 export type UninstallModulesParameters<
   TSmartAccount extends SmartAccount | undefined
 > = GetSmartAccountParameter<TSmartAccount> & {
-  modules: Module[]
+  modules: ModuleMeta[]
   maxFeePerGas?: bigint
   maxPriorityFeePerGas?: bigint
   nonce?: bigint
@@ -61,7 +61,7 @@ export async function uninstallModules<
 
   if (!account_) {
     throw new AccountNotFoundError({
-      docsPath: "/docs/actions/wallet/sendTransaction"
+      docsPath: "/nexus/nexus-client/methods#sendtransaction"
     })
   }
 
@@ -72,7 +72,7 @@ export async function uninstallModules<
     sendUserOperation,
     "sendUserOperation"
   )({
-    calls: modules.map(({ type, address, data }) => ({
+    calls: modules.map(({ type, module, initData }) => ({
       to: account.address,
       value: BigInt(0),
       data: encodeFunctionData({
@@ -99,7 +99,7 @@ export async function uninstallModules<
           }
         ],
         functionName: "uninstallModule",
-        args: [parseModuleTypeId(type), getAddress(address), data ?? "0x"]
+        args: [parseModuleTypeId(type), getAddress(module), initData ?? "0x"]
       })
     })),
     maxFeePerGas,

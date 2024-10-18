@@ -1,4 +1,3 @@
-import { config } from "dotenv"
 import {
   type Address,
   type Client,
@@ -37,7 +36,6 @@ import type {
   EIP712DomainReturn,
   UserOperationStruct
 } from "./Types"
-config()
 
 /**
  * pack the userOperation
@@ -311,6 +309,21 @@ export function bigIntReplacer(_key: string, value: any): any {
   return typeof value === "bigint" ? value.toString() : value
 }
 
+export function numberTo3Bytes(key: bigint): Uint8Array {
+  // todo: check range
+  const buffer = new Uint8Array(3)
+  buffer[0] = Number((key >> 16n) & 0xffn)
+  buffer[1] = Number((key >> 8n) & 0xffn)
+  buffer[2] = Number(key & 0xffn)
+  return buffer
+}
+
+export function toHexString(byteArray: Uint8Array): string {
+  return Array.from(byteArray)
+    .map((byte) => byte.toString(16).padStart(2, "0")) // Convert each byte to hex and pad to 2 digits
+    .join("") // Join all hex values together into a single string
+}
+
 export const getAccountDomainStructFields = async (
   publicClient: PublicClient,
   accountAddress: Address
@@ -340,8 +353,8 @@ export const getAccountDomainStructFields = async (
     keccak256(encodePacked(["uint256[]"], [extensions]))
   ])
 }
-export const playgroundTrue = process.env.RUN_PLAYGROUND === "true"
-export const isTesting = process.env.TEST === "true"
+export const playgroundTrue = process?.env?.RUN_PLAYGROUND === "true"
+export const isTesting = process?.env?.TEST === "true"
 
 export const safeMultiplier = (bI: bigint, multiplier: number): bigint =>
   BigInt(Math.round(Number(bI) * multiplier))

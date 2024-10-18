@@ -44,16 +44,19 @@ export type TestFileNetworkType =
   | "FILE_LOCALHOST"
   | "COMMON_LOCALHOST"
   | "PUBLIC_TESTNET"
+  | "BASE_SEPOLIA_FORKED"
 
 export const toNetwork = async (
   networkType: TestFileNetworkType = "FILE_LOCALHOST"
-): Promise<NetworkConfig> =>
-  await (networkType === "COMMON_LOCALHOST"
+): Promise<NetworkConfig> => {
+  const forkBaseSepolia = networkType === "BASE_SEPOLIA_FORKED"
+  return await (networkType === "COMMON_LOCALHOST"
     ? // @ts-ignore
       inject("globalNetwork")
-    : networkType === "FILE_LOCALHOST"
-      ? initLocalhostNetwork()
-      : initTestnetNetwork())
+    : networkType === "PUBLIC_TESTNET"
+      ? initTestnetNetwork()
+      : initLocalhostNetwork(forkBaseSepolia))
+}
 
 export const playgroundTrue = process.env.RUN_PLAYGROUND === "true"
 export const paymasterTruthy = !!process.env.PAYMASTER_URL

@@ -87,7 +87,7 @@ describe("nexus.client", async () => {
           }
         ]
       })
-      const { status } = await testClient.waitForTransactionReceipt({
+      const { status } = await nexusClient.waitForTransactionReceipt({
         hash
       })
       expect(status).toBe("success")
@@ -112,7 +112,6 @@ describe("nexus.client", async () => {
     expect(balance > 0)
   })
 
-  // @note @todo this test is only valid for anvil
   test("should have account addresses", async () => {
     const addresses = await Promise.all([
       eoaAccount.address,
@@ -227,8 +226,8 @@ describe("nexus.client", async () => {
       nexusClient.isModuleInstalled({
         module: {
           type: "validator",
-          address: addresses.K1Validator,
-          data: "0x"
+          module: addresses.K1Validator,
+          initData: "0x"
         }
       }),
       nexusClient.supportsExecutionMode({
@@ -248,7 +247,7 @@ describe("nexus.client", async () => {
     const balanceBefore = await getBalance(testClient, recipientAddress)
     const tx = { to: recipientAddress, value: 1n }
     const hash = await nexusClient.sendTransaction({ calls: [tx, tx] })
-    const { status } = await testClient.waitForTransactionReceipt({ hash })
+    const { status } = await nexusClient.waitForTransactionReceipt({ hash })
     const balanceAfter = await getBalance(testClient, recipientAddress)
     expect(status).toBe("success")
     expect(balanceAfter - balanceBefore).toBe(2n)

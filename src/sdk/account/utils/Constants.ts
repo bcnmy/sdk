@@ -21,10 +21,17 @@ export const DefaultGasLimit = {
 }
 
 export const ERROR_MESSAGES = {
+  SIGNER_REQUIRED_FOR_CREATE_SESSION: "Signer is required",
+  ACCOUNT_REQUIRED: "Account is required",
+  MODULE_NOT_ACTIVATED: "Module not activated",
+  SMART_SESSION_DATA_REQUIRED:
+    "Data is required for using smart session module",
   MISSING_ACCOUNT_CONTRACT:
     'The contract function "computeAccountAddress" returned no data ("0x")',
   INVALID_HEX:
     "Invalid hex, if you are targeting a number, consider using pad() and toHex() from viem: pad(toHex(BigInt(2000))",
+  CONTRACT_NOT_DEPLOYED:
+    "Address is not a contract. Make sure that the contract you are trying to use is deployed.",
   ACCOUNT_NOT_DEPLOYED: "Account has not yet been deployed",
   ACCOUNT_ALREADY_DEPLOYED: "Account already deployed",
   NO_NATIVE_TOKEN_BALANCE_DURING_DEPLOY:
@@ -83,7 +90,7 @@ export const MOCK_MULTI_MODULE_ADDRESS =
 export const MODULE_TYPE_MULTI = 0
 
 export const NEXUS_DOMAIN_NAME = "nexus"
-export const NEXUS_DOMAIN_VERSION = "1.0.0-beta.1"
+export const NEXUS_DOMAIN_VERSION = "1.0.0"
 export const NEXUS_DOMAIN_TYPEHASH =
   "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
 

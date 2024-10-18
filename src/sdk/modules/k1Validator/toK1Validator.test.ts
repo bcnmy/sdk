@@ -3,27 +3,27 @@ import {
   type Account,
   type Address,
   type Chain,
-  type PublicClient,
+  type Hex,
   encodePacked
 } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
-import { toNetwork } from "../../../../test/testSetup"
+import { toNetwork } from "../../../test/testSetup"
 import {
   fundAndDeployClients,
   getBalance,
   getTestAccount,
   killNetwork,
   toTestClient
-} from "../../../../test/testUtils"
-import type { MasterClient, NetworkConfig } from "../../../../test/testUtils"
-import addresses from "../../../__contracts/addresses"
+} from "../../../test/testUtils"
+import type { MasterClient, NetworkConfig } from "../../../test/testUtils"
+import addresses from "../../__contracts/addresses"
 import {
   type NexusClient,
   createNexusClient
-} from "../../../clients/createNexusClient"
-import { toK1ValidatorModule } from "./toK1ValidatorModule"
+} from "../../clients/createNexusClient"
+import { toK1Validator } from "./toK1Validator"
 
-describe("modules.k1Validator.write", async () => {
+describe("modules.k1Validator", async () => {
   let network: NetworkConfig
   let chain: Chain
   let bundlerUrl: string
@@ -32,9 +32,9 @@ describe("modules.k1Validator.write", async () => {
   let testClient: MasterClient
   let eoaAccount: Account
   let nexusClient: NexusClient
-  let nexusAccountAddress: Address
   let recipient: Account
   let recipientAddress: Address
+  let nexusAccountAddress: Hex
 
   beforeAll(async () => {
     network = await toNetwork()
@@ -62,7 +62,7 @@ describe("modules.k1Validator.write", async () => {
     await killNetwork([network?.rpcPort, network?.bundlerPort])
   })
 
-  test.skip("should send eth", async () => {
+  test("should send eth", async () => {
     const balanceBefore = await getBalance(testClient, recipientAddress)
     const hash = await nexusClient.sendTransaction({
       calls: [
@@ -70,26 +70,31 @@ describe("modules.k1Validator.write", async () => {
           to: recipientAddress,
           value: 1n
         }
-      ]
+      ],
+      // Note
+      // supplying key = 0 will pass it on
+      // supplying key = 123n will pass it on
+      // supplying no key and just getNonce will make it a timestamp
+      // Note: ignore ts error below.
+      nonce: await nexusClient.account.getNonce({ key: 123n })
+
+      // Note: one can directly supply fixed or just use below for 2D nonce
+      // nonce: await nexusClient.account.getNonce()
     })
-    const { success } = await nexusClient.waitForUserOperationReceipt({ hash })
+    const { status } = await nexusClient.waitForTransactionReceipt({ hash })
+    expect(status).toBe("success")
     const balanceAfter = await getBalance(testClient, recipientAddress)
-    expect(success).toBe(true)
     expect(balanceAfter - balanceBefore).toBe(1n)
-  })
+  }, 90000)
 
   test("k1Validator properties", async () => {
-    const k1Validator = await toK1ValidatorModule({
-      client: nexusClient.account.client as PublicClient,
-      initData: encodePacked(["address"], [eoaAccount.address]),
-      deInitData: "0x",
-      nexusAccountAddress: nexusClient.account.address
+    const k1Validator = toK1Validator({
+      signer: nexusClient.account.signer,
+      accountAddress: nexusClient.account.address
     })
     expect(k1Validator.signMessage).toBeDefined()
     expect(k1Validator.signUserOpHash).toBeDefined()
-    expect(k1Validator.getStubSignature).toBeDefined()
     expect(k1Validator.address).toBeDefined()
-    expect(k1Validator.client).toBeDefined()
     expect(k1Validator.initData).toBeDefined()
     expect(k1Validator.deInitData).toBeDefined()
     expect(k1Validator.signer).toBeDefined()
@@ -100,17 +105,17 @@ describe("modules.k1Validator.write", async () => {
     const isInstalledBefore = await nexusClient.isModuleInstalled({
       module: {
         type: "validator",
-        address: addresses.K1Validator,
-        data: encodePacked(["address"], [eoaAccount.address])
+        module: addresses.K1Validator,
+        initData: encodePacked(["address"], [eoaAccount.address])
       }
     })
 
     if (!isInstalledBefore) {
       const hash = await nexusClient.installModule({
         module: {
-          address: addresses.K1Validator,
+          module: addresses.K1Validator,
           type: "validator",
-          data: encodePacked(["address"], [eoaAccount.address])
+          initData: encodePacked(["address"], [eoaAccount.address])
         }
       })
 
@@ -122,9 +127,9 @@ describe("modules.k1Validator.write", async () => {
 
       const hashUninstall = nexusClient.uninstallModule({
         module: {
-          address: addresses.K1Validator,
+          module: addresses.K1Validator,
           type: "validator",
-          data: deInitData
+          deInitData
         }
       })
 
@@ -134,9 +139,9 @@ describe("modules.k1Validator.write", async () => {
 
       const hashUninstall = nexusClient.uninstallModule({
         module: {
-          address: addresses.K1Validator,
+          module: addresses.K1Validator,
           type: "validator",
-          data: deInitData
+          deInitData
         }
       })
 

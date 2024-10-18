@@ -45,7 +45,7 @@ export const UniActionPolicyAbi = [
               }
             ],
             name: "rules",
-            type: "tuple[]"
+            type: "tuple[16]"
           }
         ],
         name: "paramRules",
@@ -55,4 +55,4 @@ export const UniActionPolicyAbi = [
     name: "ActionConfig",
     type: "tuple"
   }
-] as const
+]

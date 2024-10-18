@@ -15,21 +15,46 @@ export const TEST_CONTRACTS: Record<
     name: "OwnableExecutor",
     address: "0xc98B026383885F41d9a995f85FC480E9bb8bB891"
   },
-  // Smart sessions
+  // Smart sessions: TODO: update with latest address
   SmartSession: {
-    chainId: 11155111,
-    name: "SmartSession",
-    address: "0xccAec32B52795A11de7D21aB45238C5Fc9146fB5"
-  },
-  SimpleSigner: {
     chainId: 84532,
-    name: "Simple Signer",
+    name: "SmartSession",
+    address: "0x3834aD7f5f73fAd19C089a924F18e6F3417d1ac2"
+  },
+  SimpleSessionValidator: {
+    chainId: 84532,
+    name: "Simple Session Validator",
     address: "0xAAAdFd794A1781e4Fd3eA64985F107a7Ac2b3872"
   },
   UniActionPolicy: {
-    chainId: 11155111,
+    chainId: 84532,
     name: "UniActionPolicy",
-    address: "0x148CD6c24F4dd23C396E081bBc1aB1D92eeDe2BF"
+    address: "0x28120dC008C36d95DE5fa0603526f219c1Ba80f6"
+  },
+  Counter: {
+    chainId: 84532,
+    name: "Counter",
+    address: "0x14e4829E655F0b3a1793838dDd47273D5341d416"
+  },
+  MockCallee: {
+    chainId: 84532,
+    name: "MockCallee",
+    address: "0x29FdD9D9A9f8CD8dCa0F4764bf0F959183DF4139"
+  },
+  MockToken: {
+    chainId: 84532,
+    name: "MockToken",
+    address: "0x0006be192b4E06770eaa624AE7648DBF9051221c"
+  },
+  MockAttester: {
+    chainId: 84532,
+    name: "MockAttester",
+    address: "0xA4C777199658a41688E9488c4EcbD7a2925Cc23A"
+  },
+  MockRegistry: {
+    chainId: 84532,
+    name: "MockRegistry",
+    address: "0x000000000069E2a187AEFFb852bF3cCdC95151B2"
   },
   TimeFramePolicy: {
     chainId: 84532,

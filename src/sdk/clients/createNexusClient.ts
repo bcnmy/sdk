@@ -17,24 +17,16 @@ import type {
   UserOperationRequest
 } from "viem/account-abstraction"
 import contracts from "../__contracts"
-import type { Call } from "../account/utils/Types"
 
 import { type NexusAccount, toNexusAccount } from "../account/toNexusAccount"
 import type { UnknownSigner } from "../account/utils/toSigner"
-import type { ToValidationModuleReturnType } from "../modules/validators/toValidationModule"
+import type { Module } from "../modules/utils/Types"
 import { createBicoBundlerClient } from "./createBicoBundlerClient"
 import { type Erc7579Actions, erc7579Actions } from "./decorators/erc7579"
 import {
   type SmartAccountActions,
   smartAccountActions
 } from "./decorators/smartAccount"
-
-/**
- * Parameters for sending a transaction
- */
-export type SendTransactionParameters = {
-  calls: Call | Call[]
-}
 
 /**
  * Nexus Client type
@@ -147,13 +139,12 @@ export type NexusClientConfig<
     /** Index of the account. */
     index?: bigint
     /** Active module of the account. */
-    activeModule?: ToValidationModuleReturnType
+    module?: Module
     /** Factory address of the account. */
     factoryAddress?: Address
     /** Owner module */
     k1ValidatorAddress?: Address
-    accountName?: string
-    accountKey?: string
+    accountAddress?: Address
   }
 >
 
@@ -185,26 +176,24 @@ export async function createNexusClient(
     index = 0n,
     key = "nexus client",
     name = "Nexus Client",
-    accountName,
-    accountKey,
-    activeModule,
+    module,
     factoryAddress = contracts.k1ValidatorFactory.address,
     k1ValidatorAddress = contracts.k1Validator.address,
     bundlerTransport,
     transport,
+    accountAddress,
     ...bundlerConfig
   } = parameters
 
   if (!chain) throw new Error("Missing chain")
 
   const nexusAccount = await toNexusAccount({
-    name: accountName,
-    key: accountKey,
+    accountAddress,
     transport,
     chain,
     signer,
     index,
-    activeModule,
+    module,
     factoryAddress,
     k1ValidatorAddress
   })

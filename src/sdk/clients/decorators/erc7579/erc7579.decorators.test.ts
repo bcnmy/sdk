@@ -79,8 +79,8 @@ describe("erc7579.decorators", async () => {
       nexusClient.isModuleInstalled({
         module: {
           type: "validator",
-          address: contracts.k1Validator.address,
-          data: "0x"
+          module: contracts.k1Validator.address,
+          initData: "0x"
         }
       })
     ])
@@ -98,8 +98,8 @@ describe("erc7579.decorators", async () => {
     const hash = await nexusClient.installModule({
       module: {
         type: "validator",
-        address: mockAddresses.MockValidator,
-        data: encodePacked(["address"], [eoaAccount.address])
+        module: mockAddresses.MockValidator,
+        initData: encodePacked(["address"], [eoaAccount.address])
       }
     })
 
@@ -111,8 +111,8 @@ describe("erc7579.decorators", async () => {
     const hash = await nexusClient.uninstallModule({
       module: {
         type: "validator",
-        address: mockAddresses.MockValidator,
-        data: encodePacked(["address"], [eoaAccount.address])
+        module: mockAddresses.MockValidator,
+        initData: encodePacked(["address"], [eoaAccount.address])
       }
     })
 

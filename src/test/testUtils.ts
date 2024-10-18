@@ -1,7 +1,8 @@
 import { config } from "dotenv"
+import { BytesLike, getAddress, getBytes, hexlify } from "ethers"
 import getPort from "get-port"
 // @ts-ignore
-import { alto, anvil } from "prool/instances"
+import { type AnvilParameters, alto, anvil } from "prool/instances"
 import {
   http,
   type Account,
@@ -123,26 +124,24 @@ export const initTestnetNetwork = async (): Promise<NetworkConfig> => {
   }
 }
 
-export const initLocalhostNetwork =
-  async (): Promise<NetworkConfigWithBundler> => {
-    const configuredNetwork = await initAnvilPayload()
-    const bundlerConfig = await initBundlerInstance({
-      rpcUrl: configuredNetwork.rpcUrl
-    })
-    await ensureBundlerIsReady(
-      bundlerConfig.bundlerUrl,
-      getTestChainFromPort(configuredNetwork.rpcPort)
-    )
-    allInstances.set(
-      configuredNetwork.instance.port,
-      configuredNetwork.instance
-    )
-    allInstances.set(
-      bundlerConfig.bundlerInstance.port,
-      bundlerConfig.bundlerInstance
-    )
-    return { ...configuredNetwork, ...bundlerConfig }
-  }
+export const initLocalhostNetwork = async (
+  shouldForkBaseSepolia = false
+): Promise<NetworkConfigWithBundler> => {
+  const configuredNetwork = await initAnvilPayload(shouldForkBaseSepolia)
+  const bundlerConfig = await initBundlerInstance({
+    rpcUrl: configuredNetwork.rpcUrl
+  })
+  await ensureBundlerIsReady(
+    bundlerConfig.bundlerUrl,
+    getTestChainFromPort(configuredNetwork.rpcPort)
+  )
+  allInstances.set(configuredNetwork.instance.port, configuredNetwork.instance)
+  allInstances.set(
+    bundlerConfig.bundlerInstance.port,
+    bundlerConfig.bundlerInstance
+  )
+  return { ...configuredNetwork, ...bundlerConfig }
+}
 
 export type MasterClient = ReturnType<typeof toTestClient>
 export const toTestClient = (chain: Chain, account: Account) =>
@@ -194,15 +193,22 @@ export const ensureBundlerIsReady = async (
 }
 
 export const toConfiguredAnvil = async ({
-  rpcPort
-}: { rpcPort: number }): Promise<AnvilInstance> => {
-  const instance = anvil({
+  rpcPort,
+  shouldForkBaseSepolia = false
+}: {
+  rpcPort: number
+  shouldForkBaseSepolia: boolean
+}): Promise<AnvilInstance> => {
+  const config: AnvilParameters = {
     hardfork: "Cancun",
     chainId: rpcPort,
     port: rpcPort,
-    codeSizeLimit: 1000000000000
-    // forkUrl: "https://base-sepolia.gateway.tenderly.co/2oxlNZ7oiNCUpXzrWFuIHx"
-  })
+    codeSizeLimit: 1000000000000,
+    forkUrl: shouldForkBaseSepolia
+      ? "https://virtual.base-sepolia.rpc.tenderly.co/a3fb720a-a9ef-44b9-9859-cae842c1d3c8"
+      : undefined
+  }
+  const instance = anvil(config)
   await instance.start()
   await initDeployments(rpcPort)
   return instance
@@ -233,12 +239,14 @@ export const initDeployments = async (rpcPort: number) => {
 }
 
 const portOptions = { exclude: [] as number[] }
-export const initAnvilPayload = async (): Promise<AnvilDto> => {
+export const initAnvilPayload = async (
+  shouldForkBaseSepolia = false
+): Promise<AnvilDto> => {
   const rpcPort = await getPort(portOptions)
   portOptions.exclude.push(rpcPort)
   const rpcUrl = `http://localhost:${rpcPort}`
   const chain = getTestChainFromPort(rpcPort)
-  const instance = await toConfiguredAnvil({ rpcPort })
+  const instance = await toConfiguredAnvil({ rpcPort, shouldForkBaseSepolia })
   return { rpcUrl, chain, instance, rpcPort }
 }
 
@@ -376,9 +384,7 @@ export const safeTopUp = async (
 ) => {
   try {
     return await topUp(testClient, recipient, amount, token)
-  } catch (error) {
-    Logger.error(`Error topping up account: ${error}`)
-  }
+  } catch (error) {}
 }
 
 export const topUp = async (
@@ -397,8 +403,6 @@ export const topUp = async (
     )
     return await Promise.resolve()
   }
-
-  Logger.log(`topping up (${recipient}): (${balanceOfRecipient}).`)
 
   if (token) {
     const hash = await testClient.writeContract({

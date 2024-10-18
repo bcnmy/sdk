@@ -1,3 +1,4 @@
+import type { Module as ModuleMeta } from "@rhinestone/module-sdk"
 import {
   type Chain,
   type Client,
@@ -13,14 +14,13 @@ import {
 } from "viem/account-abstraction"
 import { getAction } from "viem/utils"
 import { parseAccount } from "viem/utils"
-import type { Module } from "."
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
 import { parseModuleTypeId } from "./supportsModule"
 
 export type UninstallFallbackParameters<
   TSmartAccount extends SmartAccount | undefined
 > = GetSmartAccountParameter<TSmartAccount> & {
-  module: Module
+  module: ModuleMeta
   maxFeePerGas?: bigint
   maxPriorityFeePerGas?: bigint
   nonce?: bigint
@@ -57,12 +57,12 @@ export async function uninstallFallback<
     maxFeePerGas,
     maxPriorityFeePerGas,
     nonce,
-    module: { address, data, type }
+    module: { module, initData, type }
   } = parameters
 
   if (!account_) {
     throw new AccountNotFoundError({
-      docsPath: "/docs/actions/wallet/sendTransaction"
+      docsPath: "/nexus/nexus-client/methods#sendtransaction"
     })
   }
 
@@ -101,7 +101,7 @@ export async function uninstallFallback<
             }
           ],
           functionName: "uninstallFallback",
-          args: [parseModuleTypeId(type), getAddress(address), data ?? "0x"]
+          args: [parseModuleTypeId(type), getAddress(module), initData ?? "0x"]
         })
       }
     ],

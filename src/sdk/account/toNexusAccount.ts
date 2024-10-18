@@ -40,28 +40,28 @@ import {
 } from "viem/account-abstraction"
 import contracts from "../__contracts"
 import { EntrypointAbi, K1ValidatorFactoryAbi } from "../__contracts/abi"
-import type { Call, GetNonceArgs, UserOperationStruct } from "./utils/Types"
+import type { Call, UserOperationStruct } from "./utils/Types"
 
 import {
   ERROR_MESSAGES,
   EXECUTE_BATCH,
   EXECUTE_SINGLE,
   MAGIC_BYTES,
-  MODE_VALIDATION,
   PARENT_TYPEHASH
 } from "./utils/Constants"
 
-import { toK1ValidatorModule } from "../modules/validators/k1Validator/toK1ValidatorModule"
-import type { ToValidationModuleReturnType } from "../modules/validators/toValidationModule"
+import { toK1Validator } from "../modules/k1Validator/toK1Validator"
+import type { Module } from "../modules/utils/Types"
 import {
   type TypedDataWith712,
   eip712WrapHash,
   getAccountDomainStructFields,
   getTypesForEIP712Domain,
+  isNullOrUndefined,
   packUserOp,
   typeToString
 } from "./utils/Utils"
-import { type UnknownSigner, toSigner } from "./utils/toSigner"
+import { type Signer, type UnknownSigner, toSigner } from "./utils/toSigner"
 
 /**
  * Parameters for creating a Nexus Smart Account
@@ -76,11 +76,13 @@ export type ToNexusSmartAccountParameters = {
   /** Optional index for the account */
   index?: bigint | undefined
   /** Optional active validation module */
-  activeModule?: ToValidationModuleReturnType
+  module?: Module
   /** Optional factory address */
   factoryAddress?: Address
   /** Optional K1 validator address */
   k1ValidatorAddress?: Address
+  /** Optional account address override */
+  accountAddress?: Address
 } & Prettify<
   Pick<
     ClientConfig<Transport, Chain, Account, RpcSchema>,
@@ -114,10 +116,11 @@ export type NexusSmartAccountImplementation = SmartAccountImplementation<
     encodeExecute: (call: Call) => Promise<Hex>
     encodeExecuteBatch: (calls: readonly Call[]) => Promise<Hex>
     getUserOpHash: (userOp: Partial<UserOperationStruct>) => Promise<Hex>
-    setActiveModule: (validationModule: ToValidationModuleReturnType) => void
-    getActiveModule: () => ToValidationModuleReturnType
+    setModule: (validationModule: Module) => void
+    getModule: () => Module
     factoryData: Hex
     factoryAddress: Address
+    signer: Signer
   }
 >
 
@@ -146,7 +149,7 @@ export const toNexusAccount = async (
     transport,
     signer: _signer,
     index = 0n,
-    activeModule: activeModule_,
+    module: module_,
     factoryAddress = contracts.k1ValidatorFactory.address,
     k1ValidatorAddress = contracts.k1Validator.address,
     key = "nexus account",
@@ -181,13 +184,13 @@ export const toNexusAccount = async (
     args: [signerAddress, index, [], 0]
   })
 
-  let _accountAddress: Address
+  let _accountAddress: Address | undefined = parameters.accountAddress
   /**
    * @description Gets the address of the account
    * @returns The address of the account
    */
-  const getAddress = async () => {
-    if (_accountAddress) return _accountAddress
+  const getAddress = async (): Promise<Address> => {
+    if (!isNullOrUndefined(_accountAddress)) return _accountAddress
 
     try {
       _accountAddress = (await masterClient.readContract({
@@ -196,24 +199,31 @@ export const toNexusAccount = async (
         functionName: "computeAccountAddress",
         args: [signerAddress, index, [], 0]
       })) as Address
+      // biome-ignore lint/suspicious/noExplicitAny: <explanation>
     } catch (e: any) {
       if (e.shortMessage?.includes(ERROR_MESSAGES.MISSING_ACCOUNT_CONTRACT)) {
-        throw new Error(ERROR_MESSAGES.ACCOUNT_NOT_DEPLOYED)
+        throw new Error(
+          "Failed to compute account address. Possible reasons:\n" +
+            "- The factory contract does not have the function 'computeAccountAddress'\n" +
+            "- The parameters passed to the factory contract function may be invalid\n" +
+            "- The provided factory address is not a contract"
+        )
       }
+      throw e
     }
 
     return _accountAddress
   }
 
-  let activeModule =
-    activeModule_ ??
-    (await toK1ValidatorModule({
+  let module =
+    module_ ??
+    toK1Validator({
       address: k1ValidatorAddress,
       accountAddress: await getAddress(),
       initData: signerAddress,
       deInitData: "0x",
-      client: masterClient
-    }))
+      signer
+    })
 
   /**
    * @description Gets the counterfactual address of the account
@@ -224,6 +234,7 @@ export const toNexusAccount = async (
     if (_accountAddress) return _accountAddress
     try {
       await entryPointContract.simulate.getSenderAddress([getInitCode()])
+      // biome-ignore lint/suspicious/noExplicitAny: <explanation>
     } catch (e: any) {
       if (e?.cause?.data?.errorName === "SenderAddressResult") {
         _accountAddress = e?.cause.data.args[0] as Address
@@ -333,40 +344,36 @@ export const toNexusAccount = async (
    * @param args - Optional arguments for getting the nonce
    * @returns The nonce
    */
-  const getNonce = async ({
-    validationMode: _validationMode = MODE_VALIDATION,
-    nonceOptions
-  }: GetNonceArgs = {}): Promise<bigint> => {
-    if (nonceOptions) {
-      if (nonceOptions?.nonceOverride) return BigInt(nonceOptions.nonceOverride)
-      if (nonceOptions?.validationMode)
-        _validationMode = nonceOptions.validationMode
-    }
+  const getNonce = async (parameters?: {
+    key?: bigint
+    validationMode?: "0x00" | "0x01"
+  }): Promise<bigint> => {
     try {
+      const TIMESTAMP_ADJUSTMENT = 16777215n
+      const defaultedKey = BigInt(parameters?.key ?? 0n) % TIMESTAMP_ADJUSTMENT
+      const defaultedValidationMode = parameters?.validationMode ?? "0x00"
       const key: string = concat([
-        "0x000000",
-        _validationMode,
-        activeModule.address
+        toHex(defaultedKey, { size: 3 }),
+        defaultedValidationMode,
+        module.address
       ])
+
       const accountAddress = await getAddress()
       return await entryPointContract.read.getNonce([
         accountAddress,
         BigInt(key)
       ])
     } catch (e) {
-      return BigInt(0)
+      return 0n
     }
   }
-
   /**
    * @description Changes the active module for the account
-   * @param newModule - The new module to set as active
+   * @param module - The new module to set as active
    * @returns void
    */
-  const setActiveModule = (
-    validationModule: ToValidationModuleReturnType
-  ): void => {
-    activeModule = validationModule
+  const setModule = (validationModule: Module): void => {
+    module = validationModule
   }
 
   /**
@@ -378,13 +385,11 @@ export const toNexusAccount = async (
   const signMessage = async ({
     message
   }: { message: SignableMessage }): Promise<Hex> => {
-    const tempSignature = await activeModule.signer.signMessage({
-      message
-    })
+    const tempSignature = await module.signMessage(message)
 
     const signature = encodePacked(
       ["address", "bytes"],
-      [activeModule.address, tempSignature]
+      [module.address, tempSignature]
     )
 
     const erc6492Signature = concat([
@@ -466,7 +471,7 @@ export const toNexusAccount = async (
       appDomainSeparator
     )
 
-    let signature = await activeModule.signMessage(toBytes(wrappedTypedHash))
+    let signature = await module.signMessage({ raw: toBytes(wrappedTypedHash) })
 
     const contentsType = toBytes(typeToString(types as TypedDataWith712)[1])
 
@@ -480,7 +485,7 @@ export const toNexusAccount = async (
 
     signature = encodePacked(
       ["address", "bytes"],
-      [activeModule.address, signatureData]
+      [module.address, signatureData]
     )
 
     return signature
@@ -500,7 +505,7 @@ export const toNexusAccount = async (
         : encodeExecuteBatch(calls)
     },
     getFactoryArgs: async () => ({ factory: factoryAddress, factoryData }),
-    getStubSignature: async (): Promise<Hex> => activeModule.getStubSignature(),
+    getStubSignature: async (): Promise<Hex> => module.getStubSignature(),
     signMessage,
     signTypedData,
     signUserOperation: async (
@@ -523,7 +528,7 @@ export const toNexusAccount = async (
         entryPointVersion: "0.7",
         userOperation
       })
-      return await activeModule.signUserOpHash(hash)
+      return await module.signUserOpHash(hash)
     },
     getNonce,
     extend: {
@@ -534,10 +539,11 @@ export const toNexusAccount = async (
       encodeExecute,
       encodeExecuteBatch,
       getUserOpHash,
-      setActiveModule,
-      getActiveModule: () => activeModule,
+      setModule,
+      getModule: () => module,
       factoryData,
-      factoryAddress
+      factoryAddress,
+      signer
     }
   })
 }
