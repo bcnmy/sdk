@@ -8,7 +8,7 @@ import type { ModuleMeta } from "../../modules/utils/Types"
 import type { ModularSmartAccount } from "../utils/Types"
 import type { Module, ModuleParameters } from "../utils/Types"
 import { type ToModuleParameters, toModule } from "../utils/toModule"
-import type { UseSessionModuleData } from "./Types"
+import type { UsePermissionModuleData } from "./Types"
 
 const DUMMY_ECDSA_SIG =
   "0xe8b94748580ca0b4993c9a1b86b5be851bfc076ff5ce3a1ff65bf16392acfcb800f9b4f1aef1555c7fce5599fffb17e7c635502154a0333ba21f3ae491839af51c"
@@ -17,25 +17,25 @@ const DUMMY_ECDSA_SIG =
  * Represents the implementation parameters for a Smart Session module.
  */
 export type SmartSessionImplementation = ModuleParameters & {
-  moduleData?: UseSessionModuleData
+  moduleData?: UsePermissionModuleData
 }
 
 /**
  * Arguments for getting the initialization data for a Use Session module.
  */
-export type UseSessionModuleGetInitDataArgs = {
+export type UsePermissionModuleGetInitDataArgs = {
   signerAddress: Address
 }
 
 /**
  * Parameters for creating a Use Session module.
  */
-export type UseSessionModuleParameters = Omit<
+export type UsePermissionModuleParameters = Omit<
   ToModuleParameters,
   "accountAddress"
 > & {
   account: ModularSmartAccount
-  moduleData?: UseSessionModuleData
+  moduleData?: UsePermissionModuleData
 }
 
 /**
@@ -44,8 +44,8 @@ export type UseSessionModuleParameters = Omit<
  * @param _ - Optional arguments (currently unused).
  * @returns The module metadata including address, type, and initialization data.
  */
-export const getUseSessionModuleInitData = (
-  _?: UseSessionModuleGetInitDataArgs
+export const getUsePermissionModuleInitData = (
+  _?: UsePermissionModuleGetInitDataArgs
 ): ModuleMeta => ({
   address: SMART_SESSIONS_ADDRESS,
   type: "validator",
@@ -58,9 +58,9 @@ export const getUseSessionModuleInitData = (
  * @param signerAddress - The address of the signer for the session.
  * @returns The encoded initialization data as a hexadecimal string.
  */
-export const getUseSessionInitData = ({
+export const getUsePermissionInitData = ({
   signerAddress
-}: UseSessionModuleGetInitDataArgs): Hex =>
+}: UsePermissionModuleGetInitDataArgs): Hex =>
   encodePacked(["address"], [signerAddress])
 
 /**
@@ -91,7 +91,7 @@ export const getUseSessionInitData = ({
  * - The default session mode is USE if not specified.
  */
 export const toSmartSessionsValidator = (
-  parameters: UseSessionModuleParameters
+  parameters: UsePermissionModuleParameters
 ): Module => {
   const {
     account,
@@ -108,9 +108,9 @@ export const toSmartSessionsValidator = (
     } = {}
   } = parameters
 
-  const initData = initData_ ?? getUseSessionInitData(initArgs_)
+  const initData = initData_ ?? getUsePermissionInitData(initArgs_)
   const moduleInitData =
-    moduleInitData_ ?? getUseSessionModuleInitData(moduleInitArgs_)
+    moduleInitData_ ?? getUsePermissionModuleInitData(moduleInitArgs_)
 
   return toModule({
     signer,

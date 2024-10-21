@@ -134,25 +134,17 @@ describe("modules.smartSessions.dx", async () => {
     const sessionRequestedInfo: CreateSessionDataParams[] = [
       {
         sessionPublicKey, // Public key of the session
-        sessionValidatorAddress: SIMPLE_SESSION_VALIDATOR_ADDRESS,
-        sessionKeyData: toHex(toBytes(sessionPublicKey)),
-        sessionValidAfter: 0, // Session valid immediately
-        sessionValidUntil: 0, // Session valid indefinitely
         actionPoliciesInfo: [
           {
             contractAddress: testAddresses.Counter,
-            functionSelector: "0x273ea3e3" as Hex, // Selector for 'incrementNumber'
-            validUntil: 0, // Policy valid indefinitely
-            validAfter: 0, // Policy valid immediately
-            rules: [], // No additional rules
-            valueLimit: BigInt(0) // No value limit
+            functionSelector: "0x273ea3e3" as Hex // Selector for 'incrementNumber'
           }
         ]
       }
     ]
 
     // Create the smart session
-    const createSessionsResponse = await nexusSessionClient.createSessions({
+    const createSessionsResponse = await nexusSessionClient.grantPermission({
       sessionRequestedInfo
     })
     ;[cachedPermissionId] = createSessionsResponse.permissionIds
@@ -196,7 +188,7 @@ describe("modules.smartSessions.dx", async () => {
     })
 
     // Create a new smart sessions module with the session key
-    const useSessionsModule = toSmartSessionsValidator({
+    const usePermissionsModule = toSmartSessionsValidator({
       account: smartSessionNexusClient.account,
       signer: sessionKeyAccount,
       moduleData: usersSessionData.moduleData
@@ -204,11 +196,11 @@ describe("modules.smartSessions.dx", async () => {
 
     // Extend the session client with smart session use actions
     const useSmartSessionNexusClient = smartSessionNexusClient.extend(
-      smartSessionUseActions(useSessionsModule)
+      smartSessionUseActions(usePermissionsModule)
     )
 
     // Use the session to perform an action (increment the counter)
-    const userOpHash = await useSmartSessionNexusClient.useSession({
+    const userOpHash = await useSmartSessionNexusClient.usePermission({
       actions: [
         {
           target: testAddresses.Counter,

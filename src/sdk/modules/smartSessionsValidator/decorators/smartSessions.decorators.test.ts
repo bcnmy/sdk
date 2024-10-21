@@ -85,12 +85,12 @@ describe("modules.smartSessions.decorators", async () => {
     )
 
     expect(nexusSessionClient).toBeDefined()
-    expect(nexusSessionClient.createSessions).toBeTypeOf("function")
+    expect(nexusSessionClient.grantPermission).toBeTypeOf("function")
     expect(nexusSessionClient.trustAttesters).toBeTypeOf("function")
   })
 
   test("should test use smart session decorators", async () => {
-    const useSessionsModule = toSmartSessionsValidator({
+    const usePermissionsModule = toSmartSessionsValidator({
       account: nexusClient.account,
       signer: sessionKeyAccount,
       moduleData: {
@@ -107,10 +107,10 @@ describe("modules.smartSessions.decorators", async () => {
     })
 
     const nexusSessionClient = smartSessionNexusClient.extend(
-      smartSessionUseActions(useSessionsModule)
+      smartSessionUseActions(usePermissionsModule)
     )
 
     expect(nexusSessionClient).toBeDefined()
-    expect(nexusSessionClient.useSession).toBeTypeOf("function")
+    expect(nexusSessionClient.usePermission).toBeTypeOf("function")
   })
 })

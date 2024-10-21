@@ -11,6 +11,7 @@ import {
   toHex
 } from "viem"
 import {
+  SIMPLE_SESSION_VALIDATOR_ADDRESS,
   SMART_SESSIONS_ADDRESS,
   TIMEFRAME_POLICY_ADDRESS,
   UNIVERSAL_ACTION_POLICY_ADDRESS
@@ -20,6 +21,8 @@ import { SmartSessionAbi } from "../../constants/abi/SmartSessionAbi"
 import { parseReferenceValue } from "../utils/Helpers"
 import type {
   ActionConfig,
+  CreateSessionDataParams,
+  FullCreateSessionDataParams,
   RawActionConfig,
   Rule,
   SessionData,
@@ -50,7 +53,7 @@ export const generateSalt = (): Hex => {
  */
 export const createActionConfig = (
   rules: Rule[],
-  valueLimit: bigint
+  valueLimit = 0n
 ): ActionConfig => ({
   paramRules: {
     length: rules.length,
@@ -58,6 +61,29 @@ export const createActionConfig = (
   },
   valueLimitPerUse: valueLimit
 })
+
+/**
+ * Applies default values to a CreateSessionDataParams object.
+ *
+ * @param sessionInfo - The CreateSessionDataParams object to apply defaults to.
+ * @returns A FullCreateSessionDataParams object with default values applied.
+ */
+export const applyDefaults = (
+  sessionInfo: CreateSessionDataParams
+): FullCreateSessionDataParams => {
+  const sessionKeyData =
+    sessionInfo.sessionKeyData ?? toHex(toBytes(sessionInfo.sessionPublicKey))
+  const sessionPublicKey = sessionInfo.sessionPublicKey ?? sessionKeyData
+  return {
+    ...sessionInfo,
+    sessionKeyData,
+    sessionPublicKey,
+    sessionValidUntil: sessionInfo.sessionValidUntil ?? 0,
+    sessionValidAfter: sessionInfo.sessionValidAfter ?? 0,
+    sessionValidatorAddress:
+      sessionInfo.sessionValidatorAddress ?? SIMPLE_SESSION_VALIDATOR_ADDRESS
+  }
+}
 
 /**
  * Creates an ActionData object.
