@@ -1,8 +1,12 @@
 import type { Chain, Client, Hash, Transport } from "viem"
 import type { ModularSmartAccount, Module } from "../../utils/Types"
-import type { CreateSessionsResponse } from "../Types"
-import { type CreateSessionsParameters, createSessions } from "./createSessions"
-import { type UseSessionParameters, useSession } from "./useSession"
+import type { GrantPermissionResponse } from "../Types"
+import {
+  type GrantPermissionParameters,
+  grantPermission
+} from "./grantPermission"
+import { type TrustAttestersParameters, trustAttesters } from "./trustAttesters"
+import { type UsePermissionParameters, usePermission } from "./usePermission"
 
 /**
  * Defines the shape of actions available for creating smart sessions.
@@ -18,9 +22,19 @@ export type SmartSessionCreateActions<
    * @param args - Parameters for creating sessions.
    * @returns A promise that resolves to the creation response.
    */
-  createSessions: (
-    args: CreateSessionsParameters<TModularSmartAccount>
-  ) => Promise<CreateSessionsResponse>
+  grantPermission: (
+    args: GrantPermissionParameters<TModularSmartAccount>
+  ) => Promise<GrantPermissionResponse>
+
+  /**
+   * Trusts attesters for a modular smart account.
+   *
+   * @param args - Parameters for trusting attesters.
+   * @returns A promise that resolves to the transaction hash.
+   */
+  trustAttesters: (
+    args?: TrustAttestersParameters<TModularSmartAccount>
+  ) => Promise<Hash>
 }
 
 /**
@@ -37,8 +51,8 @@ export type SmartSessionUseActions<
    * @param args - Parameters for using a session.
    * @returns A promise that resolves to the transaction hash.
    */
-  useSession: (
-    args: UseSessionParameters<TModularSmartAccount>
+  usePermission: (
+    args: UsePermissionParameters<TModularSmartAccount>
   ) => Promise<Hash>
 }
 
@@ -53,7 +67,8 @@ export function smartSessionCreateActions(_: Module) {
     client: Client<Transport, Chain | undefined, TModularSmartAccount>
   ): SmartSessionCreateActions<TModularSmartAccount> => {
     return {
-      createSessions: (args) => createSessions(client, args)
+      grantPermission: (args) => grantPermission(client, args),
+      trustAttesters: (args) => trustAttesters(client, args)
     }
   }
 }
@@ -70,11 +85,11 @@ export function smartSessionUseActions(smartSessionsModule: Module) {
   ): SmartSessionUseActions<TModularSmartAccount> => {
     client?.account?.setModule(smartSessionsModule)
     return {
-      useSession: (args) => useSession(client, args)
+      usePermission: (args) => usePermission(client, args)
     }
   }
 }
 
-// Re-exporting types and functions for easier access
-export type { CreateSessionsParameters, UseSessionParameters }
-export { createSessions, useSession }
+export * from "./grantPermission"
+export * from "./trustAttesters"
+export * from "./usePermission"

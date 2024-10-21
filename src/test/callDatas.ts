@@ -1,12 +1,10 @@
 import type { Address, Hex } from "viem"
-import { base, baseSepolia } from "viem/chains"
+import { baseSepolia } from "viem/chains"
 import {
-  K1_VALIDATOR_ADDRESS,
-  K1_VALIDATOR_FACTORY_ADDRESS,
-  NEXUS_BOOTSTRAP_ADDRESS,
-  NEXUS_IMPLEMENTATION_ADDRESS,
+  MOCK_ATTESTER_ADDRESS,
   OWNABLE_EXECUTOR_ADDRESS,
   OWNABLE_VALIDATOR_ADDRESS,
+  REGISTRY_ADDRESS,
   SIMPLE_SESSION_VALIDATOR_ADDRESS,
   SMART_SESSIONS_ADDRESS
 } from "../sdk/constants"
@@ -64,12 +62,12 @@ export const TEST_CONTRACTS: Record<
   MockAttester: {
     chainId: baseSepolia.id,
     name: "MockAttester",
-    address: "0xA4C777199658a41688E9488c4EcbD7a2925Cc23A"
+    address: MOCK_ATTESTER_ADDRESS
   },
   MockRegistry: {
     chainId: baseSepolia.id,
     name: "MockRegistry",
-    address: "0x000000000069E2a187AEFFb852bF3cCdC95151B2"
+    address: REGISTRY_ADDRESS
   },
   TimeFramePolicy: {
     chainId: baseSepolia.id,

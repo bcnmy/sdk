@@ -1,5 +1,11 @@
 # @biconomy/sdk
 
+## 0.0.5
+
+### Patch Changes
+
+- Alter sessions terminology
+
 ## 0.0.4
 
 ### Patch Changes

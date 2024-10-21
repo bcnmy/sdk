@@ -120,24 +120,12 @@ describe("modules.smartSessions.dx", async () => {
 
     expect(installSuccess).toBe(true)
 
-    // Trust the mock attester.
-    // We're running on a fork of base sepolia, where necessary modules are registered on the registry and mock attestations are done.
-    const trustAttestersHash = await usersNexusClient.sendTransaction({
-      calls: [
-        {
-          to: testAddresses.MockRegistry,
-          value: 0n,
-          data: encodeFunctionData({
-            abi: MockRegistryAbi,
-            functionName: "trustAttesters",
-            args: [1, [testAddresses.MockAttester]] // Review if more attesters needed
-          })
-        }
-      ]
-    })
-
-    const { status } = await testClient.waitForTransactionReceipt({
+    const trustAttestersHash = await nexusSessionClient.trustAttesters()
+    const userOpReceipt = await nexusSessionClient.waitForUserOperationReceipt({
       hash: trustAttestersHash
+    })
+    const { status } = await testClient.waitForTransactionReceipt({
+      hash: userOpReceipt.receipt.transactionHash
     })
     expect(status).toBe("success")
 
@@ -146,25 +134,17 @@ describe("modules.smartSessions.dx", async () => {
     const sessionRequestedInfo: CreateSessionDataParams[] = [
       {
         sessionPublicKey, // Public key of the session
-        sessionValidatorAddress: SIMPLE_SESSION_VALIDATOR_ADDRESS,
-        sessionKeyData: toHex(toBytes(sessionPublicKey)),
-        sessionValidAfter: 0, // Session valid immediately
-        sessionValidUntil: 0, // Session valid indefinitely
         actionPoliciesInfo: [
           {
             contractAddress: testAddresses.Counter,
-            functionSelector: "0x273ea3e3" as Hex, // Selector for 'incrementNumber'
-            validUntil: 0, // Policy valid indefinitely
-            validAfter: 0, // Policy valid immediately
-            rules: [], // No additional rules
-            valueLimit: BigInt(0) // No value limit
+            functionSelector: "0x273ea3e3" as Hex // Selector for 'incrementNumber'
           }
         ]
       }
     ]
 
     // Create the smart session
-    const createSessionsResponse = await nexusSessionClient.createSessions({
+    const createSessionsResponse = await nexusSessionClient.grantPermission({
       sessionRequestedInfo
     })
     ;[cachedPermissionId] = createSessionsResponse.permissionIds
@@ -208,7 +188,7 @@ describe("modules.smartSessions.dx", async () => {
     })
 
     // Create a new smart sessions module with the session key
-    const useSessionsModule = toSmartSessionsValidator({
+    const usePermissionsModule = toSmartSessionsValidator({
       account: smartSessionNexusClient.account,
       signer: sessionKeyAccount,
       moduleData: usersSessionData.moduleData
@@ -216,11 +196,11 @@ describe("modules.smartSessions.dx", async () => {
 
     // Extend the session client with smart session use actions
     const useSmartSessionNexusClient = smartSessionNexusClient.extend(
-      smartSessionUseActions(useSessionsModule)
+      smartSessionUseActions(usePermissionsModule)
     )
 
     // Use the session to perform an action (increment the counter)
-    const userOpHash = await useSmartSessionNexusClient.useSession({
+    const userOpHash = await useSmartSessionNexusClient.usePermission({
       actions: [
         {
           target: testAddresses.Counter,

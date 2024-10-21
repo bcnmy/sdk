@@ -151,23 +151,17 @@ describe("modules.smartSessions.uniPolicy", async () => {
 
     expect(isInstalledBefore).toBe(true)
 
-    // Trust the mock attester.
-    // We're running on a fork of base sepolia, where necessary modules are registered on the registry and mock attestations are done.
-    const trustAttestersHash = await nexusClient.sendTransaction({
-      calls: [
-        {
-          to: testAddresses.MockRegistry,
-          value: 0n,
-          data: encodeFunctionData({
-            abi: MockRegistryAbi,
-            functionName: "trustAttesters",
-            args: [1, [testAddresses.MockAttester]]
-          })
-        }
-      ]
-    })
+    const smartSessionNexusClient = nexusClient.extend(
+      smartSessionCreateActions(sessionsModule)
+    )
+
+    const trustAttestersHash = await smartSessionNexusClient.trustAttesters()
+    const userOpReceipt =
+      await smartSessionNexusClient.waitForUserOperationReceipt({
+        hash: trustAttestersHash
+      })
     const { status } = await testClient.waitForTransactionReceipt({
-      hash: trustAttestersHash
+      hash: userOpReceipt.receipt.transactionHash
     })
     expect(status).toBe("success")
 
@@ -221,30 +215,18 @@ describe("modules.smartSessions.uniPolicy", async () => {
     const sessionRequestedInfo: CreateSessionDataParams[] = [
       {
         sessionPublicKey,
-        sessionValidatorAddress: SIMPLE_SESSION_VALIDATOR_ADDRESS,
-        sessionKeyData: toHex(toBytes(sessionPublicKey)),
-        sessionValidAfter: 0,
-        sessionValidUntil: 0,
         actionPoliciesInfo: [
           {
             contractAddress: testAddresses.MockCallee, // mock callee address
             functionSelector: parsedFunctionSelector, // addBalance function selector
-            validUntil: 0, // 1717001666
-            validAfter: 0,
-            rules: rules,
-            valueLimit: BigInt(0)
+            rules
           }
         ]
       }
     ]
 
-    const smartSessionNexusClient = nexusClient.extend(
-      smartSessionCreateActions(sessionsModule)
-    )
-
-    const createSessionsResponse = await smartSessionNexusClient.createSessions(
-      { sessionRequestedInfo }
-    )
+    const createSessionsResponse =
+      await smartSessionNexusClient.grantPermission({ sessionRequestedInfo })
 
     expect(createSessionsResponse.userOpHash).toBeDefined()
     expect(createSessionsResponse.permissionIds).toBeDefined()
@@ -303,7 +285,7 @@ describe("modules.smartSessions.uniPolicy", async () => {
       bundlerTransport: http(bundlerUrl)
     })
 
-    const useSessionsModule = toSmartSessionsValidator({
+    const usePermissionsModule = toSmartSessionsValidator({
       account: smartSessionNexusClient.account,
       signer: sessionKeyAccount,
       moduleData: {
@@ -312,10 +294,10 @@ describe("modules.smartSessions.uniPolicy", async () => {
     })
 
     const useSmartSessionNexusClient = smartSessionNexusClient.extend(
-      smartSessionUseActions(useSessionsModule)
+      smartSessionUseActions(usePermissionsModule)
     )
 
-    const userOpHash = await useSmartSessionNexusClient.useSession({
+    const userOpHash = await useSmartSessionNexusClient.usePermission({
       account: nexusClient.account,
       actions: [
         {

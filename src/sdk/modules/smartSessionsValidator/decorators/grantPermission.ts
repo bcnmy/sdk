@@ -11,6 +11,7 @@ import {
 import { SmartSessionAbi } from "../../../constants/abi/SmartSessionAbi"
 import type { ModularSmartAccount } from "../../utils/Types"
 import {
+  applyDefaults,
   createActionConfig,
   createActionData,
   generateSalt,
@@ -18,10 +19,13 @@ import {
   toTimeRangePolicy,
   toUniversalActionPolicy
 } from "../Helpers"
-import type { CreateSessionDataParams } from "../Types"
 import type {
-  CreateSessionsActionReturnParams,
-  CreateSessionsResponse
+  CreateSessionDataParams,
+  FullCreateSessionDataParams
+} from "../Types"
+import type {
+  GrantPermissionActionReturnParams,
+  GrantPermissionResponse
 } from "../Types"
 
 /**
@@ -29,7 +33,7 @@ import type {
  *
  * @template TModularSmartAccount - Type of the modular smart account, extending ModularSmartAccount or undefined.
  */
-export type CreateSessionsParameters<
+export type GrantPermissionParameters<
   TModularSmartAccount extends ModularSmartAccount | undefined
 > = {
   /** Array of session data parameters for creating multiple sessions. */
@@ -53,15 +57,15 @@ export type CreateSessionsParameters<
  * @param client - The public client for blockchain interactions.
  * @returns A promise that resolves to the action data and permission IDs, or an Error.
  */
-export const getSmartSessionValidatorCreateSessionsAction = async ({
+export const getPermissionAction = async ({
   chainId,
   sessionRequestedInfo,
   client
 }: {
   chainId: number
-  sessionRequestedInfo: CreateSessionDataParams[]
+  sessionRequestedInfo: FullCreateSessionDataParams[]
   client: PublicClient
-}): Promise<CreateSessionsActionReturnParams | Error> => {
+}): Promise<GrantPermissionActionReturnParams | Error> => {
   const sessions: Session[] = []
   const permissionIds: Hex[] = []
 
@@ -71,7 +75,7 @@ export const getSmartSessionValidatorCreateSessionsAction = async ({
     for (const actionPolicyInfo of sessionInfo.actionPoliciesInfo) {
       // TODO: make it easy to generate rules for particular contract and selectors.
       const actionConfig = createActionConfig(
-        actionPolicyInfo.rules,
+        actionPolicyInfo.rules ?? [],
         actionPolicyInfo.valueLimit
       )
 
@@ -81,8 +85,8 @@ export const getSmartSessionValidatorCreateSessionsAction = async ({
       const uniActionPolicyData = toUniversalActionPolicy(actionConfig)
       // create time range policy here..
       const timeFramePolicyData: PolicyData = toTimeRangePolicy(
-        actionPolicyInfo.validUntil,
-        actionPolicyInfo.validAfter
+        actionPolicyInfo.validUntil ?? 0,
+        actionPolicyInfo.validAfter ?? 0
       )
 
       // Create ActionData
@@ -125,7 +129,7 @@ export const getSmartSessionValidatorCreateSessionsAction = async ({
     sessions.push(session)
   }
 
-  const createSessionsData = encodeFunctionData({
+  const grantPermissionData = encodeFunctionData({
     abi: SmartSessionAbi,
     functionName: "enableSessions",
     args: [sessions]
@@ -135,7 +139,7 @@ export const getSmartSessionValidatorCreateSessionsAction = async ({
     action: {
       target: SMART_SESSIONS_ADDRESS,
       value: BigInt(0),
-      callData: createSessionsData
+      callData: grantPermissionData
     },
     permissionIds: permissionIds
   }
@@ -158,9 +162,9 @@ export const getSmartSessionValidatorCreateSessionsAction = async ({
  *
  * @example
  * ```typescript
- * import { createSessions } from '@biconomy/sdk'
+ * import { grantPermission } from '@biconomy/sdk'
  *
- * const result = await createSessions(nexusClient, {
+ * const result = await grantPermission(nexusClient, {
  *   sessionRequestedInfo: [
  *     {
  *       sessionKeyData: '0x...',
@@ -185,12 +189,12 @@ export const getSmartSessionValidatorCreateSessionsAction = async ({
  * - The number of sessions created is determined by the length of the `sessionRequestedInfo` array.
  * - Each session's policies and permissions are determined by the `actionPoliciesInfo` provided.
  */
-export async function createSessions<
+export async function grantPermission<
   TModularSmartAccount extends ModularSmartAccount | undefined
 >(
   client: Client<Transport, Chain | undefined, TModularSmartAccount>,
-  parameters: CreateSessionsParameters<TModularSmartAccount>
-): Promise<CreateSessionsResponse> {
+  parameters: GrantPermissionParameters<TModularSmartAccount>
+): Promise<GrantPermissionResponse> {
   const {
     publicClient: publicClient_ = client.account?.client as PublicClient,
     account: account_ = client.account,
@@ -214,10 +218,12 @@ export async function createSessions<
     throw new Error(ERROR_MESSAGES.CHAIN_NOT_FOUND)
   }
 
-  const actionResponse = await getSmartSessionValidatorCreateSessionsAction({
+  const defaultedSessionRequestedInfo = sessionRequestedInfo.map(applyDefaults)
+
+  const actionResponse = await getPermissionAction({
     chainId,
     client: publicClient_,
-    sessionRequestedInfo
+    sessionRequestedInfo: defaultedSessionRequestedInfo
   })
 
   if ("action" in actionResponse) {
