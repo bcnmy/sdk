@@ -30,7 +30,7 @@ The Biconomy SDK is your all-in-one toolkit for building decentralized applicati
 1. **Add the package and install dependencies:**
 
 ```bash
-bun add @biconomy/sdk viem
+bun add @biconomy/sdk viem @rhinestone/module-sdk
 ```
 
 2. **Install dependencies:**

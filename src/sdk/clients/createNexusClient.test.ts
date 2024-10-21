@@ -244,7 +244,7 @@ describe("nexus.client", async () => {
     expect(supportsModule).toBe(true)
   })
 
-  test.skip("should send eth twice", async () => {
+  test("should send eth twice", async () => {
     const balanceBefore = await getBalance(testClient, recipientAddress)
     const tx = { to: recipientAddress, value: 1n }
     const hash = await nexusClient.sendTransaction({ calls: [tx, tx] })
@@ -257,10 +257,6 @@ describe("nexus.client", async () => {
   test("should compare signatures of viem and ethers signer", async () => {
     const viemSigner = privateKeyToAccount(privKey)
 
-    const provider = new ethers.JsonRpcProvider(
-      baseSepolia.rpcUrls.default.http[0]
-    )
-    // const signer = new ethers.JsonRpcSigner(provider, viemSigner.address) as JsonRpcSigner
     const wallet = new Wallet(privKey)
 
     const viemNexusClient = await createNexusClient({
@@ -283,7 +279,7 @@ describe("nexus.client", async () => {
     expect(sig1).toBe(sig2)
   })
 
-  test.skip("should send user operation using ethers signer", async () => {
+  test("should send user operation using ethers Wallet", async () => {
     const ethersSigner = new ethers.Wallet(privKey)
     const ethersNexusClient = await createNexusClient({
       signer: ethersSigner,

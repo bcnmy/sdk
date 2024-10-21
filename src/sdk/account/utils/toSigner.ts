@@ -20,14 +20,6 @@ import { toAccount } from "viem/accounts"
 import { signTypedData } from "viem/actions"
 import { getAction } from "viem/utils"
 
-// // @Review
-// // This type helps providing other signer types
-// type MinimalSigner = {
-//   signMessage(message: any): Promise<string>
-//   signTypedData(domain: any, types: any, value: any): Promise<string>
-//   [key: string]: any
-// }
-
 export type MinimalSigner = {
   signTransaction: (...args: any[]) => Promise<any>
   signMessage: (...args: any[]) => Promise<any>
@@ -111,13 +103,11 @@ export async function toSigner({
 
     walletClient = createWalletClient({
       account: address,
-      // @ts-ignore
       transport: custom(signer as EIP1193Provider)
     })
   }
 
   if (!walletClient) {
-    // @ts-ignore
     walletClient = signer as WalletClient<Transport, Chain | undefined, Account>
   }
 
