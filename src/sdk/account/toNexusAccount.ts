@@ -160,8 +160,8 @@ export const toNexusAccount = async (
     name = "Nexus Account"
   } = parameters
 
+  // @ts-ignore
   const signer = await toSigner({ signer: _signer })
-
   const masterClient = createWalletClient({
     account: signer,
     chain,
