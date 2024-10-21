@@ -16,11 +16,11 @@ import {
   toTestClient
 } from "../../../test/testUtils"
 import type { MasterClient, NetworkConfig } from "../../../test/testUtils"
-import addresses from "../../__contracts/addresses"
 import {
   type NexusClient,
   createNexusClient
 } from "../../clients/createNexusClient"
+import { K1_VALIDATOR_ADDRESS } from "../../constants"
 import { toK1Validator } from "./toK1Validator"
 
 describe("modules.k1Validator", async () => {
@@ -105,7 +105,7 @@ describe("modules.k1Validator", async () => {
     const isInstalledBefore = await nexusClient.isModuleInstalled({
       module: {
         type: "validator",
-        module: addresses.K1Validator,
+        address: K1_VALIDATOR_ADDRESS,
         initData: encodePacked(["address"], [eoaAccount.address])
       }
     })
@@ -113,7 +113,7 @@ describe("modules.k1Validator", async () => {
     if (!isInstalledBefore) {
       const hash = await nexusClient.installModule({
         module: {
-          module: addresses.K1Validator,
+          address: K1_VALIDATOR_ADDRESS,
           type: "validator",
           initData: encodePacked(["address"], [eoaAccount.address])
         }
@@ -127,7 +127,7 @@ describe("modules.k1Validator", async () => {
 
       const hashUninstall = nexusClient.uninstallModule({
         module: {
-          module: addresses.K1Validator,
+          address: K1_VALIDATOR_ADDRESS,
           type: "validator",
           deInitData
         }
@@ -139,7 +139,7 @@ describe("modules.k1Validator", async () => {
 
       const hashUninstall = nexusClient.uninstallModule({
         module: {
-          module: addresses.K1Validator,
+          address: K1_VALIDATOR_ADDRESS,
           type: "validator",
           deInitData
         }

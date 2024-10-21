@@ -1,4 +1,3 @@
-import type { Module as ModuleMeta } from "@rhinestone/module-sdk"
 import {
   type Chain,
   type Client,
@@ -15,6 +14,7 @@ import {
 import { getAction } from "viem/utils"
 import { parseAccount } from "viem/utils"
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
+import type { ModuleMeta } from "../../../modules/utils/Types"
 import { parseModuleTypeId } from "./supportsModule"
 
 export type UninstallFallbackParameters<
@@ -57,7 +57,7 @@ export async function uninstallFallback<
     maxFeePerGas,
     maxPriorityFeePerGas,
     nonce,
-    module: { module, initData, type }
+    module: { address, initData, type }
   } = parameters
 
   if (!account_) {
@@ -101,7 +101,7 @@ export async function uninstallFallback<
             }
           ],
           functionName: "uninstallFallback",
-          args: [parseModuleTypeId(type), getAddress(module), initData ?? "0x"]
+          args: [parseModuleTypeId(type), getAddress(address), initData ?? "0x"]
         })
       }
     ],

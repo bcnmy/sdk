@@ -2,7 +2,7 @@ import type {
   EnableSessionData,
   SmartSessionMode
 } from "@rhinestone/module-sdk"
-import type { AbiFunction, Address, Hex } from "viem"
+import type { AbiFunction, Address, Hex, OneOf } from "viem"
 import type { AnyReferenceValue } from "../utils/Helpers"
 import type { Execution } from "../utils/Types"
 
@@ -23,10 +23,10 @@ export type SessionData = {
   sessionPublicKey: Hex
 
   /** Module-specific data containing session configuration and permissions. */
-  moduleData: UseSessionModuleData
+  moduleData: UsePermissionModuleData
 }
 
-export type CreateSessionsActionReturnParams = {
+export type GrantPermissionActionReturnParams = {
   /** Array of permission IDs for the created sessions. */
   permissionIds: Hex[]
   /** The execution object for the action. */
@@ -36,7 +36,7 @@ export type CreateSessionsActionReturnParams = {
 /**
  * Represents the response for creating sessions.
  */
-export type CreateSessionsResponse = {
+export type GrantPermissionResponse = {
   /** The hash of the user operation. */
   userOpHash: Hex
   /** Array of permission IDs for the created sessions. */
@@ -52,7 +52,7 @@ export type SmartSessionModeType =
 /**
  * Represents the data structure for using a session module.
  */
-export type UseSessionModuleData = {
+export type UsePermissionModuleData = {
   /** The permission ID for the session. */
   permissionId: Hex
   /** The mode of the smart session. */
@@ -61,12 +61,42 @@ export type UseSessionModuleData = {
   enableSessionData?: EnableSessionData
 }
 
+type OptionalSessionKeyData = OneOf<
+  | {
+      /** Public key for the session. Required for K1 algorithm validators. */
+      sessionPublicKey: Hex
+    }
+  | {
+      /** Data for the session key. */
+      sessionKeyData: Hex
+    }
+>
+
 /**
  * Parameters for creating a session.
  */
-export type CreateSessionDataParams = {
+export type CreateSessionDataParams = OptionalSessionKeyData & {
   /** Public key for the session. Required for K1 algorithm validators. */
   sessionPublicKey?: Hex
+  /** Address of the session validator. */
+  sessionValidatorAddress?: Address
+  /** Type of the session validator. Usually "simple K1 validator". */
+  sessionValidatorType?: string
+  /** Optional salt for the session. */
+  salt?: Hex
+  /** Timestamp until which the session is valid. */
+  sessionValidUntil?: number
+  /** Timestamp after which the session becomes valid. */
+  sessionValidAfter?: number
+  /** Array of action policy data for the session. */
+  actionPoliciesInfo: ActionPolicyData[]
+  /** Chain IDs where the session should be enabled. Useful for enable mode. */
+  chainIds?: bigint[]
+}
+
+export type FullCreateSessionDataParams = {
+  /** Public key for the session. Required for K1 algorithm validators. */
+  sessionPublicKey: Hex
   /** Address of the session validator. */
   sessionValidatorAddress: Address
   /** Type of the session validator. Usually "simple K1 validator". */
@@ -76,9 +106,9 @@ export type CreateSessionDataParams = {
   /** Optional salt for the session. */
   salt?: Hex
   /** Timestamp until which the session is valid. */
-  sessionValidUntil?: number
+  sessionValidUntil: number
   /** Timestamp after which the session becomes valid. */
-  sessionValidAfter?: number
+  sessionValidAfter: number
   /** Array of action policy data for the session. */
   actionPoliciesInfo: ActionPolicyData[]
   /** Chain IDs where the session should be enabled. Useful for enable mode. */
@@ -94,13 +124,13 @@ export type ActionPolicyData = {
   /** The specific function selector from the contract to be included in the policy */
   functionSelector: string | AbiFunction
   /** Timestamp until which the policy is valid */
-  validUntil: number
+  validUntil?: number
   /** Timestamp after which the policy becomes valid */
-  validAfter: number
+  validAfter?: number
   /** Array of rules for the policy */
-  rules: Rule[]
+  rules?: Rule[]
   /** The maximum value that can be transferred in a single transaction */
-  valueLimit: bigint
+  valueLimit?: bigint
 }
 
 /**

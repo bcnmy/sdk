@@ -1,4 +1,4 @@
-import { http, type Account, type Address, type Chain, isHex } from "viem"
+import { http, type Account, type Address, type Chain } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { toNetwork } from "../../test/testSetup"
 import {
@@ -8,8 +8,8 @@ import {
   topUp
 } from "../../test/testUtils"
 import type { MasterClient, NetworkConfig } from "../../test/testUtils"
-import contracts from "../__contracts"
 import { type NexusAccount, toNexusAccount } from "../account/toNexusAccount"
+import { ENTRY_POINT_ADDRESS } from "../constants"
 import {
   type BicoBundlerClient,
   createBicoBundlerClient
@@ -68,7 +68,7 @@ describe("bico.bundler", async () => {
       })
     ])
     expect(chainId).toEqual(chain.id)
-    expect(supportedEntrypoints).to.include(contracts.entryPoint.address)
+    expect(supportedEntrypoints).to.include(ENTRY_POINT_ADDRESS)
     expect(preparedUserOp).toHaveProperty("signature")
   })
 

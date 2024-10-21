@@ -1,24 +1,50 @@
 {
-  "type": "module",
+  "name": "@biconomy/sdk",
+  "version": "0.0.6",
+  "author": "Biconomy",
+  "repository": "github:bcnmy/sdk",
   "main": "./dist/_cjs/index.js",
   "module": "./dist/_esm/index.js",
-  "types": "./dist/_types/index.d.ts",
-  "typings": "./dist/_types/index.d.ts",
-  "homepage": "https://biconomy.io",
-  "sideEffects": false,
-  "name": "@biconomy/sdk",
-  "author": "Biconomy",
-  "version": "0.0.4",
-  "description": "SDK for Biconomy integration with support for account abstraction, smart accounts, ERC-4337.",
-  "keywords": [
-    "erc-7579",
-    "modular smart account",
-    "account abstraction",
-    "biconomy",
-    "sdk"
-  ],
-  "license": "MIT",
-  "repository": "github:bcnmy/sdk",
+  "devDependencies": {
+    "@biomejs/biome": "1.6.0",
+    "@changesets/cli": "^2.27.1",
+    "@commitlint/cli": "^19.4.1",
+    "@commitlint/config-conventional": "^19.4.1",
+    "@ethersproject/abi": "^5.7.0",
+    "@ethersproject/providers": "^5.7.2",
+    "@ethersproject/wallet": "^5.7.0",
+    "@pimlico/alto": "^0.0.4",
+    "@size-limit/esbuild-why": "^11",
+    "@size-limit/preset-small-lib": "^11",
+    "@types/bun": "latest",
+    "@types/yargs": "^17.0.33",
+    "@vitest/coverage-v8": "^1.3.1",
+    "buffer": "^6.0.3",
+    "concurrently": "^8.2.2",
+    "dotenv": "^16.4.5",
+    "ethers": "^6.13.2",
+    "execa": "^9.3.1",
+    "get-port": "^7.1.0",
+    "gh-pages": "^6.1.1",
+    "nexus": "github:bcnmy/nexus#773943fb7bf6cd14a0dc6dcb9f513db53213d1d5",
+    "prool": "^0.0.16",
+    "rimraf": "^5.0.5",
+    "simple-git-hooks": "^2.9.0",
+    "size-limit": "^11.1.5",
+    "ts-node": "^10.9.2",
+    "tsc-alias": "^1.8.8",
+    "tslib": "^2.6.3",
+    "typedoc": "^0.25.9",
+    "viem": "2.21.6",
+    "vitest": "^1.3.1",
+    "yargs": "^17.7.2",
+    "@rhinestone/module-sdk": "^0.1.25"
+  },
+  "peerDependencies": {
+    "typescript": "^5",
+    "viem": "^2.20.0",
+    "@rhinestone/module-sdk": "^0.1.25"
+  },
   "exports": {
     ".": {
       "types": "./dist/_types/index.d.ts",
@@ -46,10 +72,25 @@
       "default": "./_cjs/modules/index.js"
     }
   },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
+  },
+  "description": "SDK for Biconomy integration with support for account abstraction, smart accounts, ERC-4337.",
   "files": [
     "dist/*",
     "README.md"
   ],
+  "homepage": "https://biconomy.io",
+  "keywords": [
+    "erc-7579",
+    "modular smart account",
+    "account abstraction",
+    "biconomy",
+    "sdk"
+  ],
+  "license": "MIT",
   "scripts": {
     "format": "biome format . --write",
     "lint": "biome check .",
@@ -78,52 +119,12 @@
     "fetch:deployment": "bun run ./scripts/fetch:deployment.ts && bun run lint --apply-unsafe",
     "fetch:deployment:raw": "bun run ./scripts/fetch:deployment.ts"
   },
-  "devDependencies": {
-    "@biomejs/biome": "1.6.0",
-    "@changesets/cli": "^2.27.1",
-    "@commitlint/cli": "^19.4.1",
-    "@commitlint/config-conventional": "^19.4.1",
-    "@ethersproject/abi": "^5.7.0",
-    "@ethersproject/providers": "^5.7.2",
-    "@ethersproject/wallet": "^5.7.0",
-    "@pimlico/alto": "^0.0.4",
-    "@size-limit/esbuild-why": "^11",
-    "@size-limit/preset-small-lib": "^11",
-    "@types/bun": "latest",
-    "@types/yargs": "^17.0.33",
-    "@vitest/coverage-v8": "^1.3.1",
-    "buffer": "^6.0.3",
-    "concurrently": "^8.2.2",
-    "dotenv": "^16.4.5",
-    "ethers": "^6.13.2",
-    "execa": "^9.3.1",
-    "get-port": "^7.1.0",
-    "gh-pages": "^6.1.1",
-    "nexus": "github:bcnmy/nexus#87fc1ed2e9e91cd35ec2c9b2e5c40d311fcb28bb",
-    "prool": "^0.0.16",
-    "rimraf": "^5.0.5",
-    "simple-git-hooks": "^2.9.0",
-    "size-limit": "^11.1.5",
-    "ts-node": "^10.9.2",
-    "tsc-alias": "^1.8.8",
-    "tslib": "^2.6.3",
-    "typedoc": "^0.25.9",
-    "viem": "2.21.6",
-    "vitest": "^1.3.1",
-    "yargs": "^17.7.2"
-  },
-  "peerDependencies": {
-    "typescript": "^5",
-    "@rhinestone/module-sdk": "^0.1.22",
-    "viem": "^2.20.0"
-  },
-  "commitlint": {
-    "extends": [
-      "@commitlint/config-conventional"
-    ]
-  },
+  "sideEffects": false,
   "simple-git-hooks": {
     "pre-commit": "bun run format && bun run lint:fix",
     "commit-msg": "npx --no -- commitlint --edit ${1}"
-  }
+  },
+  "type": "module",
+  "types": "./dist/_types/index.d.ts",
+  "typings": "./dist/_types/index.d.ts"
 }

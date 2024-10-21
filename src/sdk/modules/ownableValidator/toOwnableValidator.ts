@@ -5,7 +5,6 @@ import {
   getOwnableValidatorThreshold,
   isModuleInstalled
 } from "@rhinestone/module-sdk"
-import type { Module as ModuleMeta } from "@rhinestone/module-sdk"
 import {
   type Address,
   type Hex,
@@ -16,6 +15,7 @@ import {
 import type {
   ModularSmartAccount,
   Module,
+  ModuleMeta,
   ModuleParameters
 } from "../utils/Types"
 import { type ToModuleParameters, toModule } from "../utils/toModule"
@@ -60,7 +60,7 @@ export type OwnableModuleParameters = ModuleParameters
 export const getOwnablesModuleInitData = (
   parameters: GetOwnablesModuleInitDataParams
 ): ModuleMeta => ({
-  module: OWNABLE_VALIDATOR_ADDRESS,
+  address: OWNABLE_VALIDATOR_ADDRESS,
   type: "validator",
   initData: encodeAbiParameters(
     [
@@ -142,7 +142,14 @@ export const toOwnableValidator = (
       const isInstalled = await isModuleInstalled({
         account: nexusAccount,
         client: client as PublicClient,
-        module: { module: OWNABLE_VALIDATOR_ADDRESS, type: "validator" }
+        module: {
+          address: OWNABLE_VALIDATOR_ADDRESS,
+          type: "validator",
+          module: OWNABLE_VALIDATOR_ADDRESS,
+          initData: "0x",
+          deInitData: "0x",
+          additionalContext: "0x"
+        }
       })
       let threshold: number
       if (isInstalled) {

@@ -10,7 +10,7 @@ import type { Execution, ModularSmartAccount } from "../../utils/Types"
  *
  * @template TModularSmartAccount - Type of the modular smart account, extending ModularSmartAccount or undefined.
  */
-export type UseSessionParameters<
+export type UsePermissionParameters<
   TModularSmartAccount extends ModularSmartAccount | undefined
 > = {
   /** Array of executions to perform in the session. Allows for batch transactions if the session is enabled for multiple actions. */
@@ -40,7 +40,7 @@ export type UseSessionParameters<
  *
  * @example
  * ```typescript
- * const result = await useSession(nexusClient, {
+ * const result = await usePermission(nexusClient, {
  *   actions: [
  *     {
  *       target: '0x1234...',
@@ -58,11 +58,11 @@ export type UseSessionParameters<
  * - For batch transactions, all actions must be permitted within the same session.
  * - The function uses the `sendUserOperation` method, which is specific to account abstraction implementations.
  */
-export async function useSession<
+export async function usePermission<
   TModularSmartAccount extends ModularSmartAccount | undefined
 >(
   client: Client<Transport, Chain | undefined, TModularSmartAccount>,
-  parameters: UseSessionParameters<TModularSmartAccount>
+  parameters: UsePermissionParameters<TModularSmartAccount>
 ): Promise<Hex> {
   const {
     account: account_ = client.account,

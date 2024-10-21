@@ -19,11 +19,6 @@ import {
 import { toNetwork } from "./testSetup"
 import type { NetworkConfig } from "./testUtils"
 
-// Remove the following lines to use the default factory and validator addresses
-// These are relevant only for now on base sopelia chain and are likely to change
-const k1ValidatorAddress = "0x663E709f60477f07885230E213b8149a7027239B"
-const factoryAddress = "0x887Ca6FaFD62737D0E79A2b8Da41f0B15A864778"
-
 describe.skipIf(!playgroundTrue)("playground", () => {
   let network: NetworkConfig
   // Nexus Config
@@ -61,27 +56,12 @@ describe.skipIf(!playgroundTrue)("playground", () => {
     })
   })
 
-  test("should have factory and k1Validator deployed", async () => {
-    const byteCodes = await Promise.all([
-      publicClient.getCode({
-        address: k1ValidatorAddress
-      }),
-      publicClient.getCode({
-        address: factoryAddress
-      })
-    ])
-
-    expect(byteCodes.every(Boolean)).toBeTruthy()
-  })
-
   test("should init the smart account", async () => {
     nexusClient = await createNexusClient({
       signer: eoaAccount,
       chain,
       transport: http(),
-      bundlerTransport: http(bundlerUrl),
-      k1ValidatorAddress,
-      factoryAddress
+      bundlerTransport: http(bundlerUrl)
     })
   })
 
@@ -148,8 +128,6 @@ describe.skipIf(!playgroundTrue)("playground", () => {
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl),
-      k1ValidatorAddress,
-      factoryAddress,
       paymaster: createBicoPaymasterClient({
         paymasterUrl
       })
@@ -172,9 +150,7 @@ describe.skipIf(!playgroundTrue)("playground", () => {
       signer: eoaAccount,
       chain,
       transport: http(),
-      bundlerTransport: http(bundlerUrl),
-      k1ValidatorAddress,
-      factoryAddress
+      bundlerTransport: http(bundlerUrl)
     })
     const receipts: UserOperationReceipt[] = []
     for (let i = 0; i < 3; i++) {
@@ -200,9 +176,7 @@ describe.skipIf(!playgroundTrue)("playground", () => {
       signer: eoaAccount,
       chain,
       transport: http(),
-      bundlerTransport: http(bundlerUrl),
-      k1ValidatorAddress,
-      factoryAddress
+      bundlerTransport: http(bundlerUrl)
     })
     const userOpPromises: Promise<`0x${string}`>[] = []
     for (let i = 0; i < 3; i++) {

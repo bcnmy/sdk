@@ -10,19 +10,24 @@ import {
   toBytes,
   toHex
 } from "viem"
-import { UniActionPolicyAbi } from "../../__contracts/abi"
-import { SmartSessionAbi } from "../../__contracts/abi/SmartSessionAbi"
-import addresses from "../../__contracts/addresses"
+import {
+  SIMPLE_SESSION_VALIDATOR_ADDRESS,
+  SMART_SESSIONS_ADDRESS,
+  TIMEFRAME_POLICY_ADDRESS,
+  UNIVERSAL_ACTION_POLICY_ADDRESS
+} from "../../constants"
+import { UniActionPolicyAbi } from "../../constants/abi"
+import { SmartSessionAbi } from "../../constants/abi/SmartSessionAbi"
 import { parseReferenceValue } from "../utils/Helpers"
 import type {
   ActionConfig,
+  CreateSessionDataParams,
+  FullCreateSessionDataParams,
   RawActionConfig,
   Rule,
   SessionData,
   SpendingLimitsParams
 } from "./Types"
-
-const TIMEFRAME_POLICY_ADDRESS = addresses.TimeframePolicy
 
 export const MAX_RULES = 16
 
@@ -48,7 +53,7 @@ export const generateSalt = (): Hex => {
  */
 export const createActionConfig = (
   rules: Rule[],
-  valueLimit: bigint
+  valueLimit = 0n
 ): ActionConfig => ({
   paramRules: {
     length: rules.length,
@@ -56,6 +61,29 @@ export const createActionConfig = (
   },
   valueLimitPerUse: valueLimit
 })
+
+/**
+ * Applies default values to a CreateSessionDataParams object.
+ *
+ * @param sessionInfo - The CreateSessionDataParams object to apply defaults to.
+ * @returns A FullCreateSessionDataParams object with default values applied.
+ */
+export const applyDefaults = (
+  sessionInfo: CreateSessionDataParams
+): FullCreateSessionDataParams => {
+  const sessionKeyData =
+    sessionInfo.sessionKeyData ?? toHex(toBytes(sessionInfo.sessionPublicKey))
+  const sessionPublicKey = sessionInfo.sessionPublicKey ?? sessionKeyData
+  return {
+    ...sessionInfo,
+    sessionKeyData,
+    sessionPublicKey,
+    sessionValidUntil: sessionInfo.sessionValidUntil ?? 0,
+    sessionValidAfter: sessionInfo.sessionValidAfter ?? 0,
+    sessionValidatorAddress:
+      sessionInfo.sessionValidatorAddress ?? SIMPLE_SESSION_VALIDATOR_ADDRESS
+  }
+}
 
 /**
  * Creates an ActionData object.
@@ -136,22 +164,14 @@ export const getPermissionId = async ({
   session: Session
 }) => {
   return (await client.readContract({
-    address: addresses.SmartSession,
+    address: SMART_SESSIONS_ADDRESS,
     abi: SmartSessionAbi,
     functionName: "getPermissionId",
     args: [session]
   })) as Hex
 }
 
-/**
- * Checks if a session is enabled for a given account.
- *
- * @param client - The PublicClient to use for the contract call.
- * @param accountAddress - The address of the account.
- * @param permissionId - The permission ID to check.
- * @returns A promise that resolves to a boolean indicating if the session is enabled.
- */
-export const isSessionEnabled = ({
+export const isPermissionEnabled = async ({
   client,
   accountAddress,
   permissionId
@@ -161,9 +181,9 @@ export const isSessionEnabled = ({
   permissionId: Hex
 }) =>
   client.readContract({
-    address: addresses.SmartSession,
+    address: SMART_SESSIONS_ADDRESS,
     abi: SmartSessionAbi,
-    functionName: "isSessionEnabled",
+    functionName: "isPermissionEnabled",
     args: [permissionId, accountAddress]
   })
 
@@ -176,7 +196,7 @@ export const isSessionEnabled = ({
 export const toUniversalActionPolicy = (
   actionConfig: ActionConfig
 ): PolicyData => ({
-  policy: "0x28120dC008C36d95DE5fa0603526f219c1Ba80f6",
+  policy: UNIVERSAL_ACTION_POLICY_ADDRESS,
   initData: encodeAbiParameters(UniActionPolicyAbi, [
     toActionConfig(actionConfig)
   ])
