@@ -28,11 +28,9 @@ import {
   createNexusClient
 } from "../../clients/createNexusClient"
 import { createNexusSessionClient } from "../../clients/createNexusSessionClient"
-import { SIMPLE_SESSION_VALIDATOR_ADDRESS } from "../../constants"
 import type { Module } from "../utils/Types"
-import { unzipSessionData, zipSessionData } from "./Helpers"
+import { parse, stringify } from "./Helpers"
 import type { CreateSessionDataParams, Rule, SessionData } from "./Types"
-import { ParamCondition } from "./Types"
 import { smartSessionCreateActions, smartSessionUseActions } from "./decorators"
 import { toSmartSessionsValidator } from "./toSmartSessionsValidator"
 
@@ -167,7 +165,7 @@ describe("modules.smartSessions.dx", async () => {
     }
 
     // Zip the session data, and store it for later use by a dapp
-    zippedSessionDatum = zipSessionData(sessionData)
+    zippedSessionDatum = stringify(sessionData)
   }, 200000)
 
   test("should demonstrate using a smart session from dapp's perspective", async () => {
@@ -175,7 +173,7 @@ describe("modules.smartSessions.dx", async () => {
     // The following code demonstrates how a dapp can use the session to act on behalf of the user
 
     // Unzip the session data
-    const usersSessionData = unzipSessionData(zippedSessionDatum)
+    const usersSessionData = parse(zippedSessionDatum)
 
     // Create a new Nexus client for the session
     // This client will be used to interact with the smart contract account using the session key

@@ -19,13 +19,13 @@ import {
 import { UniActionPolicyAbi } from "../../constants/abi"
 import { SmartSessionAbi } from "../../constants/abi/SmartSessionAbi"
 import { parseReferenceValue } from "../utils/Helpers"
+import type { AnyData } from "../utils/Types"
 import type {
   ActionConfig,
   CreateSessionDataParams,
   FullCreateSessionDataParams,
   RawActionConfig,
   Rule,
-  SessionData,
   SpendingLimitsParams
 } from "./Types"
 
@@ -276,8 +276,8 @@ export const policies = {
  * @param sessionData - The SessionData object to be zipped.
  * @returns A string representing the zipped SessionData.
  */
-export function zipSessionData(sessionData: SessionData): string {
-  return JSON.stringify(sessionData)
+export function stringify(obj: Record<string, AnyData>): string {
+  return JSON.stringify(obj)
 }
 
 /**
@@ -286,8 +286,8 @@ export function zipSessionData(sessionData: SessionData): string {
  * @param zippedData - The string representing the zipped SessionData.
  * @returns The unzipped SessionData object.
  */
-export function unzipSessionData(zippedData: string): SessionData {
-  return JSON.parse(zippedData) as SessionData
+export function parse(zippedData: string): Record<string, AnyData> {
+  return JSON.parse(zippedData)
 }
 
 export default policies

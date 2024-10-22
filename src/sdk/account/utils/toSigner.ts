@@ -19,6 +19,7 @@ import { toAccount } from "viem/accounts"
 
 import { signTypedData } from "viem/actions"
 import { getAction } from "viem/utils"
+import type { AnyData } from "../../modules/utils/Types"
 
 export type MinimalSigner = {
   signTransaction: (...args: any[]) => Promise<any>
@@ -44,8 +45,12 @@ export async function toSigner({
 }: {
   signer: UnknownSigner & {
     getAddress: () => Promise<string>
-    signMessage: (message: any) => Promise<string>
-    signTypedData: (domain: any, types: any, value: any) => Promise<string>
+    signMessage: (message: AnyData) => Promise<string>
+    signTypedData: (
+      domain: AnyData,
+      types: AnyData,
+      value: AnyData
+    ) => Promise<string>
   }
   address?: Address
 }): Promise<LocalAccount> {
@@ -68,9 +73,9 @@ export async function toSigner({
       },
       async signTypedData(typedData) {
         return signer.signTypedData(
-          typedData.domain as any,
-          typedData.types as any,
-          typedData.message as any
+          typedData.domain as AnyData,
+          typedData.types as AnyData,
+          typedData.message as AnyData
         ) as Promise<Hex>
       }
     })
