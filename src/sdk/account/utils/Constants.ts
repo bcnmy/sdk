@@ -21,6 +21,11 @@ export const DefaultGasLimit = {
 }
 
 export const ERROR_MESSAGES = {
+  FAILED_COMPUTE_ACCOUNT_ADDRESS:
+    "Failed to compute account address. Possible reasons:\n" +
+    "- The factory contract does not have the function 'computeAccountAddress'\n" +
+    "- The parameters passed to the factory contract function may be invalid\n" +
+    "- The provided factory address is not a contract",
   SIGNER_REQUIRED_FOR_CREATE_SESSION: "Signer is required",
   ACCOUNT_REQUIRED: "Account is required",
   MODULE_NOT_ACTIVATED: "Module not activated",

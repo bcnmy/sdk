@@ -28,11 +28,9 @@ import {
   createNexusClient
 } from "../../clients/createNexusClient"
 import { createNexusSessionClient } from "../../clients/createNexusSessionClient"
-import { SIMPLE_SESSION_VALIDATOR_ADDRESS } from "../../constants"
 import type { Module } from "../utils/Types"
 import { unzipSessionData, zipSessionData } from "./Helpers"
 import type { CreateSessionDataParams, Rule, SessionData } from "./Types"
-import { ParamCondition } from "./Types"
 import { smartSessionCreateActions, smartSessionUseActions } from "./decorators"
 import { toSmartSessionsValidator } from "./toSmartSessionsValidator"
 
