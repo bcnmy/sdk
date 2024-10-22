@@ -147,6 +147,7 @@ export type NexusClientConfig<
     factoryAddress?: Address
     /** Owner module */
     k1ValidatorAddress?: Address
+    /** Account address */
     accountAddress?: Address
   }
 >

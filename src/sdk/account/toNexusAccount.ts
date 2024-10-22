@@ -13,8 +13,10 @@ import {
   type TypedData,
   type TypedDataDefinition,
   type UnionPartialBy,
+  type WalletClient,
   concat,
   concatHex,
+  createPublicClient,
   createWalletClient,
   domainSeparator,
   encodeAbiParameters,
@@ -27,8 +29,7 @@ import {
   publicActions,
   toBytes,
   toHex,
-  validateTypedData,
-  walletActions
+  validateTypedData
 } from "viem"
 import {
   type SmartAccount,
@@ -125,6 +126,8 @@ export type NexusSmartAccountImplementation = SmartAccountImplementation<
     factoryData: Hex
     factoryAddress: Address
     signer: Signer
+    publicClient: PublicClient
+    walletClient: WalletClient
   }
 >
 
@@ -162,23 +165,28 @@ export const toNexusAccount = async (
 
   // @ts-ignore
   const signer = await toSigner({ signer: _signer })
-  const masterClient = createWalletClient({
+
+  const walletClient = createWalletClient({
     account: signer,
     chain,
     transport,
     key,
     name
-  })
-    .extend(walletActions)
-    .extend(publicActions)
+  }).extend(publicActions)
 
-  const signerAddress = masterClient.account.address
+  const publicClient = createPublicClient({
+    chain,
+    transport
+  })
+
+  const signerAddress = walletClient.account.address
+
   const entryPointContract = getContract({
     address: ENTRY_POINT_ADDRESS,
     abi: EntrypointAbi,
     client: {
-      public: masterClient,
-      wallet: masterClient
+      public: publicClient,
+      wallet: walletClient
     }
   })
 
@@ -197,7 +205,7 @@ export const toNexusAccount = async (
     if (!isNullOrUndefined(_accountAddress)) return _accountAddress
 
     try {
-      _accountAddress = (await masterClient.readContract({
+      _accountAddress = (await publicClient.readContract({
         address: factoryAddress,
         abi: K1ValidatorFactoryAbi,
         functionName: "computeAccountAddress",
@@ -206,12 +214,7 @@ export const toNexusAccount = async (
       // biome-ignore lint/suspicious/noExplicitAny: <explanation>
     } catch (e: any) {
       if (e.shortMessage?.includes(ERROR_MESSAGES.MISSING_ACCOUNT_CONTRACT)) {
-        throw new Error(
-          "Failed to compute account address. Possible reasons:\n" +
-            "- The factory contract does not have the function 'computeAccountAddress'\n" +
-            "- The parameters passed to the factory contract function may be invalid\n" +
-            "- The provided factory address is not a contract"
-        )
+        throw new Error(ERROR_MESSAGES.FAILED_COMPUTE_ACCOUNT_ADDRESS)
       }
       throw e
     }
@@ -260,7 +263,7 @@ export const toNexusAccount = async (
    */
   const isDeployed = async (): Promise<boolean> => {
     const address = await getCounterFactualAddress()
-    const contractCode = await masterClient.getCode({ address })
+    const contractCode = await publicClient.getCode({ address })
     return (contractCode?.length ?? 0) > 2
   }
 
@@ -453,7 +456,7 @@ export const toNexusAccount = async (
 
     const appDomainSeparator = domainSeparator({ domain })
     const accountDomainStructFields = await getAccountDomainStructFields(
-      masterClient as unknown as PublicClient,
+      publicClient,
       await getAddress()
     )
 
@@ -496,7 +499,7 @@ export const toNexusAccount = async (
   }
 
   return toSmartAccount({
-    client: masterClient,
+    client: walletClient,
     entryPoint: {
       abi: EntrypointAbi,
       address: ENTRY_POINT_ADDRESS,
@@ -517,7 +520,7 @@ export const toNexusAccount = async (
         chainId?: number | undefined
       }
     ): Promise<Hex> => {
-      const { chainId = masterClient.chain.id, ...userOpWithoutSender } =
+      const { chainId = publicClient.chain.id, ...userOpWithoutSender } =
         parameters
       const address = await getCounterFactualAddress()
 
@@ -547,7 +550,9 @@ export const toNexusAccount = async (
       getModule: () => module,
       factoryData,
       factoryAddress,
-      signer
+      signer,
+      walletClient,
+      publicClient
     }
   })
 }
