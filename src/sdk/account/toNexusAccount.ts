@@ -222,11 +222,15 @@ export const toNexusAccount = async (
     return _accountAddress
   }
 
-  /**
-   * @description Gets the init code for the account
-   * @returns The init code as a hexadecimal string
-   */
-  const getInitCode = () => concatHex([factoryAddress, factoryData])
+  let module =
+    module_ ??
+    toK1Validator({
+      address: k1ValidatorAddress,
+      accountAddress: await getAddress(),
+      initData: signerAddress,
+      deInitData: "0x",
+      signer
+    })
 
   /**
    * @description Gets the counterfactual address of the account
@@ -247,15 +251,11 @@ export const toNexusAccount = async (
     throw new Error("Failed to get counterfactual account address")
   }
 
-  let module =
-    module_ ??
-    toK1Validator({
-      address: k1ValidatorAddress,
-      accountAddress: await getCounterFactualAddress(),
-      initData: signerAddress,
-      deInitData: "0x",
-      signer
-    })
+  /**
+   * @description Gets the init code for the account
+   * @returns The init code as a hexadecimal string
+   */
+  const getInitCode = () => concatHex([factoryAddress, factoryData])
 
   /**
    * @description Checks if the account is deployed

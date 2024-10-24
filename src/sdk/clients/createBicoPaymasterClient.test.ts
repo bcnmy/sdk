@@ -13,7 +13,6 @@ import { paymasterTruthy, toNetwork } from "../../test/testSetup"
 import { getMainnetTestingParameters, killNetwork } from "../../test/testUtils"
 import type { NetworkConfig } from "../../test/testUtils"
 import { type NexusAccount, toNexusAccount } from "../account/toNexusAccount"
-import { safeMultiplier } from "../account/utils"
 import {
   type BicoBundlerClient,
   createBicoBundlerClient
@@ -24,6 +23,7 @@ import {
 } from "./createBicoPaymasterClient"
 import { type NexusClient, createNexusClient } from "./createNexusClient"
 
+// Test will run only if process.env.PAYMASTER_URL is set
 describe.runIf(paymasterTruthy)("bico.paymaster", async () => {
   let network: NetworkConfig
   // Nexus Config
@@ -102,6 +102,7 @@ describe.runIf(paymasterTruthy)("bico.paymaster", async () => {
     expect(paymaster).not.toHaveProperty("getPaymasterStubData")
   })
 
+  // Test passes but for the sake of not spending testnet funds, we skip it.
   test.skip("should send a sponsored transaction", async () => {
     // Get initial balance
     const initialBalance = await publicClient.getBalance({
