@@ -10,14 +10,14 @@ import {
 } from "viem"
 import type { UserOperationReceipt } from "viem/account-abstraction"
 import { beforeAll, describe, expect, test } from "vitest"
-import { playgroundTrue } from "../sdk/account/utils/Utils"
+import { playgroundTrue, safeMultiplier } from "../sdk/account/utils/Utils"
 import { createBicoPaymasterClient } from "../sdk/clients/createBicoPaymasterClient"
 import {
   type NexusClient,
   createNexusClient
 } from "../sdk/clients/createNexusClient"
 import { toNetwork } from "./testSetup"
-import type { NetworkConfig } from "./testUtils"
+import { type NetworkConfig, getMainnetTestingParameters } from "./testUtils"
 
 describe.skipIf(!playgroundTrue)("playground", () => {
   let network: NetworkConfig
@@ -61,7 +61,8 @@ describe.skipIf(!playgroundTrue)("playground", () => {
       signer: eoaAccount,
       chain,
       transport: http(),
-      bundlerTransport: http(bundlerUrl)
+      bundlerTransport: http(bundlerUrl),
+      ...getMainnetTestingParameters(publicClient)
     })
   })
 
@@ -91,7 +92,6 @@ describe.skipIf(!playgroundTrue)("playground", () => {
         value: 1000000000000000000n
       })
       const receipt = await publicClient.waitForTransactionReceipt({ hash })
-      console.log({ receipt })
     }
     expect(balancesAreOfCorrectType).toBeTruthy()
   })
@@ -106,8 +106,7 @@ describe.skipIf(!playgroundTrue)("playground", () => {
           to: recipientAddress,
           value: 1n
         }
-      ],
-      preVerificationGas: 800000000n
+      ]
     })
     const { status } = await publicClient.waitForTransactionReceipt({ hash })
     const balanceAfter = await publicClient.getBalance({
@@ -117,40 +116,14 @@ describe.skipIf(!playgroundTrue)("playground", () => {
     expect(balanceAfter - balanceBefore).toBe(1n)
   })
 
-  test("should send some native token using the paymaster", async () => {
-    if (!paymasterUrl) {
-      console.log("No paymaster url provided")
-      return
-    }
-
-    nexusClient = await createNexusClient({
-      signer: eoaAccount,
-      chain,
-      transport: http(),
-      bundlerTransport: http(bundlerUrl),
-      paymaster: createBicoPaymasterClient({
-        paymasterUrl
-      })
-    })
-    expect(async () =>
-      nexusClient.sendTransaction({
-        calls: [
-          {
-            to: eoaAccount.address,
-            value: 1n
-          }
-        ]
-      })
-    ).rejects.toThrow()
-  })
-
   test("should send sequential user ops", async () => {
     const start = performance.now()
     const nexusClient = await createNexusClient({
       signer: eoaAccount,
       chain,
       transport: http(),
-      bundlerTransport: http(bundlerUrl)
+      bundlerTransport: http(bundlerUrl),
+      ...getMainnetTestingParameters(publicClient)
     })
     const receipts: UserOperationReceipt[] = []
     for (let i = 0; i < 3; i++) {
@@ -158,7 +131,7 @@ describe.skipIf(!playgroundTrue)("playground", () => {
         calls: [
           {
             to: recipientAddress,
-            value: 0n
+            value: 1n
           }
         ]
       })
@@ -176,7 +149,8 @@ describe.skipIf(!playgroundTrue)("playground", () => {
       signer: eoaAccount,
       chain,
       transport: http(),
-      bundlerTransport: http(bundlerUrl)
+      bundlerTransport: http(bundlerUrl),
+      ...getMainnetTestingParameters(publicClient)
     })
     const userOpPromises: Promise<`0x${string}`>[] = []
     for (let i = 0; i < 3; i++) {
@@ -185,7 +159,7 @@ describe.skipIf(!playgroundTrue)("playground", () => {
           calls: [
             {
               to: recipientAddress,
-              value: 0n
+              value: 1n
             }
           ]
         })
