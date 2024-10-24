@@ -90,19 +90,12 @@ export type NexusClient<
 export type NexusClientConfig<
   transport extends Transport = Transport,
   chain extends Chain | undefined = Chain | undefined,
-  account extends SmartAccount | undefined = SmartAccount | undefined,
   client extends Client | undefined = Client | undefined,
   rpcSchema extends RpcSchema | undefined = undefined
 > = Prettify<
   Pick<
-    ClientConfig<transport, chain, account, rpcSchema>,
-    | "account"
-    | "cacheTime"
-    | "chain"
-    | "key"
-    | "name"
-    | "pollingInterval"
-    | "rpcSchema"
+    ClientConfig<transport, chain, SmartAccount, rpcSchema>,
+    "cacheTime" | "chain" | "key" | "name" | "pollingInterval" | "rpcSchema"
   > & {
     /** RPC URL. */
     transport: transport
@@ -130,7 +123,7 @@ export type NexusClientConfig<
           /** Prepares fee properties for the User Operation request. */
           estimateFeesPerGas?:
             | ((parameters: {
-                account: account | SmartAccount
+                account: SmartAccount | undefined
                 bundlerClient: Client
                 userOperation: UserOperationRequest
               }) => Promise<EstimateFeesPerGasReturnType<"eip1559">>)
