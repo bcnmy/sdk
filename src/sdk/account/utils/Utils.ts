@@ -354,7 +354,7 @@ export const getAccountDomainStructFields = async (
   ])
 }
 export const playgroundTrue = process?.env?.RUN_PLAYGROUND === "true"
-export const isTesting = process?.env?.TEST === "true"
+export const isTesting = process?.env?.TESTING === "true"
 
 export const safeMultiplier = (bI: bigint, multiplier: number): bigint =>
   BigInt(Math.round(Number(bI) * multiplier))

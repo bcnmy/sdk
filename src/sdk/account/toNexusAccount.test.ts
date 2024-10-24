@@ -1,10 +1,10 @@
 import { getAddress, getBytes, hexlify } from "ethers"
 import {
   http,
-  type Account,
   type Address,
   type Chain,
   type Hex,
+  type LocalAccount,
   type PublicClient,
   type WalletClient,
   concat,
@@ -59,7 +59,7 @@ describe("nexus.account", async () => {
 
   // Test utils
   let testClient: MasterClient
-  let eoaAccount: Account
+  let eoaAccount: LocalAccount
   let nexusAccountAddress: Address
   let nexusClient: NexusClient
   let nexusAccount: NexusAccount
@@ -96,11 +96,11 @@ describe("nexus.account", async () => {
 
   test("should override account address", async () => {
     const newNexusClient = await createNexusClient({
-      signer: eoaAccount,
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl),
-      accountAddress: "0xf0479e036343bC66dc49dd374aFAF98402D0Ae5f"
+      accountAddress: "0xf0479e036343bC66dc49dd374aFAF98402D0Ae5f",
+      signer: eoaAccount
     })
     const accountAddress = await newNexusClient.account.getAddress()
     expect(accountAddress).toBe("0xf0479e036343bC66dc49dd374aFAF98402D0Ae5f")
