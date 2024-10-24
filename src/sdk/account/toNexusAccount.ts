@@ -29,7 +29,8 @@ import {
   publicActions,
   toBytes,
   toHex,
-  validateTypedData
+  validateTypedData,
+  zeroAddress
 } from "viem"
 import {
   type SmartAccount,
@@ -59,6 +60,7 @@ import { toK1Validator } from "../modules/k1Validator/toK1Validator"
 import type { Module } from "../modules/utils/Types"
 import {
   type TypedDataWith712,
+  addressEquals,
   eip712WrapHash,
   getAccountDomainStructFields,
   getTypesForEIP712Domain,
@@ -222,15 +224,11 @@ export const toNexusAccount = async (
     return _accountAddress
   }
 
-  let module =
-    module_ ??
-    toK1Validator({
-      address: k1ValidatorAddress,
-      accountAddress: await getAddress(),
-      initData: signerAddress,
-      deInitData: "0x",
-      signer
-    })
+  /**
+   * @description Gets the init code for the account
+   * @returns The init code as a hexadecimal string
+   */
+  const getInitCode = () => concatHex([factoryAddress, factoryData])
 
   /**
    * @description Gets the counterfactual address of the account
@@ -245,17 +243,23 @@ export const toNexusAccount = async (
     } catch (e: any) {
       if (e?.cause?.data?.errorName === "SenderAddressResult") {
         _accountAddress = e?.cause.data.args[0] as Address
-        return _accountAddress
+        if (!addressEquals(_accountAddress, zeroAddress)) {
+          return _accountAddress
+        }
       }
     }
     throw new Error("Failed to get counterfactual account address")
   }
 
-  /**
-   * @description Gets the init code for the account
-   * @returns The init code as a hexadecimal string
-   */
-  const getInitCode = () => concatHex([factoryAddress, factoryData])
+  let module =
+    module_ ??
+    toK1Validator({
+      address: k1ValidatorAddress,
+      accountAddress: await getCounterFactualAddress(),
+      initData: signerAddress,
+      deInitData: "0x",
+      signer
+    })
 
   /**
    * @description Checks if the account is deployed

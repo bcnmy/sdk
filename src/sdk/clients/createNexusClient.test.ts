@@ -9,6 +9,7 @@ import {
   isHex,
   parseEther
 } from "viem"
+import type { UserOperationReceipt } from "viem/account-abstraction"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { baseSepolia } from "viem/chains"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
@@ -300,5 +301,50 @@ describe("nexus.client", async () => {
       hash
     })
     expect(receipt.success).toBe(true)
+  })
+
+  test("should send sequential user ops", async () => {
+    const start = performance.now()
+    const receipts: UserOperationReceipt[] = []
+    for (let i = 0; i < 3; i++) {
+      const hash = await nexusClient.sendUserOperation({
+        calls: [
+          {
+            to: recipientAddress,
+            value: 1n
+          }
+        ]
+      })
+      const receipt = await nexusClient.waitForUserOperationReceipt({ hash })
+      receipts.push(receipt)
+    }
+    expect(receipts.every((receipt) => receipt.success)).toBeTruthy()
+    const end = performance.now()
+    console.log(`Time taken: ${end - start} milliseconds`)
+  })
+
+  test("should send parallel user ops", async () => {
+    const start = performance.now()
+    const userOpPromises: Promise<`0x${string}`>[] = []
+    for (let i = 0; i < 3; i++) {
+      userOpPromises.push(
+        nexusClient.sendUserOperation({
+          calls: [
+            {
+              to: recipientAddress,
+              value: 1n
+            }
+          ]
+        })
+      )
+    }
+    const hashes = await Promise.all(userOpPromises)
+    expect(hashes.length).toBe(3)
+    const receipts = await Promise.all(
+      hashes.map((hash) => nexusClient.waitForUserOperationReceipt({ hash }))
+    )
+    expect(receipts.every((receipt) => receipt.success)).toBeTruthy()
+    const end = performance.now()
+    console.log(`Time taken: ${end - start} milliseconds`)
   })
 })
