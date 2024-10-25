@@ -38,7 +38,7 @@ import {
   type NexusClient,
   createNexusClient
 } from "../clients/createNexusClient"
-import { K1_VALIDATOR_ADDRESS, NexusAbi } from "../constants"
+import { NexusAbi, k1ValidatorAddress } from "../constants"
 import type { NexusAccount } from "./toNexusAccount"
 import {
   addressEquals,
@@ -283,7 +283,7 @@ describe("nexus.account", async () => {
 
     const finalSignature = encodePacked(
       ["address", "bytes"],
-      [K1_VALIDATOR_ADDRESS, signatureData]
+      [k1ValidatorAddress, signatureData]
     )
 
     const contractResponse = await testClient.readContract({

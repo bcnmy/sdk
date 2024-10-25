@@ -20,8 +20,8 @@ import type {
 import { type NexusAccount, toNexusAccount } from "../account/toNexusAccount"
 import type { UnknownSigner } from "../account/utils/toSigner"
 import {
-  K1_VALIDATOR_ADDRESS,
-  K1_VALIDATOR_FACTORY_ADDRESS
+  k1ValidatorAddress as k1ValidatorAddress_,
+  k1ValidatorFactoryAddress
 } from "../constants"
 import type { Module } from "../modules/utils/Types"
 import { createBicoBundlerClient } from "./createBicoBundlerClient"
@@ -181,8 +181,8 @@ export async function createNexusClient(
     key = "nexus client",
     name = "Nexus Client",
     module,
-    factoryAddress = K1_VALIDATOR_FACTORY_ADDRESS,
-    k1ValidatorAddress = K1_VALIDATOR_ADDRESS,
+    factoryAddress = k1ValidatorFactoryAddress,
+    k1ValidatorAddress = k1ValidatorAddress_,
     bundlerTransport,
     transport,
     accountAddress,

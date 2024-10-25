@@ -37,7 +37,7 @@ import {
   createNexusClient
 } from "../../clients/createNexusClient"
 import { parseModuleTypeId } from "../../clients/decorators/erc7579/supportsModule"
-import { K1_VALIDATOR_ADDRESS } from "../../constants"
+import { k1ValidatorAddress } from "../../constants"
 import { toK1Validator } from "../k1Validator/toK1Validator"
 import type { Module } from "../utils/Types"
 import { type OwnableActions, ownableActions } from "./decorators"

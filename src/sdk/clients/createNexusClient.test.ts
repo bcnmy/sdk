@@ -25,9 +25,10 @@ import {
 } from "../../test/testUtils"
 import type { MasterClient, NetworkConfig } from "../../test/testUtils"
 import { ERROR_MESSAGES } from "../account/utils/Constants"
+import { Logger } from "../account/utils/Logger"
 import { getAccountMeta, makeInstallDataAndHash } from "../account/utils/Utils"
 import { getChain } from "../account/utils/getChain"
-import { K1_VALIDATOR_ADDRESS } from "../constants"
+import { k1ValidatorAddress } from "../constants"
 import { type NexusClient, createNexusClient } from "./createNexusClient"
 
 describe("nexus.client", async () => {
@@ -228,7 +229,7 @@ describe("nexus.client", async () => {
       nexusClient.isModuleInstalled({
         module: {
           type: "validator",
-          address: K1_VALIDATOR_ADDRESS,
+          address: k1ValidatorAddress,
           initData: "0x"
         }
       }),
@@ -320,7 +321,7 @@ describe("nexus.client", async () => {
     }
     expect(receipts.every((receipt) => receipt.success)).toBeTruthy()
     const end = performance.now()
-    console.log(`Time taken: ${end - start} milliseconds`)
+    Logger.log(`Time taken: ${end - start} milliseconds`)
   })
 
   test("should send parallel user ops", async () => {
@@ -345,6 +346,6 @@ describe("nexus.client", async () => {
     )
     expect(receipts.every((receipt) => receipt.success)).toBeTruthy()
     const end = performance.now()
-    console.log(`Time taken: ${end - start} milliseconds`)
+    Logger.log(`Time taken: ${end - start} milliseconds`)
   })
 })
