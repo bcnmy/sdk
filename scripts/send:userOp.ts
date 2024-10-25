@@ -77,16 +77,12 @@ const main = async () => {
     bicoBundler.getChainId(),
     bicoBundler.getSupportedEntryPoints(),
     bicoBundler.prepareUserOperation({
-      sender: account.address,
-      nonce: 0n,
-      data: "0x",
-      signature: "0x",
-      verificationGasLimit: 1n,
-      preVerificationGas: 1n,
-      callData: "0x",
-      callGasLimit: 1n,
-      maxFeePerGas: 1n,
-      maxPriorityFeePerGas: 1n,
+      calls: [
+        {
+          to: recipient,
+          value: 1n
+        }
+      ],
       account: nexusAccount
     })
   ])
@@ -98,6 +94,13 @@ const main = async () => {
       successCount.length
     } successful calls and ${results.length - successCount.length} failed calls`
   )
+
+  const failures = results.filter((result) => result.status === "rejected")
+
+  if (failures.length > 0) {
+    console.log({ failures })
+    process.exit(1)
+  }
 
   console.time("write methods")
   const hash = await bicoBundler.sendUserOperation({

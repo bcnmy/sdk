@@ -9,6 +9,7 @@ import {
   isHex,
   parseEther
 } from "viem"
+import type { UserOperationReceipt } from "viem/account-abstraction"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { CounterAbi } from "../../test/__contracts/abi"
@@ -23,9 +24,10 @@ import {
 } from "../../test/testUtils"
 import type { MasterClient, NetworkConfig } from "../../test/testUtils"
 import { ERROR_MESSAGES } from "../account/utils/Constants"
+import { Logger } from "../account/utils/Logger"
 import { getAccountMeta, makeInstallDataAndHash } from "../account/utils/Utils"
 import { getChain } from "../account/utils/getChain"
-import { K1_VALIDATOR_ADDRESS } from "../constants"
+import { k1ValidatorAddress } from "../constants"
 import { type NexusClient, createNexusClient } from "./createNexusClient"
 
 describe("nexus.client", async () => {
@@ -225,7 +227,7 @@ describe("nexus.client", async () => {
       nexusClient.isModuleInstalled({
         module: {
           type: "validator",
-          address: K1_VALIDATOR_ADDRESS,
+          address: k1ValidatorAddress,
           initData: "0x"
         }
       }),
@@ -298,5 +300,50 @@ describe("nexus.client", async () => {
       hash
     })
     expect(receipt.success).toBe(true)
+  })
+
+  test("should send sequential user ops", async () => {
+    const start = performance.now()
+    const receipts: UserOperationReceipt[] = []
+    for (let i = 0; i < 3; i++) {
+      const hash = await nexusClient.sendUserOperation({
+        calls: [
+          {
+            to: recipientAddress,
+            value: 1n
+          }
+        ]
+      })
+      const receipt = await nexusClient.waitForUserOperationReceipt({ hash })
+      receipts.push(receipt)
+    }
+    expect(receipts.every((receipt) => receipt.success)).toBeTruthy()
+    const end = performance.now()
+    Logger.log(`Time taken: ${end - start} milliseconds`)
+  })
+
+  test("should send parallel user ops", async () => {
+    const start = performance.now()
+    const userOpPromises: Promise<`0x${string}`>[] = []
+    for (let i = 0; i < 3; i++) {
+      userOpPromises.push(
+        nexusClient.sendUserOperation({
+          calls: [
+            {
+              to: recipientAddress,
+              value: 1n
+            }
+          ]
+        })
+      )
+    }
+    const hashes = await Promise.all(userOpPromises)
+    expect(hashes.length).toBe(3)
+    const receipts = await Promise.all(
+      hashes.map((hash) => nexusClient.waitForUserOperationReceipt({ hash }))
+    )
+    expect(receipts.every((receipt) => receipt.success)).toBeTruthy()
+    const end = performance.now()
+    Logger.log(`Time taken: ${end - start} milliseconds`)
   })
 })

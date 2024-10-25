@@ -9,6 +9,7 @@ import {
   type Chain,
   type Hex,
   type PrivateKeyAccount,
+  type PublicClient,
   createPublicClient,
   createTestClient,
   createWalletClient,
@@ -19,7 +20,7 @@ import {
 } from "viem"
 import { createBundlerClient } from "viem/account-abstraction"
 import { mnemonicToAccount, privateKeyToAccount } from "viem/accounts"
-import { getChain, getCustomChain } from "../sdk/account/utils"
+import { getChain, getCustomChain, safeMultiplier } from "../sdk/account/utils"
 import { Logger } from "../sdk/account/utils/Logger"
 import {
   type NexusClient,
@@ -27,7 +28,9 @@ import {
 } from "../sdk/clients/createNexusClient"
 import {
   ENTRYPOINT_SIMULATIONS_ADDRESS,
-  ENTRY_POINT_ADDRESS
+  ENTRY_POINT_ADDRESS,
+  MAINNET_ADDRESS_K1_VALIDATOR_ADDRESS,
+  MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
 } from "../sdk/constants"
 import {
   ENTRY_POINT_SIMULATIONS_CREATECALL,
@@ -487,3 +490,18 @@ export const setByteCodeDynamic = async (
     )
   )
 }
+
+export type TestnetParams = ReturnType<typeof getTestParamsForTestnet>
+export const getTestParamsForTestnet = (publicClient: PublicClient) => ({
+  k1ValidatorAddress: MAINNET_ADDRESS_K1_VALIDATOR_ADDRESS,
+  factoryAddress: MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS,
+  userOperation: {
+    estimateFeesPerGas: async (_) => {
+      const feeData = await publicClient.estimateFeesPerGas()
+      return {
+        maxFeePerGas: safeMultiplier(feeData.maxFeePerGas, 1.25),
+        maxPriorityFeePerGas: safeMultiplier(feeData.maxPriorityFeePerGas, 1.25)
+      }
+    }
+  }
+})
