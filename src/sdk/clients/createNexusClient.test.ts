@@ -10,7 +10,6 @@ import {
   parseEther
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
-import { baseSepolia } from "viem/chains"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { CounterAbi } from "../../test/__contracts/abi"
 import mockAddresses from "../../test/__contracts/mockAddresses"
@@ -63,7 +62,6 @@ describe("nexus.client", async () => {
       transport: http(),
       bundlerTransport: http(bundlerUrl)
     })
-
     nexusAccountAddress = await nexusClient.account.getCounterFactualAddress()
   })
   afterAll(async () => {
