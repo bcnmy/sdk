@@ -17,7 +17,7 @@ import {
   killNetwork,
   toTestClient
 } from "../../../../test/testUtils"
-import { K1_VALIDATOR_ADDRESS } from "../../../constants"
+import { k1ValidatorAddress } from "../../../constants"
 import { type NexusClient, createNexusClient } from "../../createNexusClient"
 
 describe("erc7579.decorators", async () => {
@@ -77,14 +77,14 @@ describe("erc7579.decorators", async () => {
       nexusClient.isModuleInstalled({
         module: {
           type: "validator",
-          address: K1_VALIDATOR_ADDRESS,
+          address: k1ValidatorAddress,
           initData: "0x"
         }
       })
     ])
 
     expect(installedExecutors[0].length).toBeTypeOf("number")
-    expect(installedValidators[0]).toEqual([K1_VALIDATOR_ADDRESS])
+    expect(installedValidators[0]).toEqual([k1ValidatorAddress])
     expect(isHex(activeHook)).toBe(true)
     expect(fallbackSelector.length).toBeTypeOf("number")
     expect(supportsValidator).toBe(true)

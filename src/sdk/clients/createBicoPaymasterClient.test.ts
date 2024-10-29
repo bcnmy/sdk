@@ -10,10 +10,9 @@ import {
 } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { paymasterTruthy, toNetwork } from "../../test/testSetup"
-import { killNetwork } from "../../test/testUtils"
-import type { NetworkConfig } from "../../test/testUtils"
+import { getTestParamsForTestnet, killNetwork } from "../../test/testUtils"
+import type { NetworkConfig, TestnetParams } from "../../test/testUtils"
 import { type NexusAccount, toNexusAccount } from "../account/toNexusAccount"
-import { safeMultiplier } from "../account/utils"
 import {
   type BicoBundlerClient,
   createBicoBundlerClient
@@ -26,7 +25,9 @@ import { type NexusClient, createNexusClient } from "./createNexusClient"
 
 describe.runIf(paymasterTruthy)("bico.paymaster", async () => {
   let network: NetworkConfig
-  // Nexus Config
+  // Required for "PUBLIC_TESTNET" networks
+  let testParams: TestnetParams
+
   let chain: Chain
   let bundlerUrl: string
   let paymasterUrl: undefined | string
@@ -63,6 +64,8 @@ describe.runIf(paymasterTruthy)("bico.paymaster", async () => {
       transport: http()
     })
 
+    testParams = getTestParamsForTestnet(publicClient)
+
     paymaster = createBicoPaymasterClient({
       transport: http(paymasterUrl)
     })
@@ -70,7 +73,8 @@ describe.runIf(paymasterTruthy)("bico.paymaster", async () => {
     nexusAccount = await toNexusAccount({
       signer: account,
       chain,
-      transport: http()
+      transport: http(),
+      ...testParams
     })
 
     bicoBundler = createBicoBundlerClient({
@@ -86,19 +90,7 @@ describe.runIf(paymasterTruthy)("bico.paymaster", async () => {
       transport: http(),
       bundlerTransport: http(bundlerUrl),
       paymaster,
-      // For "PUBLIC_TESTNET" network, the userOperation we can hardcode estimates
-      userOperation: {
-        estimateFeesPerGas: async (_) => {
-          const feeData = await publicClient.estimateFeesPerGas()
-          return {
-            maxFeePerGas: safeMultiplier(feeData.maxFeePerGas, 1.25),
-            maxPriorityFeePerGas: safeMultiplier(
-              feeData.maxPriorityFeePerGas,
-              1.25
-            )
-          }
-        }
-      }
+      ...testParams
     })
   })
   afterAll(async () => {
@@ -113,7 +105,7 @@ describe.runIf(paymasterTruthy)("bico.paymaster", async () => {
     expect(paymaster).not.toHaveProperty("getPaymasterStubData")
   })
 
-  test.skip("should send a sponsored transaction", async () => {
+  test("should send a sponsored transaction", async () => {
     // Get initial balance
     const initialBalance = await publicClient.getBalance({
       address: nexusAccountAddress
@@ -136,6 +128,7 @@ describe.runIf(paymasterTruthy)("bico.paymaster", async () => {
     const finalBalance = await publicClient.getBalance({
       address: nexusAccountAddress
     })
+
     // Check that the balance hasn't changed
     // No gas fees were paid, so the balance should have decreased only by 1n
     expect(finalBalance).toBe(initialBalance - 1n)

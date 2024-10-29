@@ -13,8 +13,10 @@ import {
   type TypedData,
   type TypedDataDefinition,
   type UnionPartialBy,
+  type WalletClient,
   concat,
   concatHex,
+  createPublicClient,
   createWalletClient,
   domainSeparator,
   encodeAbiParameters,
@@ -28,7 +30,7 @@ import {
   toBytes,
   toHex,
   validateTypedData,
-  walletActions
+  zeroAddress
 } from "viem"
 import {
   type SmartAccount,
@@ -51,13 +53,14 @@ import {
 
 import {
   ENTRY_POINT_ADDRESS,
-  K1_VALIDATOR_ADDRESS,
-  K1_VALIDATOR_FACTORY_ADDRESS
+  k1ValidatorAddress as k1ValidatorAddress_,
+  k1ValidatorFactoryAddress
 } from "../constants"
 import { toK1Validator } from "../modules/k1Validator/toK1Validator"
 import type { Module } from "../modules/utils/Types"
 import {
   type TypedDataWith712,
+  addressEquals,
   eip712WrapHash,
   getAccountDomainStructFields,
   getTypesForEIP712Domain,
@@ -125,6 +128,8 @@ export type NexusSmartAccountImplementation = SmartAccountImplementation<
     factoryData: Hex
     factoryAddress: Address
     signer: Signer
+    publicClient: PublicClient
+    walletClient: WalletClient
   }
 >
 
@@ -154,31 +159,36 @@ export const toNexusAccount = async (
     signer: _signer,
     index = 0n,
     module: module_,
-    factoryAddress = K1_VALIDATOR_FACTORY_ADDRESS,
-    k1ValidatorAddress = K1_VALIDATOR_ADDRESS,
+    factoryAddress = k1ValidatorFactoryAddress,
+    k1ValidatorAddress = k1ValidatorAddress_,
     key = "nexus account",
     name = "Nexus Account"
   } = parameters
 
   // @ts-ignore
   const signer = await toSigner({ signer: _signer })
-  const masterClient = createWalletClient({
+
+  const walletClient = createWalletClient({
     account: signer,
     chain,
     transport,
     key,
     name
-  })
-    .extend(walletActions)
-    .extend(publicActions)
+  }).extend(publicActions)
 
-  const signerAddress = masterClient.account.address
+  const publicClient = createPublicClient({
+    chain,
+    transport
+  })
+
+  const signerAddress = walletClient.account.address
+
   const entryPointContract = getContract({
     address: ENTRY_POINT_ADDRESS,
     abi: EntrypointAbi,
     client: {
-      public: masterClient,
-      wallet: masterClient
+      public: publicClient,
+      wallet: walletClient
     }
   })
 
@@ -197,7 +207,7 @@ export const toNexusAccount = async (
     if (!isNullOrUndefined(_accountAddress)) return _accountAddress
 
     try {
-      _accountAddress = (await masterClient.readContract({
+      _accountAddress = (await publicClient.readContract({
         address: factoryAddress,
         abi: K1ValidatorFactoryAbi,
         functionName: "computeAccountAddress",
@@ -206,12 +216,7 @@ export const toNexusAccount = async (
       // biome-ignore lint/suspicious/noExplicitAny: <explanation>
     } catch (e: any) {
       if (e.shortMessage?.includes(ERROR_MESSAGES.MISSING_ACCOUNT_CONTRACT)) {
-        throw new Error(
-          "Failed to compute account address. Possible reasons:\n" +
-            "- The factory contract does not have the function 'computeAccountAddress'\n" +
-            "- The parameters passed to the factory contract function may be invalid\n" +
-            "- The provided factory address is not a contract"
-        )
+        throw new Error(ERROR_MESSAGES.FAILED_COMPUTE_ACCOUNT_ADDRESS)
       }
       throw e
     }
@@ -219,15 +224,11 @@ export const toNexusAccount = async (
     return _accountAddress
   }
 
-  let module =
-    module_ ??
-    toK1Validator({
-      address: k1ValidatorAddress,
-      accountAddress: await getAddress(),
-      initData: signerAddress,
-      deInitData: "0x",
-      signer
-    })
+  /**
+   * @description Gets the init code for the account
+   * @returns The init code as a hexadecimal string
+   */
+  const getInitCode = () => concatHex([factoryAddress, factoryData])
 
   /**
    * @description Gets the counterfactual address of the account
@@ -242,17 +243,23 @@ export const toNexusAccount = async (
     } catch (e: any) {
       if (e?.cause?.data?.errorName === "SenderAddressResult") {
         _accountAddress = e?.cause.data.args[0] as Address
-        return _accountAddress
+        if (!addressEquals(_accountAddress, zeroAddress)) {
+          return _accountAddress
+        }
       }
     }
     throw new Error("Failed to get counterfactual account address")
   }
 
-  /**
-   * @description Gets the init code for the account
-   * @returns The init code as a hexadecimal string
-   */
-  const getInitCode = () => concatHex([factoryAddress, factoryData])
+  let module =
+    module_ ??
+    toK1Validator({
+      address: k1ValidatorAddress,
+      accountAddress: await getCounterFactualAddress(),
+      initData: signerAddress,
+      deInitData: "0x",
+      signer
+    })
 
   /**
    * @description Checks if the account is deployed
@@ -260,7 +267,7 @@ export const toNexusAccount = async (
    */
   const isDeployed = async (): Promise<boolean> => {
     const address = await getCounterFactualAddress()
-    const contractCode = await masterClient.getCode({ address })
+    const contractCode = await publicClient.getCode({ address })
     return (contractCode?.length ?? 0) > 2
   }
 
@@ -453,7 +460,7 @@ export const toNexusAccount = async (
 
     const appDomainSeparator = domainSeparator({ domain })
     const accountDomainStructFields = await getAccountDomainStructFields(
-      masterClient as unknown as PublicClient,
+      publicClient,
       await getAddress()
     )
 
@@ -496,7 +503,7 @@ export const toNexusAccount = async (
   }
 
   return toSmartAccount({
-    client: masterClient,
+    client: walletClient,
     entryPoint: {
       abi: EntrypointAbi,
       address: ENTRY_POINT_ADDRESS,
@@ -517,7 +524,7 @@ export const toNexusAccount = async (
         chainId?: number | undefined
       }
     ): Promise<Hex> => {
-      const { chainId = masterClient.chain.id, ...userOpWithoutSender } =
+      const { chainId = publicClient.chain.id, ...userOpWithoutSender } =
         parameters
       const address = await getCounterFactualAddress()
 
@@ -547,7 +554,9 @@ export const toNexusAccount = async (
       getModule: () => module,
       factoryData,
       factoryAddress,
-      signer
+      signer,
+      walletClient,
+      publicClient
     }
   })
 }

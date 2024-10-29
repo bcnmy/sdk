@@ -20,8 +20,8 @@ import type {
 import { type NexusAccount, toNexusAccount } from "../account/toNexusAccount"
 import type { UnknownSigner } from "../account/utils/toSigner"
 import {
-  K1_VALIDATOR_ADDRESS,
-  K1_VALIDATOR_FACTORY_ADDRESS
+  k1ValidatorAddress as k1ValidatorAddress_,
+  k1ValidatorFactoryAddress
 } from "../constants"
 import type { Module } from "../modules/utils/Types"
 import { createBicoBundlerClient } from "./createBicoBundlerClient"
@@ -90,19 +90,12 @@ export type NexusClient<
 export type NexusClientConfig<
   transport extends Transport = Transport,
   chain extends Chain | undefined = Chain | undefined,
-  account extends SmartAccount | undefined = SmartAccount | undefined,
   client extends Client | undefined = Client | undefined,
   rpcSchema extends RpcSchema | undefined = undefined
 > = Prettify<
   Pick<
-    ClientConfig<transport, chain, account, rpcSchema>,
-    | "account"
-    | "cacheTime"
-    | "chain"
-    | "key"
-    | "name"
-    | "pollingInterval"
-    | "rpcSchema"
+    ClientConfig<transport, chain, SmartAccount, rpcSchema>,
+    "cacheTime" | "chain" | "key" | "name" | "pollingInterval" | "rpcSchema"
   > & {
     /** RPC URL. */
     transport: transport
@@ -130,7 +123,7 @@ export type NexusClientConfig<
           /** Prepares fee properties for the User Operation request. */
           estimateFeesPerGas?:
             | ((parameters: {
-                account: account | SmartAccount
+                account: SmartAccount | undefined
                 bundlerClient: Client
                 userOperation: UserOperationRequest
               }) => Promise<EstimateFeesPerGasReturnType<"eip1559">>)
@@ -147,6 +140,7 @@ export type NexusClientConfig<
     factoryAddress?: Address
     /** Owner module */
     k1ValidatorAddress?: Address
+    /** Account address */
     accountAddress?: Address
   }
 >
@@ -180,8 +174,8 @@ export async function createNexusClient(
     key = "nexus client",
     name = "Nexus Client",
     module,
-    factoryAddress = K1_VALIDATOR_FACTORY_ADDRESS,
-    k1ValidatorAddress = K1_VALIDATOR_ADDRESS,
+    factoryAddress = k1ValidatorFactoryAddress,
+    k1ValidatorAddress = k1ValidatorAddress_,
     bundlerTransport,
     transport,
     accountAddress,

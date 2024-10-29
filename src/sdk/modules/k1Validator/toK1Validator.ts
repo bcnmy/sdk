@@ -4,7 +4,7 @@ import {
   type SignableMessage,
   encodePacked
 } from "viem"
-import { K1_VALIDATOR_ADDRESS } from "../../constants"
+import { k1ValidatorAddress } from "../../constants"
 import { sanitizeSignature } from "../utils/Helpers"
 import type { Module, ModuleMeta } from "../utils/Types"
 import { type ToModuleParameters, toModule } from "../utils/toModule"
@@ -19,7 +19,7 @@ export type K1ModuleGetInitDataArgs = {
 export const getK1ModuleInitData = (
   _: K1ModuleGetInitDataArgs
 ): ModuleMeta => ({
-  address: K1_VALIDATOR_ADDRESS,
+  address: k1ValidatorAddress,
   type: "validator",
   initData: "0x"
 })
@@ -61,7 +61,7 @@ export const toK1Validator = (parameters: ToK1ValidatorParameters): Module => {
     moduleInitData: moduleInitData_,
     deInitData = "0x",
     accountAddress,
-    address = K1_VALIDATOR_ADDRESS
+    address = k1ValidatorAddress
   } = parameters
 
   const initData = initData_ ?? getK1InitData(initArgs_)

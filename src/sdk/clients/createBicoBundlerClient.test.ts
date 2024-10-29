@@ -54,17 +54,8 @@ describe("bico.bundler", async () => {
       bicoBundler.getChainId(),
       bicoBundler.getSupportedEntryPoints(),
       bicoBundler.prepareUserOperation({
-        sender: eoaAccount.address,
-        nonce: 0n,
-        data: "0x",
-        signature: "0x",
-        verificationGasLimit: 1n,
-        preVerificationGas: 1n,
-        callData: "0x",
-        callGasLimit: 1n,
-        maxFeePerGas: 1n,
-        maxPriorityFeePerGas: 1n,
-        account: nexusAccount
+        account: nexusAccount,
+        calls: [{ to: eoaAccount.address, data: "0x" }]
       })
     ])
     expect(chainId).toEqual(chain.id)

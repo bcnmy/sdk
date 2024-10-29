@@ -27,7 +27,7 @@ import {
   createNexusClient
 } from "../../clients/createNexusClient"
 import { parseModuleTypeId } from "../../clients/decorators/erc7579/supportsModule"
-import { K1_VALIDATOR_ADDRESS } from "../../constants"
+import { k1ValidatorAddress } from "../../constants"
 import type { Module } from "../utils/Types"
 import { type OwnableActions, ownableActions } from "./decorators"
 import { toOwnableValidator } from "./toOwnableValidator"
@@ -299,6 +299,6 @@ describe("modules.ownables", async () => {
     expect(userOpSuccess).toBe(true)
     const [installedValidatorsAfter] =
       await nexusClient.getInstalledValidators()
-    expect(installedValidatorsAfter).toEqual([K1_VALIDATOR_ADDRESS])
+    expect(installedValidatorsAfter).toEqual([k1ValidatorAddress])
   })
 })

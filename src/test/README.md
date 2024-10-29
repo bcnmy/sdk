@@ -30,7 +30,7 @@ bun run lint --apply-unsafe
 
 > **Note**:  
 > - Do not edit these files manually; they will be overridden if/when a new Nexus deployment occurs.
-> - Avoid hardcoding important addresses (e.g., `const K1_VALIDATOR_ADDRESS = "0x"`). Use `./src/addresses.ts` instead.
+> - Avoid hardcoding important addresses (e.g., `const k1ValidatorAddress = "0x"`). Use `./src/addresses.ts` instead.
 
 ## Network Scopes for Tests
 
