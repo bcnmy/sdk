@@ -1,5 +1,5 @@
 import type { Chain, Client, Hex, LocalAccount, Transport } from "viem"
-import { parseAccount } from "viem/utils"
+// import { parseAccount } from "viem/utils"
 import { ERROR_MESSAGES } from "../../../account"
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
 import type { ModularSmartAccount, Module } from "../../utils/Types"
@@ -32,7 +32,7 @@ export async function generateKey<
       docsPath: "/nexus/nexus-client/methods#sendtransaction"
     })
   }
-  const account = parseAccount(account_) as ModularSmartAccount
+  // const account = parseAccount(account_) as ModularSmartAccount
 
   if (!chainId_) {
     throw new Error(ERROR_MESSAGES.CHAIN_NOT_FOUND)

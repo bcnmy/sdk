@@ -6,6 +6,7 @@ import {
   type DANUserOperation,
   prepareDANUserOperation
 } from "./prepareDANUserOperation"
+import { type NexusClient } from "../../../clients/createNexusClient"
 
 export type DanActions<
   TModularSmartAccount extends ModularSmartAccount | undefined
@@ -25,8 +26,9 @@ export function danActions(moduleInfo: Module) {
     client?.account?.setModule(moduleInfo)
     return {
       generateKey: (args) => generateKey(client, moduleInfo, args),
+      // Review type casting below
       prepareDANUserOperation: (parameters) =>
-        prepareDANUserOperation(client, parameters)
+        prepareDANUserOperation(client as unknown as NexusClient, parameters)
     }
   }
 }

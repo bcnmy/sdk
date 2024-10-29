@@ -4,8 +4,8 @@ import {
   WalletProviderServiceClient
 } from "@silencelaboratories/walletprovider-sdk"
 import type { Chain, Hex } from "viem"
-import { parseAccount } from "viem/accounts"
-import type { NexusAccount } from "../../account/toNexusAccount"
+// import { parseAccount } from "viem/accounts"
+// import type { NexusAccount } from "../../account/toNexusAccount"
 import { ERROR_MESSAGES } from "../../account/utils/Constants"
 import type { Signer } from "../../account/utils/toSigner"
 import type { ModularSmartAccount, Module } from "../utils/Types"
@@ -52,7 +52,7 @@ export const toDAN = (parameters: ToDANParameters): Module => {
     throw new Error(ERROR_MESSAGES.CHAIN_NOT_FOUND)
   }
 
-  const account = parseAccount(account_) as NexusAccount
+  // const account = parseAccount(account_) as NexusAccount
 
   const publicKeyAsBytes: Uint8Array = hexToUint8Array(signer_.address.slice(2))
 
