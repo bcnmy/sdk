@@ -220,6 +220,8 @@ export async function grantPermission<
 
   const defaultedSessionRequestedInfo = sessionRequestedInfo.map(applyDefaults)
 
+  // Here, we can also get TrusteAttesters action. based on check if already trusted.
+
   const actionResponse = await getPermissionAction({
     chainId,
     client: publicClient_,

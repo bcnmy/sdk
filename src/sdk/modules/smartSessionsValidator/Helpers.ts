@@ -290,4 +290,9 @@ export function unzipSessionData(zippedData: string): SessionData {
   return JSON.parse(zippedData) as SessionData
 }
 
+// Todo
+// 1. find trusted attesters. why not just here instead of part of read decorators?
+// 2. get trusteAttesters calldata. or returning the whole "Action"/Execution 
+
+
 export default policies
