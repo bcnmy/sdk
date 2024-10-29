@@ -1,32 +1,36 @@
 import type { Chain, Client, Hex, Transport } from "viem"
 import type { PrepareUserOperationParameters } from "viem/account-abstraction"
-import type { ModularSmartAccount, Module } from "../../utils/Types"
-import { type GenerateKeyParameters, generateKey } from "./generateKey"
+import type { ModularSmartAccount } from "../../utils/Types"
+import type { DanModule } from "../toDan"
 import {
-  type DANUserOperation,
-  prepareDANUserOperation
-} from "./prepareDANUserOperation"
+  type GenerateMPCKeyParameters,
+  type GenerateMPCKeyResponse,
+  generateMPCKey
+} from "./generateMPCKey"
+import { sendUserOperation } from "./sendUserOperation"
 
 export type DanActions<
   TModularSmartAccount extends ModularSmartAccount | undefined
 > = {
-  generateKey: (
-    args?: GenerateKeyParameters<TModularSmartAccount>
-  ) => Promise<Hex>
-  prepareDANUserOperation: (
+  generateMPCKey: (
+    args?: GenerateMPCKeyParameters<TModularSmartAccount>
+  ) => Promise<GenerateMPCKeyResponse>
+  sendUserOperation: (
     parameters: PrepareUserOperationParameters
-  ) => Promise<DANUserOperation>
+  ) => Promise<Hex>
 }
 
-export function danActions(moduleInfo: Module) {
-  return <TModularSmartAccount extends ModularSmartAccount | undefined>(
-    client: Client<Transport, Chain | undefined, TModularSmartAccount>
+export function danActions(moduleInfo: DanModule) {
+  return <
+    TModularSmartAccount extends ModularSmartAccount | undefined,
+    chain extends Chain | undefined
+  >(
+    client: Client<Transport, chain, TModularSmartAccount>
   ): DanActions<TModularSmartAccount> => {
     client?.account?.setModule(moduleInfo)
     return {
-      generateKey: (args) => generateKey(client, moduleInfo, args),
-      prepareDANUserOperation: (parameters) =>
-        prepareDANUserOperation(client, parameters)
+      generateMPCKey: (args) => generateMPCKey(client, args),
+      sendUserOperation: (parameters) => sendUserOperation(client, parameters)
     }
   }
 }

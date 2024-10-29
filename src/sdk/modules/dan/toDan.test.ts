@@ -16,7 +16,6 @@ import {
   toTestClient,
   topUp
 } from "../../../test/testUtils"
-import type { NexusAccount } from "../../account/toNexusAccount"
 import {
   type NexusClient,
   createNexusClient
@@ -75,9 +74,10 @@ describe("modules.toDAN.dx", async () => {
       account: nexusClient.account,
       signer: eoaAccount
     })
+
     const danNexusClient = nexusClient.extend(danActions(danModule))
 
-    const key = await danNexusClient.generateKey()
+    const key = await danNexusClient.generateMPCKey()
 
     console.log({ key })
   })

@@ -76,6 +76,7 @@ export async function toHolder({
         walletClient,
         signTypedData,
         "signTypedData"
+        // biome-ignore lint/suspicious/noExplicitAny: <explanation>
       )(typedData as any)
     },
     async signTransaction(_) {

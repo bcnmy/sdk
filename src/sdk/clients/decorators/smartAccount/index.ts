@@ -322,6 +322,7 @@ export function smartAccountActions() {
   >(
     client: Client<Transport, TChain, TSmartAccount>
   ): SmartAccountActions<TChain, TSmartAccount> => ({
+    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
     sendTransaction: (args) => sendTransaction(client, args as any),
     signMessage: (args) => signMessage(client, args),
     signTypedData: (args) => signTypedData(client, args),

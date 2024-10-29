@@ -3,14 +3,21 @@ import {
   NetworkSigner,
   WalletProviderServiceClient
 } from "@silencelaboratories/walletprovider-sdk"
-import type { Chain, Hex } from "viem"
-import { parseAccount } from "viem/accounts"
-import type { NexusAccount } from "../../account/toNexusAccount"
+import type { Chain } from "viem"
 import { ERROR_MESSAGES } from "../../account/utils/Constants"
 import type { Signer } from "../../account/utils/toSigner"
 import type { ModularSmartAccount, Module } from "../utils/Types"
 import { toModule } from "../utils/toModule"
 import { DanWallet, hexToUint8Array } from "./Helpers"
+
+export type DanModule = Module & {
+  networkSigner: NetworkSigner
+  partiesNumber: number
+  threshold: number
+  duration: number
+  id: string
+  publicKeyAsBytes: Uint8Array
+}
 
 export type ToDANParameters = {
   account: ModularSmartAccount
@@ -23,19 +30,19 @@ export type ToDANParameters = {
   id?: string
 }
 
-export const DEFAULT_SESSION_DURATION = 60 * 60 * 24 // 1 day
-export const QUORUM_PARTIES = 5
-export const QUORUM_THRESHOLD = 3
+export const EPHEMERAL_KEY_TTL = 60 * 60 * 24 // 1 day
+export const QUORUM_PARTIES = 3
+export const QUORUM_THRESHOLD = 2
 export const DEFAULT_DAN_URL = "wss://dan.staging.biconomy.io/v1"
 
-export const toDAN = (parameters: ToDANParameters): Module => {
+export const toDAN = (parameters: ToDANParameters): DanModule => {
   const {
     account: account_,
     signer: signer_ = account_?.client?.account as Signer,
     walletProviderUrl = DEFAULT_DAN_URL,
     partiesNumber = QUORUM_PARTIES,
     threshold = QUORUM_THRESHOLD,
-    duration = DEFAULT_SESSION_DURATION,
+    duration = EPHEMERAL_KEY_TTL,
     id = "dan_signer_id",
     chain: chain_ = account_.client.chain
   } = parameters
@@ -51,8 +58,6 @@ export const toDAN = (parameters: ToDANParameters): Module => {
   if (!chain_) {
     throw new Error(ERROR_MESSAGES.CHAIN_NOT_FOUND)
   }
-
-  const account = parseAccount(account_) as NexusAccount
 
   const publicKeyAsBytes: Uint8Array = hexToUint8Array(signer_.address.slice(2))
 
@@ -79,12 +84,13 @@ export const toDAN = (parameters: ToDANParameters): Module => {
   )
 
   return toModule({
-    initArgs: {
+    extend: {
       networkSigner,
       partiesNumber,
       threshold,
       duration,
-      id
+      id,
+      publicKeyAsBytes
     },
     signer: signer_,
     accountAddress: account_.address,
@@ -94,10 +100,6 @@ export const toDAN = (parameters: ToDANParameters): Module => {
       address: "0x",
       type: "fallback"
     },
-    deInitData: "0x",
-    signUserOpHash: async (userOpHash: Hex) => {
-      console.log("in here!")
-      return userOpHash
-    }
-  })
+    deInitData: "0x"
+  }) as DanModule
 }

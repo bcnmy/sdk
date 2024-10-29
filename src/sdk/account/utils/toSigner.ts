@@ -22,13 +22,13 @@ import { getAction } from "viem/utils"
 import type { AnyData } from "../../modules/utils/Types"
 
 export type MinimalSigner = {
-  signTransaction: (...args: any[]) => Promise<any>
-  signMessage: (...args: any[]) => Promise<any>
-  signTypedData: (...args: any[]) => Promise<any>
-  getAddress?: () => Promise<any>
-  address?: any
-  provider?: any
-  [key: string]: any
+  signTransaction: (...args: AnyData[]) => Promise<AnyData>
+  signMessage: (...args: AnyData[]) => Promise<AnyData>
+  signTypedData: (...args: AnyData[]) => Promise<AnyData>
+  getAddress?: () => Promise<AnyData>
+  address?: Address
+  provider?: AnyData
+  [key: string]: AnyData
 }
 
 export type Signer = LocalAccount
@@ -126,6 +126,7 @@ export async function toSigner({
         walletClient,
         signTypedData,
         "signTypedData"
+        // biome-ignore lint/suspicious/noExplicitAny: <explanation>
       )(typedData as any)
     },
     async signTransaction(_) {

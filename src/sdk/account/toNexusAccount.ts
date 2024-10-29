@@ -216,7 +216,7 @@ export const toNexusAccount = async (
       // biome-ignore lint/suspicious/noExplicitAny: <explanation>
     } catch (e: any) {
       if (e.shortMessage?.includes(ERROR_MESSAGES.MISSING_ACCOUNT_CONTRACT)) {
-        throw new Error(ERROR_MESSAGES.FAILED_COMPUTE_ACCOUNT_ADDRESS)
+        throw new Error(ERROR_MESSAGES.MISSING_ACCOUNT_CONTRACT)
       }
       throw e
     }

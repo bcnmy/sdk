@@ -1,10 +1,18 @@
+import { computeAddress } from "@silencelaboratories/walletprovider-sdk"
 import type { Chain, Client, Hex, LocalAccount, Transport } from "viem"
-import { parseAccount } from "viem/utils"
 import { ERROR_MESSAGES } from "../../../account"
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
-import type { ModularSmartAccount, Module } from "../../utils/Types"
+import { parseModule } from "../../utils/Helpers"
+import type { ModularSmartAccount } from "../../utils/Types"
+import type { DanModule } from "../toDan"
 
-export type GenerateKeyParameters<
+export type GenerateMPCKeyResponse = {
+  publicKey: Hex
+  keyId: Hex
+  sessionKeyEOA: Hex
+}
+
+export type GenerateMPCKeyParameters<
   TModularSmartAccount extends ModularSmartAccount | undefined
 > = {
   /** The smart account to add the owner to. If not provided, the client's account will be used. */
@@ -15,16 +23,15 @@ export type GenerateKeyParameters<
   signer?: LocalAccount
 }
 
-export async function generateKey<
+export async function generateMPCKey<
   TModularSmartAccount extends ModularSmartAccount | undefined
 >(
   client: Client<Transport, Chain | undefined, TModularSmartAccount>,
-  moduleInfo: Module,
-  parameters?: GenerateKeyParameters<TModularSmartAccount>
-): Promise<Hex> {
+  parameters?: GenerateMPCKeyParameters<TModularSmartAccount>
+): Promise<GenerateMPCKeyResponse> {
   const {
     account: account_ = client.account,
-    chain: chainId_ = client.account?.client?.chain
+    chain: chain_ = client.account?.client?.chain
   } = parameters ?? {}
 
   if (!account_) {
@@ -32,13 +39,22 @@ export async function generateKey<
       docsPath: "/nexus/nexus-client/methods#sendtransaction"
     })
   }
-  const account = parseAccount(account_) as ModularSmartAccount
 
-  if (!chainId_) {
+  const { networkSigner, publicKeyAsBytes } = parseModule(client) as DanModule
+
+  if (!chain_) {
     throw new Error(ERROR_MESSAGES.CHAIN_NOT_FOUND)
   }
 
-  console.log({ moduleInfo })
+  const createdKey =
+    await networkSigner.authenticateAndCreateKey(publicKeyAsBytes)
 
-  return "0x" as Hex
+  const sessionKeyEOA = computeAddress(createdKey.publicKey)
+
+  console.log({ createdKey, sessionKeyEOA })
+
+  return {
+    ...createdKey,
+    sessionKeyEOA
+  } as GenerateMPCKeyResponse
 }

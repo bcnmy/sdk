@@ -7,7 +7,7 @@ import { type Address, type Hex, encodePacked } from "viem"
 import type { ModuleMeta } from "../../modules/utils/Types"
 import type { ModularSmartAccount } from "../utils/Types"
 import type { Module, ModuleParameters } from "../utils/Types"
-import { type ToModuleParameters, toModule } from "../utils/toModule"
+import { toModule } from "../utils/toModule"
 import type { UsePermissionModuleData } from "./Types"
 
 const DUMMY_ECDSA_SIG =
@@ -31,7 +31,7 @@ export type UsePermissionModuleGetInitDataArgs = {
  * Parameters for creating a Use Session module.
  */
 export type UsePermissionModuleParameters = Omit<
-  ToModuleParameters,
+  ModuleParameters,
   "accountAddress"
 > & {
   account: ModularSmartAccount

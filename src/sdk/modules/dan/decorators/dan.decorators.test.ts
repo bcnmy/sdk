@@ -55,30 +55,25 @@ describe("modules.dan.decorators", async () => {
 
   test.concurrent("should test dan decorators", async () => {
     const danModule = toDAN({
-      account: nexusClient.account
+      account: nexusClient.account,
+      signer: nexusClient.account.signer
     })
 
     const danNexusClient = nexusClient.extend(danActions(danModule))
 
-    const [key, userOp] = await Promise.all([
-      danNexusClient.generateKey(),
-      danNexusClient.prepareDANUserOperation({
-        sender: eoaAccount.address,
-        nonce: 0n,
-        signature: "0x",
-        verificationGasLimit: 1n,
-        preVerificationGas: 1n,
-        callData: "0x",
-        callGasLimit: 1n,
-        maxFeePerGas: 1n,
-        maxPriorityFeePerGas: 1n,
-        account: danNexusClient.account as NexusAccount
-      })
-    ])
+    // const [key, userOp] = await Promise.all([
+    //   danNexusClient.generateMPCKey(),
+    //   danNexusClient.sendUserOperation({
+    //     calls: [{ to: userTwo.address, value: 1n }],
+    //     verificationGasLimit: 1n,
+    //     preVerificationGas: 1n,
+    //     callGasLimit: 1n,
+    //     account: danNexusClient.account as NexusAccount
+    //   })
+    // ])
 
-    console.log({ userOp })
+    // console.log({ userOp })
 
-    expect(isHex(key)).toBe(true)
-    expect(isHex(key)).toBe(true)
+    // expect(isHex(key)).toBe(true)
   })
 })

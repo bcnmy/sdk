@@ -1,5 +1,15 @@
-import { type ByteArray, type Hex, isHex, pad, toHex } from "viem"
+import {
+  type ByteArray,
+  type Chain,
+  type Client,
+  type Hex,
+  type Transport,
+  isHex,
+  pad,
+  toHex
+} from "viem"
 import { ERROR_MESSAGES } from "../../account/index.js"
+import type { ModularSmartAccount } from "./Types.js"
 export type HardcodedReference = {
   raw: Hex
 }
@@ -56,4 +66,17 @@ export function sanitizeSignature(signature: Hex): Hex {
     signature_ = `0x${signature_}`
   }
   return signature_ as Hex
+}
+
+export const parseModule = <
+  TModularSmartAccount extends ModularSmartAccount | undefined,
+  chain extends Chain | undefined
+>(
+  client: Client<Transport, chain, TModularSmartAccount>
+) => {
+  const activeModule = client?.account?.getModule()
+  if (!activeModule) {
+    throw new Error(ERROR_MESSAGES.MODULE_NOT_ACTIVATED)
+  }
+  return activeModule
 }
