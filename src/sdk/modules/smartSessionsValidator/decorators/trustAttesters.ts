@@ -55,6 +55,7 @@ export type TrustAttestersParameters<
  * });
  * ```
  */
+// Review if we need this: as it is available in Rhinestone module sdk as well!
 export const getTrustAttestersAction = async ({
   chainId,
   trustAttestersInfo,

@@ -17,6 +17,7 @@ export type FindTrustedAttestersParameters<
   account?: TModularSmartAccount
 }
 
+// Review: findTrustedAttesters also seems to be available in Rhinestone module sdk!
 /**
  * Retrieves the list of attesters for a smart account.
  *

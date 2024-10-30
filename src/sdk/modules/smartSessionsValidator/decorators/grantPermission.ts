@@ -5,6 +5,7 @@ import { encodeFunctionData, getAction, parseAccount } from "viem/utils"
 import { ERROR_MESSAGES } from "../../../account"
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
 import {
+  MOCK_ATTESTER_ADDRESS,
   SIMPLE_SESSION_VALIDATOR_ADDRESS,
   SMART_SESSIONS_ADDRESS
 } from "../../../constants"
@@ -27,6 +28,8 @@ import type {
   GrantPermissionActionReturnParams,
   GrantPermissionResponse
 } from "../Types"
+import { getTrustAttestersAction } from "./trustAttesters"
+import { findTrustedAttesters } from "./findTrustedAttesters"
 
 /**
  * Parameters for creating sessions in a modular smart account.
@@ -228,6 +231,25 @@ export async function grantPermission<
     sessionRequestedInfo: defaultedSessionRequestedInfo
   })
 
+  const trustAttestersAction = await getTrustAttestersAction({
+    chainId,
+    client: publicClient_,
+    trustAttestersInfo: {}
+  })
+
+  const trustedAttesters = await findTrustedAttesters(
+    publicClient_,
+    {
+      account: account_
+    }
+  )
+
+  const needToAddTrustAttesters = trustedAttesters.length === 0
+
+  // Todo:
+  // if needToAddTrustAttesters is true then add that action into below calls and make it a batch
+
+  
   if ("action" in actionResponse) {
     const { action } = actionResponse
     if (!("callData" in action)) {
