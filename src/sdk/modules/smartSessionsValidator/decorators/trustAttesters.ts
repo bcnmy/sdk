@@ -74,6 +74,8 @@ export const getTrustAttestersAction = async ({
     threshold = attesters.length
   } = trustAttestersInfo ?? {}
 
+  console.log(chainId, maxFeePerGas, maxPriorityFeePerGas, account_, nonce, attesters, registryAddress, threshold)
+
   const trustAttestersData = encodeFunctionData({
     abi: [
       {

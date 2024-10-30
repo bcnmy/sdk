@@ -17,7 +17,7 @@ import {
   TIMEFRAME_POLICY_ADDRESS,
   UNIVERSAL_ACTION_POLICY_ADDRESS
 } from "../../constants"
-import { UniActionPolicyAbi } from "../../constants/abi"
+import { ERC7484RegistryAbi, UniActionPolicyAbi } from "../../constants/abi"
 import { SmartSessionAbi } from "../../constants/abi/SmartSessionAbi"
 import { parseReferenceValue } from "../utils/Helpers"
 import type {
@@ -29,7 +29,6 @@ import type {
   SessionData,
   SpendingLimitsParams
 } from "./Types"
-import { MockRegistryAbi } from "../../../test/__contracts/abi"
 
 export const MAX_RULES = 16
 
@@ -320,7 +319,7 @@ export const getTrustedAttesters = async ({
   try {
     const attesters = (await client.readContract({
       address: REGISTRY_ADDRESS,
-      abi: MockRegistryAbi,
+      abi: ERC7484RegistryAbi,
       functionName: 'findTrustedAttesters',
       args: [accountAddress],
     })) as Address[]

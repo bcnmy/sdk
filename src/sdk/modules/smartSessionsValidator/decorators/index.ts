@@ -7,7 +7,7 @@ import {
 } from "./grantPermission"
 import { type TrustAttestersParameters, trustAttesters } from "./trustAttesters"
 import { type UsePermissionParameters, usePermission } from "./usePermission"
-import { findTrustedAttesters, FindTrustedAttestersParameters } from "./findTrustedAttesters"
+import { findTrustedAttesters, type FindTrustedAttestersParameters } from "./findTrustedAttesters"
 
 /**
  * Defines the shape of actions available for creating smart sessions.
