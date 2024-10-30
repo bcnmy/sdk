@@ -1,10 +1,10 @@
 import { encodeFunctionData } from "viem"
-import type { Chain, Client, Hex, Transport } from "viem"
+import type { Chain, Client, Hex, PublicClient, Transport } from "viem"
 import { sendUserOperation } from "viem/account-abstraction"
 import { getAction, parseAccount } from "viem/utils"
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
 import { MOCK_ATTESTER_ADDRESS, REGISTRY_ADDRESS } from "../../../constants"
-import type { ModularSmartAccount } from "../../utils/Types"
+import type { Execution, ModularSmartAccount } from "../../utils/Types"
 
 /**
  * Parameters for trusting attesters in a smart session validator.
@@ -29,6 +29,75 @@ export type TrustAttestersParameters<
   /** The threshold of the attesters to be trusted. */
   threshold?: number
 }
+
+/**
+ * Gets the action data for trusting attesters in the smart session validator's registry.
+ * 
+ * This function prepares the calldata and execution parameters needed to trust attesters
+ * in the registry contract. It encodes the function call with the provided attesters and threshold.
+ *
+ * @param params - The parameters object
+ * @param params.chainId - The ID of the blockchain network
+ * @param params.trustAttestersInfo - Configuration for trusting attesters including addresses and threshold
+ * @param params.client - The public client used to interact with the blockchain
+ * @returns A promise that resolves to an Execution object containing the target, value and calldata,
+ *          or an Error if the operation fails
+ *
+ * @example
+ * ```ts
+ * const action = await getTrustAttestersAction({
+ *   chainId: 1,
+ *   trustAttestersInfo: {
+ *     attesters: ['0x...', '0x...'],
+ *     threshold: 2
+ *   },
+ *   client: publicClient
+ * });
+ * ```
+ */
+export const getTrustAttestersAction = async ({
+  chainId,
+  trustAttestersInfo,
+  client
+}: {
+  chainId: number
+  trustAttestersInfo: TrustAttestersParameters<ModularSmartAccount>
+  client: PublicClient
+}): Promise<Execution | Error> => {
+  const {
+    account: account_ = client.account,
+    maxFeePerGas,
+    maxPriorityFeePerGas,
+    nonce,
+    attesters = [MOCK_ATTESTER_ADDRESS],
+    registryAddress = REGISTRY_ADDRESS,
+    threshold = attesters.length
+  } = trustAttestersInfo ?? {}
+
+  const trustAttestersData = encodeFunctionData({
+    abi: [
+      {
+        inputs: [
+          { internalType: "uint8", name: "threshold", type: "uint8" },
+          { internalType: "address[]", name: "attesters", type: "address[]" }
+        ],
+        name: "trustAttesters",
+        outputs: [],
+        stateMutability: "nonpayable",
+        type: "function"
+      }
+    ],
+    functionName: "trustAttesters",
+    args: [threshold, attesters]
+  })
+
+  return {
+    target: registryAddress,
+    value: 0n,
+    callData: trustAttestersData
+  }
+}
+
 
 /**
  * Trusts attesters for the smart session validator.

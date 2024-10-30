@@ -11,6 +11,7 @@ import {
   toHex
 } from "viem"
 import {
+  REGISTRY_ADDRESS,
   SIMPLE_SESSION_VALIDATOR_ADDRESS,
   SMART_SESSIONS_ADDRESS,
   TIMEFRAME_POLICY_ADDRESS,
@@ -28,6 +29,7 @@ import type {
   SessionData,
   SpendingLimitsParams
 } from "./Types"
+import { MockRegistryAbi } from "../../../test/__contracts/abi"
 
 export const MAX_RULES = 16
 
@@ -293,6 +295,42 @@ export function unzipSessionData(zippedData: string): SessionData {
 // Todo
 // 1. find trusted attesters. why not just here instead of part of read decorators?
 // 2. get trusteAttesters calldata. or returning the whole "Action"/Execution 
+
+
+/**
+ * Retrieves the list of trusted attesters for a given account from the registry.
+ *
+ * This function queries the registry contract to find all attesters that are trusted
+ * by the specified account.
+ *
+ * @param params - The parameters object
+ * @param params.account - The account to check trusted attesters for
+ * @param params.client - The public client used to interact with the blockchain
+ * @returns A promise that resolves to an array of addresses representing the trusted attesters
+ * @throws Will log error and return empty array if registry query fails
+ */
+
+export const getTrustedAttesters = async ({
+  accountAddress,
+  client,
+}: {
+  accountAddress: Address
+  client: PublicClient
+}): Promise<Address[]> => {
+  try {
+    const attesters = (await client.readContract({
+      address: REGISTRY_ADDRESS,
+      abi: MockRegistryAbi,
+      functionName: 'findTrustedAttesters',
+      args: [accountAddress],
+    })) as Address[]
+
+    return attesters
+  } catch (err) {
+    console.error(err)
+    return []
+  }
+}
 
 
 export default policies

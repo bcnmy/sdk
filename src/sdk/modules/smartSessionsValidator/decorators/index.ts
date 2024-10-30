@@ -1,4 +1,4 @@
-import type { Chain, Client, Hash, Transport } from "viem"
+import type { Address, Chain, Client, Hash, Transport } from "viem"
 import type { ModularSmartAccount, Module } from "../../utils/Types"
 import type { GrantPermissionResponse } from "../Types"
 import {
@@ -7,6 +7,7 @@ import {
 } from "./grantPermission"
 import { type TrustAttestersParameters, trustAttesters } from "./trustAttesters"
 import { type UsePermissionParameters, usePermission } from "./usePermission"
+import { findTrustedAttesters, FindTrustedAttestersParameters } from "./findTrustedAttesters"
 
 /**
  * Defines the shape of actions available for creating smart sessions.
@@ -35,6 +36,14 @@ export type SmartSessionCreateActions<
   trustAttesters: (
     args?: TrustAttestersParameters<TModularSmartAccount>
   ) => Promise<Hash>
+}
+
+export type SmartSessionActions<
+  TModularSmartAccount extends ModularSmartAccount | undefined
+> = {
+  findTrustedAttesters: (
+    args?: FindTrustedAttestersParameters<TModularSmartAccount>
+  ) => Promise<Address[]>
 }
 
 /**
@@ -90,6 +99,17 @@ export function smartSessionUseActions(smartSessionsModule: Module) {
   }
 }
 
+export function smartSessionActions(_: Module) {
+  return <TModularSmartAccount extends ModularSmartAccount | undefined>(
+    client: Client<Transport, Chain | undefined, TModularSmartAccount>
+  ): SmartSessionActions<TModularSmartAccount> => {
+    return {
+      findTrustedAttesters: (args) => findTrustedAttesters(client, args)
+    }
+  }
+}
+
 export * from "./grantPermission"
 export * from "./trustAttesters"
 export * from "./usePermission"
+export * from "./findTrustedAttesters"
