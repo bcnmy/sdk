@@ -5,7 +5,6 @@ import { encodeFunctionData, getAction, parseAccount } from "viem/utils"
 import { ERROR_MESSAGES } from "../../../account"
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
 import {
-  MOCK_ATTESTER_ADDRESS,
   SIMPLE_SESSION_VALIDATOR_ADDRESS,
   SMART_SESSIONS_ADDRESS
 } from "../../../constants"
@@ -245,29 +244,48 @@ export async function grantPermission<
   )
 
   const needToAddTrustAttesters = trustedAttesters.length === 0
+  
+  if (!("action" in actionResponse)) {
+    throw new Error("Error getting enable sessions action")
+  }
 
-  // Todo:
-  // if needToAddTrustAttesters is true then add that action into below calls and make it a batch
+  const { action } = actionResponse
+
+  if (!("callData" in action)) {
+    throw new Error("Error getting enable sessions action")
+  }
+
+  if (!("callData" in trustAttestersAction)) {
+    throw new Error("Error getting trust attesters action") 
+  }
+
+  const calls = needToAddTrustAttesters ? [
+    {
+      to: trustAttestersAction.target,
+      value: trustAttestersAction.value,
+      data: trustAttestersAction.callData
+    },
+    {
+      to: action.target,
+      value: BigInt(action.value.toString()),
+      data: action.callData
+    }
+  ] : [
+    {
+      to: action.target,
+      value: BigInt(action.value.toString()),
+      data: action.callData
+    }
+  ]
 
   
   if ("action" in actionResponse) {
-    const { action } = actionResponse
-    if (!("callData" in action)) {
-      throw new Error("Error getting enable sessions action")
-    }
-
     const userOpHash = (await getAction(
       client,
       sendUserOperation,
       "sendUserOperation"
     )({
-      calls: [
-        {
-          to: action.target,
-          value: BigInt(action.value.toString()),
-          data: action.callData
-        }
-      ],
+      calls: calls,
       maxFeePerGas,
       maxPriorityFeePerGas,
       nonce,
