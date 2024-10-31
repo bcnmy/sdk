@@ -244,6 +244,7 @@ export async function grantPermission<
   )
 
   const needToAddTrustAttesters = trustedAttesters.length === 0
+  console.log("needToAddTrustAttesters", needToAddTrustAttesters)
   
   if (!("action" in actionResponse)) {
     throw new Error("Error getting enable sessions action")
