@@ -1,16 +1,7 @@
 import { startAuthentication } from "@simplewebauthn/browser"
 import type { PublicKeyCredentialRequestOptionsJSON } from "@simplewebauthn/typescript-types"
-import {
-  type Address,
-  type Assign,
-  type Client,
-  type Hex,
-  type SignableMessage,
-  encodeAbiParameters
-} from "viem"
-import type { UserOperation } from "viem/account-abstraction"
-import { type ModuleParameters, toModule } from ".."
-import type { Signer } from "../../account"
+import { type SignableMessage, encodeAbiParameters } from "viem"
+import { type ToModuleParameters, toModule } from ".."
 import { passkeyValidatorAddress } from "../../constants"
 import type { Module } from "../utils/Types"
 import type { WebAuthnKey } from "./toWebAuthnKey"
@@ -24,6 +15,14 @@ import {
   uint8ArrayToHexString
 } from "./utils"
 
+/**
+ * Signs a message using WebAuthn.
+ *
+ * @param message - The message to be signed.
+ * @param chainId - The chain ID for the network.
+ * @param allowCredentials - Optional credentials for authentication.
+ * @returns A promise that resolves to the encoded signature.
+ */
 const signMessageUsingWebAuthn = async (
   message: SignableMessage,
   chainId: number,
@@ -103,51 +102,68 @@ const signMessageUsingWebAuthn = async (
   return encodedSignature
 }
 
-export type ModuleImplementation<extend extends object = object> = {
-  /**
-   * Generates a dummy signature for testing purposes.
-   * @param params - Optional parameters for generating the signature.
-   * @returns A promise that resolves to a hexadecimal string representing the dummy signature.
-   */
-  getStubSignature: (params?: any) => Promise<Hex>
-  /** Extend the Module with custom properties. */
-  extend?: extend | undefined
-  /** The client associated with this module. */
-  client: Client
-  /** The hexadecimal address of the Nexus account. */
-  accountAddress: Hex
-  /** The hexadecimal address of the module. */
-  address: Hex
-  /** Initialization data for the module. */
-  initData: Hex
-  /** De-initialization data for the module. */
-  deInitData: Hex
-  getSerializedData: () => string
+export type ToPasskeyValidatorParameters = ToModuleParameters & {
+  webAuthnKey: WebAuthnKey
+  chainId: number
 }
 
-export type PasskeyValidatorModuleImplementation = Assign<
-  ModuleParameters,
-  {
-    getNonceKey: (
-      accountAddress?: Address,
-      customNonceKey?: bigint
-    ) => Promise<bigint>
-    signUserOperation: (userOperation: UserOperation) => Promise<Hex>
-    getSerializedData: () => string
-  }
->
-
+/**
+ * Initializes and returns a Passkey Validator module.
+ *
+ * This function configures a Passkey Validator module using the provided parameters,
+ * which include a WebAuthn key and a signer for the smart account. The module is
+ * responsible for handling authentication and signing operations using WebAuthn.
+ *
+ * @param parameters - An object containing the necessary parameters to create the Passkey Validator module:
+ *   - `webAuthnKey`: The WebAuthn key used for authentication.
+ *   - `signer`: The signer associated with the smart account.
+ *   - `accountAddress`: The address of the smart account to be validated.
+ *   - `chainId`: The chain ID of the network.
+ * @returns A promise that resolves to a `Module` object representing the configured Passkey Validator module.
+ *
+ * @example
+ * ```typescript
+ * import { toWebAuthnKey, toPasskeyValidator, WebAuthnMode, createNexusClient } from '@biconomy/sdk'
+ * import { http } from 'viem'
+ * import { baseSepolia } from 'viem/chains'
+ *
+ * const nexusClient = await createNexusClient({
+ *   signer: walletClient,
+ *   chain: baseSepolia,
+ *   transport: http(),
+ *   bundlerTransport: http(yourBundlerUrl),
+ * });
+ *
+ * const webAuthnKey = await toWebAuthnKey({
+ *   passkeyName: {username},
+ *   passkeyServerUrl: {passkeyServerUrl},
+ *   mode: WebAuthnMode.Register,
+ *   passkeyServerHeaders: {}
+ * })
+ *
+ * const passkeyValidator = await toPasskeyValidator({
+ *   webAuthnKey,
+ *   signer: nexusClient.account.signer,
+ *   accountAddress: nexusClient.account.address,
+ *   chainId: baseSepolia.id
+ * });
+ *
+ * const passkeyNexusClient = await createNexusClient({
+ *   signer: walletClient,
+ *   chain: baseSepolia,
+ *   transport: http(),
+ *   bundlerTransport: http(yourBundlerUrl),
+ *   module: passkeyValidator
+ * });
+ *
+ * ```
+ */
 export async function toPasskeyValidator({
   webAuthnKey,
   signer,
   accountAddress,
   chainId
-}: {
-  webAuthnKey: WebAuthnKey
-  signer: Signer
-  accountAddress: Hex
-  chainId: number
-}): Promise<Module> {
+}: ToPasskeyValidatorParameters): Promise<Module> {
   return toModule({
     signer,
     address: passkeyValidatorAddress,
