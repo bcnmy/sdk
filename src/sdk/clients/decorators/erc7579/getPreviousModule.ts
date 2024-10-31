@@ -1,21 +1,17 @@
-import type { ModuleType } from "@rhinestone/module-sdk"
-import type { Address, Client, Hex } from "viem"
+import type { Client, Hex } from "viem"
 import type {
   GetSmartAccountParameter,
   SmartAccount
 } from "viem/account-abstraction"
 import { getAddress } from "viem/utils"
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
-
+import type { ModuleMeta } from "../../../modules/utils/Types"
 const SENTINEL_ADDRESS = "0x0000000000000000000000000000000000000001" as const
 
 export type GetPreviousModuleParameters<
   TSmartAccount extends SmartAccount | undefined
 > = GetSmartAccountParameter<TSmartAccount> & {
-  module: {
-    address: Address
-    type: ModuleType
-  }
+  module: ModuleMeta
   installedValidators?: readonly Hex[]
   installedExecutors?: readonly Hex[]
 }
@@ -50,7 +46,7 @@ export async function getPreviousModule<
 
   if (!account_) {
     throw new AccountNotFoundError({
-      docsPath: "/docs/actions/wallet/sendTransaction"
+      docsPath: "/nexus/nexus-client/methods#sendtransaction"
     })
   }
 
@@ -67,19 +63,12 @@ export async function getPreviousModule<
     throw new Error(`Unknown module type ${module.type}`)
   }
 
-  return _getModuleByIndex(installedModules, module.address)
-}
-
-function _getModuleByIndex(
-  installedModules: Hex[],
-  moduleAddress: Address
-): Hex {
-  const index = installedModules.indexOf(getAddress(moduleAddress))
+  const index = installedModules.indexOf(getAddress(module.address))
   if (index === 0) {
     return SENTINEL_ADDRESS
   }
   if (index > 0) {
     return installedModules[index - 1]
   }
-  throw new Error(`Module ${moduleAddress} not found in installed modules`)
+  throw new Error(`Module ${module.address} not found in installed modules`)
 }

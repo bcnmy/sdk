@@ -1,5 +1,4 @@
-import { http, type Account, type Address, type Chain, isHex } from "viem"
-import type { BundlerClient } from "viem/account-abstraction"
+import { http, type Account, type Address, type Chain } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { toNetwork } from "../../test/testSetup"
 import {
@@ -9,8 +8,8 @@ import {
   topUp
 } from "../../test/testUtils"
 import type { MasterClient, NetworkConfig } from "../../test/testUtils"
-import contracts from "../__contracts"
 import { type NexusAccount, toNexusAccount } from "../account/toNexusAccount"
+import { ENTRY_POINT_ADDRESS } from "../constants"
 import {
   type BicoBundlerClient,
   createBicoBundlerClient
@@ -55,21 +54,12 @@ describe("bico.bundler", async () => {
       bicoBundler.getChainId(),
       bicoBundler.getSupportedEntryPoints(),
       bicoBundler.prepareUserOperation({
-        sender: eoaAccount.address,
-        nonce: 0n,
-        data: "0x",
-        signature: "0x",
-        verificationGasLimit: 1n,
-        preVerificationGas: 1n,
-        callData: "0x",
-        callGasLimit: 1n,
-        maxFeePerGas: 1n,
-        maxPriorityFeePerGas: 1n,
-        account: nexusAccount
+        account: nexusAccount,
+        calls: [{ to: eoaAccount.address, data: "0x" }]
       })
     ])
     expect(chainId).toEqual(chain.id)
-    expect(supportedEntrypoints).to.include(contracts.entryPoint.address)
+    expect(supportedEntrypoints).to.include(ENTRY_POINT_ADDRESS)
     expect(preparedUserOp).toHaveProperty("signature")
   })
 

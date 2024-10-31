@@ -6,6 +6,7 @@ import {
   type Hex,
   encodePacked
 } from "viem"
+import { toPackedUserOperation } from "viem/account-abstraction"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { toNetwork } from "../../../test/testSetup"
 import {
@@ -22,7 +23,6 @@ import {
 } from "../../clients/createNexusClient"
 import { k1ValidatorAddress } from "../../constants"
 import { toK1Validator } from "./toK1Validator"
-import { toPackedUserOperation } from "viem/account-abstraction"
 
 describe("modules.k1Validator", async () => {
   let network: NetworkConfig

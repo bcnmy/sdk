@@ -21,6 +21,16 @@ export const DefaultGasLimit = {
 }
 
 export const ERROR_MESSAGES = {
+  FAILED_COMPUTE_ACCOUNT_ADDRESS:
+    "Failed to compute account address. Possible reasons:\n" +
+    "- The factory contract does not have the function 'computeAccountAddress'\n" +
+    "- The parameters passed to the factory contract function may be invalid\n" +
+    "- The provided factory address is not a contract",
+  SIGNER_REQUIRED_FOR_CREATE_SESSION: "Signer is required",
+  ACCOUNT_REQUIRED: "Account is required",
+  MODULE_NOT_ACTIVATED: "Module not activated",
+  SMART_SESSION_DATA_REQUIRED:
+    "Data is required for using smart session module",
   MISSING_ACCOUNT_CONTRACT:
     'The contract function "computeAccountAddress" returned no data ("0x")',
   INVALID_HEX:
@@ -85,7 +95,7 @@ export const MOCK_MULTI_MODULE_ADDRESS =
 export const MODULE_TYPE_MULTI = 0
 
 export const NEXUS_DOMAIN_NAME = "nexus"
-export const NEXUS_DOMAIN_VERSION = "1.0.0-beta.1"
+export const NEXUS_DOMAIN_VERSION = "1.0.0"
 export const NEXUS_DOMAIN_TYPEHASH =
   "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
 

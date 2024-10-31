@@ -1,4 +1,3 @@
-import { config } from "dotenv"
 import {
   type Address,
   type Client,
@@ -23,7 +22,7 @@ import {
   toBytes,
   toHex
 } from "viem"
-import { EIP1271Abi } from "../../__contracts/abi"
+import type { UserOperation } from "viem/account-abstraction"
 import {
   MOCK_MULTI_MODULE_ADDRESS,
   MODULE_ENABLE_MODE_TYPE_HASH,
@@ -31,14 +30,9 @@ import {
   NEXUS_DOMAIN_TYPEHASH,
   NEXUS_DOMAIN_VERSION
 } from "../../account/utils/Constants"
+import { EIP1271Abi } from "../../constants/abi"
 import { type ModuleType, moduleTypeIds } from "../../modules/utils/Types"
-import type {
-  AccountMetadata,
-  EIP712DomainReturn,
-  UserOperationStruct
-} from "./Types"
-
-config()
+import type { AccountMetadata, EIP712DomainReturn } from "./Types"
 
 /**
  * pack the userOperation
@@ -46,9 +40,7 @@ config()
  * @param forSignature "true" if the hash is needed to calculate the getUserOpHash()
  *  "false" to pack entire UserOp, for calculating the calldata cost of putting it on-chain.
  */
-export function packUserOp(
-  userOperation: Partial<UserOperationStruct>
-): string {
+export function packUserOp(userOperation: Partial<UserOperation>): string {
   const hashedInitCode = keccak256(
     userOperation.factory && userOperation.factoryData
       ? concat([userOperation.factory, userOperation.factoryData])
@@ -356,8 +348,8 @@ export const getAccountDomainStructFields = async (
     keccak256(encodePacked(["uint256[]"], [extensions]))
   ])
 }
-export const playgroundTrue = process.env.RUN_PLAYGROUND === "true"
-export const isTesting = process.env.TEST === "true"
+export const playgroundTrue = process?.env?.RUN_PLAYGROUND === "true"
+export const isTesting = process?.env?.TEST === "true"
 
 export const safeMultiplier = (bI: bigint, multiplier: number): bigint =>
   BigInt(Math.round(Number(bI) * multiplier))

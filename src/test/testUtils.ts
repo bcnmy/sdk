@@ -1,8 +1,7 @@
 import { config } from "dotenv"
-import { BytesLike, getAddress, getBytes, hexlify } from "ethers"
 import getPort from "get-port"
 // @ts-ignore
-import { alto, anvil } from "prool/instances"
+import { type AnvilParameters, alto, anvil } from "prool/instances"
 import {
   http,
   type Account,
@@ -10,6 +9,7 @@ import {
   type Chain,
   type Hex,
   type PrivateKeyAccount,
+  type PublicClient,
   createPublicClient,
   createTestClient,
   createWalletClient,
@@ -20,19 +20,24 @@ import {
 } from "viem"
 import { createBundlerClient } from "viem/account-abstraction"
 import { mnemonicToAccount, privateKeyToAccount } from "viem/accounts"
-import contracts from "../sdk/__contracts"
-import { getChain, getCustomChain } from "../sdk/account/utils"
+import { getChain, getCustomChain, safeMultiplier } from "../sdk/account/utils"
 import { Logger } from "../sdk/account/utils/Logger"
-import { createBicoBundlerClient } from "../sdk/clients/createBicoBundlerClient"
 import {
   type NexusClient,
   createNexusClient
 } from "../sdk/clients/createNexusClient"
 import {
+  ENTRYPOINT_SIMULATIONS_ADDRESS,
+  ENTRY_POINT_ADDRESS,
+  MAINNET_ADDRESS_K1_VALIDATOR_ADDRESS,
+  MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
+} from "../sdk/constants"
+import {
   ENTRY_POINT_SIMULATIONS_CREATECALL,
   ENTRY_POINT_V07_CREATECALL,
   TEST_CONTRACTS
 } from "./callDatas"
+
 import * as hardhatExec from "./executables"
 
 config()
@@ -124,26 +129,24 @@ export const initTestnetNetwork = async (): Promise<NetworkConfig> => {
   }
 }
 
-export const initLocalhostNetwork =
-  async (): Promise<NetworkConfigWithBundler> => {
-    const configuredNetwork = await initAnvilPayload()
-    const bundlerConfig = await initBundlerInstance({
-      rpcUrl: configuredNetwork.rpcUrl
-    })
-    await ensureBundlerIsReady(
-      bundlerConfig.bundlerUrl,
-      getTestChainFromPort(configuredNetwork.rpcPort)
-    )
-    allInstances.set(
-      configuredNetwork.instance.port,
-      configuredNetwork.instance
-    )
-    allInstances.set(
-      bundlerConfig.bundlerInstance.port,
-      bundlerConfig.bundlerInstance
-    )
-    return { ...configuredNetwork, ...bundlerConfig }
-  }
+export const initLocalhostNetwork = async (
+  shouldForkBaseSepolia = false
+): Promise<NetworkConfigWithBundler> => {
+  const configuredNetwork = await initAnvilPayload(shouldForkBaseSepolia)
+  const bundlerConfig = await initBundlerInstance({
+    rpcUrl: configuredNetwork.rpcUrl
+  })
+  await ensureBundlerIsReady(
+    bundlerConfig.bundlerUrl,
+    getTestChainFromPort(configuredNetwork.rpcPort)
+  )
+  allInstances.set(configuredNetwork.instance.port, configuredNetwork.instance)
+  allInstances.set(
+    bundlerConfig.bundlerInstance.port,
+    bundlerConfig.bundlerInstance
+  )
+  return { ...configuredNetwork, ...bundlerConfig }
+}
 
 export type MasterClient = ReturnType<typeof toTestClient>
 export const toTestClient = (chain: Chain, account: Account) =>
@@ -164,10 +167,10 @@ export const toBundlerInstance = async ({
   bundlerPort: number
 }): Promise<BundlerInstance> => {
   const instance = alto({
-    entrypoints: [contracts.entryPoint.address],
+    entrypoints: [ENTRY_POINT_ADDRESS],
     rpcUrl: rpcUrl,
     executorPrivateKeys: [pKey],
-    entrypointSimulationContract: contracts.entryPointSimulations.address,
+    entrypointSimulationContract: ENTRYPOINT_SIMULATIONS_ADDRESS,
     safeMode: false,
     port: bundlerPort
   })
@@ -195,15 +198,22 @@ export const ensureBundlerIsReady = async (
 }
 
 export const toConfiguredAnvil = async ({
-  rpcPort
-}: { rpcPort: number }): Promise<AnvilInstance> => {
-  const instance = anvil({
+  rpcPort,
+  shouldForkBaseSepolia = false
+}: {
+  rpcPort: number
+  shouldForkBaseSepolia: boolean
+}): Promise<AnvilInstance> => {
+  const config: AnvilParameters = {
     hardfork: "Cancun",
     chainId: rpcPort,
     port: rpcPort,
-    codeSizeLimit: 1000000000000
-    // forkUrl: "https://base-sepolia.gateway.tenderly.co/2oxlNZ7oiNCUpXzrWFuIHx"
-  })
+    codeSizeLimit: 1000000000000,
+    forkUrl: shouldForkBaseSepolia
+      ? "https://virtual.base-sepolia.rpc.tenderly.co/6deb172f-d5d9-4ae3-9d1d-8f04d52714d6"
+      : undefined
+  }
+  const instance = anvil(config)
   await instance.start()
   await initDeployments(rpcPort)
   return instance
@@ -234,12 +244,14 @@ export const initDeployments = async (rpcPort: number) => {
 }
 
 const portOptions = { exclude: [] as number[] }
-export const initAnvilPayload = async (): Promise<AnvilDto> => {
+export const initAnvilPayload = async (
+  shouldForkBaseSepolia = false
+): Promise<AnvilDto> => {
   const rpcPort = await getPort(portOptions)
   portOptions.exclude.push(rpcPort)
   const rpcUrl = `http://localhost:${rpcPort}`
   const chain = getTestChainFromPort(rpcPort)
-  const instance = await toConfiguredAnvil({ rpcPort })
+  const instance = await toConfiguredAnvil({ rpcPort, shouldForkBaseSepolia })
   return { rpcUrl, chain, instance, rpcPort }
 }
 
@@ -377,9 +389,7 @@ export const safeTopUp = async (
 ) => {
   try {
     return await topUp(testClient, recipient, amount, token)
-  } catch (error) {
-    Logger.error(`Error topping up account: ${error}`)
-  }
+  } catch (error) {}
 }
 
 export const topUp = async (
@@ -398,8 +408,6 @@ export const topUp = async (
     )
     return await Promise.resolve()
   }
-
-  Logger.log(`topping up (${recipient}): (${balanceOfRecipient}).`)
 
   if (token) {
     const hash = await testClient.writeContract({
@@ -482,3 +490,18 @@ export const setByteCodeDynamic = async (
     )
   )
 }
+
+export type TestnetParams = ReturnType<typeof getTestParamsForTestnet>
+export const getTestParamsForTestnet = (publicClient: PublicClient) => ({
+  k1ValidatorAddress: MAINNET_ADDRESS_K1_VALIDATOR_ADDRESS,
+  factoryAddress: MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS,
+  userOperation: {
+    estimateFeesPerGas: async (_) => {
+      const feeData = await publicClient.estimateFeesPerGas()
+      return {
+        maxFeePerGas: safeMultiplier(feeData.maxFeePerGas, 1.25),
+        maxPriorityFeePerGas: safeMultiplier(feeData.maxPriorityFeePerGas, 1.25)
+      }
+    }
+  }
+})

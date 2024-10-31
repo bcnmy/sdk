@@ -1,8 +1,11 @@
 import { ParamType, ethers } from "ethers"
 import { type AbiParameter, encodeAbiParameters } from "viem"
+import { generatePrivateKey } from "viem/accounts"
 import { describe, expect, test } from "vitest"
+import { toSigner } from "./toSigner"
 
 describe("utils", async () => {
+  const privKey = generatePrivateKey()
   test.concurrent(
     "should have consistent behaviour between ethers.AbiCoder.defaultAbiCoder() and viem.encodeAbiParameters()",
     async () => {
@@ -55,4 +58,43 @@ describe("utils", async () => {
       expect(executionCalldataPrepWithViem).toBe(expectedResult)
     }
   )
+
+  test.concurrent("should support ethers Wallet", async () => {
+    const wallet = new ethers.Wallet(privKey)
+    const signer = await toSigner({ signer: wallet })
+    const sig = await signer.signMessage({ message: "test" })
+    expect(sig).toBeDefined()
+  })
+
+  test.concurrent("should support ethers Wallet signTypedData", async () => {
+    const wallet = new ethers.Wallet(privKey)
+    const signer = await toSigner({ signer: wallet })
+    const appDomain = {
+      chainId: 1,
+      name: "TokenWithPermit",
+      verifyingContract:
+        "0x1111111111111111111111111111111111111111" as `0x${string}`,
+      version: "1"
+    }
+
+    const primaryType = "Contents"
+    const types = {
+      Contents: [
+        {
+          name: "stuff",
+          type: "bytes32"
+        }
+      ]
+    }
+    const sig = await signer.signTypedData({
+      domain: appDomain,
+      types,
+      primaryType,
+      message: {
+        stuff:
+          "0x1111111111111111111111111111111111111111111111111111111111111111"
+      }
+    })
+    expect(sig).toBeDefined()
+  })
 })

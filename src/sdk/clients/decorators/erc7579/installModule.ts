@@ -12,14 +12,14 @@ import {
   sendUserOperation
 } from "viem/account-abstraction"
 import { getAction, parseAccount } from "viem/utils"
-import type { Module } from "."
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
+import type { ModuleMeta } from "../../../modules/utils/Types"
 import { parseModuleTypeId } from "./supportsModule"
 
 export type InstallModuleParameters<
   TSmartAccount extends SmartAccount | undefined
 > = GetSmartAccountParameter<TSmartAccount> & {
-  module: Module
+  module: ModuleMeta
   maxFeePerGas?: bigint
   maxPriorityFeePerGas?: bigint
   nonce?: bigint
@@ -56,12 +56,12 @@ export async function installModule<
     maxFeePerGas,
     maxPriorityFeePerGas,
     nonce,
-    module: { address, data, type }
+    module: { address, initData, type }
   } = parameters
 
   if (!account_) {
     throw new AccountNotFoundError({
-      docsPath: "/docs/actions/wallet/sendTransaction"
+      docsPath: "/nexus/nexus-client/methods#sendtransaction"
     })
   }
 
@@ -100,7 +100,7 @@ export async function installModule<
             }
           ],
           functionName: "installModule",
-          args: [parseModuleTypeId(type), getAddress(address), data ?? "0x"]
+          args: [parseModuleTypeId(type), getAddress(address), initData ?? "0x"]
         })
       }
     ],

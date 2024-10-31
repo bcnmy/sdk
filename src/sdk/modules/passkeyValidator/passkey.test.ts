@@ -1,7 +1,6 @@
 import { http, type Account, type Address, type Chain } from "viem"
-import { entryPoint07Address } from "viem/account-abstraction"
 import { afterAll, beforeAll, describe, test } from "vitest"
-import { toNetwork } from "../../../../test/testSetup"
+import { toNetwork } from "../../../test/testSetup"
 import {
   type MasterClient,
   type NetworkConfig,
@@ -9,12 +8,13 @@ import {
   getTestAccount,
   killNetwork,
   toTestClient
-} from "../../../../test/testUtils"
-import { type NexusClient, createNexusClient } from "../../../clients"
+} from "../../../test/testUtils"
+import { createNexusClient } from "../../clients"
+import type { NexusClient } from "../../clients"
 import { toPasskeyValidator } from "./toPasskeyValidator"
 import { WebAuthnMode, toWebAuthnKey } from "./toWebAuthnKey"
 
-describe("modules.ownableValidator", async () => {
+describe("modules.passkeyValidator", async () => {
   let network: NetworkConfig
   let chain: Chain
   let bundlerUrl: string
@@ -56,7 +56,8 @@ describe("modules.ownableValidator", async () => {
   test("test", async () => {
     const webAuthnKey = await toWebAuthnKey({
       passkeyName: "test",
-      passkeyServerUrl: process.env.PASSKEY_SERVER_URL ?? "",
+      passkeyServerUrl:
+        "https://passkeys.zerodev.app/api/v3/d67a0b6b-ccd5-4d12-9e57-048f3ad4c682",
       mode: WebAuthnMode.Register,
       passkeyServerHeaders: {}
     })

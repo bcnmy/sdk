@@ -1,10 +1,6 @@
 import { startAuthentication, startRegistration } from "@simplewebauthn/browser"
-import type {
-  PublicKeyCredentialCreationOptionsJSON,
-  RegistrationResponseJSON
-} from "@simplewebauthn/typescript-types"
 import { type Hex, concatHex, keccak256, pad, toHex } from "viem"
-import { b64ToBytes, uint8ArrayToHexString } from "./utils"
+import { b64ToBytes, uint8ArrayToHexString } from "./utils.js"
 
 export enum WebAuthnMode {
   Register = "register",
@@ -64,9 +60,9 @@ export const toWebAuthnKey = async ({
         credentials
       }
     )
-    const loginOptions = await loginOptionsResponse.json()
+    const loginOptions: any = await loginOptionsResponse.json()
 
-    // @ts-ignore
+    // Start authentication (login)
     const loginCred = await startAuthentication(loginOptions)
 
     authenticatorId = loginCred.id
@@ -85,18 +81,16 @@ export const toWebAuthnKey = async ({
       }
     )
 
-    const loginVerifyResult = await loginVerifyResponse.json()
+    const loginVerifyResult: any = await loginVerifyResponse.json()
 
-    // @ts-ignore
     if (!loginVerifyResult.verification.verified) {
       throw new Error("Login not verified")
     }
     // Import the key
-    // @ts-ignore
     pubKey = loginVerifyResult.pubkey // Uint8Array pubkey
   } else {
     // Get registration options
-    const registerOptionsResponse = (await fetch(
+    const registerOptionsResponse = await fetch(
       `${passkeyServerUrl}/register/options`,
       {
         method: "POST",
@@ -107,17 +101,11 @@ export const toWebAuthnKey = async ({
         body: JSON.stringify({ username: passkeyName, rpID }),
         credentials
       }
-    )) as Response
-
-    const registerOptions = (await registerOptionsResponse.json()) as {
-      options: PublicKeyCredentialCreationOptionsJSON
-      userId: string
-    }
-    console.log("registerOptions", registerOptions)
-
-    const registerCred: RegistrationResponseJSON = await startRegistration(
-      registerOptions.options
     )
+    const registerOptions: any = await registerOptionsResponse.json()
+
+    // Start registration
+    const registerCred = await startRegistration(registerOptions.options)
 
     authenticatorId = registerCred.id
 
@@ -131,7 +119,6 @@ export const toWebAuthnKey = async ({
           ...passkeyServerHeaders
         },
         body: JSON.stringify({
-          // @ts-ignore
           userId: registerOptions.userId,
           username: passkeyName,
           cred: registerCred,
@@ -141,9 +128,7 @@ export const toWebAuthnKey = async ({
       }
     )
 
-    // @ts-ignore
-    const registerVerifyResult = await registerVerifyResponse.json()
-    // @ts-ignore
+    const registerVerifyResult: any = await registerVerifyResponse.json()
     if (!registerVerifyResult.verified) {
       throw new Error("Registration not verified")
     }

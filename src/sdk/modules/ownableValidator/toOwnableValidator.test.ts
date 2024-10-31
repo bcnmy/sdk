@@ -65,7 +65,7 @@ describe("modules.ownables", async () => {
       signer: eoaAccount,
       chain,
       transport: http(),
-      bundlerTransport: http(bundlerUrl),
+      bundlerTransport: http(bundlerUrl)
     })
 
     await fundAndDeployClients(testClient, [nexusClient])
@@ -205,8 +205,10 @@ describe("modules.ownables", async () => {
       [signature1 ?? "0x", signature2 ?? "0x"]
     )
     userOp.signature = multiSignature
-    const userOperationHashResponse =
-      await nexusClient.sendUserOperation({ ...userOp, signature: "0x" })
+    const userOperationHashResponse = await nexusClient.sendUserOperation({
+      ...userOp,
+      signature: "0x"
+    })
     expect(userOpHash).toBeDefined()
     const { success: userOpSuccess } =
       await nexusClient.waitForUserOperationReceipt({

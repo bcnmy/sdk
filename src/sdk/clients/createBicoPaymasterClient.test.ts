@@ -10,10 +10,9 @@ import {
 } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { paymasterTruthy, toNetwork } from "../../test/testSetup"
-import { killNetwork } from "../../test/testUtils"
-import type { NetworkConfig } from "../../test/testUtils"
+import { getTestParamsForTestnet, killNetwork } from "../../test/testUtils"
+import type { NetworkConfig, TestnetParams } from "../../test/testUtils"
 import { type NexusAccount, toNexusAccount } from "../account/toNexusAccount"
-import { safeMultiplier } from "../account/utils"
 import {
   type BicoBundlerClient,
   createBicoBundlerClient
@@ -24,14 +23,11 @@ import {
 } from "./createBicoPaymasterClient"
 import { type NexusClient, createNexusClient } from "./createNexusClient"
 
-// Remove the following lines to use the default factory and validator addresses
-// These are relevant only for now on base sopelia chain and are likely to change
-const k1ValidatorAddress = "0x663E709f60477f07885230E213b8149a7027239B"
-const factoryAddress = "0x887Ca6FaFD62737D0E79A2b8Da41f0B15A864778"
-
 describe.runIf(paymasterTruthy)("bico.paymaster", async () => {
   let network: NetworkConfig
-  // Nexus Config
+  // Required for "PUBLIC_TESTNET" networks
+  let testParams: TestnetParams
+
   let chain: Chain
   let bundlerUrl: string
   let paymasterUrl: undefined | string
@@ -68,6 +64,8 @@ describe.runIf(paymasterTruthy)("bico.paymaster", async () => {
       transport: http()
     })
 
+    testParams = getTestParamsForTestnet(publicClient)
+
     paymaster = createBicoPaymasterClient({
       transport: http(paymasterUrl)
     })
@@ -76,8 +74,7 @@ describe.runIf(paymasterTruthy)("bico.paymaster", async () => {
       signer: account,
       chain,
       transport: http(),
-      k1ValidatorAddress,
-      factoryAddress
+      ...testParams
     })
 
     bicoBundler = createBicoBundlerClient({
@@ -92,22 +89,8 @@ describe.runIf(paymasterTruthy)("bico.paymaster", async () => {
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl),
-      k1ValidatorAddress,
-      factoryAddress,
       paymaster,
-      // For "PUBLIC_TESTNET" network, the userOperation we can hardcode estimates
-      userOperation: {
-        estimateFeesPerGas: async (_) => {
-          const feeData = await publicClient.estimateFeesPerGas()
-          return {
-            maxFeePerGas: safeMultiplier(feeData.maxFeePerGas, 1.25),
-            maxPriorityFeePerGas: safeMultiplier(
-              feeData.maxPriorityFeePerGas,
-              1.25
-            )
-          }
-        }
-      }
+      ...testParams
     })
   })
   afterAll(async () => {
@@ -145,6 +128,7 @@ describe.runIf(paymasterTruthy)("bico.paymaster", async () => {
     const finalBalance = await publicClient.getBalance({
       address: nexusAccountAddress
     })
+
     // Check that the balance hasn't changed
     // No gas fees were paid, so the balance should have decreased only by 1n
     expect(finalBalance).toBe(initialBalance - 1n)

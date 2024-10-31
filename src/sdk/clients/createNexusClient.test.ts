@@ -1,13 +1,16 @@
+import { JsonRpcSigner, Signer, Wallet, ethers } from "ethers"
 import {
   http,
   type Account,
   type Address,
   type Chain,
+  type Hex,
   encodeFunctionData,
   isHex,
-  parseEther,
-  toBytes
+  parseEther
 } from "viem"
+import type { UserOperationReceipt } from "viem/account-abstraction"
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { CounterAbi } from "../../test/__contracts/abi"
 import mockAddresses from "../../test/__contracts/mockAddresses"
@@ -20,10 +23,11 @@ import {
   topUp
 } from "../../test/testUtils"
 import type { MasterClient, NetworkConfig } from "../../test/testUtils"
-import { addresses } from "../__contracts/addresses"
 import { ERROR_MESSAGES } from "../account/utils/Constants"
+import { Logger } from "../account/utils/Logger"
 import { getAccountMeta, makeInstallDataAndHash } from "../account/utils/Utils"
 import { getChain } from "../account/utils/getChain"
+import { k1ValidatorAddress } from "../constants"
 import { type NexusClient, createNexusClient } from "./createNexusClient"
 
 describe("nexus.client", async () => {
@@ -38,6 +42,7 @@ describe("nexus.client", async () => {
   let recipientAddress: Address
   let nexusClient: NexusClient
   let nexusAccountAddress: Address
+  let privKey: Hex
 
   beforeAll(async () => {
     network = await toNetwork()
@@ -50,13 +55,15 @@ describe("nexus.client", async () => {
 
     testClient = toTestClient(chain, getTestAccount(5))
 
+    privKey = generatePrivateKey()
+    const account = privateKeyToAccount(privKey)
+
     nexusClient = await createNexusClient({
-      signer: eoaAccount,
+      signer: account,
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl)
     })
-
     nexusAccountAddress = await nexusClient.account.getCounterFactualAddress()
   })
   afterAll(async () => {
@@ -81,7 +88,7 @@ describe("nexus.client", async () => {
           }
         ]
       })
-      const { status } = await testClient.waitForTransactionReceipt({
+      const { status } = await nexusClient.waitForTransactionReceipt({
         hash
       })
       expect(status).toBe("success")
@@ -220,8 +227,8 @@ describe("nexus.client", async () => {
       nexusClient.isModuleInstalled({
         module: {
           type: "validator",
-          address: addresses.K1Validator,
-          data: "0x"
+          address: k1ValidatorAddress,
+          initData: "0x"
         }
       }),
       nexusClient.supportsExecutionMode({
@@ -241,9 +248,102 @@ describe("nexus.client", async () => {
     const balanceBefore = await getBalance(testClient, recipientAddress)
     const tx = { to: recipientAddress, value: 1n }
     const hash = await nexusClient.sendTransaction({ calls: [tx, tx] })
-    const { status } = await testClient.waitForTransactionReceipt({ hash })
+    const { status } = await nexusClient.waitForTransactionReceipt({ hash })
     const balanceAfter = await getBalance(testClient, recipientAddress)
     expect(status).toBe("success")
     expect(balanceAfter - balanceBefore).toBe(2n)
+  })
+
+  test("should compare signatures of viem and ethers signer", async () => {
+    const viemSigner = privateKeyToAccount(privKey)
+
+    const wallet = new Wallet(privKey)
+
+    const viemNexusClient = await createNexusClient({
+      signer: viemSigner,
+      chain,
+      transport: http(),
+      bundlerTransport: http(bundlerUrl)
+    })
+
+    const ethersNexusClient = await createNexusClient({
+      signer: wallet,
+      chain,
+      transport: http(),
+      bundlerTransport: http(bundlerUrl)
+    })
+
+    const sig1 = await viemNexusClient.signMessage({ message: "123" })
+    const sig2 = await ethersNexusClient.signMessage({ message: "123" })
+
+    expect(sig1).toBe(sig2)
+  })
+
+  test("should send user operation using ethers Wallet", async () => {
+    const ethersSigner = new ethers.Wallet(privKey)
+    const ethersNexusClient = await createNexusClient({
+      signer: ethersSigner,
+      chain,
+      transport: http(),
+      bundlerTransport: http(bundlerUrl)
+    })
+
+    const hash = await ethersNexusClient.sendUserOperation({
+      calls: [
+        {
+          to: recipientAddress,
+          data: "0x"
+        }
+      ]
+    })
+    const receipt = await ethersNexusClient.waitForUserOperationReceipt({
+      hash
+    })
+    expect(receipt.success).toBe(true)
+  })
+
+  test("should send sequential user ops", async () => {
+    const start = performance.now()
+    const receipts: UserOperationReceipt[] = []
+    for (let i = 0; i < 3; i++) {
+      const hash = await nexusClient.sendUserOperation({
+        calls: [
+          {
+            to: recipientAddress,
+            value: 1n
+          }
+        ]
+      })
+      const receipt = await nexusClient.waitForUserOperationReceipt({ hash })
+      receipts.push(receipt)
+    }
+    expect(receipts.every((receipt) => receipt.success)).toBeTruthy()
+    const end = performance.now()
+    Logger.log(`Time taken: ${end - start} milliseconds`)
+  })
+
+  test("should send parallel user ops", async () => {
+    const start = performance.now()
+    const userOpPromises: Promise<`0x${string}`>[] = []
+    for (let i = 0; i < 3; i++) {
+      userOpPromises.push(
+        nexusClient.sendUserOperation({
+          calls: [
+            {
+              to: recipientAddress,
+              value: 1n
+            }
+          ]
+        })
+      )
+    }
+    const hashes = await Promise.all(userOpPromises)
+    expect(hashes.length).toBe(3)
+    const receipts = await Promise.all(
+      hashes.map((hash) => nexusClient.waitForUserOperationReceipt({ hash }))
+    )
+    expect(receipts.every((receipt) => receipt.success)).toBeTruthy()
+    const end = performance.now()
+    Logger.log(`Time taken: ${end - start} milliseconds`)
   })
 })

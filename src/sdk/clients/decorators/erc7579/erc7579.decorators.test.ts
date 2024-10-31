@@ -1,10 +1,8 @@
-import { textSpanOverlapsWith } from "typescript"
 import {
   http,
   type Account,
   type Address,
   type Chain,
-  encodeAbiParameters,
   encodePacked,
   isHex
 } from "viem"
@@ -19,7 +17,7 @@ import {
   killNetwork,
   toTestClient
 } from "../../../../test/testUtils"
-import contracts from "../../../__contracts"
+import { k1ValidatorAddress } from "../../../constants"
 import { type NexusClient, createNexusClient } from "../../createNexusClient"
 
 describe("erc7579.decorators", async () => {
@@ -79,14 +77,14 @@ describe("erc7579.decorators", async () => {
       nexusClient.isModuleInstalled({
         module: {
           type: "validator",
-          address: contracts.k1Validator.address,
-          data: "0x"
+          address: k1ValidatorAddress,
+          initData: "0x"
         }
       })
     ])
 
     expect(installedExecutors[0].length).toBeTypeOf("number")
-    expect(installedValidators[0]).toEqual([contracts.k1Validator.address])
+    expect(installedValidators[0]).toEqual([k1ValidatorAddress])
     expect(isHex(activeHook)).toBe(true)
     expect(fallbackSelector.length).toBeTypeOf("number")
     expect(supportsValidator).toBe(true)
@@ -99,7 +97,7 @@ describe("erc7579.decorators", async () => {
       module: {
         type: "validator",
         address: mockAddresses.MockValidator,
-        data: encodePacked(["address"], [eoaAccount.address])
+        initData: encodePacked(["address"], [eoaAccount.address])
       }
     })
 
@@ -112,7 +110,7 @@ describe("erc7579.decorators", async () => {
       module: {
         type: "validator",
         address: mockAddresses.MockValidator,
-        data: encodePacked(["address"], [eoaAccount.address])
+        initData: encodePacked(["address"], [eoaAccount.address])
       }
     })
 

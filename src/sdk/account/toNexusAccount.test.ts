@@ -1,10 +1,10 @@
 import { getAddress, getBytes, hexlify } from "ethers"
 import {
   http,
-  type Account,
   type Address,
   type Chain,
   type Hex,
+  type LocalAccount,
   type PublicClient,
   type WalletClient,
   concat,
@@ -25,7 +25,7 @@ import {
 } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { TokenWithPermitAbi } from "../../test/__contracts/abi/TokenWithPermitAbi"
-import { mockAddresses } from "../../test/__contracts/mockAddresses"
+import { testAddresses } from "../../test/callDatas"
 import { toNetwork } from "../../test/testSetup"
 import {
   fundAndDeployClients,
@@ -34,12 +34,11 @@ import {
   toTestClient
 } from "../../test/testUtils"
 import type { MasterClient, NetworkConfig } from "../../test/testUtils"
-import { NexusAbi } from "../__contracts/abi/NexusAbi"
-import { addresses } from "../__contracts/addresses"
 import {
   type NexusClient,
   createNexusClient
 } from "../clients/createNexusClient"
+import { NexusAbi, k1ValidatorAddress } from "../constants"
 import type { NexusAccount } from "./toNexusAccount"
 import {
   addressEquals,
@@ -60,7 +59,7 @@ describe("nexus.account", async () => {
 
   // Test utils
   let testClient: MasterClient
-  let eoaAccount: Account
+  let eoaAccount: LocalAccount
   let nexusAccountAddress: Address
   let nexusClient: NexusClient
   let nexusAccount: NexusAccount
@@ -97,11 +96,11 @@ describe("nexus.account", async () => {
 
   test("should override account address", async () => {
     const newNexusClient = await createNexusClient({
-      signer: eoaAccount,
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl),
-      accountAddress: "0xf0479e036343bC66dc49dd374aFAF98402D0Ae5f"
+      accountAddress: "0xf0479e036343bC66dc49dd374aFAF98402D0Ae5f",
+      signer: eoaAccount
     })
     const accountAddress = await newNexusClient.account.getAddress()
     expect(accountAddress).toBe("0xf0479e036343bC66dc49dd374aFAF98402D0Ae5f")
@@ -284,7 +283,7 @@ describe("nexus.account", async () => {
 
     const finalSignature = encodePacked(
       ["address", "bytes"],
-      [addresses.K1Validator, signatureData]
+      [k1ValidatorAddress, signatureData]
     )
 
     const contractResponse = await testClient.readContract({
@@ -301,7 +300,7 @@ describe("nexus.account", async () => {
     const appDomain = {
       chainId: chain.id,
       name: "TokenWithPermit",
-      verifyingContract: mockAddresses.TokenWithPermit,
+      verifyingContract: testAddresses.TokenWithPermit,
       version: "1"
     }
 
@@ -321,7 +320,7 @@ describe("nexus.account", async () => {
       )
     )
     const nonce = (await testClient.readContract({
-      address: mockAddresses.TokenWithPermit,
+      address: testAddresses.TokenWithPermit,
       abi: TokenWithPermitAbi,
       functionName: "nonces",
       args: [nexusAccountAddress]
@@ -370,7 +369,7 @@ describe("nexus.account", async () => {
     })
 
     const permitTokenResponse = await nexusClient.writeContract({
-      address: mockAddresses.TokenWithPermit,
+      address: testAddresses.TokenWithPermit,
       abi: TokenWithPermitAbi,
       functionName: "permitWith1271",
       chain: network.chain,
@@ -383,10 +382,10 @@ describe("nexus.account", async () => {
       ]
     })
 
-    await testClient.waitForTransactionReceipt({ hash: permitTokenResponse })
+    await nexusClient.waitForTransactionReceipt({ hash: permitTokenResponse })
 
     const allowance = await testClient.readContract({
-      address: mockAddresses.TokenWithPermit,
+      address: testAddresses.TokenWithPermit,
       abi: TokenWithPermitAbi,
       functionName: "allowance",
       args: [nexusAccountAddress, nexusAccountAddress]
@@ -445,31 +444,23 @@ describe("nexus.account", async () => {
 
     const nonce = 5n
     const nonceAsHex = toHexString(nonce)
-    const fiveToHex = toHex(nonce, { size: 3 })
-
-    const checkNonce = await nexusClient.account.getNonce({ key: 0n })
-    const checkNonceAgain = await nexusClient.account.getNonce({ key: 1234n })
-    console.log({ checkNonce })
-    console.log({ checkNonceAgain })
 
     const keyFromEthers = makeNonceKey(
       "0x00",
-      nexusClient.account.getActiveModule().address,
+      nexusClient.account.getModule().address,
       nonceAsHex
     )
     const keyFromViem = concat([
       toHex(nonce, { size: 3 }),
       "0x00",
-      nexusClient.account.getActiveModule().address
+      nexusClient.account.getModule().address
     ])
 
     const keyWithHardcodedValues = concat([
       "0x000005",
       "0x00",
-      nexusClient.account.getActiveModule().address
+      nexusClient.account.getModule().address
     ])
-
-    // console.log({ keyFromEthers, keyFromViem, keyWithHardcodedValues })
 
     expect(addressEquals(keyFromViem, keyFromEthers)).toBe(true)
     expect(addressEquals(keyWithHardcodedValues, keyFromEthers)).toBe(true)

@@ -14,14 +14,15 @@ import {
 } from "viem/account-abstraction"
 import { getAction } from "viem/utils"
 import { parseAccount } from "viem/utils"
-import { type Module, getInstalledValidators, getPreviousModule } from "."
+import { getInstalledValidators, getPreviousModule } from "."
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
+import type { ModuleMeta } from "../../../modules/utils/Types"
 import { parseModuleTypeId } from "./supportsModule"
 
 export type UninstallModuleParameters<
   TSmartAccount extends SmartAccount | undefined
 > = GetSmartAccountParameter<TSmartAccount> & {
-  module: Module
+  module: ModuleMeta
   maxFeePerGas?: bigint
   maxPriorityFeePerGas?: bigint
   nonce?: bigint
@@ -51,22 +52,19 @@ export async function uninstallModule<
   TSmartAccount extends SmartAccount | undefined
 >(
   client: Client<Transport, Chain | undefined, TSmartAccount>,
-  parameters: UninstallModuleParameters<TSmartAccount> & {
-    signatureOverride?: Hex
-  }
+  parameters: UninstallModuleParameters<TSmartAccount>
 ): Promise<Hex> {
   const {
     account: account_ = client.account,
     maxFeePerGas,
     maxPriorityFeePerGas,
     nonce,
-    module: { address, data, type },
-    signatureOverride
+    module: { address, initData, type }
   } = parameters
 
   if (!account_) {
     throw new AccountNotFoundError({
-      docsPath: "/docs/actions/wallet/sendTransaction"
+      docsPath: "/nexus/nexus-client/methods#sendtransaction"
     })
   }
 
@@ -87,7 +85,7 @@ export async function uninstallModule<
       { name: "prev", type: "address" },
       { name: "disableModuleData", type: "bytes" }
     ],
-    [prevModule, data ?? "0x"]
+    [prevModule, initData ?? "0x"]
   )
 
   return getAction(
@@ -130,7 +128,6 @@ export async function uninstallModule<
     maxFeePerGas,
     maxPriorityFeePerGas,
     nonce,
-    account,
-    signature: signatureOverride
+    account
   })
 }

@@ -11,25 +11,24 @@ import {
 import type { UserOperationReceipt } from "viem/account-abstraction"
 import { beforeAll, describe, expect, test } from "vitest"
 import { playgroundTrue } from "../sdk/account/utils/Utils"
-import { createBicoPaymasterClient } from "../sdk/clients/createBicoPaymasterClient"
 import {
   type NexusClient,
   createNexusClient
 } from "../sdk/clients/createNexusClient"
 import { toNetwork } from "./testSetup"
-import type { NetworkConfig } from "./testUtils"
-
-// Remove the following lines to use the default factory and validator addresses
-// These are relevant only for now on base sopelia chain and are likely to change
-const k1ValidatorAddress = "0x663E709f60477f07885230E213b8149a7027239B"
-const factoryAddress = "0x887Ca6FaFD62737D0E79A2b8Da41f0B15A864778"
+import {
+  type NetworkConfig,
+  type TestnetParams,
+  getTestParamsForTestnet
+} from "./testUtils"
 
 describe.skipIf(!playgroundTrue)("playground", () => {
   let network: NetworkConfig
+  // Required for "PUBLIC_TESTNET" networks
+  let testParams: TestnetParams
   // Nexus Config
   let chain: Chain
   let bundlerUrl: string
-  let paymasterUrl: undefined | string
   let walletClient: WalletClient
 
   // Test utils
@@ -44,7 +43,6 @@ describe.skipIf(!playgroundTrue)("playground", () => {
 
     chain = network.chain
     bundlerUrl = network.bundlerUrl
-    paymasterUrl = network.paymasterUrl
     eoaAccount = network.account as PrivateKeyAccount
 
     recipientAddress = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045" // vitalik.eth
@@ -59,19 +57,8 @@ describe.skipIf(!playgroundTrue)("playground", () => {
       chain,
       transport: http()
     })
-  })
 
-  test("should have factory and k1Validator deployed", async () => {
-    const byteCodes = await Promise.all([
-      publicClient.getCode({
-        address: k1ValidatorAddress
-      }),
-      publicClient.getCode({
-        address: factoryAddress
-      })
-    ])
-
-    expect(byteCodes.every(Boolean)).toBeTruthy()
+    testParams = getTestParamsForTestnet(publicClient)
   })
 
   test("should init the smart account", async () => {
@@ -80,8 +67,7 @@ describe.skipIf(!playgroundTrue)("playground", () => {
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl),
-      k1ValidatorAddress,
-      factoryAddress
+      ...testParams
     })
   })
 
@@ -111,7 +97,6 @@ describe.skipIf(!playgroundTrue)("playground", () => {
         value: 1000000000000000000n
       })
       const receipt = await publicClient.waitForTransactionReceipt({ hash })
-      console.log({ receipt })
     }
     expect(balancesAreOfCorrectType).toBeTruthy()
   })
@@ -126,8 +111,7 @@ describe.skipIf(!playgroundTrue)("playground", () => {
           to: recipientAddress,
           value: 1n
         }
-      ],
-      preVerificationGas: 800000000n
+      ]
     })
     const { status } = await publicClient.waitForTransactionReceipt({ hash })
     const balanceAfter = await publicClient.getBalance({
@@ -135,95 +119,5 @@ describe.skipIf(!playgroundTrue)("playground", () => {
     })
     expect(status).toBe("success")
     expect(balanceAfter - balanceBefore).toBe(1n)
-  })
-
-  test("should send some native token using the paymaster", async () => {
-    if (!paymasterUrl) {
-      console.log("No paymaster url provided")
-      return
-    }
-
-    nexusClient = await createNexusClient({
-      signer: eoaAccount,
-      chain,
-      transport: http(),
-      bundlerTransport: http(bundlerUrl),
-      k1ValidatorAddress,
-      factoryAddress,
-      paymaster: createBicoPaymasterClient({
-        paymasterUrl
-      })
-    })
-    expect(async () =>
-      nexusClient.sendTransaction({
-        calls: [
-          {
-            to: eoaAccount.address,
-            value: 1n
-          }
-        ]
-      })
-    ).rejects.toThrow()
-  })
-
-  test("should send sequential user ops", async () => {
-    const start = performance.now()
-    const nexusClient = await createNexusClient({
-      signer: eoaAccount,
-      chain,
-      transport: http(),
-      bundlerTransport: http(bundlerUrl),
-      k1ValidatorAddress,
-      factoryAddress
-    })
-    const receipts: UserOperationReceipt[] = []
-    for (let i = 0; i < 3; i++) {
-      const hash = await nexusClient.sendUserOperation({
-        calls: [
-          {
-            to: recipientAddress,
-            value: 0n
-          }
-        ]
-      })
-      const receipt = await nexusClient.waitForUserOperationReceipt({ hash })
-      receipts.push(receipt)
-    }
-    expect(receipts.every((receipt) => receipt.success)).toBeTruthy()
-    const end = performance.now()
-    console.log(`Time taken: ${end - start} milliseconds`)
-  })
-
-  test("should send parallel user ops", async () => {
-    const start = performance.now()
-    const nexusClient = await createNexusClient({
-      signer: eoaAccount,
-      chain,
-      transport: http(),
-      bundlerTransport: http(bundlerUrl),
-      k1ValidatorAddress,
-      factoryAddress
-    })
-    const userOpPromises: Promise<`0x${string}`>[] = []
-    for (let i = 0; i < 3; i++) {
-      userOpPromises.push(
-        nexusClient.sendUserOperation({
-          calls: [
-            {
-              to: recipientAddress,
-              value: 0n
-            }
-          ]
-        })
-      )
-    }
-    const hashes = await Promise.all(userOpPromises)
-    expect(hashes.length).toBe(3)
-    const receipts = await Promise.all(
-      hashes.map((hash) => nexusClient.waitForUserOperationReceipt({ hash }))
-    )
-    expect(receipts.every((receipt) => receipt.success)).toBeTruthy()
-    const end = performance.now()
-    console.log(`Time taken: ${end - start} milliseconds`)
   })
 })

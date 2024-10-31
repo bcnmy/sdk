@@ -1,5 +1,4 @@
 export * from "./account"
 export * from "./modules"
 export * from "./clients"
-export { toSmartSessionValidatorModule } from "./modules/validators/smartSessionValidator/tosmartSessionValidatorModule"
-export { toPasskeyValidator } from "./modules/validators/passkey/toPasskeyValidator"
+export * from "./constants"

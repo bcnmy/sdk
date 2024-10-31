@@ -30,7 +30,7 @@ The Biconomy SDK is your all-in-one toolkit for building decentralized applicati
 1. **Add the package and install dependencies:**
 
 ```bash
-bun add @biconomy/sdk viem
+bun add @biconomy/sdk viem @rhinestone/module-sdk
 ```
 
 2. **Install dependencies:**
@@ -41,22 +41,17 @@ bun i
 
 ```typescript
 import { createNexusClient } from "@biconomy/sdk";
-import { http, publicClient } from "viem";
-
-const publicClient = createPublicClient({
-  chain: mainnet,
-  transport: http(),
-});
+import { http } from "viem";
 
 const nexusClient = await createNexusClient({
-  holder: account,
+  signer: account,
   chain,
   transport: http(),
   bundlerTransport: http(bundlerUrl),
 });
 
 const hash = await nexusClient.sendTransaction({ calls: [to: "0x...", value: 1] });
-const { status, transactionHash } = await publicClient.waitForTransactionReceipt({ hash });
+const { status, transactionHash } = await nexusClient.waitForTransactionReceipt({ hash });
 
 ```
 

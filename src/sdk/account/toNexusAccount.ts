@@ -13,8 +13,10 @@ import {
   type TypedData,
   type TypedDataDefinition,
   type UnionPartialBy,
+  type WalletClient,
   concat,
   concatHex,
+  createPublicClient,
   createWalletClient,
   domainSeparator,
   encodeAbiParameters,
@@ -28,18 +30,16 @@ import {
   toBytes,
   toHex,
   validateTypedData,
-  walletActions
+  zeroAddress
 } from "viem"
 import {
   type SmartAccount,
   type SmartAccountImplementation,
   type UserOperation,
   entryPoint07Address,
-  getUserOperationHash,
   toSmartAccount
 } from "viem/account-abstraction"
-import contracts from "../__contracts"
-import { EntrypointAbi, K1ValidatorFactoryAbi } from "../__contracts/abi"
+import { EntrypointAbi, K1ValidatorFactoryAbi } from "../constants/abi"
 import type { Call, UserOperationStruct } from "./utils/Types"
 
 import {
@@ -50,10 +50,16 @@ import {
   PARENT_TYPEHASH
 } from "./utils/Constants"
 
-import { toK1ValidatorModule } from "../modules/validators/k1Validator/toK1ValidatorModule"
-import type { ToValidationModuleReturnType } from "../modules/validators/toValidationModule"
+import {
+  ENTRY_POINT_ADDRESS,
+  k1ValidatorAddress as k1ValidatorAddress_,
+  k1ValidatorFactoryAddress
+} from "../constants"
+import { toK1Validator } from "../modules/k1Validator/toK1Validator"
+import type { Module } from "../modules/utils/Types"
 import {
   type TypedDataWith712,
+  addressEquals,
   eip712WrapHash,
   getAccountDomainStructFields,
   getTypesForEIP712Domain,
@@ -61,10 +67,7 @@ import {
   packUserOp,
   typeToString
 } from "./utils/Utils"
-import { type UnknownSigner, toSigner } from "./utils/toSigner"
-
-// Maximum number that can fit in bytes3
-const TIMESTAMP_ADJUSTMENT = 16777215n
+import { type Signer, type UnknownSigner, toSigner } from "./utils/toSigner"
 
 /**
  * Parameters for creating a Nexus Smart Account
@@ -79,7 +82,7 @@ export type ToNexusSmartAccountParameters = {
   /** Optional index for the account */
   index?: bigint | undefined
   /** Optional active validation module */
-  activeModule?: ToValidationModuleReturnType
+  module?: Module
   /** Optional factory address */
   factoryAddress?: Address
   /** Optional K1 validator address */
@@ -119,10 +122,13 @@ export type NexusSmartAccountImplementation = SmartAccountImplementation<
     encodeExecute: (call: Call) => Promise<Hex>
     encodeExecuteBatch: (calls: readonly Call[]) => Promise<Hex>
     getUserOpHash: (userOp: Partial<UserOperationStruct>) => Promise<Hex>
-    setActiveModule: (validationModule: ToValidationModuleReturnType) => void
-    getActiveModule: () => ToValidationModuleReturnType
+    setModule: (validationModule: Module) => void
+    getModule: () => Module
     factoryData: Hex
     factoryAddress: Address
+    signer: Signer
+    publicClient: PublicClient
+    walletClient: WalletClient
   }
 >
 
@@ -151,32 +157,37 @@ export const toNexusAccount = async (
     transport,
     signer: _signer,
     index = 0n,
-    activeModule: activeModule_,
-    factoryAddress = contracts.k1ValidatorFactory.address,
-    k1ValidatorAddress = contracts.k1Validator.address,
+    module: module_,
+    factoryAddress = k1ValidatorFactoryAddress,
+    k1ValidatorAddress = k1ValidatorAddress_,
     key = "nexus account",
     name = "Nexus Account"
   } = parameters
 
+  // @ts-ignore
   const signer = await toSigner({ signer: _signer })
 
-  const masterClient = createWalletClient({
+  const walletClient = createWalletClient({
     account: signer,
     chain,
     transport,
     key,
     name
-  })
-    .extend(walletActions)
-    .extend(publicActions)
+  }).extend(publicActions)
 
-  const signerAddress = masterClient.account.address
+  const publicClient = createPublicClient({
+    chain,
+    transport
+  })
+
+  const signerAddress = walletClient.account.address
+
   const entryPointContract = getContract({
-    address: contracts.entryPoint.address,
+    address: ENTRY_POINT_ADDRESS,
     abi: EntrypointAbi,
     client: {
-      public: masterClient,
-      wallet: masterClient
+      public: publicClient,
+      wallet: walletClient
     }
   })
 
@@ -195,20 +206,16 @@ export const toNexusAccount = async (
     if (!isNullOrUndefined(_accountAddress)) return _accountAddress
 
     try {
-      _accountAddress = (await masterClient.readContract({
+      _accountAddress = (await publicClient.readContract({
         address: factoryAddress,
         abi: K1ValidatorFactoryAbi,
         functionName: "computeAccountAddress",
         args: [signerAddress, index, [], 0]
       })) as Address
+      // biome-ignore lint/suspicious/noExplicitAny: <explanation>
     } catch (e: any) {
       if (e.shortMessage?.includes(ERROR_MESSAGES.MISSING_ACCOUNT_CONTRACT)) {
-        throw new Error(
-          "Failed to compute account address. Possible reasons:\n" +
-            "- The factory contract does not have the function 'computeAccountAddress'\n" +
-            "- The parameters passed to the factory contract function may be invalid\n" +
-            "- The provided factory address is not a contract"
-        )
+        throw new Error(ERROR_MESSAGES.FAILED_COMPUTE_ACCOUNT_ADDRESS)
       }
       throw e
     }
@@ -216,15 +223,11 @@ export const toNexusAccount = async (
     return _accountAddress
   }
 
-  let activeModule =
-    activeModule_ ??
-    (await toK1ValidatorModule({
-      address: k1ValidatorAddress,
-      accountAddress: await getAddress(),
-      initData: signerAddress,
-      deInitData: "0x",
-      client: masterClient
-    }))
+  /**
+   * @description Gets the init code for the account
+   * @returns The init code as a hexadecimal string
+   */
+  const getInitCode = () => concatHex([factoryAddress, factoryData])
 
   /**
    * @description Gets the counterfactual address of the account
@@ -235,20 +238,27 @@ export const toNexusAccount = async (
     if (_accountAddress) return _accountAddress
     try {
       await entryPointContract.simulate.getSenderAddress([getInitCode()])
+      // biome-ignore lint/suspicious/noExplicitAny: <explanation>
     } catch (e: any) {
       if (e?.cause?.data?.errorName === "SenderAddressResult") {
         _accountAddress = e?.cause.data.args[0] as Address
-        return _accountAddress
+        if (!addressEquals(_accountAddress, zeroAddress)) {
+          return _accountAddress
+        }
       }
     }
     throw new Error("Failed to get counterfactual account address")
   }
 
-  /**
-   * @description Gets the init code for the account
-   * @returns The init code as a hexadecimal string
-   */
-  const getInitCode = () => concatHex([factoryAddress, factoryData])
+  let module =
+    module_ ??
+    toK1Validator({
+      address: k1ValidatorAddress,
+      accountAddress: await getCounterFactualAddress(),
+      initData: signerAddress,
+      deInitData: "0x",
+      signer
+    })
 
   /**
    * @description Checks if the account is deployed
@@ -256,7 +266,7 @@ export const toNexusAccount = async (
    */
   const isDeployed = async (): Promise<boolean> => {
     const address = await getCounterFactualAddress()
-    const contractCode = await masterClient.getCode({ address })
+    const contractCode = await publicClient.getCode({ address })
     return (contractCode?.length ?? 0) > 2
   }
 
@@ -266,13 +276,13 @@ export const toNexusAccount = async (
    * @returns The hash of the user operation
    */
   const getUserOpHash = async (
-    userOp: Partial<UserOperationStruct>
+    userOp: Partial<UserOperation>
   ): Promise<Hex> => {
     const packedUserOp = packUserOp(userOp)
     const userOpHash = keccak256(packedUserOp as Hex)
     const enc = encodeAbiParameters(
       parseAbiParameters("bytes32, address, uint256"),
-      [userOpHash, contracts.entryPoint.address, BigInt(chain.id)]
+      [userOpHash, ENTRY_POINT_ADDRESS, BigInt(chain.id)]
     )
     return keccak256(enc)
   }
@@ -349,12 +359,13 @@ export const toNexusAccount = async (
     validationMode?: "0x00" | "0x01"
   }): Promise<bigint> => {
     try {
+      const TIMESTAMP_ADJUSTMENT = 16777215n
       const defaultedKey = BigInt(parameters?.key ?? 0n) % TIMESTAMP_ADJUSTMENT
       const defaultedValidationMode = parameters?.validationMode ?? "0x00"
       const key: string = concat([
         toHex(defaultedKey, { size: 3 }),
         defaultedValidationMode,
-        activeModule.address
+        module.address
       ])
 
       const accountAddress = await getAddress()
@@ -368,13 +379,11 @@ export const toNexusAccount = async (
   }
   /**
    * @description Changes the active module for the account
-   * @param newModule - The new module to set as active
+   * @param module - The new module to set as active
    * @returns void
    */
-  const setActiveModule = (
-    validationModule: ToValidationModuleReturnType
-  ): void => {
-    activeModule = validationModule
+  const setModule = (validationModule: Module): void => {
+    module = validationModule
   }
 
   /**
@@ -386,13 +395,11 @@ export const toNexusAccount = async (
   const signMessage = async ({
     message
   }: { message: SignableMessage }): Promise<Hex> => {
-    const tempSignature = await activeModule.signer.signMessage({
-      message
-    })
+    const tempSignature = await module.signMessage(message)
 
     const signature = encodePacked(
       ["address", "bytes"],
-      [activeModule.address, tempSignature]
+      [module.address, tempSignature]
     )
 
     const erc6492Signature = concat([
@@ -452,7 +459,7 @@ export const toNexusAccount = async (
 
     const appDomainSeparator = domainSeparator({ domain })
     const accountDomainStructFields = await getAccountDomainStructFields(
-      masterClient as unknown as PublicClient,
+      publicClient,
       await getAddress()
     )
 
@@ -474,7 +481,7 @@ export const toNexusAccount = async (
       appDomainSeparator
     )
 
-    let signature = await activeModule.signMessage(toBytes(wrappedTypedHash))
+    let signature = await module.signMessage({ raw: toBytes(wrappedTypedHash) })
 
     const contentsType = toBytes(typeToString(types as TypedDataWith712)[1])
 
@@ -488,17 +495,17 @@ export const toNexusAccount = async (
 
     signature = encodePacked(
       ["address", "bytes"],
-      [activeModule.address, signatureData]
+      [module.address, signatureData]
     )
 
     return signature
   }
 
   return toSmartAccount({
-    client: masterClient,
+    client: walletClient,
     entryPoint: {
       abi: EntrypointAbi,
-      address: contracts.entryPoint.address,
+      address: ENTRY_POINT_ADDRESS,
       version: "0.7"
     },
     getAddress,
@@ -508,7 +515,10 @@ export const toNexusAccount = async (
         : encodeExecuteBatch(calls)
     },
     getFactoryArgs: async () => ({ factory: factoryAddress, factoryData }),
-    getStubSignature: async (): Promise<Hex> => activeModule.getStubSignature(),
+    getStubSignature: async (): Promise<Hex> => {
+      console.warn("In toNexusAccount getStubSignature")
+      return module.getStubSignature()
+    },
     signMessage,
     signTypedData,
     signUserOperation: async (
@@ -516,22 +526,21 @@ export const toNexusAccount = async (
         chainId?: number | undefined
       }
     ): Promise<Hex> => {
-      const { chainId = masterClient.chain.id, ...userOpWithoutSender } =
+      console.warn("In toNexusAccount signUserOperation")
+      console.log(module, "module")
+      const { chainId = publicClient.chain.id, ...userOpWithoutSender } =
         parameters
       const address = await getCounterFactualAddress()
 
-      const userOperation = {
+      const userOperation: UserOperation = {
         ...userOpWithoutSender,
+        signature: "0x",
         sender: address
       }
 
-      const hash = getUserOperationHash({
-        chainId,
-        entryPointAddress: entryPoint07Address,
-        entryPointVersion: "0.7",
-        userOperation
-      })
-      return await activeModule.signUserOpHash(hash)
+      const hash = await getUserOpHash(userOperation)
+      console.log(module, "active module")
+      return await module.signUserOpHash(hash)
     },
     getNonce,
     extend: {
@@ -542,10 +551,13 @@ export const toNexusAccount = async (
       encodeExecute,
       encodeExecuteBatch,
       getUserOpHash,
-      setActiveModule,
-      getActiveModule: () => activeModule,
+      setModule,
+      getModule: () => module,
       factoryData,
-      factoryAddress
+      factoryAddress,
+      signer,
+      walletClient,
+      publicClient
     }
   })
 }
