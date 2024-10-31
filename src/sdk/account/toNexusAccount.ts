@@ -527,7 +527,6 @@ export const toNexusAccount = async (
       }
     ): Promise<Hex> => {
       console.warn("In toNexusAccount signUserOperation")
-      console.log(module, "module")
       const { chainId = publicClient.chain.id, ...userOpWithoutSender } =
         parameters
       const address = await getCounterFactualAddress()
@@ -539,7 +538,6 @@ export const toNexusAccount = async (
       }
 
       const hash = await getUserOpHash(userOperation)
-      console.log(module, "active module")
       return await module.signUserOpHash(hash)
     },
     getNonce,

@@ -30,16 +30,6 @@ const signMessageUsingWebAuthn = async (
   allowCredentials?: PublicKeyCredentialRequestOptionsJSON["allowCredentials"]
 ) => {
   let messageContent: string
-  console.warn("In passkey validator signMessageUsingWebAuthn")
-  console.log(
-    {
-      message,
-      chainId,
-      allowCredentials
-    },
-    "signMessageUsingWebAuthn"
-  )
-
   if (typeof message === "string") {
     // message is a string
     messageContent = message
@@ -82,7 +72,6 @@ const signMessageUsingWebAuthn = async (
 
   // get client data JSON
   const clientDataJSON = atob(cred.response.clientDataJSON)
-  console.log(clientDataJSON, "clientDataJSON")
 
   // get challenge and response type location
   const { beforeType } = findQuoteIndices(clientDataJSON)
@@ -93,18 +82,6 @@ const signMessageUsingWebAuthn = async (
   const { r, s } = parseAndNormalizeSig(signatureHex)
 
   // encode signature
-  console.log(
-    [
-      authenticatorDataHex,
-      clientDataJSON,
-      beforeType,
-      BigInt(r),
-      BigInt(s),
-      isRIP7212SupportedNetwork(chainId)
-    ],
-    "Webatuh Signature Data"
-  )
-
   const encodedSignature = encodeAbiParameters(
     [
       { name: "authenticatorData", type: "bytes" },
@@ -171,14 +148,11 @@ export async function toPasskeyValidator({
   accountAddress: Hex
   chainId: number
 }): Promise<Module> {
-  console.warn("In passkey validator !", { color: "yellow" })
-
   return toModule({
     signer,
     address: passkeyValidatorAddress,
     accountAddress: accountAddress,
     signUserOpHash: async (userOpHash: `0x${string}`) => {
-      console.warn("In passkey validator signUserOpHash", { color: "green" })
       return signMessageUsingWebAuthn(userOpHash, chainId, [
         { id: webAuthnKey.authenticatorId, type: "public-key" }
       ])
@@ -235,9 +209,6 @@ export async function toPasskeyValidator({
     },
     deInitData: "0x", // Add this line, adjust if needed
     async getStubSignature() {
-      console.warn("Getting stub signature from passkey validator !", {
-        color: "green"
-      })
       return encodeAbiParameters(
         [
           { name: "authenticatorData", type: "bytes" },
