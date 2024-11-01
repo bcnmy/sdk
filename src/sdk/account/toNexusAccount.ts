@@ -515,10 +515,7 @@ export const toNexusAccount = async (
         : encodeExecuteBatch(calls)
     },
     getFactoryArgs: async () => ({ factory: factoryAddress, factoryData }),
-    getStubSignature: async (): Promise<Hex> => {
-      console.warn("In toNexusAccount getStubSignature")
-      return module.getStubSignature()
-    },
+    getStubSignature: async (): Promise<Hex> => module.getStubSignature(),
     signMessage,
     signTypedData,
     signUserOperation: async (
@@ -526,7 +523,6 @@ export const toNexusAccount = async (
         chainId?: number | undefined
       }
     ): Promise<Hex> => {
-      console.warn("In toNexusAccount signUserOperation")
       const { chainId = publicClient.chain.id, ...userOpWithoutSender } =
         parameters
       const address = await getCounterFactualAddress()

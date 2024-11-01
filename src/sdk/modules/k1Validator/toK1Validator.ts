@@ -64,7 +64,6 @@ export const toK1Validator = (parameters: ToK1ValidatorParameters): Module => {
     address = k1ValidatorAddress
   } = parameters
 
-  console.warn("In k1 validator", { color: "blue" })
   const initData = initData_ ?? getK1InitData(initArgs_)
   const moduleInitData = moduleInitData_ ?? getK1ModuleInitData(moduleInitArgs_)
 
@@ -76,12 +75,10 @@ export const toK1Validator = (parameters: ToK1ValidatorParameters): Module => {
     deInitData,
     moduleInitData,
     getStubSignature: async () => {
-      console.warn("In k1 validator getStubSignature", { color: "blue" })
       const dynamicPart = address.substring(2).padEnd(40, "0")
       return `0x0000000000000000000000000000000000000000000000000000000000000040000000000000000000000000${dynamicPart}000000000000000000000000000000000000000000000000000000000000004181d4b4981670cb18f99f0b4a66446df1bf5b204d24cfcb659bf38ba27a4359b5711649ec2423c5e1247245eba2964679b6a1dbb85c992ae40b9b00c6935b02ff1b00000000000000000000000000000000000000000000000000000000000000` as Hex
     },
     signUserOpHash: async (userOpHash: Hex) => {
-      console.warn("In k1 validator signUserOpHash", { color: "blue" })
       const signature = await signer.signMessage({
         message: { raw: userOpHash as Hex }
       })
