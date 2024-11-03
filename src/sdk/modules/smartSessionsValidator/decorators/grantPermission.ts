@@ -1,4 +1,4 @@
-import type { ActionData, PolicyData, Session } from "@rhinestone/module-sdk"
+import { findTrustedAttesters, getTrustAttestersAction, MOCK_ATTESTER_ADDRESS, type ActionData, type PolicyData, type Session } from "@rhinestone/module-sdk"
 import type { Chain, Client, Hex, PublicClient, Transport } from "viem"
 import { sendUserOperation } from "viem/account-abstraction"
 import { encodeFunctionData, getAction, parseAccount } from "viem/utils"
@@ -27,8 +27,6 @@ import type {
   GrantPermissionActionReturnParams,
   GrantPermissionResponse
 } from "../Types"
-import { getTrustAttestersAction } from "./trustAttesters"
-import { findTrustedAttesters } from "./findTrustedAttesters"
 
 /**
  * Parameters for creating sessions in a modular smart account.
@@ -50,6 +48,8 @@ export type GrantPermissionParameters<
   publicClient?: PublicClient
   /** The modular smart account to create sessions for. If not provided, the client's account will be used. */
   account?: TModularSmartAccount
+  /** Optional attesters to trust. */
+  attesters?: Hex[]
 }
 
 /**
@@ -203,7 +203,8 @@ export async function grantPermission<
     maxFeePerGas,
     maxPriorityFeePerGas,
     nonce,
-    sessionRequestedInfo
+    sessionRequestedInfo,
+    attesters
   } = parameters
 
   if (!account_) {
@@ -222,26 +223,22 @@ export async function grantPermission<
 
   const defaultedSessionRequestedInfo = sessionRequestedInfo.map(applyDefaults)
 
-  // Here, we can also get TrusteAttesters action. based on check if already trusted.
-
+  const attestersToTrust = attesters ?? [MOCK_ATTESTER_ADDRESS]
   const actionResponse = await getPermissionAction({
     chainId,
     client: publicClient_,
     sessionRequestedInfo: defaultedSessionRequestedInfo
   })
 
-  const trustAttestersAction = await getTrustAttestersAction({
-    chainId,
-    client: publicClient_,
-    trustAttestersInfo: {}
+  const trustAttestersAction = getTrustAttestersAction({
+    attesters: attestersToTrust,
+    threshold: attestersToTrust.length
   })
 
-  const trustedAttesters = await findTrustedAttesters(
-    publicClient_,
-    {
-      account: account_
-    }
-  )
+  const trustedAttesters = await findTrustedAttesters({
+    client: publicClient_,
+    accountAddress: account.address
+  })
 
   const needToAddTrustAttesters = trustedAttesters.length === 0
   console.log("needToAddTrustAttesters", needToAddTrustAttesters)
@@ -263,18 +260,18 @@ export async function grantPermission<
   const calls = needToAddTrustAttesters ? [
     {
       to: trustAttestersAction.target,
-      value: trustAttestersAction.value,
+      value: trustAttestersAction.value.valueOf(),
       data: trustAttestersAction.callData
     },
     {
       to: action.target,
-      value: BigInt(action.value.toString()),
+      value: action.value,
       data: action.callData
     }
   ] : [
     {
       to: action.target,
-      value: BigInt(action.value.toString()),
+      value: action.value,
       data: action.callData
     }
   ]
