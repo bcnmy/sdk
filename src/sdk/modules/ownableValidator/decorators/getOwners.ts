@@ -36,6 +36,7 @@ export async function getOwners<
 ): Promise<Address[]> {
   const { account: account_ = client.account } = parameters ?? {}
 
+  // Review docspath below.
   if (!account_) {
     throw new AccountNotFoundError({
       docsPath: "/nexus/nexus-client/methods#sendtransaction"
