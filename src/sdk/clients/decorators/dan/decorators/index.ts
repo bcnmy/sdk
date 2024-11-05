@@ -1,10 +1,4 @@
-import type {
-  Chain,
-  Client,
-  Hex,
-  SendTransactionParameters,
-  Transport
-} from "viem"
+import type { Chain, Client, Transport } from "viem"
 import type { ModularSmartAccount } from "../../../../modules/utils/Types"
 import { type KeyGenParameters, type KeyGenResponse, keyGen } from "./keyGen"
 import { type SigGenParameters, type SigGenResponse, sigGen } from "./sigGen"

@@ -128,7 +128,6 @@
   "types": "./dist/_types/index.d.ts",
   "typings": "./dist/_types/index.d.ts",
   "dependencies": {
-    "@noble/curves": "^1.6.0",
     "@silencelaboratories/walletprovider-sdk": "^0.2.0"
   }
 }

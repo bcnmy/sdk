@@ -192,6 +192,8 @@ export const toNexusAccount = async (
     }
   })
 
+  // Review:
+  // Todo: attesters can be added here to do one time setup upon deployment.
   const factoryData = encodeFunctionData({
     abi: K1ValidatorFactoryAbi,
     functionName: "createAccount",

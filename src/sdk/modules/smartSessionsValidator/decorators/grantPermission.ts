@@ -1,9 +1,16 @@
-import type { ActionData, PolicyData, Session } from "@rhinestone/module-sdk"
+import {
+  type ActionData,
+  type PolicyData,
+  type Session,
+  findTrustedAttesters,
+  getTrustAttestersAction
+} from "@rhinestone/module-sdk"
 import type { Chain, Client, Hex, PublicClient, Transport } from "viem"
 import { sendUserOperation } from "viem/account-abstraction"
 import { encodeFunctionData, getAction, parseAccount } from "viem/utils"
-import { ERROR_MESSAGES } from "../../../account"
+import { ERROR_MESSAGES, Logger } from "../../../account"
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
+import { MOCK_ATTESTER_ADDRESS } from "../../../constants"
 import {
   SIMPLE_SESSION_VALIDATOR_ADDRESS,
   SMART_SESSIONS_ADDRESS
@@ -48,6 +55,8 @@ export type GrantPermissionParameters<
   publicClient?: PublicClient
   /** The modular smart account to create sessions for. If not provided, the client's account will be used. */
   account?: TModularSmartAccount
+  /** Optional attesters to trust. */
+  attesters?: Hex[]
 }
 
 /**
@@ -201,7 +210,8 @@ export async function grantPermission<
     maxFeePerGas,
     maxPriorityFeePerGas,
     nonce,
-    sessionRequestedInfo
+    sessionRequestedInfo,
+    attesters
   } = parameters
 
   if (!account_) {
@@ -220,30 +230,68 @@ export async function grantPermission<
 
   const defaultedSessionRequestedInfo = sessionRequestedInfo.map(applyDefaults)
 
+  const attestersToTrust = attesters ?? [MOCK_ATTESTER_ADDRESS]
   const actionResponse = await getPermissionAction({
     chainId,
     client: publicClient_,
     sessionRequestedInfo: defaultedSessionRequestedInfo
   })
 
-  if ("action" in actionResponse) {
-    const { action } = actionResponse
-    if (!("callData" in action)) {
-      throw new Error("Error getting enable sessions action")
-    }
+  const trustAttestersAction = getTrustAttestersAction({
+    attesters: attestersToTrust,
+    threshold: attestersToTrust.length
+  })
 
+  const trustedAttesters = await findTrustedAttesters({
+    client: publicClient_,
+    accountAddress: account.address
+  })
+
+  const needToAddTrustAttesters = trustedAttesters.length === 0
+  Logger.log("needToAddTrustAttesters", needToAddTrustAttesters)
+
+  if (!("action" in actionResponse)) {
+    throw new Error("Error getting enable sessions action")
+  }
+
+  const { action } = actionResponse
+
+  if (!("callData" in action)) {
+    throw new Error("Error getting enable sessions action")
+  }
+
+  if (!("callData" in trustAttestersAction)) {
+    throw new Error("Error getting trust attesters action")
+  }
+
+  const calls = needToAddTrustAttesters
+    ? [
+        {
+          to: trustAttestersAction.target,
+          value: trustAttestersAction.value.valueOf(),
+          data: trustAttestersAction.callData
+        },
+        {
+          to: action.target,
+          value: action.value,
+          data: action.callData
+        }
+      ]
+    : [
+        {
+          to: action.target,
+          value: action.value,
+          data: action.callData
+        }
+      ]
+
+  if ("action" in actionResponse) {
     const userOpHash = (await getAction(
       client,
       sendUserOperation,
       "sendUserOperation"
     )({
-      calls: [
-        {
-          to: action.target,
-          value: BigInt(action.value.toString()),
-          data: action.callData
-        }
-      ],
+      calls,
       maxFeePerGas,
       maxPriorityFeePerGas,
       nonce,
