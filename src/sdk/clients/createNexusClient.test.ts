@@ -1,4 +1,4 @@
-import { JsonRpcSigner, Signer, Wallet, ethers } from "ethers"
+import { Wallet, ethers } from "ethers"
 import {
   http,
   type Account,

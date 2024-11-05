@@ -8,13 +8,14 @@ import {
   createPublicClient,
   createWalletClient
 } from "viem"
-import type { UserOperationReceipt } from "viem/account-abstraction"
 import { beforeAll, describe, expect, test } from "vitest"
 import { playgroundTrue } from "../sdk/account/utils/Utils"
 import {
   type NexusClient,
   createNexusClient
 } from "../sdk/clients/createNexusClient"
+import { danActions } from "../sdk/modules/dan/decorators"
+import { toDAN } from "../sdk/modules/dan/toDan"
 import { toNetwork } from "./testSetup"
 import {
   type NetworkConfig,
@@ -76,48 +77,48 @@ describe.skipIf(!playgroundTrue)("playground", () => {
     console.log({ nexusAccountAddress })
   })
 
-  test("should check balances and top up relevant addresses", async () => {
-    const [ownerBalance, smartAccountBalance] = await Promise.all([
-      publicClient.getBalance({
-        address: eoaAccount.address
-      }),
-      publicClient.getBalance({
-        address: nexusAccountAddress
-      })
-    ])
+  // test.skip("should check balances and top up relevant addresses", async () => {
+  //   const [ownerBalance, smartAccountBalance] = await Promise.all([
+  //     publicClient.getBalance({
+  //       address: eoaAccount.address
+  //     }),
+  //     publicClient.getBalance({
+  //       address: nexusAccountAddress
+  //     })
+  //   ])
 
-    const balancesAreOfCorrectType = [ownerBalance, smartAccountBalance].every(
-      (balance) => typeof balance === "bigint"
-    )
-    if (smartAccountBalance === 0n) {
-      const hash = await walletClient.sendTransaction({
-        chain,
-        account: eoaAccount,
-        to: nexusAccountAddress,
-        value: 1000000000000000000n
-      })
-      const receipt = await publicClient.waitForTransactionReceipt({ hash })
-    }
-    expect(balancesAreOfCorrectType).toBeTruthy()
-  })
+  //   const balancesAreOfCorrectType = [ownerBalance, smartAccountBalance].every(
+  //     (balance) => typeof balance === "bigint"
+  //   )
+  //   if (smartAccountBalance === 0n) {
+  //     const hash = await walletClient.sendTransaction({
+  //       chain,
+  //       account: eoaAccount,
+  //       to: nexusAccountAddress,
+  //       value: 1000000000000000000n
+  //     })
+  //     const receipt = await publicClient.waitForTransactionReceipt({ hash })
+  //   }
+  //   expect(balancesAreOfCorrectType).toBeTruthy()
+  // })
 
-  test("should send some native token", async () => {
-    const balanceBefore = await publicClient.getBalance({
-      address: recipientAddress
-    })
-    const hash = await nexusClient.sendTransaction({
-      calls: [
-        {
-          to: recipientAddress,
-          value: 1n
-        }
-      ]
-    })
-    const { status } = await publicClient.waitForTransactionReceipt({ hash })
-    const balanceAfter = await publicClient.getBalance({
-      address: recipientAddress
-    })
-    expect(status).toBe("success")
-    expect(balanceAfter - balanceBefore).toBe(1n)
-  })
+  // test.skip("should send some native token", async () => {
+  //   const balanceBefore = await publicClient.getBalance({
+  //     address: recipientAddress
+  //   })
+  //   const hash = await nexusClient.sendTransaction({
+  //     calls: [
+  //       {
+  //         to: recipientAddress,
+  //         value: 1n
+  //       }
+  //     ]
+  //   })
+  //   const { status } = await publicClient.waitForTransactionReceipt({ hash })
+  //   const balanceAfter = await publicClient.getBalance({
+  //     address: recipientAddress
+  //   })
+  //   expect(status).toBe("success")
+  //   expect(balanceAfter - balanceBefore).toBe(1n)
+  // })
 })

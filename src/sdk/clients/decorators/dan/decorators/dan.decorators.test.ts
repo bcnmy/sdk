@@ -1,7 +1,7 @@
 import { http, type Address, type Chain, type LocalAccount, isHex } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
-import { danActions, toDAN } from ".."
-import { toNetwork } from "../../../../test/testSetup"
+import { danActions } from "."
+import { toNetwork } from "../../../../../test/testSetup"
 import {
   type MasterClient,
   type NetworkConfig,
@@ -9,12 +9,9 @@ import {
   killNetwork,
   toTestClient,
   topUp
-} from "../../../../test/testUtils"
-import type { NexusAccount } from "../../../account/toNexusAccount"
-import {
-  type NexusClient,
-  createNexusClient
-} from "../../../clients/createNexusClient"
+} from "../../../../../test/testUtils"
+import type { NexusAccount } from "../../../../account"
+import { type NexusClient, createNexusClient } from "../../../createNexusClient"
 
 describe("modules.dan.decorators", async () => {
   let network: NetworkConfig
@@ -53,27 +50,37 @@ describe("modules.dan.decorators", async () => {
     await killNetwork([network?.rpcPort, network?.bundlerPort])
   })
 
-  test.concurrent("should test dan decorators", async () => {
-    const danModule = toDAN({
-      account: nexusClient.account,
-      signer: nexusClient.account.signer
+  test("should send some native token", async () => {
+    const balanceBefore = await testClient.getBalance({
+      address: userThree.address
+    })
+    const hash = await nexusClient.sendTransaction({
+      calls: [
+        {
+          to: userThree.address,
+          value: 1n
+        }
+      ]
+    })
+    const { status } = await testClient.waitForTransactionReceipt({ hash })
+    const balanceAfter = await testClient.getBalance({
+      address: userThree.address
+    })
+    expect(status).toBe("success")
+    expect(balanceAfter - balanceBefore).toBe(1n)
+  })
+
+  test("should test dan decorators", async () => {
+    const danNexusClient = nexusClient.extend(danActions())
+
+    const keyData = await danNexusClient.keyGen()
+
+    const signatureData = await danNexusClient.sigGen({
+      ...keyData,
+      calls: [{ to: userTwo.address, value: 1n }],
+      account: danNexusClient.account as NexusAccount
     })
 
-    const danNexusClient = nexusClient.extend(danActions(danModule))
-
-    // const [key, userOp] = await Promise.all([
-    //   danNexusClient.generateMPCKey(),
-    //   danNexusClient.sendUserOperation({
-    //     calls: [{ to: userTwo.address, value: 1n }],
-    //     verificationGasLimit: 1n,
-    //     preVerificationGas: 1n,
-    //     callGasLimit: 1n,
-    //     account: danNexusClient.account as NexusAccount
-    //   })
-    // ])
-
-    // console.log({ userOp })
-
-    // expect(isHex(key)).toBe(true)
+    console.log({ signatureData })
   })
 })
