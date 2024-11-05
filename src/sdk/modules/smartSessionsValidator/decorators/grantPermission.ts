@@ -1,8 +1,15 @@
-import { findTrustedAttesters, getTrustAttestersAction, MOCK_ATTESTER_ADDRESS, type ActionData, type PolicyData, type Session } from "@rhinestone/module-sdk"
+import {
+  type ActionData,
+  type PolicyData,
+  type Session,
+  findTrustedAttesters,
+  getTrustAttestersAction
+} from "@rhinestone/module-sdk"
+import { MOCK_ATTESTER_ADDRESS } from "../../../constants"
 import type { Chain, Client, Hex, PublicClient, Transport } from "viem"
 import { sendUserOperation } from "viem/account-abstraction"
 import { encodeFunctionData, getAction, parseAccount } from "viem/utils"
-import { ERROR_MESSAGES } from "../../../account"
+import { ERROR_MESSAGES, Logger } from "../../../account"
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
 import {
   SIMPLE_SESSION_VALIDATOR_ADDRESS,
@@ -241,8 +248,8 @@ export async function grantPermission<
   })
 
   const needToAddTrustAttesters = trustedAttesters.length === 0
-  console.log("needToAddTrustAttesters", needToAddTrustAttesters)
-  
+  Logger.log("needToAddTrustAttesters", needToAddTrustAttesters)
+
   if (!("action" in actionResponse)) {
     throw new Error("Error getting enable sessions action")
   }
@@ -254,36 +261,37 @@ export async function grantPermission<
   }
 
   if (!("callData" in trustAttestersAction)) {
-    throw new Error("Error getting trust attesters action") 
+    throw new Error("Error getting trust attesters action")
   }
 
-  const calls = needToAddTrustAttesters ? [
-    {
-      to: trustAttestersAction.target,
-      value: trustAttestersAction.value.valueOf(),
-      data: trustAttestersAction.callData
-    },
-    {
-      to: action.target,
-      value: action.value,
-      data: action.callData
-    }
-  ] : [
-    {
-      to: action.target,
-      value: action.value,
-      data: action.callData
-    }
-  ]
+  const calls = needToAddTrustAttesters
+    ? [
+        {
+          to: trustAttestersAction.target,
+          value: trustAttestersAction.value.valueOf(),
+          data: trustAttestersAction.callData
+        },
+        {
+          to: action.target,
+          value: action.value,
+          data: action.callData
+        }
+      ]
+    : [
+        {
+          to: action.target,
+          value: action.value,
+          data: action.callData
+        }
+      ]
 
-  
   if ("action" in actionResponse) {
     const userOpHash = (await getAction(
       client,
       sendUserOperation,
       "sendUserOperation"
     )({
-      calls: calls,
+      calls,
       maxFeePerGas,
       maxPriorityFeePerGas,
       nonce,

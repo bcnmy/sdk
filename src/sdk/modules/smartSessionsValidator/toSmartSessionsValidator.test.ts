@@ -206,27 +206,7 @@ describe("modules.smartSessions", async () => {
 
     expect(isInstalledBefore).toBe(true)
 
-    // Note: below is removed because now the grantPermission decorator will take care of this.
-
-    // Trust the mock attester.
-    // We're running on a fork of base sepolia, where necessary modules are registered on the registry and mock attestations are done.
-    // const trustAttestersHash = await nexusClient.sendTransaction({
-    //   calls: [
-    //     {
-    //       to: testAddresses.MockRegistry,
-    //       value: 0n,
-    //       data: encodeFunctionData({
-    //         abi: MockRegistryAbi,
-    //         functionName: "trustAttesters",
-    //         args: [1, [testAddresses.MockAttester]] // Review if more attesters needed
-    //       })
-    //     }
-    //   ]
-    // })
-    // const { status } = await testClient.waitForTransactionReceipt({
-    //   hash: trustAttestersHash
-    // })
-    // expect(status).toBe("success")
+    // Note: grantPermission decorator will take care of trusting the attester.
 
     // session key signer address is declared here
     const sessionRequestedInfo: CreateSessionDataParams[] = [

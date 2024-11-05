@@ -30,7 +30,6 @@ export type TrustAttestersParameters<
   threshold?: number
 }
 
-
 /**
  * Trusts attesters for the smart session validator.
  *

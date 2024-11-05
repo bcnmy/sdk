@@ -37,7 +37,6 @@ export type SmartSessionCreateActions<
   ) => Promise<Hash>
 }
 
-
 /**
  * Defines the shape of actions available for using smart sessions.
  *
@@ -90,7 +89,6 @@ export function smartSessionUseActions(smartSessionsModule: Module) {
     }
   }
 }
-
 
 export * from "./grantPermission"
 export * from "./trustAttesters"

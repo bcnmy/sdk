@@ -293,8 +293,7 @@ export function unzipSessionData(zippedData: string): SessionData {
 
 // Todo
 // 1. find trusted attesters. why not just here instead of part of read decorators?
-// 2. get trusteAttesters calldata. or returning the whole "Action"/Execution 
-
+// 2. get trusteAttesters calldata. or returning the whole "Action"/Execution
 
 /**
  * Retrieves the list of trusted attesters for a given account from the registry.
@@ -311,7 +310,7 @@ export function unzipSessionData(zippedData: string): SessionData {
 
 export const getTrustedAttesters = async ({
   accountAddress,
-  client,
+  client
 }: {
   accountAddress: Address
   client: PublicClient
@@ -320,8 +319,8 @@ export const getTrustedAttesters = async ({
     const attesters = (await client.readContract({
       address: REGISTRY_ADDRESS,
       abi: ERC7484RegistryAbi,
-      functionName: 'findTrustedAttesters',
-      args: [accountAddress],
+      functionName: "findTrustedAttesters",
+      args: [accountAddress]
     })) as Address[]
 
     return attesters
@@ -330,6 +329,5 @@ export const getTrustedAttesters = async ({
     return []
   }
 }
-
 
 export default policies
