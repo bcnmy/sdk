@@ -27,6 +27,7 @@ import { ERROR_MESSAGES } from "../account/utils/Constants"
 import { Logger } from "../account/utils/Logger"
 import { getAccountMeta, makeInstallDataAndHash } from "../account/utils/Utils"
 import { getChain } from "../account/utils/getChain"
+import type { UnknownSigner } from "../account/utils/toSigner"
 import { k1ValidatorAddress } from "../constants"
 import { type NexusClient, createNexusClient } from "./createNexusClient"
 
@@ -267,7 +268,7 @@ describe("nexus.client", async () => {
     })
 
     const ethersNexusClient = await createNexusClient({
-      signer: wallet,
+      signer: wallet as unknown as UnknownSigner,
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl)
@@ -282,7 +283,7 @@ describe("nexus.client", async () => {
   test("should send user operation using ethers Wallet", async () => {
     const ethersSigner = new ethers.Wallet(privKey)
     const ethersNexusClient = await createNexusClient({
-      signer: ethersSigner,
+      signer: ethersSigner as unknown as UnknownSigner,
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl)

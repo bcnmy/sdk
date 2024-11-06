@@ -2,32 +2,47 @@ import {
   EOAAuth,
   NetworkSigner,
   WalletProviderServiceClient,
-  computeAddress
+  computeAddress,
+  generateEphPrivateKey,
+  getEphPublicKey
 } from "@silencelaboratories/walletprovider-sdk"
-import type { Chain, Client, Hex, Transport } from "viem"
-import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
+import { type Chain, type Client, type Hex, type Transport, toHex } from "viem"
 import { ERROR_MESSAGES, type Signer } from "../../../../account"
 import { AccountNotFoundError } from "../../../../account/utils/AccountNotFound"
 import type { ModularSmartAccount } from "../../../../modules/utils/Types"
-import { DanWallet, hexToUint8Array, uuid } from "../Helpers"
+import { DanWallet, uuid } from "../Helpers"
 
+/**
+ * Constants for DAN (Distributed Account Network) configuration
+ */
 export const EPHEMERAL_KEY_TTL = 60 * 60 * 24 // 1 day
 export const QUORUM_PARTIES = 3
 export const QUORUM_THRESHOLD = 2
 export const DEFAULT_DAN_URL = "wss://dan.staging.biconomy.io/v1"
 
-export type KeyGenResponse = {
+/**
+ * Response data from the key generation process
+ */
+export type KeyGenData = {
+  /** The generated public key */
   publicKey: Hex
+  /** Unique identifier for the generated key */
   keyId: Hex
+  /** EOA address derived from the session key */
   sessionKeyEOA: Hex
+  /** Secret key of the ephemeral key pair */
   ephSK: Hex
+  /** Unique identifier for the ephemeral key */
   ephId: Hex
 }
 
+/**
+ * Parameters for key generation
+ */
 export type KeyGenParameters<
   TModularSmartAccount extends ModularSmartAccount | undefined
 > = {
-  /** The smart account to add the owner to. If not provided, the client's account will be used. */
+  /** The smart account to add the owner to. If not provided, the client's account will be used */
   account?: TModularSmartAccount
   /** Optional Signer, defaults to the one in the client */
   signer?: Signer
@@ -35,21 +50,39 @@ export type KeyGenParameters<
   ephSK: Hex
 } & DanParameters
 
+/**
+ * Configuration parameters for DAN network
+ */
 export type DanParameters = {
+  /** Chain configuration */
   chain?: Chain
+  /** Minimum number of parties required for signing (default: 2) */
   threshold?: number
+  /** Total number of parties in the signing group (default: 3) */
   partiesNumber?: number
+  /** Duration of the ephemeral key validity in seconds (default: 24 hours) */
   duration?: number
+  /** URL of the wallet provider service */
   walletProviderUrl?: string
+  /** Unique identifier for the ephemeral key */
   ephId?: string
 }
 
+/**
+ * Generates a distributed key pair using the DAN protocol
+ *
+ * @param client - The client instance containing account and chain information
+ * @param parameters - Configuration parameters for key generation
+ * @returns Generated key data including public key, session key, and ephemeral information
+ * @throws {Error} When signer or chain is not provided
+ * @throws {AccountNotFoundError} When account is not found
+ */
 export async function keyGen<
   TModularSmartAccount extends ModularSmartAccount | undefined
 >(
   client: Client<Transport, Chain | undefined, TModularSmartAccount>,
   parameters?: KeyGenParameters<TModularSmartAccount>
-): Promise<KeyGenResponse> {
+): Promise<KeyGenData> {
   const {
     account: account_ = client.account,
     signer: signer_ = account_?.client?.account as Signer,
@@ -75,9 +108,9 @@ export async function keyGen<
     })
   }
 
-  const ephSK = generatePrivateKey()
-  const ephPK = privateKeyToAccount(ephSK).address.slice(2)
-  const ephPKArr = hexToUint8Array(ephPK)
+  const skArr = generateEphPrivateKey()
+  const ephPKArr = getEphPublicKey(skArr)
+  const ephSK = toHex(skArr)
 
   const wpClient = new WalletProviderServiceClient({
     walletProviderId: "WalletProvider",
@@ -101,16 +134,14 @@ export async function keyGen<
     eoaAuth
   )
 
-  const createdKey = await networkSigner.authenticateAndCreateKey(ephPKArr)
+  const createdKey = await networkSigner.generateKey()
 
-  const sessionKeyEOA = computeAddress(createdKey.publicKey) // Bestow this address with permissions
-
-  console.log({ createdKey })
+  const sessionKeyEOA = computeAddress(createdKey.publicKey)
 
   return {
     ...createdKey,
     sessionKeyEOA,
     ephSK,
     ephId
-  } as KeyGenResponse
+  } as KeyGenData
 }

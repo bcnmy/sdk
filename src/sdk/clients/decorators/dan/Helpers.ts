@@ -33,7 +33,7 @@ export const hexToUint8Array = (hex: string): Uint8Array => {
   return array
 }
 
-export const uuid = (length = 12) => {
+export const uuid = (length = 24) => {
   let result = ""
   const characters =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"

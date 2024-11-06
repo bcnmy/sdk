@@ -5,12 +5,12 @@ import { toNetwork } from "../../../../../test/testSetup"
 import {
   type MasterClient,
   type NetworkConfig,
+  getBalance,
   getTestAccount,
   killNetwork,
   toTestClient,
   topUp
 } from "../../../../../test/testUtils"
-import type { NexusAccount } from "../../../../account"
 import { type NexusClient, createNexusClient } from "../../../createNexusClient"
 
 describe("modules.dan.decorators", async () => {
@@ -71,16 +71,25 @@ describe("modules.dan.decorators", async () => {
   })
 
   test("should test dan decorators", async () => {
+    const balanceOfRecipient = await getBalance(testClient, userTwo.address)
+
     const danNexusClient = nexusClient.extend(danActions())
+    const keyGenData = await danNexusClient.keyGen()
 
-    const keyData = await danNexusClient.keyGen()
-
-    const signatureData = await danNexusClient.sigGen({
-      ...keyData,
-      calls: [{ to: userTwo.address, value: 1n }],
-      account: danNexusClient.account as NexusAccount
+    const hash = await danNexusClient.sendTx({
+      account: nexusClient.account,
+      keyGenData,
+      calls: [{ to: userTwo.address, value: 1n }]
     })
 
-    console.log({ signatureData })
+    const balanceOfRecipientAfter = await getBalance(
+      testClient,
+      userTwo.address
+    )
+
+    const { status } = await testClient.waitForTransactionReceipt({ hash })
+
+    expect(balanceOfRecipientAfter - balanceOfRecipient).toBe(1n)
+    expect(status).toBe("success")
   })
 })
