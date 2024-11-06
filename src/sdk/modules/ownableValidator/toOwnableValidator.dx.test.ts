@@ -8,16 +8,8 @@ import {
   toTestClient
 } from "../../../test/testUtils"
 import type { MasterClient, NetworkConfig } from "../../../test/testUtils"
-import type { NexusAccount } from "../../account"
-import {
-  type NexusClient,
-  createNexusClient
-} from "../../clients/createNexusClient"
-import { parseModuleTypeId } from "../../clients/decorators/erc7579/supportsModule"
-import { k1ValidatorAddress } from "../../constants"
-import { toK1Validator } from "../k1Validator/toK1Validator"
-import type { Module } from "../utils/Types"
-import { type OwnableActions, ownableActions } from "./decorators"
+import { createNexusClient } from "../../clients/createNexusClient"
+import { ownableActions } from "./decorators"
 import { toOwnableValidator } from "./toOwnableValidator"
 
 describe("modules.ownableValidator.dx", async () => {

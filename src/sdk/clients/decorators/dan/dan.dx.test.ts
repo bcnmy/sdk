@@ -1,6 +1,7 @@
 import { http, type Chain, type LocalAccount } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
-import { toNetwork } from "../../../../test/testSetup"
+import { danActions } from "."
+import { toNetwork } from "../../../../../test/testSetup"
 import {
   type MasterClient,
   type NetworkConfig,
@@ -8,14 +9,13 @@ import {
   getTestAccount,
   killNetwork,
   toTestClient
-} from "../../../../test/testUtils"
+} from "../../../../../test/testUtils"
 import {
   parse,
   stringify
-} from "../../../modules/smartSessionsValidator/Helpers"
-import { type NexusClient, createNexusClient } from "../../createNexusClient"
-import { danActions } from "./decorators"
-import type { KeyGenData } from "./decorators/keyGen"
+} from "../../../../modules/smartSessionsValidator/Helpers"
+import { type NexusClient, createNexusClient } from "../../../createNexusClient"
+import type { KeyGenData } from "./keyGen"
 
 describe("DAN (Distributed Account Network) Demonstration", async () => {
   let network: NetworkConfig
