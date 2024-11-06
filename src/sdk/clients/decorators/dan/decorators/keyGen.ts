@@ -29,7 +29,7 @@ export type KeyGenData = {
   /** Unique identifier for the generated key */
   keyId: Hex
   /** EOA address derived from the session key */
-  sessionKeyEOA: Hex
+  sessionPublicKey: Hex
   /** Secret key of the ephemeral key pair */
   ephSK: Hex
   /** Unique identifier for the ephemeral key */
@@ -136,11 +136,11 @@ export async function keyGen<
 
   const createdKey = await networkSigner.generateKey()
 
-  const sessionKeyEOA = computeAddress(createdKey.publicKey)
+  const sessionPublicKey = computeAddress(createdKey.publicKey)
 
   return {
     ...createdKey,
-    sessionKeyEOA,
+    sessionPublicKey,
     ephSK,
     ephId
   } as KeyGenData

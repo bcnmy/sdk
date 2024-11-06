@@ -98,6 +98,11 @@ export const TEST_CONTRACTS: Record<
     chainId: baseSepolia.id,
     name: "UserOperationBuilder",
     address: "0xb07D7605a1AAeE4e56915363418229c127fF7C3D"
+  },
+  MockSignatureValidator: {
+    chainId: baseSepolia.id,
+    name: "MockSignatureValidator",
+    address: "0x0d0C730F50a6da2725d4CD4eb91Bc678Bd377F7D"
   }
 }
 

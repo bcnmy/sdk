@@ -12,6 +12,7 @@ import {
   topUp
 } from "../../../../../test/testUtils"
 import { type NexusClient, createNexusClient } from "../../../createNexusClient"
+import { DanWallet, hexToUint8Array, uuid } from "../Helpers"
 
 describe("modules.dan.decorators", async () => {
   let network: NetworkConfig
@@ -50,6 +51,70 @@ describe("modules.dan.decorators", async () => {
     await killNetwork([network?.rpcPort, network?.bundlerPort])
   })
 
+  test.concurrent("DanWallet should initialize correctly", () => {
+    const account = getTestAccount(0)
+    const danWallet = new DanWallet(account, chain)
+    expect(danWallet.walletClient).toBeDefined()
+    expect(danWallet.walletClient.account).toBe(account)
+    expect(danWallet.walletClient.chain).toBe(chain)
+  })
+
+  test.concurrent("DanWallet should sign typed data", async () => {
+    const account = getTestAccount(0)
+    const danWallet = new DanWallet(account, chain)
+
+    const typedData = {
+      types: {
+        Test: [{ name: "test", type: "string" }]
+      },
+      primaryType: "Test",
+      domain: {
+        name: "Test Domain",
+        version: "1",
+        chainId: 1
+      },
+      message: {
+        test: "Hello World"
+      }
+    }
+
+    const signature = await danWallet.signTypedData("", typedData)
+    expect(signature).toBeDefined()
+    expect(isHex(signature as string)).toBe(true)
+  })
+
+  test.concurrent("hexToUint8Array should convert hex string correctly", () => {
+    const hex = "0a0b0c"
+    const result = hexToUint8Array(hex)
+    expect(result).toBeInstanceOf(Uint8Array)
+    expect(result.length).toBe(3)
+    expect(Array.from(result)).toEqual([10, 11, 12])
+  })
+
+  test.concurrent("hexToUint8Array should throw on invalid hex string", () => {
+    expect(() => hexToUint8Array("0a0")).toThrow(
+      "Hex string must have an even number of characters"
+    )
+  })
+
+  test.concurrent("uuid should generate string of correct length", () => {
+    const length = 32
+    const result = uuid(length)
+    expect(result.length).toBe(length)
+    expect(typeof result).toBe("string")
+  })
+
+  test.concurrent("uuid should use default length of 24", () => {
+    const result = uuid()
+    expect(result.length).toBe(24)
+  })
+
+  test.concurrent("uuid should generate unique values", () => {
+    const uuid1 = uuid()
+    const uuid2 = uuid()
+    expect(uuid1).not.toBe(uuid2)
+  })
+
   test("should send some native token", async () => {
     const balanceBefore = await testClient.getBalance({
       address: userThree.address
@@ -77,7 +142,6 @@ describe("modules.dan.decorators", async () => {
     const keyGenData = await danNexusClient.keyGen()
 
     const hash = await danNexusClient.sendTx({
-      account: nexusClient.account,
       keyGenData,
       calls: [{ to: userTwo.address, value: 1n }]
     })

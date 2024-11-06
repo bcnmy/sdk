@@ -3,7 +3,7 @@ import {
   SmartSessionMode,
   encodeSmartSessionSignature
 } from "@rhinestone/module-sdk"
-import { type Address, type Hex, encodePacked } from "viem"
+import { type Address, type Hex, type PartialBy, encodePacked } from "viem"
 import type { ModuleMeta } from "../../modules/utils/Types"
 import type { ModularSmartAccount } from "../utils/Types"
 import type { Module, ModuleParameters } from "../utils/Types"
@@ -31,7 +31,7 @@ export type UsePermissionModuleGetInitDataArgs = {
  * Parameters for creating a Use Session module.
  */
 export type UsePermissionModuleParameters = Omit<
-  ModuleParameters,
+  PartialBy<ModuleParameters, "address">,
   "accountAddress"
 > & {
   account: ModularSmartAccount
@@ -94,6 +94,7 @@ export const toSmartSessionsValidator = (
   parameters: UsePermissionModuleParameters
 ): Module => {
   const {
+    address = SMART_SESSIONS_ADDRESS,
     account,
     signer,
     moduleInitData: moduleInitData_,
@@ -115,7 +116,7 @@ export const toSmartSessionsValidator = (
   return toModule({
     signer,
     accountAddress: account.address,
-    address: SMART_SESSIONS_ADDRESS,
+    address,
     initData,
     moduleInitData,
     deInitData,

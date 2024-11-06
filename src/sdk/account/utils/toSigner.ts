@@ -21,17 +21,34 @@ import { signTypedData } from "viem/actions"
 import { getAction } from "viem/utils"
 import type { AnyData } from "../../modules/utils/Types"
 
+/**
+ * Represents the minimum interface required for a signer implementation.
+ * Provides basic signing capabilities for transactions, messages, and typed data.
+ */
 export type MinimalSigner = {
+  /** Signs a transaction with the provided arguments */
   signTransaction: (...args: AnyData[]) => Promise<AnyData>
+  /** Signs a message with the provided arguments */
   signMessage: (...args: AnyData[]) => Promise<AnyData>
+  /** Signs typed data (EIP-712) with the provided arguments */
   signTypedData: (...args: AnyData[]) => Promise<AnyData>
+  /** Optional method to retrieve the signer's address */
   getAddress?: () => Promise<AnyData>
-  address?: Address
+  /** The signer's address */
+  address: Address | string
+  /** Optional provider instance */
   provider?: AnyData
+  /** Allows for additional properties */
   [key: string]: AnyData
 }
 
+/** Represents a local account that can sign transactions and messages */
 export type Signer = LocalAccount
+
+/**
+ * Union type of various signer implementations that can be converted to a LocalAccount.
+ * Supports EIP-1193 providers, WalletClients, LocalAccounts, Accounts, and MinimalSigners.
+ */
 export type UnknownSigner = OneOf<
   | EIP1193Provider
   | WalletClient<Transport, Chain | undefined, Account>
@@ -39,6 +56,19 @@ export type UnknownSigner = OneOf<
   | Account
   | MinimalSigner
 >
+
+/**
+ * Converts various signer types into a standardized LocalAccount format.
+ * Handles conversion from different wallet implementations including ethers.js wallets,
+ * EIP-1193 providers, and existing LocalAccounts.
+ *
+ * @param signer - The signer to convert, must implement required signing methods
+ * @param address - Optional address to use for the account
+ * @returns A Promise resolving to a LocalAccount
+ *
+ * @throws {Error} When signTransaction is called (not supported)
+ * @throws {Error} When address is required but not provided
+ */
 export async function toSigner({
   signer,
   address
@@ -126,8 +156,7 @@ export async function toSigner({
         walletClient,
         signTypedData,
         "signTypedData"
-        // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-      )(typedData as any)
+      )(typedData as AnyData)
     },
     async signTransaction(_) {
       throw new Error("Not supported")

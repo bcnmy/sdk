@@ -268,7 +268,7 @@ describe("nexus.client", async () => {
     })
 
     const ethersNexusClient = await createNexusClient({
-      signer: wallet as unknown as UnknownSigner,
+      signer: wallet,
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl)

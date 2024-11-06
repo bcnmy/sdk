@@ -14,7 +14,7 @@ import { ERROR_MESSAGES, type Signer } from "../../../../account"
 import { AccountNotFoundError } from "../../../../account/utils/AccountNotFound"
 import { ENTRY_POINT_ADDRESS } from "../../../../constants"
 import type { ModularSmartAccount } from "../../../../modules/utils/Types"
-import { hexToUint8Array, stringifyBigInt } from "../Helpers"
+import { hexToUint8Array } from "../Helpers"
 import {
   DEFAULT_DAN_URL,
   type DanParameters,
@@ -155,30 +155,24 @@ export const sigGen = async <
 
   const userOperation: DANUserOp = {
     sender: preparedUserOperation.sender,
-    nonce: stringifyBigInt(preparedUserOperation.nonce),
+    nonce: preparedUserOperation.nonce.toString(),
     callData: preparedUserOperation.callData,
-    callGasLimit: stringifyBigInt(preparedUserOperation.callGasLimit),
-    verificationGasLimit: stringifyBigInt(
-      preparedUserOperation.verificationGasLimit
-    ),
-    preVerificationGas: stringifyBigInt(
-      preparedUserOperation.preVerificationGas
-    ),
-    maxFeePerGas: stringifyBigInt(preparedUserOperation.maxFeePerGas),
-    maxPriorityFeePerGas: stringifyBigInt(
-      preparedUserOperation.maxPriorityFeePerGas
-    ),
+    callGasLimit: preparedUserOperation.callGasLimit.toString(),
+    verificationGasLimit: preparedUserOperation.verificationGasLimit.toString(),
+    preVerificationGas: preparedUserOperation.preVerificationGas.toString(),
+    maxFeePerGas: preparedUserOperation.maxFeePerGas.toString(),
+    maxPriorityFeePerGas: preparedUserOperation.maxPriorityFeePerGas.toString(),
     paymasterAndData: preparedUserOperation.paymasterAndData ?? "",
     factoryData: preparedUserOperation.factoryData ?? ""
   }
 
   const signMessage = JSON.stringify({
-    message: {
+    message: JSON.stringify({
       userOperation,
       entryPointVersion: "v0.7.0",
       entryPointAddress: ENTRY_POINT_ADDRESS,
       chainId: chain_.id
-    },
+    }),
     requestType: "accountAbstractionTx"
   })
 
