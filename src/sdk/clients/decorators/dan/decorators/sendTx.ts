@@ -32,16 +32,17 @@ export async function sendTx<
   client: Client<Transport, chain, account>,
   parameters: SigGenParameters
 ): Promise<Hash> {
-  const sigGenResponse = await getAction(client, sigGen, "sigGen")(parameters)
+  const { userOperation, signature } = await getAction(
+    client,
+    sigGen,
+    "sigGen"
+  )(parameters)
 
   const userOpHash = await getAction(
     client,
     sendUserOperation,
     "sendUserOperation"
-  )({
-    ...sigGenResponse.preparedUserOperation,
-    signature: sigGenResponse.signature
-  })
+  )({ ...userOperation, signature })
 
   const userOperationReceipt = await getAction(
     client,

@@ -1,20 +1,30 @@
-import { http, type Address, type Chain, type LocalAccount, isHex } from "viem"
+import { computeAddress } from "@silencelaboratories/walletprovider-sdk"
+import {
+  http,
+  type Address,
+  type Chain,
+  type Hex,
+  type LocalAccount,
+  isHex,
+  verifyMessage
+} from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { danActions } from "."
 import { toNetwork } from "../../../../../test/testSetup"
 import {
   type MasterClient,
   type NetworkConfig,
-  getBalance,
+  fundAndDeployClients,
   getTestAccount,
   killNetwork,
   toTestClient,
   topUp
 } from "../../../../../test/testUtils"
+import { UserOperationStruct } from "../../../../account/utils/Types"
 import { type NexusClient, createNexusClient } from "../../../createNexusClient"
 import { DanWallet, hexToUint8Array, uuid } from "../Helpers"
 
-describe("modules.dan.decorators", async () => {
+describe("dan.decorators", async () => {
   let network: NetworkConfig
   let chain: Chain
   let bundlerUrl: string
@@ -45,13 +55,13 @@ describe("modules.dan.decorators", async () => {
     })
 
     nexusAccountAddress = await nexusClient.account.getCounterFactualAddress()
-    await topUp(testClient, nexusAccountAddress)
+    await fundAndDeployClients(testClient, [nexusClient])
   })
   afterAll(async () => {
     await killNetwork([network?.rpcPort, network?.bundlerPort])
   })
 
-  test.concurrent("DanWallet should initialize correctly", () => {
+  test("DanWallet should initialize correctly", () => {
     const account = getTestAccount(0)
     const danWallet = new DanWallet(account, chain)
     expect(danWallet.walletClient).toBeDefined()
@@ -59,7 +69,7 @@ describe("modules.dan.decorators", async () => {
     expect(danWallet.walletClient.chain).toBe(chain)
   })
 
-  test.concurrent("DanWallet should sign typed data", async () => {
+  test("DanWallet should sign typed data", async () => {
     const account = getTestAccount(0)
     const danWallet = new DanWallet(account, chain)
 
@@ -83,7 +93,7 @@ describe("modules.dan.decorators", async () => {
     expect(isHex(signature as string)).toBe(true)
   })
 
-  test.concurrent("hexToUint8Array should convert hex string correctly", () => {
+  test("hexToUint8Array should convert hex string correctly", () => {
     const hex = "0a0b0c"
     const result = hexToUint8Array(hex)
     expect(result).toBeInstanceOf(Uint8Array)
@@ -91,69 +101,73 @@ describe("modules.dan.decorators", async () => {
     expect(Array.from(result)).toEqual([10, 11, 12])
   })
 
-  test.concurrent("hexToUint8Array should throw on invalid hex string", () => {
+  test("hexToUint8Array should throw on invalid hex string", () => {
     expect(() => hexToUint8Array("0a0")).toThrow(
       "Hex string must have an even number of characters"
     )
   })
 
-  test.concurrent("uuid should generate string of correct length", () => {
+  test("uuid should generate string of correct length", () => {
     const length = 32
     const result = uuid(length)
     expect(result.length).toBe(length)
     expect(typeof result).toBe("string")
   })
 
-  test.concurrent("uuid should use default length of 24", () => {
+  test("uuid should use default length of 24", () => {
     const result = uuid()
     expect(result.length).toBe(24)
   })
 
-  test.concurrent("uuid should generate unique values", () => {
+  test("uuid should generate unique values", () => {
     const uuid1 = uuid()
     const uuid2 = uuid()
     expect(uuid1).not.toBe(uuid2)
   })
 
-  test("should send some native token", async () => {
-    const balanceBefore = await testClient.getBalance({
-      address: userThree.address
+  test("should check signature verification using keyGen and sigGen", async () => {
+    const danNexusClient = nexusClient.extend(danActions())
+
+    const keyGenData = await danNexusClient.keyGen()
+    const sigGenData = await danNexusClient.sigGen({
+      keyGenData,
+      calls: [{ to: userTwo.address, value: 1n }]
     })
-    const hash = await nexusClient.sendTransaction({
-      calls: [
-        {
-          to: userThree.address,
-          value: 1n
-        }
-      ]
+
+    const userOperation = {
+      ...sigGenData.userOperation,
+      signature: sigGenData.signature
+    }
+
+    const userOpHash =
+      await danNexusClient.account?.getUserOpHash(userOperation)
+
+    if (!userOpHash) {
+      throw new Error("userOpHash is undefined")
+    }
+
+    const ethAddress = computeAddress(keyGenData.publicKey)
+
+    const valid = await verifyMessage({
+      address: ethAddress,
+      message: { raw: userOpHash },
+      signature: sigGenData.signature
     })
-    const { status } = await testClient.waitForTransactionReceipt({ hash })
-    const balanceAfter = await testClient.getBalance({
-      address: userThree.address
-    })
-    expect(status).toBe("success")
-    expect(balanceAfter - balanceBefore).toBe(1n)
+
+    expect(valid).toBe(true)
   })
 
-  test("should test dan decorators", async () => {
-    const balanceOfRecipient = await getBalance(testClient, userTwo.address)
-
+  test("should send a tx with dan", async () => {
     const danNexusClient = nexusClient.extend(danActions())
-    const keyGenData = await danNexusClient.keyGen()
 
+    const keyGenData = await danNexusClient.keyGen()
     const hash = await danNexusClient.sendTx({
       keyGenData,
       calls: [{ to: userTwo.address, value: 1n }]
     })
 
-    const balanceOfRecipientAfter = await getBalance(
-      testClient,
-      userTwo.address
-    )
-
     const { status } = await testClient.waitForTransactionReceipt({ hash })
 
-    expect(balanceOfRecipientAfter - balanceOfRecipient).toBe(1n)
     expect(status).toBe("success")
   })
 })

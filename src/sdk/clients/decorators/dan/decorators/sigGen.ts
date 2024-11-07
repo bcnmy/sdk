@@ -3,17 +3,19 @@ import {
   NetworkSigner,
   WalletProviderServiceClient
 } from "@silencelaboratories/walletprovider-sdk"
-import type { Chain, Client, Hex, PartialBy, Transport } from "viem"
+import type { Address, Chain, Client, Hex, PartialBy, Transport } from "viem"
 import {
   type PrepareUserOperationParameters,
-  type PrepareUserOperationReturnType,
+  type UserOperation,
   prepareUserOperation
 } from "viem/account-abstraction"
-import { getAction } from "viem/utils"
+import { getAction, toHex } from "viem/utils"
 import { ERROR_MESSAGES, type Signer } from "../../../../account"
 import { AccountNotFoundError } from "../../../../account/utils/AccountNotFound"
-import { ENTRY_POINT_ADDRESS } from "../../../../constants"
-import type { ModularSmartAccount } from "../../../../modules/utils/Types"
+import type {
+  AnyData,
+  ModularSmartAccount
+} from "../../../../modules/utils/Types"
 import { hexToUint8Array } from "../Helpers"
 import {
   DEFAULT_DAN_URL,
@@ -28,25 +30,25 @@ import {
  * Contains the basic parameters needed for an ERC-4337 compatible transaction.
  */
 export type DANUserOp = {
-  /** The sender address of the user operation */
-  sender: Hex
-  /** Transaction nonce as a string */
+  /** Address of the sender */
+  sender: Address
+  /** Unique value to prevent replay attacks */
   nonce: string
-  /** Encoded call data for the transaction */
-  callData: string
-  /** Gas limit for the main execution as a string */
-  callGasLimit: string
-  /** Gas limit for the verification step as a string */
-  verificationGasLimit: string
-  /** Gas required for pre-verification operations as a string */
-  preVerificationGas: string
-  /** Maximum gas fee the user is willing to pay as a string */
-  maxFeePerGas: string
-  /** Maximum priority fee for miners as a string */
-  maxPriorityFeePerGas: string
-  /** Optional paymaster contract address and additional data */
+  /** Encoded function call data */
+  callData: Hex
+  /** Maximum gas allowed for the call */
+  callGasLimit: Hex
+  /** Gas limit for verification */
+  verificationGasLimit: Hex
+  /** Gas used before verification */
+  preVerificationGas: Hex
+  /** Maximum fee per gas unit */
+  maxFeePerGas: Hex
+  /** Maximum priority fee per gas unit */
+  maxPriorityFeePerGas: Hex
+  /** Data related to the paymaster */
   paymasterAndData: string
-  /** Optional factory deployment data */
+  /** Additional data for factory operations */
   factoryData: string
 }
 
@@ -86,10 +88,8 @@ export type SigGenParameters = PartialBy<
  * Response from signature generation process
  */
 export type SigGenResponse = {
-  /** Generated signature for the user operation */
+  userOperation: UserOperation<"0.7", bigint>
   signature: Hex
-  /** Prepared user operation with all necessary parameters */
-  preparedUserOperation: PrepareUserOperationReturnType
 }
 
 /**
@@ -153,34 +153,55 @@ export const sigGen = async <
     "prepareUserOperation"
   )(parameters as PrepareUserOperationParameters)
 
-  const userOperation: DANUserOp = {
-    sender: preparedUserOperation.sender,
-    nonce: preparedUserOperation.nonce.toString(),
-    callData: preparedUserOperation.callData,
-    callGasLimit: preparedUserOperation.callGasLimit.toString(),
-    verificationGasLimit: preparedUserOperation.verificationGasLimit.toString(),
-    preVerificationGas: preparedUserOperation.preVerificationGas.toString(),
-    maxFeePerGas: preparedUserOperation.maxFeePerGas.toString(),
-    maxPriorityFeePerGas: preparedUserOperation.maxPriorityFeePerGas.toString(),
-    paymasterAndData: preparedUserOperation.paymasterAndData ?? "",
-    factoryData: preparedUserOperation.factoryData ?? ""
-  }
+  const REQUIRED_FIELDS = [
+    "sender",
+    "nonce",
+    "callData",
+    "callGasLimit",
+    "verificationGasLimit",
+    "preVerificationGas",
+    "maxFeePerGas",
+    "maxPriorityFeePerGas",
+    "paymasterAndData",
+    "factoryData"
+  ]
+
+  const userOperation = REQUIRED_FIELDS.reduce(
+    (acc, field) => {
+      if (field in preparedUserOperation) {
+        acc[field] =
+          preparedUserOperation[field as keyof typeof preparedUserOperation]
+      }
+      return acc
+    },
+    {} as Record<string, AnyData>
+  ) as SigGenResponse["userOperation"]
 
   const signMessage = JSON.stringify({
     message: JSON.stringify({
-      userOperation,
+      userOperation: {
+        sender: preparedUserOperation.sender,
+        nonce: preparedUserOperation.nonce.toString(),
+        callData: preparedUserOperation.callData,
+        callGasLimit: toHex(preparedUserOperation.callGasLimit),
+        verificationGasLimit: toHex(preparedUserOperation.verificationGasLimit),
+        preVerificationGas: toHex(preparedUserOperation.preVerificationGas),
+        maxFeePerGas: toHex(preparedUserOperation.maxFeePerGas),
+        maxPriorityFeePerGas: toHex(preparedUserOperation.maxPriorityFeePerGas),
+        paymasterAndData: preparedUserOperation.paymasterAndData ?? "",
+        factoryData: preparedUserOperation.factoryData ?? ""
+      },
       entryPointVersion: "v0.7.0",
-      entryPointAddress: ENTRY_POINT_ADDRESS,
+      entryPointAddress: "0x0000000071727De22E5E9d8BAf0edAc6f37da032",
       chainId: chain_.id
     }),
     requestType: "accountAbstractionTx"
   })
 
-  const danSignature = await networkSigner.signMessage(keyId, signMessage)
+  const { sign, recid } = await networkSigner.signMessage(keyId, signMessage)
 
-  const v = danSignature.recid
-  const sigV = v === 0 ? "1b" : "1c"
-  const signature: Hex = `0x${danSignature.sign}${sigV}`
+  const recid_hex = (27 + recid).toString(16)
+  const signature = `0x${sign}${recid_hex}` as Hex
 
-  return { signature, preparedUserOperation }
+  return { userOperation, signature }
 }

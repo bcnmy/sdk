@@ -13,6 +13,7 @@ import type {
   WriteContractParameters
 } from "viem"
 import type { SmartAccount } from "viem/account-abstraction"
+import type { AnyData } from "../../../modules/utils/Types"
 import { sendTransaction } from "./sendTransaction"
 import { signMessage } from "./signMessage"
 import { signTypedData } from "./signTypedData"
@@ -81,6 +82,7 @@ export type SmartAccountActions<
       >
     >[1]
   ) => Promise<Hash>
+
   /**
    * Calculates an Ethereum-specific signature in [EIP-191 format](https://eips.ethereum.org/EIPS/eip-191): `keccak256("\x19Ethereum Signed Message:\n" + len(message) + message))`.
    *
@@ -322,8 +324,7 @@ export function smartAccountActions() {
   >(
     client: Client<Transport, TChain, TSmartAccount>
   ): SmartAccountActions<TChain, TSmartAccount> => ({
-    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-    sendTransaction: (args) => sendTransaction(client, args as any),
+    sendTransaction: (args) => sendTransaction(client, args as AnyData),
     signMessage: (args) => signMessage(client, args),
     signTypedData: (args) => signTypedData(client, args),
     writeContract: (args) => writeContract(client, args),

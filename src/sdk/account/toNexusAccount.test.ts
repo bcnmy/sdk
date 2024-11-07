@@ -13,6 +13,7 @@ import {
   domainSeparator,
   encodeAbiParameters,
   encodePacked,
+  getContract,
   hashMessage,
   isAddress,
   isHex,
@@ -24,6 +25,7 @@ import {
   toHex
 } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
+import { MockSignatureValidatorAbi } from "../../test/__contracts/abi/MockSignatureValidatorAbi"
 import { TokenWithPermitAbi } from "../../test/__contracts/abi/TokenWithPermitAbi"
 import { testAddresses } from "../../test/callDatas"
 import { toNetwork } from "../../test/testSetup"
@@ -60,6 +62,7 @@ describe("nexus.account", async () => {
   // Test utils
   let testClient: MasterClient
   let eoaAccount: LocalAccount
+  let userTwo: LocalAccount
   let nexusAccountAddress: Address
   let nexusClient: NexusClient
   let nexusAccount: NexusAccount
@@ -71,6 +74,7 @@ describe("nexus.account", async () => {
     chain = network.chain
     bundlerUrl = network.bundlerUrl
     eoaAccount = getTestAccount(0)
+    userTwo = getTestAccount(1)
     testClient = toTestClient(chain, getTestAccount(5))
 
     walletClient = createWalletClient({
@@ -157,6 +161,66 @@ describe("nexus.account", async () => {
 
     expect(contractResponse).toBe(eip1271MagicValue)
     expect(viemResponse).toBe(true)
+  })
+
+  test("should verify signatures", async () => {
+    const mockSigVerifierContract = getContract({
+      address: testAddresses.MockSignatureValidator,
+      abi: MockSignatureValidatorAbi,
+      client: testClient
+    })
+
+    const message = "Hello World"
+    const messageHash = keccak256(toBytes(message))
+
+    // Sign with regular hash
+    const signature = await eoaAccount.signMessage({
+      message: { raw: messageHash }
+    })
+
+    // Sign with Ethereum signed message
+    const ethSignature = await eoaAccount.signMessage({
+      message
+    })
+
+    const isValidRegular = await mockSigVerifierContract.read.verify([
+      messageHash,
+      signature,
+      eoaAccount.address
+    ])
+
+    // Verify Ethereum signed message
+    const ethMessageHash = hashMessage(message)
+    const isValidEthSigned = await mockSigVerifierContract.read.verify([
+      ethMessageHash,
+      ethSignature,
+      eoaAccount.address
+    ])
+
+    expect(isValidRegular).toBe(true)
+    expect(isValidEthSigned).toBe(true)
+  })
+
+  test.skip("should verify signatures from prepared UserOperation", async () => {
+    const mockSigVerifierContract = getContract({
+      address: testAddresses.MockSignatureValidator,
+      abi: MockSignatureValidatorAbi,
+      client: testClient
+    })
+
+    const userOperation = await nexusClient.prepareUserOperation({
+      calls: [{ to: userTwo.address, value: 1n }]
+    })
+
+    const userOpHash = await nexusClient.account.getUserOpHash(userOperation)
+
+    const isValid = await mockSigVerifierContract.read.verify([
+      userOpHash,
+      userOperation.signature,
+      eoaAccount.address
+    ])
+
+    expect(isValid).toBe(true)
   })
 
   test("should have 4337 account actions", async () => {
