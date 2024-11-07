@@ -50,15 +50,15 @@ export function packUserOp(userOperation: Partial<UserOperation>): string {
   const hashedPaymasterAndData = keccak256(
     userOperation.paymaster
       ? concat([
-        userOperation.paymaster,
-        pad(toHex(userOperation.paymasterVerificationGasLimit || BigInt(0)), {
-          size: 16
-        }),
-        pad(toHex(userOperation.paymasterPostOpGasLimit || BigInt(0)), {
-          size: 16
-        }),
-        userOperation.paymasterData || "0x"
-      ])
+          userOperation.paymaster,
+          pad(toHex(userOperation.paymasterVerificationGasLimit || BigInt(0)), {
+            size: 16
+          }),
+          pad(toHex(userOperation.paymasterPostOpGasLimit || BigInt(0)), {
+            size: 16
+          }),
+          userOperation.paymasterData || "0x"
+        ])
       : "0x"
   )
 
@@ -273,7 +273,7 @@ export const getAccountMeta = async (
         chainId: decoded?.[3]
       }
     }
-  } catch (error) { }
+  } catch (error) {}
   return {
     name: NEXUS_DOMAIN_NAME,
     version: NEXUS_DOMAIN_VERSION,

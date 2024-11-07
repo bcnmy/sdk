@@ -206,7 +206,7 @@ describe("modules.ownables", async () => {
     )
     userOp.signature = multiSignature
     const userOperationHashResponse = await nexusClient.sendUserOperation({
-      ...userOp,
+      ...userOp
       // signature: "0x"
     })
     expect(userOpHash).toBeDefined()
