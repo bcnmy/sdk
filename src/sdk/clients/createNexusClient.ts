@@ -23,7 +23,7 @@ import {
   k1ValidatorAddress as k1ValidatorAddress_,
   k1ValidatorFactoryAddress
 } from "../constants"
-import type { Module } from "../modules/utils/Types"
+import type { AnyData, Module } from "../modules/utils/Types"
 import { createBicoBundlerClient } from "./createBicoBundlerClient"
 import { type Erc7579Actions, erc7579Actions } from "./decorators/erc7579"
 import {
@@ -45,7 +45,7 @@ export type NexusClient<
     transport,
     chain extends Chain
       ? chain
-      : client extends Client<any, infer chain>
+      : client extends Client<AnyData, infer chain>
         ? chain
         : undefined,
     account,

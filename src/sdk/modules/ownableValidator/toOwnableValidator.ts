@@ -18,16 +18,18 @@ import type {
   ModuleMeta,
   ModuleParameters
 } from "../utils/Types"
-import { type ToModuleParameters, toModule } from "../utils/toModule"
+import { toModule } from "../utils/toModule"
 
 /**
  * Parameters for creating an Ownable module.
- * Extends ToModuleParameters but replaces 'accountAddress' with 'account'.
+ * Extends ModuleParameters but replaces 'accountAddress' with 'account'.
  */
 type ToOwnableValidatorModuleParameters = Omit<
-  ToModuleParameters,
-  "accountAddress"
+  ModuleParameters,
+  "accountAddress" | "address"
 > & {
+  /** The address of the modular smart account to associate with this module. */
+  address?: Hex
   /** The modular smart account to associate with this module. */
   account: ModularSmartAccount
   /** Optional initialization arguments for the module. */

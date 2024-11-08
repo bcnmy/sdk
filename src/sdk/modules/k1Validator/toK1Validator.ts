@@ -6,9 +6,10 @@ import {
 } from "viem"
 import { k1ValidatorAddress } from "../../constants"
 import { sanitizeSignature } from "../utils/Helpers"
-import type { Module, ModuleMeta } from "../utils/Types"
-import { type ToModuleParameters, toModule } from "../utils/toModule"
-export type ToK1ValidatorParameters = ToModuleParameters & {
+import type { Module, ModuleMeta, ModuleParameters } from "../utils/Types"
+import { toModule } from "../utils/toModule"
+
+export type ToK1ValidatorParameters = ModuleParameters & {
   address?: Hex
 }
 

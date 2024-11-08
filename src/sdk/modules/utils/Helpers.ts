@@ -1,20 +1,44 @@
-import { type ByteArray, type Hex, isHex, pad, toHex } from "viem"
+import {
+  type ByteArray,
+  type Chain,
+  type Client,
+  type Hex,
+  type Transport,
+  isHex,
+  pad,
+  toHex
+} from "viem"
 import { ERROR_MESSAGES } from "../../account/index.js"
+import type { ModularSmartAccount } from "./Types.js"
+
+/**
+ * Represents a hardcoded hex value reference.
+ * Used when you want to bypass automatic hex conversion.
+ */
 export type HardcodedReference = {
+  /** The raw hex value */
   raw: Hex
 }
-type BaseReferenceValue = string | number | bigint | boolean | ByteArray
-export type AnyReferenceValue = BaseReferenceValue | HardcodedReference
+
 /**
+ * Base types that can be converted to hex references.
+ */
+type BaseReferenceValue = string | number | bigint | boolean | ByteArray
+
+/**
+ * Union type of all possible reference values that can be converted to hex.
+ * Includes both basic types and hardcoded references.
+ */
+export type AnyReferenceValue = BaseReferenceValue | HardcodedReference
+
+/**
+ * Parses a reference value into a 32-byte hex string.
+ * Handles various input types including Ethereum addresses, numbers, booleans, and raw hex values.
  *
- * parseReferenceValue
+ * @param referenceValue - The value to convert to hex
+ * @returns A 32-byte hex string (66 characters including '0x' prefix)
  *
- * Parses the reference value to a hex string.
- * The reference value can be hardcoded using the {@link HardcodedReference} type.
- * Otherwise, it can be a string, number, bigint, boolean, or ByteArray.
- *
- * @param referenceValue {@link AnyReferenceValue}
- * @returns Hex
+ * @throws {Error} If the resulting hex string is invalid or not 32 bytes
  */
 export function parseReferenceValue(referenceValue: AnyReferenceValue): Hex {
   let result: Hex
@@ -45,6 +69,13 @@ export function parseReferenceValue(referenceValue: AnyReferenceValue): Hex {
   return result
 }
 
+/**
+ * Sanitizes an ECDSA signature by ensuring the 'v' value is either 27 or 28.
+ * Also ensures the signature has a '0x' prefix.
+ *
+ * @param signature - The hex signature to sanitize
+ * @returns A properly formatted signature with correct 'v' value
+ */
 export function sanitizeSignature(signature: Hex): Hex {
   let signature_ = signature
   const potentiallyIncorrectV = Number.parseInt(signature_.slice(-2), 16)
@@ -56,4 +87,25 @@ export function sanitizeSignature(signature: Hex): Hex {
     signature_ = `0x${signature_}`
   }
   return signature_ as Hex
+}
+
+/**
+ * Extracts and validates the active module from a client's account.
+ *
+ * @param client - The viem Client instance with an optional modular smart account
+ * @returns The active module from the account
+ *
+ * @throws {Error} If no module is currently activated
+ */
+export const parseModule = <
+  TModularSmartAccount extends ModularSmartAccount | undefined,
+  chain extends Chain | undefined
+>(
+  client: Client<Transport, chain, TModularSmartAccount>
+) => {
+  const activeModule = client?.account?.getModule()
+  if (!activeModule) {
+    throw new Error(ERROR_MESSAGES.MODULE_NOT_ACTIVATED)
+  }
+  return activeModule
 }
