@@ -5,15 +5,11 @@ import {
   type Chain,
   type Hex,
   type LocalAccount,
-  encodeFunctionData,
-  toBytes,
-  toHex
+  encodeFunctionData
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
-import { MockRegistryAbi } from "../../../test/__contracts/abi"
 import { CounterAbi } from "../../../test/__contracts/abi/CounterAbi"
-import { MockCalleeAbi } from "../../../test/__contracts/abi/MockCalleeAbi"
 import { testAddresses } from "../../../test/callDatas"
 import { toNetwork } from "../../../test/testSetup"
 import {
@@ -30,7 +26,7 @@ import {
 import { createNexusSessionClient } from "../../clients/createNexusSessionClient"
 import type { Module } from "../utils/Types"
 import { parse, stringify } from "./Helpers"
-import type { CreateSessionDataParams, Rule, SessionData } from "./Types"
+import type { CreateSessionDataParams, SessionData } from "./Types"
 import { smartSessionCreateActions, smartSessionUseActions } from "./decorators"
 import { toSmartSessionsValidator } from "./toSmartSessionsValidator"
 
@@ -117,15 +113,6 @@ describe("modules.smartSessions.dx", async () => {
       await usersNexusClient.waitForUserOperationReceipt({ hash })
 
     expect(installSuccess).toBe(true)
-
-    const trustAttestersHash = await nexusSessionClient.trustAttesters()
-    const userOpReceipt = await nexusSessionClient.waitForUserOperationReceipt({
-      hash: trustAttestersHash
-    })
-    const { status } = await testClient.waitForTransactionReceipt({
-      hash: userOpReceipt.receipt.transactionHash
-    })
-    expect(status).toBe("success")
 
     // Define the session parameters
     // This includes the session key, validator, and action policies

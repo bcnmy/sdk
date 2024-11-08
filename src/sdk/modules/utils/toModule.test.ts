@@ -47,7 +47,7 @@ describe("modules.toModule", async () => {
       deInitData: "0x",
       signer: eoaAccount,
       moduleInitData: {
-        module: "0x0000000000000000000000000000000000000000",
+        address: "0x0000000000000000000000000000000000000000",
         type: "validator",
         initData: "0x"
       }
@@ -58,14 +58,18 @@ describe("modules.toModule", async () => {
         "accountAddress": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
         "address": "0x0000000000000000000000000000000000000000",
         "deInitData": "0x",
+        "getData": [Function],
         "getStubSignature": [Function],
+        "initArgs": {},
         "initData": "0x",
         "module": "0x0000000000000000000000000000000000000000",
+        "moduleInitArgs": "0x",
         "moduleInitData": {
+          "address": "0x0000000000000000000000000000000000000000",
           "initData": "0x",
-          "module": "0x0000000000000000000000000000000000000000",
           "type": "validator",
         },
+        "setData": [Function],
         "signMessage": [Function],
         "signUserOpHash": [Function],
         "signer": {

@@ -1,4 +1,4 @@
-import type { Address, Chain, Hex, SignableMessage } from "viem"
+import type { Address, Assign, Chain, Hex, SignableMessage } from "viem"
 import type { SmartAccount } from "viem/account-abstraction"
 import type { Signer } from "./../../account/utils/toSigner"
 export type ModuleVersion = "1.0.0" // | 'V1_0_1'
@@ -67,23 +67,34 @@ export type ModuleActions = {
 export type ModuleParameters = {
   /** The hexadecimal address of the module. */
   address: Hex
-  /** Initialization data for the module. */
-  initData: Hex
-  /** De-initialization data for the module. */
-  deInitData: Hex
   /** Signer of the Module. */
   signer: Signer
+  /** account */
+  account?: ModularSmartAccount
+  /** Data for the module */
+  data?: Record<string, unknown>
+} & Partial<ModuleActions> &
+  Partial<RequiredModuleParameters>
+
+export type RequiredModuleParameters<extend extends object = object> = {
+  /** Optional initialization data for the module. */
+  initData: Hex
+  /** Optional metadata for module initialization. */
+  moduleInitData: ModuleMeta
+  /** Optional data for de-initializing the module. */
+  deInitData: Hex
+  /** Optional arguments for module initialization. */
+  moduleInitArgs: AnyData
+  /** Optional arguments for initialization. */
+  initArgs: AnyData
   /** The smart account address */
   accountAddress: Hex
-  /** The module initData */
-  moduleInitData: ModuleMeta
-  /** The module initArgs */
-  moduleInitArgs?: AnyData
-  /** The initArgs for initData */
-  initArgs?: AnyData
-} & Partial<ModuleActions>
+  /** Extend the Module with custom properties. */
+  extend?: extend | undefined
+}
 
-export type Module = ModuleParameters &
+export type BaseModule = Omit<ModuleParameters, "extend"> &
+  RequiredModuleParameters &
   ModuleActions & {
     /** For compatibility with module-sdk. */
     module: Hex
@@ -91,7 +102,14 @@ export type Module = ModuleParameters &
     signer: Signer
     /** Type of module. */
     type: ModuleType
+    /** Data to be set on the module */
+    setData: (r: Record<string, unknown>) => void
+    /** Get data from the module */
+    getData: () => Record<string, unknown>
   }
+
+export type Module<implementation extends ModuleParameters = ModuleParameters> =
+  Assign<BaseModule, implementation["extend"]>
 
 export type Modularity = {
   getModule: () => Module | undefined
