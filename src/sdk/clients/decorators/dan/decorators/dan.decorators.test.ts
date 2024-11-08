@@ -147,12 +147,14 @@ describe("dan.decorators", async () => {
     }
 
     const ethAddress = computeAddress(keyGenData.publicKey)
+    console.log("ethAddress", ethAddress)
 
     const valid = await verifyMessage({
       address: ethAddress,
       message: { raw: userOpHash },
       signature: sigGenData.signature
     })
+    console.log("valid", valid)
 
     expect(valid).toBe(true)
   })

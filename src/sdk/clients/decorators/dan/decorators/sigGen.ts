@@ -198,6 +198,8 @@ export const sigGen = async <
     requestType: "accountAbstractionTx"
   })
 
+  console.log("signMessage", signMessage)
+
   const { sign, recid } = await networkSigner.signMessage(keyId, signMessage)
 
   const recid_hex = (27 + recid).toString(16)

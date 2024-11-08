@@ -88,10 +88,10 @@ export function packUserOp(
       hashedInitCode,
       hashedCallData,
       concat([
-        pad(toHex(userOperation.verificationGasLimit ?? 0n), {
+        pad(toHex(userOperation.callGasLimit ?? 0n), {
           size: 16
         }),
-        pad(toHex(userOperation.callGasLimit ?? 0n), { size: 16 })
+        pad(toHex(userOperation.verificationGasLimit ?? 0n), { size: 16 })
       ]),
       userOperation.preVerificationGas ?? 0n,
       concat([
