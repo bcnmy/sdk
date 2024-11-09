@@ -33,16 +33,14 @@ export async function sendTx<
   client: Client<Transport, chain, account>,
   parameters: SigGenParameters
 ): Promise<Hash> {
-  const { userOperation, signature } = await getAction(
-    client,
-    sigGen,
-    "sigGen"
-  )(parameters)
+  const userOperation = await getAction(client, sigGen, "sigGen")(parameters)
+
+  console.log({ userOperation })
 
   const userOpHash = await client.request(
     {
       method: "eth_sendUserOperation",
-      params: [{ ...userOperation, signature }, ENTRY_POINT_ADDRESS]
+      params: [userOperation, ENTRY_POINT_ADDRESS]
     },
     { retryCount: 0 }
   )

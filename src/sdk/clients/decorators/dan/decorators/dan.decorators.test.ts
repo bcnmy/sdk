@@ -22,6 +22,7 @@ import {
 } from "../../../../../test/testUtils"
 import { type NexusClient, createNexusClient } from "../../../createNexusClient"
 import { DanWallet, hexToUint8Array, uuid } from "../Helpers"
+import { REQUIRED_FIELDS } from "./sigGen"
 
 describe("dan.decorators", async () => {
   let network: NetworkConfig
@@ -122,39 +123,6 @@ describe("dan.decorators", async () => {
     const uuid1 = uuid()
     const uuid2 = uuid()
     expect(uuid1).not.toBe(uuid2)
-  })
-
-  test("should check signature verification using keyGen and sigGen", async () => {
-    const danNexusClient = nexusClient.extend(danActions())
-
-    const keyGenData = await danNexusClient.keyGen()
-    const sigGenData = await danNexusClient.sigGen({
-      keyGenData,
-      calls: [{ to: userTwo.address, value: 1n }]
-    })
-
-    const userOperation = {
-      ...sigGenData.userOperation,
-      signature: sigGenData.signature
-    }
-
-    const userOpHash =
-      // @ts-ignore
-      await danNexusClient.account?.getUserOpHash(userOperation)
-
-    if (!userOpHash) {
-      throw new Error("userOpHash is undefined")
-    }
-
-    const ethAddress = computeAddress(keyGenData.publicKey)
-
-    const valid = await verifyMessage({
-      address: ethAddress,
-      message: { raw: userOpHash },
-      signature: sigGenData.signature
-    })
-
-    expect(valid).toBe(true)
   })
 
   test("should send a tx with dan", async () => {

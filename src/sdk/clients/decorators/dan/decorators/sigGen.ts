@@ -1,7 +1,8 @@
 import {
   EphAuth,
   NetworkSigner,
-  WalletProviderServiceClient
+  WalletProviderServiceClient,
+  computeAddress
 } from "@silencelaboratories/walletprovider-sdk"
 import type {
   Address,
@@ -18,9 +19,10 @@ import {
   formatUserOperationRequest,
   prepareUserOperation
 } from "viem/account-abstraction"
-import { getAction, toHex } from "viem/utils"
+import { getAction, toHex, verifyMessage } from "viem/utils"
 import { ERROR_MESSAGES, type Signer } from "../../../../account"
 import { AccountNotFoundError } from "../../../../account/utils/AccountNotFound"
+import { deepHexlify } from "../../../../account/utils/deepHexlify"
 import type {
   AnyData,
   ModularSmartAccount
@@ -33,7 +35,6 @@ import {
   QUORUM_PARTIES,
   QUORUM_THRESHOLD
 } from "./keyGen"
-
 /**
  * Metadata for DAN User Operations
  */
@@ -69,10 +70,19 @@ export type SigGenParameters = PartialBy<
 /**
  * Response from signature generation process
  */
-export type SigGenResponse = {
-  userOperation: RpcUserOperation
-  signature: Hex
-}
+export type SigGenResponse = UserOperation<"0.7", Hex>
+
+export const REQUIRED_FIELDS = [
+  "sender",
+  "nonce",
+  "callData",
+  "callGasLimit",
+  "verificationGasLimit",
+  "preVerificationGas",
+  "maxFeePerGas",
+  "maxPriorityFeePerGas",
+  "factoryData"
+]
 
 /**
  * Generates a signature for a user operation using DAN protocol
@@ -97,7 +107,7 @@ export const sigGen = async <
     partiesNumber = QUORUM_PARTIES,
     threshold = QUORUM_THRESHOLD,
     chain: chain_ = account_?.client.chain,
-    keyGenData: { ephSK, ephId, keyId }
+    keyGenData: { ephSK, ephId, keyId, publicKey }
   } = parameters ?? {}
 
   if (!signer_) {
@@ -135,32 +145,20 @@ export const sigGen = async <
     "prepareUserOperation"
   )(parameters as PrepareUserOperationParameters)
 
-  const formattedUserOperation = formatUserOperationRequest(
-    // @ts-ignore
-    preparedUserOperation
-  )
-
-  const ORDERED_USER_OPERATION_FIELDS = [
-    "sender",
-    "nonce",
-    "callData",
-    "callGasLimit",
-    "verificationGasLimit",
-    "preVerificationGas",
-    "maxFeePerGas",
-    "maxPriorityFeePerGas"
-  ]
-
-  const userOperation = ORDERED_USER_OPERATION_FIELDS.reduce((acc, field) => {
-    acc[field] = formattedUserOperation[field]
+  const userOperation = REQUIRED_FIELDS.reduce((acc, field) => {
+    if (field in preparedUserOperation) {
+      acc[field] = preparedUserOperation[field]
+    }
     return acc
-  }, {} as RpcUserOperation)
+  }, {} as AnyData)
+
+  const userOperationHexed = deepHexlify(userOperation)
 
   console.log({ userOperation })
 
   const signMessage = JSON.stringify({
     message: JSON.stringify({
-      userOperation,
+      userOperation: userOperationHexed,
       entryPointVersion: "v0.7.0",
       entryPointAddress: "0x0000000071727De22E5E9d8BAf0edAc6f37da032",
       chainId: chain_.id
@@ -173,5 +171,22 @@ export const sigGen = async <
   const recid_hex = (27 + recid).toString(16)
   const signature = `0x${sign}${recid_hex}` as Hex
 
-  return { userOperation, signature }
+  // @ts-ignore
+  const userOpHash = await account_.getUserOpHash({
+    ...userOperation,
+    signature
+  })
+
+  const ethAddress = computeAddress(publicKey)
+  const valid = await verifyMessage({
+    address: ethAddress,
+    message: { raw: userOpHash },
+    signature
+  })
+
+  if (!valid) {
+    throw new Error("Invalid signature")
+  }
+
+  return { ...userOperationHexed, signature }
 }
