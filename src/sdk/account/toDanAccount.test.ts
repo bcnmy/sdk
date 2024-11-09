@@ -1,30 +1,30 @@
-import { computeAddress } from "@silencelaboratories/walletprovider-sdk"
 import {
   http,
   type Address,
   type Chain,
-  type Hex,
   type LocalAccount,
   isHex,
   verifyMessage
 } from "viem"
+import type { BundlerClient } from "viem/account-abstraction"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
-import { danActions } from "."
-import { toNetwork } from "../../../../../test/testSetup"
+import { toNetwork } from "../../test/testSetup"
 import {
   type MasterClient,
   type NetworkConfig,
   fundAndDeployClients,
   getTestAccount,
   killNetwork,
-  toTestClient,
-  topUp
-} from "../../../../../test/testUtils"
-import { type NexusClient, createNexusClient } from "../../../createNexusClient"
-import { DanWallet, hexToUint8Array, uuid } from "../Helpers"
-import { REQUIRED_FIELDS } from "./sigGen"
+  toTestClient
+} from "../../test/testUtils"
+import {
+  type NexusClient,
+  createNexusClient
+} from "../clients/createNexusClient"
+import { type DanAccount, toDanAccount } from "./toDanAccount"
+import { DanWallet, hexToUint8Array, uuid } from "./utils/Utils"
 
-describe("dan.decorators", async () => {
+describe("account.dan", async () => {
   let network: NetworkConfig
   let chain: Chain
   let bundlerUrl: string
@@ -32,10 +32,8 @@ describe("dan.decorators", async () => {
   // Test utils
   let testClient: MasterClient
   let eoaAccount: LocalAccount
-  let nexusAccountAddress: Address
   let nexusClient: NexusClient
-  let userTwo: LocalAccount
-  let userThree: LocalAccount
+  let danAccount: DanAccount
 
   beforeAll(async () => {
     network = await toNetwork()
@@ -43,8 +41,6 @@ describe("dan.decorators", async () => {
     chain = network.chain
     bundlerUrl = network.bundlerUrl
     eoaAccount = getTestAccount(0)
-    userTwo = getTestAccount(1)
-    userThree = getTestAccount(2)
     testClient = toTestClient(chain, getTestAccount(5))
 
     nexusClient = await createNexusClient({
@@ -54,7 +50,12 @@ describe("dan.decorators", async () => {
       bundlerTransport: http(bundlerUrl)
     })
 
-    nexusAccountAddress = await nexusClient.account.getCounterFactualAddress()
+    danAccount = await toDanAccount({
+      signer: eoaAccount,
+      chain,
+      bundlerClient: nexusClient as BundlerClient
+    })
+
     await fundAndDeployClients(testClient, [nexusClient])
   })
   afterAll(async () => {
@@ -125,17 +126,50 @@ describe("dan.decorators", async () => {
     expect(uuid1).not.toBe(uuid2)
   })
 
-  test("should send a tx with dan", async () => {
-    const danNexusClient = nexusClient.extend(danActions())
+  test("should have the expected properties and methods", async () => {
+    expect(danAccount).toBeDefined()
 
-    const keyGenData = await danNexusClient.keyGen()
-    const hash = await danNexusClient.sendTx({
-      keyGenData,
-      calls: [{ to: userTwo.address, value: 1n }]
+    const { address, ...danWithoutAddress } = danAccount
+
+    expect(danWithoutAddress).toMatchInlineSnapshot(`
+      {
+        "experimental_signAuthorization": undefined,
+        "nonceManager": undefined,
+        "sign": [Function],
+        "signMessage": [Function],
+        "signTransaction": [Function],
+        "signTypedData": [Function],
+        "signUserOperation": [Function],
+        "source": "custom",
+        "type": "local",
+      }
+    `)
+  })
+
+  test("should sign a transaction", async () => {
+    const signature = await danAccount.signUserOperation({
+      calls: [{ to: danAccount.address, value: 0n }]
+    })
+    expect(signature).toBeDefined()
+    expect(isHex(signature as string)).toBe(true)
+  })
+
+  test("should provide a verified signature", async () => {
+    const preparedUserOperation = await nexusClient.prepareUserOperation({
+      calls: [{ to: danAccount.address, value: 0n }]
     })
 
-    const { status } = await testClient.waitForTransactionReceipt({ hash })
+    const userOpHash = await nexusClient.account.getUserOpHash(
+      preparedUserOperation
+    )
 
-    expect(status).toBe("success")
+    const signature = await danAccount.signUserOperation(preparedUserOperation)
+
+    const verified = await verifyMessage({
+      address: danAccount.address,
+      message: { raw: userOpHash },
+      signature
+    })
+    expect(verified).toBe(true)
   })
 })

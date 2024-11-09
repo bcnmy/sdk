@@ -1,4 +1,5 @@
 import { http, type Chain, type LocalAccount } from "viem"
+import type { BundlerClient } from "viem/account-abstraction"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { toNetwork } from "../../../test/testSetup"
 import {
@@ -8,11 +9,12 @@ import {
   toTestClient
 } from "../../../test/testUtils"
 import type { MasterClient, NetworkConfig } from "../../../test/testUtils"
+import { toDanAccount } from "../../account/toDanAccount"
 import { createNexusClient } from "../../clients/createNexusClient"
 import { ownableActions } from "./decorators"
 import { toOwnableValidator } from "./toOwnableValidator"
 
-describe("modules.ownableValidator.dx", async () => {
+describe("modules.dan.dx", async () => {
   let network: NetworkConfig
   let chain: Chain
   let bundlerUrl: string
@@ -20,8 +22,8 @@ describe("modules.ownableValidator.dx", async () => {
   // Test utils
   let testClient: MasterClient
   let eoaAccount: LocalAccount
-  let userTwo: LocalAccount
-  let userThree: LocalAccount
+
+  const recipient = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045" // vitalik.eth
 
   beforeAll(async () => {
     network = await toNetwork()
@@ -29,8 +31,6 @@ describe("modules.ownableValidator.dx", async () => {
     chain = network.chain
     bundlerUrl = network.bundlerUrl
     eoaAccount = getTestAccount(0)
-    userTwo = getTestAccount(1)
-    userThree = getTestAccount(2)
 
     testClient = toTestClient(chain, getTestAccount(5))
   })
@@ -39,26 +39,7 @@ describe("modules.ownableValidator.dx", async () => {
     await killNetwork([network?.rpcPort, network?.bundlerPort])
   })
 
-  test("should demonstrate ownables module dx", async () => {
-    /**
-     * This test demonstrates the creation and use of an ownables module for multi-signature functionality:
-     *
-     * 1. Setup and Installation:
-     *    - Create a Nexus client for the main account
-     *    - Install the ownables module on the smart contract account
-     *
-     * 2. Multi-Signature Transaction:
-     *    - Prepare a user operation (withdrawal) that requires multiple signatures
-     *    - Collect signatures from required owners
-     *    - Execute the multi-sig transaction
-     *
-     * This test showcases how the ownables module enables multi-signature functionality
-     * on a smart contract account, ensuring that certain actions require approval from
-     * multiple designated owners.
-     */
-
-    // Create a Nexus client for the main account (eoaAccount)
-    // This client will be used to interact with the smart contract account
+  test("should demonstrate ownables module dx using a dan account", async () => {
     const nexusClient = await createNexusClient({
       signer: eoaAccount,
       chain,
@@ -66,19 +47,25 @@ describe("modules.ownableValidator.dx", async () => {
       bundlerTransport: http(bundlerUrl)
     })
 
+    const danAccount = await toDanAccount({
+      signer: eoaAccount,
+      chain,
+      bundlerClient: nexusClient as BundlerClient
+    })
+
     // Fund the account and deploy the smart contract wallet
     // This is just a reminder to fund the account and deploy the smart contract wallet
     await fundAndDeployClients(testClient, [nexusClient])
 
     // Create an ownables module with the following configuration:
-    // - Threshold: 2 (requires 2 signatures for approval)
-    // - Owners: userThree and userTwo
+    // - Threshold: 1 (requires 1 signature for approval)
+    // - Owners: danAccount
     const ownableModule = toOwnableValidator({
       account: nexusClient.account,
       signer: eoaAccount,
       moduleInitArgs: {
-        threshold: 2n,
-        owners: [userThree.address, userTwo.address]
+        threshold: 1n,
+        owners: [danAccount.address]
       }
     })
 
@@ -100,34 +87,20 @@ describe("modules.ownableValidator.dx", async () => {
     const withdrawalUserOp = await ownableNexusClient.prepareUserOperation({
       calls: [
         {
-          to: userTwo.address,
+          to: recipient, // vitalik.eth
           value: 1n
         }
       ]
     })
 
-    // Get the hash of the user operation
-    // This hash will be signed by the required owners
-    const withdrawalUserOpHash =
-      // @ts-ignore
-      await nexusClient.account.getUserOpHash(withdrawalUserOp)
+    // Collect signature
+    const signature = await danAccount.signUserOperation(withdrawalUserOp)
 
-    // Collect signatures from both required owners (userTwo and userThree)
-    const signatures = await Promise.all(
-      [userTwo, userThree].map(async (signer) => {
-        return signer.signMessage({
-          message: { raw: withdrawalUserOpHash }
-        })
-      })
-    )
-
-    // Combine the signatures and set them on the user operation
-    // The order of signatures should match the order of owners in the module configuration
-    withdrawalUserOp.signature = await ownableNexusClient.prepareSignatures({
-      signatures
-    })
     // Send the user operation with the collected signatures
-    const userOpHash = await nexusClient.sendUserOperation(withdrawalUserOp)
+    const userOpHash = await nexusClient.sendUserOperation({
+      ...withdrawalUserOp,
+      signature
+    })
 
     // Wait for the user operation to be mined and check its success
     const { success: userOpSuccess } =
