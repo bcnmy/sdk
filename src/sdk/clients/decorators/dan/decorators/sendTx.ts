@@ -5,6 +5,7 @@ import {
   waitForUserOperationReceipt
 } from "viem/account-abstraction"
 import { getAction } from "viem/utils"
+import { ENTRY_POINT_ADDRESS } from "../../../../constants"
 import { type SigGenParameters, sigGen } from "./sigGen"
 
 /**
@@ -38,11 +39,13 @@ export async function sendTx<
     "sigGen"
   )(parameters)
 
-  const userOpHash = await getAction(
-    client,
-    sendUserOperation,
-    "sendUserOperation"
-  )({ ...userOperation, signature })
+  const userOpHash = await client.request(
+    {
+      method: "eth_sendUserOperation",
+      params: [{ ...userOperation, signature }, ENTRY_POINT_ADDRESS]
+    },
+    { retryCount: 0 }
+  )
 
   const userOperationReceipt = await getAction(
     client,

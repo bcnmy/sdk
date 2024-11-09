@@ -3,10 +3,19 @@ import {
   NetworkSigner,
   WalletProviderServiceClient
 } from "@silencelaboratories/walletprovider-sdk"
-import type { Address, Chain, Client, Hex, PartialBy, Transport } from "viem"
+import type {
+  Address,
+  Chain,
+  Client,
+  Hex,
+  PartialBy,
+  RpcUserOperation,
+  Transport
+} from "viem"
 import {
   type PrepareUserOperationParameters,
   type UserOperation,
+  formatUserOperationRequest,
   prepareUserOperation
 } from "viem/account-abstraction"
 import { getAction, toHex } from "viem/utils"
@@ -26,33 +35,6 @@ import {
 } from "./keyGen"
 
 /**
- * Represents a User Operation for DAN (Distributed Account Network).
- * Contains the basic parameters needed for an ERC-4337 compatible transaction.
- */
-export type DANUserOp = {
-  /** Address of the sender */
-  sender: Address
-  /** Unique value to prevent replay attacks */
-  nonce: string
-  /** Encoded function call data */
-  callData: Hex
-  /** Maximum gas allowed for the call */
-  callGasLimit: Hex
-  /** Gas limit for verification */
-  verificationGasLimit: Hex
-  /** Gas used before verification */
-  preVerificationGas: Hex
-  /** Maximum fee per gas unit */
-  maxFeePerGas: Hex
-  /** Maximum priority fee per gas unit */
-  maxPriorityFeePerGas: Hex
-  /** Data related to the paymaster */
-  paymasterAndData: string
-  /** Additional data for factory operations */
-  factoryData: string
-}
-
-/**
  * Metadata for DAN User Operations
  */
 export type DanUSerOperationMeta = {
@@ -67,8 +49,8 @@ export type DanUSerOperationMeta = {
 /**
  * Combined type for complete DAN User Operation with metadata
  */
-export type DANUserOperation = DanUSerOperationMeta & {
-  userOperation: Partial<DANUserOp>
+export type RpcUserOperationeration = DanUSerOperationMeta & {
+  userOperation: Partial<RpcUserOperation>
 }
 
 /**
@@ -88,7 +70,7 @@ export type SigGenParameters = PartialBy<
  * Response from signature generation process
  */
 export type SigGenResponse = {
-  userOperation: UserOperation<"0.7", bigint>
+  userOperation: RpcUserOperation
   signature: Hex
 }
 
@@ -153,7 +135,12 @@ export const sigGen = async <
     "prepareUserOperation"
   )(parameters as PrepareUserOperationParameters)
 
-  const REQUIRED_FIELDS = [
+  const formattedUserOperation = formatUserOperationRequest(
+    // @ts-ignore
+    preparedUserOperation
+  )
+
+  const ORDERED_USER_OPERATION_FIELDS = [
     "sender",
     "nonce",
     "callData",
@@ -161,44 +148,25 @@ export const sigGen = async <
     "verificationGasLimit",
     "preVerificationGas",
     "maxFeePerGas",
-    "maxPriorityFeePerGas",
-    "paymasterAndData",
-    "factoryData"
+    "maxPriorityFeePerGas"
   ]
 
-  const userOperation = REQUIRED_FIELDS.reduce(
-    (acc, field) => {
-      if (field in preparedUserOperation) {
-        acc[field] =
-          preparedUserOperation[field as keyof typeof preparedUserOperation]
-      }
-      return acc
-    },
-    {} as Record<string, AnyData>
-  ) as SigGenResponse["userOperation"]
+  const userOperation = ORDERED_USER_OPERATION_FIELDS.reduce((acc, field) => {
+    acc[field] = formattedUserOperation[field]
+    return acc
+  }, {} as RpcUserOperation)
+
+  console.log({ userOperation })
 
   const signMessage = JSON.stringify({
     message: JSON.stringify({
-      userOperation: {
-        sender: preparedUserOperation.sender,
-        nonce: preparedUserOperation.nonce.toString(),
-        callData: preparedUserOperation.callData,
-        callGasLimit: toHex(preparedUserOperation.callGasLimit),
-        verificationGasLimit: toHex(preparedUserOperation.verificationGasLimit),
-        preVerificationGas: toHex(preparedUserOperation.preVerificationGas),
-        maxFeePerGas: toHex(preparedUserOperation.maxFeePerGas),
-        maxPriorityFeePerGas: toHex(preparedUserOperation.maxPriorityFeePerGas),
-        paymasterAndData: preparedUserOperation.paymasterAndData ?? "",
-        factoryData: preparedUserOperation.factoryData ?? ""
-      },
+      userOperation,
       entryPointVersion: "v0.7.0",
       entryPointAddress: "0x0000000071727De22E5E9d8BAf0edAc6f37da032",
       chainId: chain_.id
     }),
     requestType: "accountAbstractionTx"
   })
-
-  console.log("signMessage", signMessage)
 
   const { sign, recid } = await networkSigner.signMessage(keyId, signMessage)
 
