@@ -23,6 +23,7 @@ import {
   toBytes,
   toHex
 } from "viem"
+import type { UserOperation } from "viem/account-abstraction"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { TokenWithPermitAbi } from "../../test/__contracts/abi/TokenWithPermitAbi"
 import { testAddresses } from "../../test/callDatas"
@@ -50,7 +51,7 @@ import {
   PARENT_TYPEHASH,
   eip1271MagicValue
 } from "./utils/Constants"
-import type { BytesLike, UserOperationStruct } from "./utils/Types"
+import type { BytesLike } from "./utils/Types"
 
 describe("nexus.account", async () => {
   let network: NetworkConfig
@@ -187,7 +188,7 @@ describe("nexus.account", async () => {
         callGasLimit: 1n,
         maxFeePerGas: 1n,
         maxPriorityFeePerGas: 1n
-      } as UserOperationStruct),
+      } as UserOperation),
       nexusAccount.getAddress(),
       nexusAccount.getFactoryArgs(),
       nexusAccount.getStubSignature(),

@@ -15,6 +15,7 @@ import {
   type NexusClient,
   createNexusClient
 } from "../sdk/clients/createNexusClient"
+import { createBicoPaymasterClient } from "./../sdk/clients/createBicoPaymasterClient"
 import { toNetwork } from "./testSetup"
 import {
   type NetworkConfig,
@@ -67,6 +68,11 @@ describe.skipIf(!playgroundTrue)("playground", () => {
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl),
+      paymaster: network.paymasterUrl
+        ? createBicoPaymasterClient({
+            transport: http(network.paymasterUrl)
+          })
+        : undefined,
       ...testParams
     })
   })

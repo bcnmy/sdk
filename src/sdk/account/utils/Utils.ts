@@ -14,7 +14,6 @@ import {
   encodePacked,
   hexToBytes,
   keccak256,
-  pad,
   parseAbi,
   parseAbiParameters,
   publicActions,
@@ -22,7 +21,6 @@ import {
   toBytes,
   toHex
 } from "viem"
-import type { UserOperation } from "viem/account-abstraction"
 import {
   MOCK_MULTI_MODULE_ADDRESS,
   MODULE_ENABLE_MODE_TYPE_HASH,
@@ -33,68 +31,6 @@ import {
 import { EIP1271Abi } from "../../constants/abi"
 import { type ModuleType, moduleTypeIds } from "../../modules/utils/Types"
 import type { AccountMetadata, EIP712DomainReturn } from "./Types"
-
-/**
- * pack the userOperation
- * @param op
- * @param forSignature "true" if the hash is needed to calculate the getUserOpHash()
- *  "false" to pack entire UserOp, for calculating the calldata cost of putting it on-chain.
- */
-export function packUserOp(userOperation: Partial<UserOperation>): Hex {
-  const hashedInitCode = keccak256(
-    userOperation.factory && userOperation.factoryData
-      ? concat([userOperation.factory, userOperation.factoryData])
-      : "0x"
-  )
-  const hashedCallData = keccak256(userOperation.callData ?? "0x")
-  const hashedPaymasterAndData = keccak256(
-    userOperation.paymaster
-      ? concat([
-          userOperation.paymaster,
-          pad(toHex(userOperation.paymasterVerificationGasLimit || BigInt(0)), {
-            size: 16
-          }),
-          pad(toHex(userOperation.paymasterPostOpGasLimit || BigInt(0)), {
-            size: 16
-          }),
-          userOperation.paymasterData || "0x"
-        ])
-      : "0x"
-  )
-
-  return encodeAbiParameters(
-    [
-      { type: "address" },
-      { type: "uint256" },
-      { type: "bytes32" },
-      { type: "bytes32" },
-      { type: "bytes32" },
-      { type: "uint256" },
-      { type: "bytes32" },
-      { type: "bytes32" }
-    ],
-    [
-      userOperation.sender as Address,
-      userOperation.nonce ?? 0n,
-      hashedInitCode,
-      hashedCallData,
-      concat([
-        pad(toHex(userOperation.verificationGasLimit ?? 0n), {
-          size: 16
-        }),
-        pad(toHex(userOperation.callGasLimit ?? 0n), { size: 16 })
-      ]),
-      userOperation.preVerificationGas ?? 0n,
-      concat([
-        pad(toHex(userOperation.maxPriorityFeePerGas ?? 0n), {
-          size: 16
-        }),
-        pad(toHex(userOperation.maxFeePerGas ?? 0n), { size: 16 })
-      ]),
-      hashedPaymasterAndData
-    ]
-  )
-}
 
 // biome-ignore lint/suspicious/noExplicitAny: <explanation>
 export const isNullOrUndefined = (value: any): value is undefined => {

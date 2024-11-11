@@ -5,12 +5,12 @@ import {
   findTrustedAttesters,
   getTrustAttestersAction
 } from "@rhinestone/module-sdk"
-import { MOCK_ATTESTER_ADDRESS } from "../../../constants"
 import type { Chain, Client, Hex, PublicClient, Transport } from "viem"
 import { sendUserOperation } from "viem/account-abstraction"
 import { encodeFunctionData, getAction, parseAccount } from "viem/utils"
 import { ERROR_MESSAGES, Logger } from "../../../account"
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
+import { MOCK_ATTESTER_ADDRESS } from "../../../constants"
 import {
   SIMPLE_SESSION_VALIDATOR_ADDRESS,
   SMART_SESSIONS_ADDRESS
