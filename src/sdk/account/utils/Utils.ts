@@ -40,7 +40,7 @@ import type { AccountMetadata, EIP712DomainReturn } from "./Types"
  * @param forSignature "true" if the hash is needed to calculate the getUserOpHash()
  *  "false" to pack entire UserOp, for calculating the calldata cost of putting it on-chain.
  */
-export function packUserOp(userOperation: Partial<UserOperation>): string {
+export function packUserOp(userOperation: Partial<UserOperation>): Hex {
   const hashedInitCode = keccak256(
     userOperation.factory && userOperation.factoryData
       ? concat([userOperation.factory, userOperation.factoryData])
