@@ -1,14 +1,7 @@
-import {
-  http,
-  type Address,
-  type Chain,
-  type LocalAccount,
-  isHex,
-  verifyMessage
-} from "viem"
-import type { BundlerClient } from "viem/account-abstraction"
+import { http, type Address, type Chain, type LocalAccount, isHex } from "viem"
+import { verifyMessage } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
-import { toNetwork } from "../../test/testSetup"
+import { toNetwork } from "../../../../../test/testSetup"
 import {
   type MasterClient,
   type NetworkConfig,
@@ -16,15 +9,14 @@ import {
   getTestAccount,
   killNetwork,
   toTestClient
-} from "../../test/testUtils"
-import {
-  type NexusClient,
-  createNexusClient
-} from "../clients/createNexusClient"
-import { type DanAccount, toDanAccount } from "./toDanAccount"
-import { DanWallet, hexToUint8Array, uuid } from "./utils/Utils"
+} from "../../../../../test/testUtils"
+import type { UserOperationStruct } from "../../../../account/utils/Types"
+import { type NexusClient, createNexusClient } from "../../../createNexusClient"
+import { DanWallet, hexToUint8Array, uuid } from "../Helpers"
+import { danActions } from "./"
+import { keyGen } from "./keyGen"
 
-describe("account.dan", async () => {
+describe("dan.decorators", async () => {
   let network: NetworkConfig
   let chain: Chain
   let bundlerUrl: string
@@ -32,8 +24,10 @@ describe("account.dan", async () => {
   // Test utils
   let testClient: MasterClient
   let eoaAccount: LocalAccount
+  let nexusAccountAddress: Address
   let nexusClient: NexusClient
-  let danAccount: DanAccount
+  let userTwo: LocalAccount
+  let userThree: LocalAccount
 
   beforeAll(async () => {
     network = await toNetwork()
@@ -41,6 +35,8 @@ describe("account.dan", async () => {
     chain = network.chain
     bundlerUrl = network.bundlerUrl
     eoaAccount = getTestAccount(0)
+    userTwo = getTestAccount(1)
+    userThree = getTestAccount(2)
     testClient = toTestClient(chain, getTestAccount(5))
 
     nexusClient = await createNexusClient({
@@ -50,12 +46,7 @@ describe("account.dan", async () => {
       bundlerTransport: http(bundlerUrl)
     })
 
-    danAccount = await toDanAccount({
-      signer: eoaAccount,
-      chain,
-      bundlerClient: nexusClient as BundlerClient
-    })
-
+    nexusAccountAddress = await nexusClient.account.getCounterFactualAddress()
     await fundAndDeployClients(testClient, [nexusClient])
   })
   afterAll(async () => {
@@ -126,51 +117,34 @@ describe("account.dan", async () => {
     expect(uuid1).not.toBe(uuid2)
   })
 
-  test("should have the expected properties and methods", async () => {
-    expect(danAccount).toBeDefined()
+  test("should check that signature is verified", async () => {
+    const danNexusClient = nexusClient.extend(danActions())
+    const keyGenData = await danNexusClient.keyGen()
 
-    const { address, ...danWithoutAddress } = danAccount
+    // @ts-ignore
+    const preparedUserOperation = (await danNexusClient.prepareUserOperation({
+      calls: [{ to: userTwo.address, value: 1n }]
+    })) as Partial<UserOperationStruct>
 
-    expect(danWithoutAddress).toMatchInlineSnapshot(`
-      {
-        "experimental_signAuthorization": undefined,
-        "keyGenData": undefined,
-        "nonceManager": undefined,
-        "sign": undefined,
-        "signMessage": undefined,
-        "signTransaction": undefined,
-        "signTypedData": [Function],
-        "signUserOperation": [Function],
-        "source": "custom",
-        "type": "dan",
-      }
-    `)
-  })
-
-  test("should sign a transaction", async () => {
-    const signature = await danAccount.signUserOperation({
-      calls: [{ to: danAccount.address, value: 0n }]
-    })
-    expect(signature).toBeDefined()
-    expect(isHex(signature as string)).toBe(true)
-  })
-
-  test("should provide a verified signature", async () => {
-    const preparedUserOperation = await nexusClient.prepareUserOperation({
-      calls: [{ to: danAccount.address, value: 0n }]
+    const sendUserOperationParameters = await danNexusClient.sigGen({
+      keyGenData,
+      ...preparedUserOperation
     })
 
-    const userOpHash = await nexusClient.account.getUserOpHash(
+    const userOpHash = await danNexusClient?.account?.getUserOpHash(
       preparedUserOperation
     )
 
-    const signature = await danAccount.signUserOperation(preparedUserOperation)
+    if (!userOpHash || !sendUserOperationParameters.signature)
+      throw new Error("Missing userOpHash or signature")
 
-    const verified = await verifyMessage({
-      address: danAccount.address,
+    const valid = await verifyMessage({
+      address: keyGenData.sessionPublicKey,
       message: { raw: userOpHash },
-      signature
+      signature: sendUserOperationParameters.signature
     })
-    expect(verified).toBe(true)
+
+    // Verify transaction success
+    expect(valid).toBe(true)
   })
 })

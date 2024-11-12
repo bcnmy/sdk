@@ -1,13 +1,6 @@
 import type { Chain, Client, Hex, Transport } from "viem"
-import {
-  PrepareUserOperationParameters,
-  type SendUserOperationParameters,
-  prepareUserOperation,
-  sendUserOperation
-} from "viem/account-abstraction"
-import { getAction, parseAccount } from "viem/utils"
-import { type KeyGenData, sigGen } from "../../../account/toDanAccount"
-import type { NexusAccount } from "../../../account/toNexusAccount"
+import { sendUserOperation } from "viem/account-abstraction"
+import { getAction } from "viem/utils"
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
 import type { Signer } from "../../../account/utils/toSigner"
 import type { Execution, ModularSmartAccount } from "../../utils/Types"
@@ -32,8 +25,6 @@ export type UsePermissionParameters<
   account?: TModularSmartAccount
   /** The signer to use for the session. Defaults to the signer of the client. */
   signer?: Signer
-  /** Key generation data for DAN accounts */
-  keyGenData?: KeyGenData
 }
 
 /**
@@ -75,36 +66,24 @@ export async function usePermission<
   client: Client<Transport, Chain | undefined, TModularSmartAccount>,
   parameters: UsePermissionParameters<TModularSmartAccount>
 ): Promise<Hex> {
-  const { account: account_ = client.account, actions, keyGenData } = parameters
+  const { account: account_ = client.account, actions, ...rest } = parameters
 
   if (!account_) {
     throw new AccountNotFoundError({
-      docsPath: "/nexus/nexus-client/methods#sendtransaction"
+      docsPath: "/nexus-client/methods#sendtransaction"
     })
-  }
-
-  const account = parseAccount(account_) as NexusAccount
-
-  const sendUserOperationArgs: SendUserOperationParameters = {
-    calls: actions.map((action) => ({
-      to: action.target,
-      value: BigInt(action.value.toString()),
-      data: action.callData
-    }))
-  }
-
-  if (keyGenData) {
-    sendUserOperationArgs.signature = await sigGen(client, {
-      keyGenData,
-      ...sendUserOperationArgs
-    })
-
-    console.log("sendUserOperationArgs", { sendUserOperationArgs })
   }
 
   return await getAction(
     client,
     sendUserOperation,
     "sendUserOperation"
-  )(sendUserOperationArgs)
+  )({
+    ...rest,
+    calls: actions.map((action) => ({
+      to: action.target,
+      value: BigInt(action.value.toString()),
+      data: action.callData
+    }))
+  })
 }

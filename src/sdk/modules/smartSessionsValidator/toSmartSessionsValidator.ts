@@ -104,7 +104,8 @@ export const toSmartSessionsValidator = (
     moduleData: {
       permissionId = "0x",
       mode = SmartSessionMode.USE,
-      enableSessionData
+      enableSessionData,
+      keyGenData: _
     } = {}
   } = parameters
 
@@ -126,16 +127,24 @@ export const toSmartSessionsValidator = (
         enableSessionData,
         signature: DUMMY_ECDSA_SIG
       }),
-    signUserOpHash: async (userOpHash: Hex) => {
-      console.log("signUserOpHash", { userOpHash })
-      return encodeSmartSessionSignature({
+    signUserOpHash: async (userOpHash: Hex) =>
+      encodeSmartSessionSignature({
         mode,
         permissionId,
         enableSessionData,
         signature: await signer.signMessage({
           message: { raw: userOpHash as Hex }
         })
-      })
+      }),
+    extend: {
+      sigGen: (signature: Hex): Hex => {
+        return encodeSmartSessionSignature({
+          mode,
+          permissionId,
+          enableSessionData,
+          signature
+        })
+      }
     }
   })
 }

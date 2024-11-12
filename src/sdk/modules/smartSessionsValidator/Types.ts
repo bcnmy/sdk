@@ -3,6 +3,7 @@ import type {
   SmartSessionMode
 } from "@rhinestone/module-sdk"
 import type { AbiFunction, Address, Hex, OneOf } from "viem"
+import type { KeyGenData } from "../../clients/decorators/dan/decorators/keyGen"
 import type { AnyReferenceValue } from "../utils/Helpers"
 import type { Execution } from "../utils/Types"
 
@@ -59,6 +60,8 @@ export type UsePermissionModuleData = {
   mode?: SmartSessionModeType
   /** Data for enabling the session. */
   enableSessionData?: EnableSessionData
+  /** Key generation data for the session. */
+  keyGenData?: KeyGenData
 }
 
 type OptionalSessionKeyData = OneOf<

@@ -9,8 +9,9 @@ import {
   toTestClient
 } from "../../../test/testUtils"
 import type { MasterClient, NetworkConfig } from "../../../test/testUtils"
-import { keyGen, sigGen } from "../../account/toDanAccount"
 import { createNexusClient } from "../../clients/createNexusClient"
+import { danActions } from "../../clients/decorators/dan/decorators"
+import { keyGen } from "../../clients/decorators/dan/decorators/keyGen"
 import { ownableActions } from "./decorators"
 import { toOwnableValidator } from "./toOwnableValidator"
 
@@ -47,7 +48,9 @@ describe("modules.dan.dx", async () => {
       bundlerTransport: http(bundlerUrl)
     })
 
-    const keyGenData = await keyGen({ signer: eoaAccount, chain })
+    const danNexusClient = nexusClient.extend(danActions())
+
+    const keyGenData = await danNexusClient.keyGen()
 
     // Fund the account and deploy the smart contract wallet
     // This is just a reminder to fund the account and deploy the smart contract wallet
@@ -72,15 +75,17 @@ describe("modules.dan.dx", async () => {
 
     // Extend the Nexus client with ownable-specific actions
     // This allows the client to use the new module's functionality
-    const ownableNexusClient = nexusClient.extend(ownableActions(ownableModule))
+    const ownableDanClient = nexusClient
+      .extend(ownableActions(ownableModule))
+      .extend(danActions())
 
     // Wait for the module installation transaction to be mined and check its success
-    await ownableNexusClient.waitForUserOperationReceipt({ hash })
+    await ownableDanClient.waitForUserOperationReceipt({ hash })
 
     // Prepare a user operation to withdraw 1 wei to userTwo
     // This demonstrates a simple transaction that requires multi-sig approval
     // @ts-ignore
-    const withdrawalUserOp = await ownableNexusClient.prepareUserOperation({
+    const withdrawalUserOp = await ownableDanClient.prepareUserOperation({
       calls: [
         {
           to: recipient, // vitalik.eth
@@ -90,10 +95,12 @@ describe("modules.dan.dx", async () => {
     })
 
     // Collect signature
-    const signature = await sigGen(nexusClient, {
+    const { signature } = await ownableDanClient.sigGen({
       keyGenData,
       ...withdrawalUserOp
     })
+
+    if (!signature) throw new Error("Missing signature")
 
     // Send the user operation with the collected signatures
     const userOpHash = await nexusClient.sendUserOperation({
@@ -103,7 +110,7 @@ describe("modules.dan.dx", async () => {
 
     // Wait for the user operation to be mined and check its success
     const { success: userOpSuccess } =
-      await ownableNexusClient.waitForUserOperationReceipt({ hash: userOpHash })
+      await ownableDanClient.waitForUserOperationReceipt({ hash: userOpHash })
 
     // Verify that the multi-sig transaction was successful
     expect(userOpSuccess).toBe(true)
