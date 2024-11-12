@@ -1,5 +1,6 @@
 import { startAuthentication, startRegistration } from "@simplewebauthn/browser"
 import { type Hex, concatHex, keccak256, pad, toHex } from "viem"
+import { DEFAULT_PASSKEY_SERVER_URL } from "../../constants/index.js"
 import { b64ToBytes, uint8ArrayToHexString } from "./utils.js"
 
 export enum WebAuthnMode {
@@ -14,15 +15,28 @@ export type WebAuthnKey = {
   authenticatorIdHash: Hex
 }
 type RequestCredentials = "include" | "omit" | "same-origin"
-export type WebAuthnAccountParams = {
-  passkeyName: string
-  passkeyServerUrl: string
+
+export type BaseWebAuthnAccountParams = {
+  passkeyServerUrl?: string
   rpID?: string
   webAuthnKey?: WebAuthnKey
-  mode?: WebAuthnMode
   credentials?: RequestCredentials
-  passkeyServerHeaders: Record<string, string>
+  passkeyServerHeaders?: Record<string, string>
 }
+
+export type RegisterWebAuthnAccountParams = BaseWebAuthnAccountParams & {
+  mode?: WebAuthnMode.Register
+  passkeyName: string
+}
+
+export type LoginWebAuthnAccountParams = BaseWebAuthnAccountParams & {
+  mode: WebAuthnMode.Login
+  passkeyName?: string
+}
+
+export type WebAuthnAccountParams =
+  | RegisterWebAuthnAccountParams
+  | LoginWebAuthnAccountParams
 
 export const encodeWebAuthnPubKey = (pubKey: WebAuthnKey) => {
   return concatHex([
@@ -43,6 +57,9 @@ export const toWebAuthnKey = async ({
 }: WebAuthnAccountParams): Promise<WebAuthnKey> => {
   if (webAuthnKey) {
     return webAuthnKey
+  }
+  if (!passkeyServerUrl) {
+    passkeyServerUrl = DEFAULT_PASSKEY_SERVER_URL
   }
   let pubKey: string | undefined
   let authenticatorId: string | undefined

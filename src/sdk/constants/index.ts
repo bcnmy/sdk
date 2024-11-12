@@ -52,3 +52,6 @@ export const k1ValidatorAddress: Hex = isTesting
 export const passkeyValidatorAddress: Hex = isTesting
   ? TEST_ADDRESS_PASSKEY_VALIDATOR_ADDRESS
   : MAINNET_ADDRESS_PASSKEY_VALIDATOR_ADDRESS
+
+export const DEFAULT_PASSKEY_SERVER_URL =
+  "https://passkeys.zerodev.app/api/v3/6e2a2efc-f9ad-4b1a-931d-a5888eb0fdb5"

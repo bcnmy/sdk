@@ -69,9 +69,7 @@ describe.skip("modules.passkeyValidator.dx", async () => {
     // Create the credentials for the passkey validator, these values will be used as initData when installing the module
     const webAuthnKey = await toWebAuthnKey({
       passkeyName: "nexus", // Name of your passkey
-      passkeyServerUrl: "http://...", // Can use your own passkey server or use the one we provide
-      mode: WebAuthnMode.Register, // Here we are creating a new passkey, if you want to use an existing passkey, use WebAuthnMode.Login
-      passkeyServerHeaders: {} // Optional headers for the passkey server
+      mode: WebAuthnMode.Register // Here we are creating a new passkey, if you want to use an existing passkey, use WebAuthnMode.Login
     })
 
     // Initialize the passkey validator with the WebAuthn key and account details
