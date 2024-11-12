@@ -1,8 +1,15 @@
 import type { Chain, Client, Hex, Transport } from "viem"
-import { sendUserOperation } from "viem/account-abstraction"
+import {
+  PrepareUserOperationParameters,
+  type SendUserOperationParameters,
+  prepareUserOperation,
+  sendUserOperation
+} from "viem/account-abstraction"
 import { getAction, parseAccount } from "viem/utils"
+import { type KeyGenData, sigGen } from "../../../account/toDanAccount"
 import type { NexusAccount } from "../../../account/toNexusAccount"
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
+import type { Signer } from "../../../account/utils/toSigner"
 import type { Execution, ModularSmartAccount } from "../../utils/Types"
 
 /**
@@ -23,6 +30,10 @@ export type UsePermissionParameters<
   nonce?: bigint
   /** The modular smart account to use for the session. If not provided, the client's account will be used. */
   account?: TModularSmartAccount
+  /** The signer to use for the session. Defaults to the signer of the client. */
+  signer?: Signer
+  /** Key generation data for DAN accounts */
+  keyGenData?: KeyGenData
 }
 
 /**
@@ -64,13 +75,7 @@ export async function usePermission<
   client: Client<Transport, Chain | undefined, TModularSmartAccount>,
   parameters: UsePermissionParameters<TModularSmartAccount>
 ): Promise<Hex> {
-  const {
-    account: account_ = client.account,
-    maxFeePerGas,
-    maxPriorityFeePerGas,
-    nonce,
-    actions
-  } = parameters
+  const { account: account_ = client.account, actions, keyGenData } = parameters
 
   if (!account_) {
     throw new AccountNotFoundError({
@@ -80,19 +85,26 @@ export async function usePermission<
 
   const account = parseAccount(account_) as NexusAccount
 
-  return await getAction(
-    client,
-    sendUserOperation,
-    "sendUserOperation"
-  )({
+  const sendUserOperationArgs: SendUserOperationParameters = {
     calls: actions.map((action) => ({
       to: action.target,
       value: BigInt(action.value.toString()),
       data: action.callData
-    })),
-    maxFeePerGas,
-    maxPriorityFeePerGas,
-    nonce,
-    account
-  })
+    }))
+  }
+
+  if (keyGenData) {
+    sendUserOperationArgs.signature = await sigGen(client, {
+      keyGenData,
+      ...sendUserOperationArgs
+    })
+
+    console.log("sendUserOperationArgs", { sendUserOperationArgs })
+  }
+
+  return await getAction(
+    client,
+    sendUserOperation,
+    "sendUserOperation"
+  )(sendUserOperationArgs)
 }

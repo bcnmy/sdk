@@ -3,7 +3,7 @@ import {
   SmartSessionMode,
   encodeSmartSessionSignature
 } from "@rhinestone/module-sdk"
-import { type Address, type Hex, type PartialBy, encodePacked } from "viem"
+import { type Address, type Hex, encodePacked } from "viem"
 import type { ModuleMeta } from "../../modules/utils/Types"
 import type { ModularSmartAccount } from "../utils/Types"
 import type { Module, ModuleParameters } from "../utils/Types"
@@ -31,8 +31,8 @@ export type UsePermissionModuleGetInitDataArgs = {
  * Parameters for creating a Use Session module.
  */
 export type UsePermissionModuleParameters = Omit<
-  PartialBy<ModuleParameters, "address">,
-  "accountAddress"
+  ModuleParameters,
+  "accountAddress" | "address"
 > & {
   account: ModularSmartAccount
   moduleData?: UsePermissionModuleData
@@ -94,7 +94,6 @@ export const toSmartSessionsValidator = (
   parameters: UsePermissionModuleParameters
 ): Module => {
   const {
-    address = SMART_SESSIONS_ADDRESS,
     account,
     signer,
     moduleInitData: moduleInitData_,
@@ -116,7 +115,7 @@ export const toSmartSessionsValidator = (
   return toModule({
     signer,
     accountAddress: account.address,
-    address,
+    address: SMART_SESSIONS_ADDRESS,
     initData,
     moduleInitData,
     deInitData,
@@ -127,8 +126,9 @@ export const toSmartSessionsValidator = (
         enableSessionData,
         signature: DUMMY_ECDSA_SIG
       }),
-    signUserOpHash: async (userOpHash: Hex) =>
-      encodeSmartSessionSignature({
+    signUserOpHash: async (userOpHash: Hex) => {
+      console.log("signUserOpHash", { userOpHash })
+      return encodeSmartSessionSignature({
         mode,
         permissionId,
         enableSessionData,
@@ -136,5 +136,6 @@ export const toSmartSessionsValidator = (
           message: { raw: userOpHash as Hex }
         })
       })
+    }
   })
 }

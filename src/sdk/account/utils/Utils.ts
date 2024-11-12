@@ -11,6 +11,7 @@ import {
   type Hex,
   type LocalAccount,
   type PublicClient,
+  Transaction,
   type TypedData,
   type TypedDataDomain,
   type TypedDataParameter,
@@ -452,6 +453,7 @@ export const safeMultiplier = (bI: bigint, multiplier: number): bigint =>
  * Provides wallet functionality using viem's WalletClient.
  */
 export class DanWallet implements IBrowserWallet {
+  account: LocalAccount
   walletClient: WalletClient
 
   /**
@@ -461,6 +463,7 @@ export class DanWallet implements IBrowserWallet {
    * @param chain - The blockchain chain configuration
    */
   constructor(account: LocalAccount, chain: Chain) {
+    this.account = account
     this.walletClient = createWalletClient({
       account,
       chain,
@@ -476,8 +479,6 @@ export class DanWallet implements IBrowserWallet {
    * @returns A promise resolving to the signature
    */
   async signTypedData<T>(_: string, request: TypedDataSL<T>): Promise<Hex> {
-    console.log("_", _)
-    console.log("request", request)
     // @ts-ignore
     return await this.walletClient.signTypedData(request)
   }

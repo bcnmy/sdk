@@ -6,9 +6,13 @@ import {
   getTrustAttestersAction
 } from "@rhinestone/module-sdk"
 import type { Chain, Client, Hex, PublicClient, Transport } from "viem"
-import { sendUserOperation } from "viem/account-abstraction"
+import {
+  type SendUserOperationParameters,
+  sendUserOperation
+} from "viem/account-abstraction"
 import { encodeFunctionData, getAction, parseAccount } from "viem/utils"
 import { ERROR_MESSAGES, Logger } from "../../../account"
+import type { DanAccount } from "../../../account/toDanAccount"
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
 import { MOCK_ATTESTER_ADDRESS } from "../../../constants"
 import {
@@ -290,13 +294,7 @@ export async function grantPermission<
       client,
       sendUserOperation,
       "sendUserOperation"
-    )({
-      calls,
-      maxFeePerGas,
-      maxPriorityFeePerGas,
-      nonce,
-      account
-    })) as Hex
+    )({ calls, maxFeePerGas, maxPriorityFeePerGas, nonce, account })) as Hex
 
     return {
       userOpHash: userOpHash,

@@ -12,10 +12,7 @@ import {
   toTestClient
 } from "../../test/testUtils"
 import type { MasterClient, NetworkConfig } from "../../test/testUtils"
-import {
-  SIMPLE_SESSION_VALIDATOR_ADDRESS,
-  SMART_SESSIONS_ADDRESS
-} from "../constants"
+import { SMART_SESSIONS_ADDRESS } from "../constants"
 import { isPermissionEnabled } from "../modules/smartSessionsValidator/Helpers"
 import type { CreateSessionDataParams } from "../modules/smartSessionsValidator/Types"
 import {

@@ -134,14 +134,15 @@ describe("account.dan", async () => {
     expect(danWithoutAddress).toMatchInlineSnapshot(`
       {
         "experimental_signAuthorization": undefined,
+        "keyGenData": undefined,
         "nonceManager": undefined,
-        "sign": [Function],
-        "signMessage": [Function],
-        "signTransaction": [Function],
+        "sign": undefined,
+        "signMessage": undefined,
+        "signTransaction": undefined,
         "signTypedData": [Function],
         "signUserOperation": [Function],
         "source": "custom",
-        "type": "local",
+        "type": "dan",
       }
     `)
   })

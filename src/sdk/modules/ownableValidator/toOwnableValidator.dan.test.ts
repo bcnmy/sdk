@@ -9,7 +9,7 @@ import {
   toTestClient
 } from "../../../test/testUtils"
 import type { MasterClient, NetworkConfig } from "../../../test/testUtils"
-import { toDanAccount } from "../../account/toDanAccount"
+import { keyGen, sigGen } from "../../account/toDanAccount"
 import { createNexusClient } from "../../clients/createNexusClient"
 import { ownableActions } from "./decorators"
 import { toOwnableValidator } from "./toOwnableValidator"
@@ -47,11 +47,7 @@ describe("modules.dan.dx", async () => {
       bundlerTransport: http(bundlerUrl)
     })
 
-    const danAccount = await toDanAccount({
-      signer: eoaAccount,
-      chain,
-      bundlerClient: nexusClient as BundlerClient
-    })
+    const keyGenData = await keyGen({ signer: eoaAccount, chain })
 
     // Fund the account and deploy the smart contract wallet
     // This is just a reminder to fund the account and deploy the smart contract wallet
@@ -65,7 +61,7 @@ describe("modules.dan.dx", async () => {
       signer: eoaAccount,
       moduleInitArgs: {
         threshold: 1n,
-        owners: [danAccount.address]
+        owners: [keyGenData.sessionPublicKey]
       }
     })
 
@@ -94,7 +90,10 @@ describe("modules.dan.dx", async () => {
     })
 
     // Collect signature
-    const signature = await danAccount.signUserOperation(withdrawalUserOp)
+    const signature = await sigGen(nexusClient, {
+      keyGenData,
+      ...withdrawalUserOp
+    })
 
     // Send the user operation with the collected signatures
     const userOpHash = await nexusClient.sendUserOperation({

@@ -7,6 +7,7 @@ import {
   type LocalAccount,
   encodeFunctionData
 } from "viem"
+import type { BundlerClient } from "viem/account-abstraction"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { CounterAbi } from "../../../test/__contracts/abi/CounterAbi"
@@ -19,6 +20,7 @@ import {
   toTestClient
 } from "../../../test/testUtils"
 import type { MasterClient, NetworkConfig } from "../../../test/testUtils"
+import { keyGen } from "../../account/toDanAccount"
 import {
   type NexusClient,
   createNexusClient
@@ -30,7 +32,7 @@ import type { CreateSessionDataParams, SessionData } from "./Types"
 import { smartSessionCreateActions, smartSessionUseActions } from "./decorators"
 import { toSmartSessionsValidator } from "./toSmartSessionsValidator"
 
-describe("modules.smartSessions.dx", async () => {
+describe("modules.smartSessions.dan", async () => {
   let network: NetworkConfig
   let chain: Chain
   let bundlerUrl: string
@@ -39,7 +41,7 @@ describe("modules.smartSessions.dx", async () => {
   let testClient: MasterClient
   let eoaAccount: LocalAccount
   let usersNexusClient: NexusClient
-  let sessionKeyAccount: LocalAccount
+  let dappAccount: LocalAccount
   let sessionPublicKey: Address
 
   let zippedSessionDatum: string
@@ -51,8 +53,7 @@ describe("modules.smartSessions.dx", async () => {
     chain = network.chain
     bundlerUrl = network.bundlerUrl
     eoaAccount = getTestAccount(0)
-    sessionKeyAccount = privateKeyToAccount(generatePrivateKey()) // Generally belongs to the dapp
-    sessionPublicKey = sessionKeyAccount.address
+    dappAccount = getTestAccount(7)
     testClient = toTestClient(chain, getTestAccount(5))
   })
 
@@ -76,7 +77,7 @@ describe("modules.smartSessions.dx", async () => {
    * This test showcases how smart sessions enable controlled, delegated actions
    * on a user's smart account, even after the user is no longer actively engaged.
    */
-  test("should demonstrate creating a smart session from user's perspective", async () => {
+  test("should demonstrate creating a smart session using a dan account as the sessionKeyAccount", async () => {
     // User Perspective: Creating and setting up the smart session
 
     // Create a Nexus client for the main account (eoaAccount)
@@ -87,6 +88,9 @@ describe("modules.smartSessions.dx", async () => {
       transport: http(),
       bundlerTransport: http(bundlerUrl)
     })
+
+    const keyGenData = await keyGen({ signer: dappAccount, chain })
+    sessionPublicKey = keyGenData.sessionPublicKey
 
     // Fund the account and deploy the smart contract wallet
     await fundAndDeployClients(testClient, [usersNexusClient])
@@ -150,7 +154,7 @@ describe("modules.smartSessions.dx", async () => {
     }
 
     // Zip the session data, and store it for later use by a dapp
-    zippedSessionDatum = stringify(sessionData)
+    zippedSessionDatum = stringify({ sessionData, keyGenData })
   }, 200000)
 
   test("should demonstrate using a smart session from dapp's perspective", async () => {
@@ -158,14 +162,15 @@ describe("modules.smartSessions.dx", async () => {
     // The following code demonstrates how a dapp can use the session to act on behalf of the user
 
     // Unzip the session data
-    const usersSessionData = parse(zippedSessionDatum)
+    const { sessionData: usersSessionData, keyGenData } =
+      parse(zippedSessionDatum)
 
     // Create a new Nexus client for the session
     // This client will be used to interact with the smart contract account using the session key
     const smartSessionNexusClient = await createNexusSessionClient({
       chain,
       accountAddress: usersSessionData.granter,
-      signer: sessionKeyAccount,
+      signer: dappAccount,
       transport: http(),
       bundlerTransport: http(bundlerUrl)
     })
@@ -173,7 +178,7 @@ describe("modules.smartSessions.dx", async () => {
     // Create a new smart sessions module with the session key
     const usePermissionsModule = toSmartSessionsValidator({
       account: smartSessionNexusClient.account,
-      signer: sessionKeyAccount,
+      signer: dappAccount,
       moduleData: usersSessionData.moduleData
     })
 
@@ -184,6 +189,7 @@ describe("modules.smartSessions.dx", async () => {
 
     // Use the session to perform an action (increment the counter)
     const userOpHash = await useSmartSessionNexusClient.usePermission({
+      keyGenData,
       actions: [
         {
           target: testAddresses.Counter,

@@ -110,7 +110,7 @@ export async function toSigner({
       }
     })
   }
-  if ("type" in signer && signer.type === "local") {
+  if ("type" in signer && ["local", "dan"].includes(signer.type)) {
     return signer as LocalAccount
   }
 
