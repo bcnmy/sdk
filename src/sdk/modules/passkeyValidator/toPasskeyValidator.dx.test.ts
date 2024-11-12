@@ -9,8 +9,9 @@ import {
   killNetwork
 } from "./../../../test/testUtils"
 
-import { http, type Chain, type LocalAccount, createPublicClient } from "viem"
+import { http, type Chain, type LocalAccount } from "viem"
 import { toNetwork } from "../../../test/testSetup"
+import { moduleActivator } from "../../clients/decorators/erc7579/moduleActivator"
 import { toPasskeyValidator } from "./toPasskeyValidator"
 import { WebAuthnMode, toWebAuthnKey } from "./toWebAuthnKey"
 
@@ -20,22 +21,15 @@ describe.skip("modules.passkeyValidator.dx", async () => {
   let bundlerUrl: string
 
   let eoaAccount: LocalAccount
-  let passkeyNexusClient: NexusClient
   let nexusClient: NexusClient
 
   beforeAll(async () => {
     // Initialize the network and account details
-    network = await toNetwork("PUBLIC_TESTNET")
+    network = await toNetwork()
 
     chain = network.chain
     bundlerUrl = network.bundlerUrl
     eoaAccount = getTestAccount(0)
-
-    // Create a public client for the test network
-    const publicClient = createPublicClient({
-      chain,
-      transport: http()
-    })
   })
 
   afterAll(async () => {
@@ -85,17 +79,11 @@ describe.skip("modules.passkeyValidator.dx", async () => {
     // Wait for the installation transaction to be mined
     await nexusClient.waitForUserOperationReceipt({ hash: opHash })
 
-    // Create a Nexus client with the passkey validator module
-    passkeyNexusClient = await createNexusClient({
-      signer: eoaAccount,
-      chain: chain,
-      transport: http(),
-      bundlerTransport: http(bundlerUrl),
-      module: passkeyValidator
-    })
+    // Set the passkey validator as the active module on the account
+    nexusClient.extend(moduleActivator(passkeyValidator))
 
     // Sending a transaction will be signed by the passkey validator
-    const txHash = await passkeyNexusClient.sendTransaction({
+    const txHash = await nexusClient.sendTransaction({
       calls: [
         {
           to: eoaAccount.address,
@@ -105,7 +93,7 @@ describe.skip("modules.passkeyValidator.dx", async () => {
     })
 
     // Wait for the transaction to be mined and retrieve the receipt
-    const receipt = await passkeyNexusClient.waitForTransactionReceipt({
+    const receipt = await nexusClient.waitForTransactionReceipt({
       hash: txHash
     })
   })

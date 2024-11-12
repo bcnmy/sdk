@@ -6,7 +6,6 @@ import {
   type Hex,
   encodePacked
 } from "viem"
-import { toPackedUserOperation } from "viem/account-abstraction"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { toNetwork } from "../../../test/testSetup"
 import {
@@ -64,7 +63,6 @@ describe("modules.k1Validator", async () => {
   })
 
   test("should send eth", async () => {
-    toPackedUserOperation
     const balanceBefore = await getBalance(testClient, recipientAddress)
     const hash = await nexusClient.sendTransaction({
       calls: [
