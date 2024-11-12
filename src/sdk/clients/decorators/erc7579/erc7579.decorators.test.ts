@@ -7,6 +7,7 @@ import {
   isHex
 } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
+import mockAddresses from "../../../../test/__contracts/mockAddresses"
 import { toNetwork } from "../../../../test/testSetup"
 import {
   type MasterClient,
@@ -91,11 +92,16 @@ describe("erc7579.decorators", async () => {
     expect(isK1ValidatorInstalled).toBe(true)
   })
 
-  test("should uninstall a module", async () => {
-    const hash = await nexusClient.uninstallModule({
+  test("should install a module", async () => {
+    const codeLength = await testClient.getCode({
+      address: mockAddresses.MockValidator
+    })
+    console.log(codeLength, "codeLength")
+
+    const hash = await nexusClient.installModule({
       module: {
         type: "validator",
-        address: k1ValidatorAddress,
+        address: mockAddresses.MockValidator,
         initData: encodePacked(["address"], [eoaAccount.address])
       }
     })
@@ -104,11 +110,11 @@ describe("erc7579.decorators", async () => {
     expect(success).toBe(true)
   })
 
-  test("should install a module", async () => {
-    const hash = await nexusClient.installModule({
+  test("should uninstall a module", async () => {
+    const hash = await nexusClient.uninstallModule({
       module: {
         type: "validator",
-        address: k1ValidatorAddress,
+        address: mockAddresses.MockValidator,
         initData: encodePacked(["address"], [eoaAccount.address])
       }
     })
