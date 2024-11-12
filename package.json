@@ -1,6 +1,6 @@
 {
   "name": "@biconomy/sdk",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "author": "Biconomy",
   "repository": "github:bcnmy/sdk",
   "main": "./dist/_cjs/index.js",
@@ -126,5 +126,8 @@
   },
   "type": "module",
   "types": "./dist/_types/index.d.ts",
-  "typings": "./dist/_types/index.d.ts"
+  "typings": "./dist/_types/index.d.ts",
+  "dependencies": {
+    "@silencelaboratories/walletprovider-sdk": "^0.3.0"
+  }
 }

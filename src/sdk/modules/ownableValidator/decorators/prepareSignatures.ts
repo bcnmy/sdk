@@ -20,7 +20,7 @@ export async function prepareSignatures<
 
   if (!account_) {
     throw new AccountNotFoundError({
-      docsPath: "/nexus/nexus-client/methods#sendtransaction"
+      docsPath: "/nexus-client/methods#sendtransaction"
     })
   }
 

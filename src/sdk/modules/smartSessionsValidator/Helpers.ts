@@ -20,13 +20,13 @@ import {
 import { ERC7484RegistryAbi, UniActionPolicyAbi } from "../../constants/abi"
 import { SmartSessionAbi } from "../../constants/abi/SmartSessionAbi"
 import { parseReferenceValue } from "../utils/Helpers"
+import type { AnyData } from "../utils/Types"
 import type {
   ActionConfig,
   CreateSessionDataParams,
   FullCreateSessionDataParams,
   RawActionConfig,
   Rule,
-  SessionData,
   SpendingLimitsParams
 } from "./Types"
 
@@ -272,23 +272,32 @@ export const policies = {
 } as const
 
 /**
- * Zips SessionData into a compact string representation.
+ * Stringifies an object, explicitly tagging BigInt values.
  *
- * @param sessionData - The SessionData object to be zipped.
- * @returns A string representing the zipped SessionData.
+ * @param obj - The object to be stringified.
+ * @returns A string representing the stringified object with tagged BigInts.
  */
-export function zipSessionData(sessionData: SessionData): string {
-  return JSON.stringify(sessionData)
+export function stringify(obj: Record<string, AnyData>): string {
+  return JSON.stringify(obj, (_, value) =>
+    typeof value === "bigint"
+      ? { __type: "bigint", value: value.toString() }
+      : value
+  )
 }
 
 /**
- * Unzips a string representation back into a SessionData object.
+ * Parses a string representation back into an object, correctly handling tagged BigInt values.
  *
- * @param zippedData - The string representing the zipped SessionData.
- * @returns The unzipped SessionData object.
+ * @param data - The string representing the stringified object.
+ * @returns The parsed object with BigInt values restored.
  */
-export function unzipSessionData(zippedData: string): SessionData {
-  return JSON.parse(zippedData) as SessionData
+export function parse(data: string): Record<string, AnyData> {
+  return JSON.parse(data, (_, value) => {
+    if (value && typeof value === "object" && value.__type === "bigint") {
+      return BigInt(value.value)
+    }
+    return value
+  })
 }
 
 // Todo

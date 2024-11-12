@@ -5,15 +5,11 @@ import {
   type Chain,
   type Hex,
   type LocalAccount,
-  encodeFunctionData,
-  toBytes,
-  toHex
+  encodeFunctionData
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
-import { MockRegistryAbi } from "../../../test/__contracts/abi"
 import { CounterAbi } from "../../../test/__contracts/abi/CounterAbi"
-import { MockCalleeAbi } from "../../../test/__contracts/abi/MockCalleeAbi"
 import { testAddresses } from "../../../test/callDatas"
 import { toNetwork } from "../../../test/testSetup"
 import {
@@ -29,8 +25,8 @@ import {
 } from "../../clients/createNexusClient"
 import { createNexusSessionClient } from "../../clients/createNexusSessionClient"
 import type { Module } from "../utils/Types"
-import { unzipSessionData, zipSessionData } from "./Helpers"
-import type { CreateSessionDataParams, Rule, SessionData } from "./Types"
+import { parse, stringify } from "./Helpers"
+import type { CreateSessionDataParams, SessionData } from "./Types"
 import { smartSessionCreateActions, smartSessionUseActions } from "./decorators"
 import { toSmartSessionsValidator } from "./toSmartSessionsValidator"
 
@@ -43,7 +39,6 @@ describe("modules.smartSessions.dx", async () => {
   let testClient: MasterClient
   let eoaAccount: LocalAccount
   let usersNexusClient: NexusClient
-  let cachedPermissionId: Hex
   let sessionKeyAccount: LocalAccount
   let sessionPublicKey: Address
 
@@ -118,15 +113,6 @@ describe("modules.smartSessions.dx", async () => {
 
     expect(installSuccess).toBe(true)
 
-    const trustAttestersHash = await nexusSessionClient.trustAttesters()
-    const userOpReceipt = await nexusSessionClient.waitForUserOperationReceipt({
-      hash: trustAttestersHash
-    })
-    const { status } = await testClient.waitForTransactionReceipt({
-      hash: userOpReceipt.receipt.transactionHash
-    })
-    expect(status).toBe("success")
-
     // Define the session parameters
     // This includes the session key, validator, and action policies
     const sessionRequestedInfo: CreateSessionDataParams[] = [
@@ -145,7 +131,6 @@ describe("modules.smartSessions.dx", async () => {
     const createSessionsResponse = await nexusSessionClient.grantPermission({
       sessionRequestedInfo
     })
-    ;[cachedPermissionId] = createSessionsResponse.permissionIds
 
     // Wait for the session creation transaction to be mined and check its success
     const { success: sessionCreateSuccess } =
@@ -159,13 +144,13 @@ describe("modules.smartSessions.dx", async () => {
       granter: usersNexusClient.account.address,
       sessionPublicKey,
       moduleData: {
-        permissionId: cachedPermissionId,
+        permissionId: createSessionsResponse.permissionIds[0],
         mode: SmartSessionMode.USE
       }
     }
 
     // Zip the session data, and store it for later use by a dapp
-    zippedSessionDatum = zipSessionData(sessionData)
+    zippedSessionDatum = stringify(sessionData)
   }, 200000)
 
   test("should demonstrate using a smart session from dapp's perspective", async () => {
@@ -173,7 +158,7 @@ describe("modules.smartSessions.dx", async () => {
     // The following code demonstrates how a dapp can use the session to act on behalf of the user
 
     // Unzip the session data
-    const usersSessionData = unzipSessionData(zippedSessionDatum)
+    const usersSessionData = parse(zippedSessionDatum)
 
     // Create a new Nexus client for the session
     // This client will be used to interact with the smart contract account using the session key

@@ -13,8 +13,6 @@ import {
 } from "viem/account-abstraction"
 import { getAction, parseAccount } from "viem/utils"
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
-import { bigIntReplacer } from "../../../account/utils/Helpers"
-import { Logger } from "../../../account/utils/Logger"
 
 /**
  * Creates, signs, and sends a new transaction to the network using a smart account.
@@ -45,8 +43,7 @@ export async function sendTransaction<
   client: Client<Transport, chain, account>,
   args:
     | SendTransactionParameters<chain, account, chainOverride>
-    | SendUserOperationParameters<account, accountOverride, calls>,
-  signature?: `0x${string}`
+    | SendUserOperationParameters<account, accountOverride, calls>
 ): Promise<Hash> {
   let userOpHash: Hash
 
@@ -63,7 +60,7 @@ export async function sendTransaction<
 
     if (!account_) {
       throw new AccountNotFoundError({
-        docsPath: "/nexus/nexus-client/methods#sendtransaction"
+        docsPath: "/nexus-client/methods#sendtransaction"
       })
     }
 
@@ -71,7 +68,11 @@ export async function sendTransaction<
 
     if (!to) throw new Error("Missing to address")
 
-    const sendUserOperationArgs = {
+    userOpHash = await getAction(
+      client,
+      sendUserOperation,
+      "sendUserOperation"
+    )({
       calls: [
         {
           to,
@@ -82,27 +83,14 @@ export async function sendTransaction<
       account,
       maxFeePerGas,
       maxPriorityFeePerGas,
-      signature,
       nonce: nonce ? BigInt(nonce) : undefined
-    }
-
-    const { account: _, ...logableArgs } = sendUserOperationArgs
-    Logger.log(JSON.stringify(logableArgs, bigIntReplacer, 2))
-
-    userOpHash = await getAction(
-      client,
-      sendUserOperation,
-      "sendUserOperation"
-    )(sendUserOperationArgs)
+    })
   } else {
     userOpHash = await getAction(
       client,
       sendUserOperation,
       "sendUserOperation"
-    )({ ...args, signature } as SendUserOperationParameters<
-      account,
-      accountOverride
-    >)
+    )({ ...args } as SendUserOperationParameters<account, accountOverride>)
   }
 
   const userOperationReceipt = await getAction(

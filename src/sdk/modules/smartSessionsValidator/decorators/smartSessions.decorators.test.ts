@@ -1,11 +1,4 @@
-import { OWNABLE_VALIDATOR_ADDRESS } from "@rhinestone/module-sdk/module"
-import {
-  http,
-  type Account,
-  type Address,
-  type Chain,
-  type LocalAccount
-} from "viem"
+import { http, type Address, type Chain, type LocalAccount } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { toNetwork } from "../../../../test/testSetup"
@@ -22,7 +15,6 @@ import {
   createNexusClient
 } from "../../../clients/createNexusClient"
 import { createNexusSessionClient } from "../../../clients/createNexusSessionClient"
-import type { Module } from "../../utils/Types"
 import { toSmartSessionsValidator } from "../toSmartSessionsValidator"
 import { smartSessionCreateActions, smartSessionUseActions } from "./"
 
@@ -38,8 +30,6 @@ describe("modules.smartSessions.decorators", async () => {
   let nexusClient: NexusClient
   let nexusAccountAddress: Address
   let sessionPublicKey: Address
-
-  let sessionsModule: Module
 
   beforeAll(async () => {
     network = await toNetwork()

@@ -7,7 +7,7 @@ import { type Address, type Hex, encodePacked } from "viem"
 import type { ModuleMeta } from "../../modules/utils/Types"
 import type { ModularSmartAccount } from "../utils/Types"
 import type { Module, ModuleParameters } from "../utils/Types"
-import { type ToModuleParameters, toModule } from "../utils/toModule"
+import { toModule } from "../utils/toModule"
 import type { UsePermissionModuleData } from "./Types"
 
 const DUMMY_ECDSA_SIG =
@@ -31,8 +31,8 @@ export type UsePermissionModuleGetInitDataArgs = {
  * Parameters for creating a Use Session module.
  */
 export type UsePermissionModuleParameters = Omit<
-  ToModuleParameters,
-  "accountAddress"
+  ModuleParameters,
+  "accountAddress" | "address"
 > & {
   account: ModularSmartAccount
   moduleData?: UsePermissionModuleData
@@ -104,7 +104,8 @@ export const toSmartSessionsValidator = (
     moduleData: {
       permissionId = "0x",
       mode = SmartSessionMode.USE,
-      enableSessionData
+      enableSessionData,
+      keyGenData: _
     } = {}
   } = parameters
 
@@ -134,6 +135,16 @@ export const toSmartSessionsValidator = (
         signature: await signer.signMessage({
           message: { raw: userOpHash as Hex }
         })
-      })
+      }),
+    extend: {
+      sigGen: (signature: Hex): Hex => {
+        return encodeSmartSessionSignature({
+          mode,
+          permissionId,
+          enableSessionData,
+          signature
+        })
+      }
+    }
   })
 }

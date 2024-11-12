@@ -89,13 +89,12 @@ const main = async () => {
   console.timeEnd("read methods")
 
   const successCount = results.filter((result) => result.status === "fulfilled")
+  const failures = results.filter((result) => result.status === "rejected")
   console.log(
     `running the ${usesAltoBundler ? "Alto" : "Bico"} bundler with ${
       successCount.length
     } successful calls and ${results.length - successCount.length} failed calls`
   )
-
-  const failures = results.filter((result) => result.status === "rejected")
 
   if (failures.length > 0) {
     console.log({ failures })

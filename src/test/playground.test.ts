@@ -8,7 +8,6 @@ import {
   createPublicClient,
   createWalletClient
 } from "viem"
-import type { UserOperationReceipt } from "viem/account-abstraction"
 import { beforeAll, describe, expect, test } from "vitest"
 import { playgroundTrue } from "../sdk/account/utils/Utils"
 import {

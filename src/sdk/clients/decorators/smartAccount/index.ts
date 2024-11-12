@@ -13,6 +13,7 @@ import type {
   WriteContractParameters
 } from "viem"
 import type { SmartAccount } from "viem/account-abstraction"
+import type { AnyData } from "../../../modules/utils/Types"
 import { sendTransaction } from "./sendTransaction"
 import { signMessage } from "./signMessage"
 import { signTypedData } from "./signTypedData"
@@ -27,7 +28,7 @@ export type SmartAccountActions<
    * Creates, signs, and sends a new transaction to the network.
    * This function also allows you to sponsor this transaction if sender is a smartAccount
    *
-   * - Docs: https://viem.sh/nexus/nexus-client/methods#sendtransaction.html
+   * - Docs: https://viem.sh/nexus-client/methods#sendtransaction.html
    * - Examples: https://stackblitz.com/github/wagmi-dev/viem/tree/main/examples/transactions/sending-transactions
    * - JSON-RPC Methods:
    *   - JSON-RPC Accounts: [`eth_sendTransaction`](https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_sendtransaction)
@@ -81,6 +82,7 @@ export type SmartAccountActions<
       >
     >[1]
   ) => Promise<Hash>
+
   /**
    * Calculates an Ethereum-specific signature in [EIP-191 format](https://eips.ethereum.org/EIPS/eip-191): `keccak256("\x19Ethereum Signed Message:\n" + len(message) + message))`.
    *
@@ -240,7 +242,7 @@ export type SmartAccountActions<
    *
    * A "write" function on a Solidity contract modifies the state of the blockchain. These types of functions require gas to be executed, and hence a [Transaction](https://viem.sh/docs/glossary/terms.html) is needed to be broadcast in order to change the state.
    *
-   * Internally, uses a [Wallet Client](https://viem.sh/docs/clients/wallet.html) to call the [`sendTransaction` action](https://viem.sh/nexus/nexus-client/methods#sendtransaction.html) with [ABI-encoded `data`](https://viem.sh/docs/contract/encodeFunctionData.html).
+   * Internally, uses a [Wallet Client](https://viem.sh/docs/clients/wallet.html) to call the [`sendTransaction` action](https://viem.sh/nexus-client/methods#sendtransaction.html) with [ABI-encoded `data`](https://viem.sh/docs/contract/encodeFunctionData.html).
    *
    * __Warning: The `write` internally sends a transaction – it does not validate if the contract write will succeed (the contract may throw an error). It is highly recommended to [simulate the contract write with `contract.simulate`](https://viem.sh/docs/contract/writeContract.html#usage) before you execute it.__
    *
@@ -322,7 +324,7 @@ export function smartAccountActions() {
   >(
     client: Client<Transport, TChain, TSmartAccount>
   ): SmartAccountActions<TChain, TSmartAccount> => ({
-    sendTransaction: (args) => sendTransaction(client, args as any),
+    sendTransaction: (args) => sendTransaction(client, args as AnyData),
     signMessage: (args) => signMessage(client, args),
     signTypedData: (args) => signTypedData(client, args),
     writeContract: (args) => writeContract(client, args),

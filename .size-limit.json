@@ -2,27 +2,27 @@
   {
     "name": "core (esm)",
     "path": "./dist/_esm/index.js",
-    "limit": "30 kB",
+    "limit": "50 kB",
     "import": "*",
     "ignore": ["node:fs", "fs", "path", "os", "crypto"]
   },
   {
     "name": "core (cjs)",
     "path": "./dist/_cjs/index.js",
-    "limit": "50 kB",
+    "limit": "80 kB",
     "ignore": ["node:fs", "fs", "path", "os", "crypto"]
   },
   {
     "name": "bundler (tree-shaking)",
     "path": "./dist/_esm/clients/createBicoBundlerClient.js",
-    "limit": "20 kB",
+    "limit": "30 kB",
     "import": "{ createBicoBundlerClient }",
     "ignore": ["node:fs", "fs", "path", "os", "crypto"]
   },
   {
     "name": "paymaster (tree-shaking)",
     "path": "./dist/_esm/clients/createBicoPaymasterClient.js",
-    "limit": "20 kB",
+    "limit": "30 kB",
     "import": "{ createBicoPaymasterClient }",
     "ignore": ["node:fs", "fs", "path", "os", "crypto"]
   }
