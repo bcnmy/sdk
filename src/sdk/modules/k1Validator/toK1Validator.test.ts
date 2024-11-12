@@ -73,7 +73,6 @@ describe("modules.k1Validator", async () => {
           value: 1n
         }
       ],
-      signature: "0x",
       // Note
       // supplying key = 0 will pass it on
       // supplying key = 123n will pass it on

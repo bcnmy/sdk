@@ -8,7 +8,6 @@ import {
   createPublicClient,
   createWalletClient
 } from "viem"
-import type { UserOperationReceipt } from "viem/account-abstraction"
 import { beforeAll, describe, expect, test } from "vitest"
 import { playgroundTrue } from "../sdk/account/utils/Utils"
 import {
@@ -107,19 +106,31 @@ describe.skipIf(!playgroundTrue)("playground", () => {
     expect(balancesAreOfCorrectType).toBeTruthy()
   })
 
+  test("should send a user operation using nexusClient.sendUserOperation", async () => {
+    const balanceBefore = await publicClient.getBalance({
+      address: recipientAddress
+    })
+    const userOpHash = await nexusClient.sendUserOperation({
+      calls: [{ to: recipientAddress, value: 1n }]
+    })
+    const { success } = await nexusClient.waitForUserOperationReceipt({
+      hash: userOpHash
+    })
+    const balanceAfter = await publicClient.getBalance({
+      address: recipientAddress
+    })
+    expect(success).toBe("true")
+    expect(balanceAfter - balanceBefore).toBe(1n)
+  })
+
   test("should send some native token", async () => {
     const balanceBefore = await publicClient.getBalance({
       address: recipientAddress
     })
     const hash = await nexusClient.sendTransaction({
-      calls: [
-        {
-          to: recipientAddress,
-          value: 1n
-        }
-      ]
+      calls: [{ to: recipientAddress, value: 1n }]
     })
-    const { status } = await publicClient.waitForTransactionReceipt({ hash })
+    const { status } = await nexusClient.waitForTransactionReceipt({ hash })
     const balanceAfter = await publicClient.getBalance({
       address: recipientAddress
     })

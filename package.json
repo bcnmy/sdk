@@ -41,7 +41,7 @@
   "peerDependencies": {
     "typescript": "^5",
     "viem": "^2.20.0",
-    "@rhinestone/module-sdk": "^0.1.25",
+    "@rhinestone/module-sdk": "^0.1.28",
     "@simplewebauthn/browser": "^8.3.4",
     "@simplewebauthn/typescript-types": "^8.3.4"
   },
