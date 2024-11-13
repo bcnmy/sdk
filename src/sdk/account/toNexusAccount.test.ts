@@ -24,6 +24,7 @@ import {
   toBytes,
   toHex
 } from "viem"
+import type { UserOperation } from "viem/account-abstraction"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { MockSignatureValidatorAbi } from "../../test/__contracts/abi/MockSignatureValidatorAbi"
 import { TokenWithPermitAbi } from "../../test/__contracts/abi/TokenWithPermitAbi"
@@ -53,7 +54,6 @@ import {
   eip1271MagicValue
 } from "./utils/Constants"
 import type { BytesLike } from "./utils/Types"
-import { UserOperation } from "viem/account-abstraction"
 
 describe("nexus.account", async () => {
   let network: NetworkConfig

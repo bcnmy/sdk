@@ -10,6 +10,7 @@ import {
 } from "viem"
 import { beforeAll, describe, expect, test } from "vitest"
 import { playgroundTrue } from "../sdk/account/utils/Utils"
+import { createBicoPaymasterClient } from "../sdk/clients/createBicoPaymasterClient"
 import {
   type NexusClient,
   createNexusClient
@@ -20,7 +21,6 @@ import {
   type TestnetParams,
   getTestParamsForTestnet
 } from "./testUtils"
-import { createBicoPaymasterClient } from "../sdk/clients/createBicoPaymasterClient"
 
 describe.skipIf(!playgroundTrue)("playground", () => {
   let network: NetworkConfig
