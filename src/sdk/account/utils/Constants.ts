@@ -21,6 +21,8 @@ export const DefaultGasLimit = {
 }
 
 export const ERROR_MESSAGES = {
+  KEY_GEN_DATA_NOT_FOUND: "Key generation data is not available",
+  SIGNATURE_NOT_FOUND: "Signature not found from Dan",
   FAILED_COMPUTE_ACCOUNT_ADDRESS:
     "Failed to compute account address. Possible reasons:\n" +
     "- The factory contract does not have the function 'computeAccountAddress'\n" +

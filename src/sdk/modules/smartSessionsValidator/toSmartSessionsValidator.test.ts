@@ -259,7 +259,7 @@ describe("modules.smartSessions", async () => {
       account: smartSessionNexusClient.account,
       signer: sessionKeyAccount,
       moduleData: {
-        permissionId: cachedPermissionId
+        permissionIds: [cachedPermissionId]
       }
     })
 
@@ -268,11 +268,10 @@ describe("modules.smartSessions", async () => {
     )
 
     const userOpHash = await useSmartSessionNexusClient.usePermission({
-      actions: [
+      calls: [
         {
-          target: testAddresses.Counter,
-          value: 0n,
-          callData: encodeFunctionData({
+          to: testAddresses.Counter,
+          data: encodeFunctionData({
             abi: CounterAbi,
             functionName: "incrementNumber"
           })

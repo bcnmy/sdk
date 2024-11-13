@@ -9,7 +9,7 @@ import {
   toHex
 } from "viem"
 import { ERROR_MESSAGES } from "../../account/index.js"
-import type { ModularSmartAccount } from "./Types.js"
+import type { AnyData, ModularSmartAccount } from "./Types.js"
 
 /**
  * Represents a hardcoded hex value reference.
@@ -102,7 +102,7 @@ export const parseModule = <
   chain extends Chain | undefined
 >(
   client: Client<Transport, chain, TModularSmartAccount>
-) => {
+): AnyData => {
   const activeModule = client?.account?.getModule()
   if (!activeModule) {
     throw new Error(ERROR_MESSAGES.MODULE_NOT_ACTIVATED)

@@ -31,10 +31,7 @@ import {
   createNexusClient
 } from "../../clients/createNexusClient"
 import { createNexusSessionClient } from "../../clients/createNexusSessionClient"
-import {
-  SIMPLE_SESSION_VALIDATOR_ADDRESS,
-  SMART_SESSIONS_ADDRESS
-} from "../../constants"
+import { SMART_SESSIONS_ADDRESS } from "../../constants"
 import type { Module } from "../utils/Types"
 import { isPermissionEnabled } from "./Helpers"
 import type { CreateSessionDataParams, Rule } from "./Types"
@@ -289,7 +286,7 @@ describe("modules.smartSessions.uniPolicy", async () => {
       account: smartSessionNexusClient.account,
       signer: sessionKeyAccount,
       moduleData: {
-        permissionId: cachedPermissionId
+        permissionIds: [cachedPermissionId]
       }
     })
 
@@ -298,12 +295,10 @@ describe("modules.smartSessions.uniPolicy", async () => {
     )
 
     const userOpHash = await useSmartSessionNexusClient.usePermission({
-      account: nexusClient.account,
-      actions: [
+      calls: [
         {
-          target: testAddresses.MockCallee,
-          value: 0n,
-          callData: encodeFunctionData({
+          to: testAddresses.MockCallee,
+          data: encodeFunctionData({
             abi: MockCalleeAbi,
             functionName: "addBalance",
             args: [nexusAccountAddress, balToAddUint, balToAddBytes32 as Hex]

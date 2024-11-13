@@ -1,5 +1,11 @@
 # @biconomy/sdk
 
+## 0.0.10
+
+### Patch Changes
+
+- Added Distributed Session Keys w/ Ownable & Session examples
+
 ## 0.0.9
 
 ### Patch Changes
