@@ -9,8 +9,8 @@ import { sanitizeSignature } from "../utils/Helpers"
 import type { Module, ModuleMeta, ModuleParameters } from "../utils/Types"
 import { toModule } from "../utils/toModule"
 
-export type ToK1ValidatorParameters = ModuleParameters & {
-  address?: Hex
+export type ToK1ValidatorParameters = Omit<ModuleParameters, "address"> & {
+  address?: ModuleParameters["address"]
 }
 
 export type K1ModuleGetInitDataArgs = {
