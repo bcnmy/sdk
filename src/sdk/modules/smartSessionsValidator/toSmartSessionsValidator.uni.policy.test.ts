@@ -31,10 +31,7 @@ import {
   createNexusClient
 } from "../../clients/createNexusClient"
 import { createNexusSessionClient } from "../../clients/createNexusSessionClient"
-import {
-  SIMPLE_SESSION_VALIDATOR_ADDRESS,
-  SMART_SESSIONS_ADDRESS
-} from "../../constants"
+import { SMART_SESSIONS_ADDRESS } from "../../constants"
 import type { Module } from "../utils/Types"
 import { isPermissionEnabled } from "./Helpers"
 import type { CreateSessionDataParams, Rule } from "./Types"

@@ -33,7 +33,7 @@ import { toSmartSessionsValidator } from "./toSmartSessionsValidator"
 // Distributed Sessions enhance security and efficiency by storing session keys on Biconomy's Delegated Authorisation Network (DAN),
 // providing features like automated transaction processing and reduced exposure of private keys.
 
-describe("modules.smartSessions.dan", async () => {
+describe("modules.smartSessions.dan.dx", async () => {
   let network: NetworkConfig
   let chain: Chain
   let bundlerUrl: string
@@ -127,7 +127,7 @@ describe("modules.smartSessions.dan", async () => {
 
     expect(installSuccess).toBe(sessionCreateSuccess)
 
-    // Prepare the session data to be shared with the dApp
+    // Prepare the session data to be stored by the dApp. This could be saved in a Database or client side in local storage.
     const sessionData: SessionData = {
       granter: usersNexusClient.account.address,
       sessionPublicKey,
@@ -162,11 +162,10 @@ describe("modules.smartSessions.dan", async () => {
       moduleData // This includes the keyGenData
     })
 
-    // Extend the Nexus client with smart session usage actions
-    const ssClient = smartSessionNexusClient.extend(
-      smartSessionUseActions(usePermissionsModule)
-    )
-    const danSessionClient = ssClient.extend(danActions())
+    // Extend the Nexus client with smart session usage and dan actions
+    const danSessionClient = smartSessionNexusClient
+      .extend(smartSessionUseActions(usePermissionsModule))
+      .extend(danActions())
 
     // Use the distributed permission to execute a transaction
     const userOpHash = await danSessionClient.useDistributedPermission({

@@ -140,6 +140,7 @@ describe("modules.smartSessions.dx", async () => {
 
     expect(installSuccess).toBe(sessionCreateSuccess)
 
+    // Prepare the session data to be stored by the dApp. This could be saved in a Database by the dApp, or client side in local storage.
     const sessionData: SessionData = {
       granter: usersNexusClient.account.address,
       sessionPublicKey,
