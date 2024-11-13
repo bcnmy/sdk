@@ -84,7 +84,7 @@ describe("modules.smartSessions.decorators", async () => {
       account: nexusClient.account,
       signer: sessionKeyAccount,
       moduleData: {
-        permissionId: "0x"
+        permissionIds: []
       }
     })
 

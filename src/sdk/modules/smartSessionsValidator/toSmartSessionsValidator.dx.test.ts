@@ -144,7 +144,7 @@ describe("modules.smartSessions.dx", async () => {
       granter: usersNexusClient.account.address,
       sessionPublicKey,
       moduleData: {
-        permissionId: createSessionsResponse.permissionIds[0],
+        permissionIds: createSessionsResponse.permissionIds,
         mode: SmartSessionMode.USE
       }
     }
@@ -184,11 +184,10 @@ describe("modules.smartSessions.dx", async () => {
 
     // Use the session to perform an action (increment the counter)
     const userOpHash = await useSmartSessionNexusClient.usePermission({
-      actions: [
+      calls: [
         {
-          target: testAddresses.Counter,
-          value: 0n,
-          callData: encodeFunctionData({
+          to: testAddresses.Counter,
+          data: encodeFunctionData({
             abi: CounterAbi,
             functionName: "incrementNumber"
           })

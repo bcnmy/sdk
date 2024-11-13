@@ -38,10 +38,8 @@ export function danActions() {
     chain extends Chain | undefined
   >(
     client: Client<Transport, chain, TModularSmartAccount>
-  ): DanActions<TModularSmartAccount> => {
-    return {
-      keyGen: (args) => keyGen(client, args),
-      sigGen: (parameters) => sigGen(client, parameters)
-    }
-  }
+  ): DanActions<TModularSmartAccount> => ({
+    keyGen: (args) => keyGen(client, args),
+    sigGen: (parameters) => sigGen(client, parameters)
+  })
 }

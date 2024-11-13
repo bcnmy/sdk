@@ -1,13 +1,19 @@
 import type { Chain, Client, Hash, Transport } from "viem"
+import { danActions } from "../../../clients/decorators/dan/decorators"
 import type { ModularSmartAccount, Module } from "../../utils/Types"
 import type { GrantPermissionResponse } from "../Types"
+import type { SmartSessionModule } from "../toSmartSessionsValidator"
 import {
   type GrantPermissionParameters,
   grantPermission
 } from "./grantPermission"
 import { type TrustAttestersParameters, trustAttesters } from "./trustAttesters"
+import {
+  type DanClient,
+  type UseDistributedPermissionParameters,
+  useDistributedPermission
+} from "./useDistributedPermission"
 import { type UsePermissionParameters, usePermission } from "./usePermission"
-
 /**
  * Defines the shape of actions available for creating smart sessions.
  *
@@ -54,6 +60,15 @@ export type SmartSessionUseActions<
   usePermission: (
     args: UsePermissionParameters<TModularSmartAccount>
   ) => Promise<Hash>
+  /**
+   * Uses a session to perform multiple actions.
+   *
+   * @param args - Parameters for using a session.
+   * @returns A promise that resolves to the transaction hash.
+   */
+  useDistributedPermission: (
+    args: UseDistributedPermissionParameters<TModularSmartAccount>
+  ) => Promise<Hash>
 }
 
 /**
@@ -79,13 +94,19 @@ export function smartSessionCreateActions(_: Module) {
  * @param smartSessionsModule - The smart sessions module to be set on the client's account.
  * @returns A function that takes a client and returns SmartSessionUseActions.
  */
-export function smartSessionUseActions(smartSessionsModule: Module) {
+export function smartSessionUseActions(
+  smartSessionsModule: SmartSessionModule
+) {
   return <TModularSmartAccount extends ModularSmartAccount | undefined>(
     client: Client<Transport, Chain | undefined, TModularSmartAccount>
   ): SmartSessionUseActions<TModularSmartAccount> => {
     client?.account?.setModule(smartSessionsModule)
     return {
-      usePermission: (args) => usePermission(client, args)
+      usePermission: (args) => usePermission(client, args),
+      useDistributedPermission: (args) => {
+        const danClient = client.extend(danActions()) as unknown as DanClient
+        return useDistributedPermission(danClient, args)
+      }
     }
   }
 }
@@ -93,3 +114,4 @@ export function smartSessionUseActions(smartSessionsModule: Module) {
 export * from "./grantPermission"
 export * from "./trustAttesters"
 export * from "./usePermission"
+export * from "./useDistributedPermission"

@@ -168,7 +168,7 @@ describe("nexus.session.client", async () => {
       account: smartSessionNexusClient.account,
       signer: sessionKeyAccount,
       moduleData: {
-        permissionId: cachedPermissionId
+        permissionIds: [cachedPermissionId]
       }
     })
 
@@ -177,11 +177,10 @@ describe("nexus.session.client", async () => {
     )
 
     const userOpHash = await useSmartSessionNexusClient.usePermission({
-      actions: [
+      calls: [
         {
-          target: testAddresses.Counter,
-          value: 0n,
-          callData: encodeFunctionData({
+          to: testAddresses.Counter,
+          data: encodeFunctionData({
             abi: CounterAbi,
             functionName: "incrementNumber",
             args: []
@@ -212,7 +211,7 @@ describe("nexus.session.client", async () => {
       account: nexusClient.account,
       signer: sessionKeyAccount,
       moduleData: {
-        permissionId: cachedPermissionId
+        permissionIds: [cachedPermissionId]
       }
     })
 
@@ -246,11 +245,10 @@ describe("nexus.session.client", async () => {
 
     expect(
       useSmartSessionNexusClient.usePermission({
-        actions: [
+        calls: [
           {
-            target: testAddresses.Counter,
-            value: 0n,
-            callData: encodeFunctionData({
+            to: testAddresses.Counter,
+            data: encodeFunctionData({
               abi: CounterAbi,
               functionName: "decrementNumber"
             })

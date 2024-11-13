@@ -1,13 +1,11 @@
 import { SmartSessionMode } from "@rhinestone/module-sdk/module"
 import {
   http,
-  type Address,
   type Chain,
   type Hex,
   type LocalAccount,
   encodeFunctionData
 } from "viem"
-import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { CounterAbi } from "../../../test/__contracts/abi/CounterAbi"
 import { testAddresses } from "../../../test/callDatas"
@@ -25,19 +23,22 @@ import {
 } from "../../clients/createNexusClient"
 import { createNexusSessionClient } from "../../clients/createNexusSessionClient"
 import { danActions } from "../../clients/decorators/dan"
-import { parseModule } from "../utils/Helpers"
 import type { Module } from "../utils/Types"
 import { parse, stringify } from "./Helpers"
 import type { CreateSessionDataParams, SessionData } from "./Types"
 import { smartSessionCreateActions, smartSessionUseActions } from "./decorators"
 import { toSmartSessionsValidator } from "./toSmartSessionsValidator"
 
+// This test suite demonstrates how to create and use a smart session using Biconomy's Distributed Sessions (DAN).
+// Distributed Sessions enhance security and efficiency by storing session keys on Biconomy's Delegated Authorisation Network (DAN),
+// providing features like automated transaction processing and reduced exposure of private keys.
+
 describe("modules.smartSessions.dan", async () => {
   let network: NetworkConfig
   let chain: Chain
   let bundlerUrl: string
 
-  // Test utils
+  // Test utilities and variables
   let testClient: MasterClient
   let eoaAccount: LocalAccount
   let usersNexusClient: NexusClient
@@ -46,8 +47,8 @@ describe("modules.smartSessions.dan", async () => {
   let sessionsModule: Module
 
   beforeAll(async () => {
+    // Setup test network and accounts
     network = await toNetwork("BASE_SEPOLIA_FORKED")
-
     chain = network.chain
     bundlerUrl = network.bundlerUrl
     eoaAccount = getTestAccount(0)
@@ -56,30 +57,12 @@ describe("modules.smartSessions.dan", async () => {
   })
 
   afterAll(async () => {
+    // Clean up the network after tests
     await killNetwork([network?.rpcPort, network?.bundlerPort])
   })
 
-  /**
-   * This test demonstrates the creation and use of a smart session from two perspectives:
-   *
-   * 1. User Perspective (first test):
-   *    - Create a Nexus client for the user's account
-   *    - Install the smart sessions module on the user's account
-   *    - Create a smart session with specific permissions
-   *
-   * 2. Dapp Perspective (second test):
-   *    - Simulate a scenario where the user has left the dapp
-   *    - Create a new Nexus client using the session key
-   *    - Use the session to perform actions on behalf of the user
-   *
-   * This test showcases how smart sessions enable controlled, delegated actions
-   * on a user's smart account, even after the user is no longer actively engaged.
-   */
   test("should demonstrate creating a smart session using DAN", async () => {
-    // User Perspective: Creating and setting up the smart session
-
-    // Create a Nexus client for the main account (eoaAccount)
-    // This client will be used to interact with the smart contract account
+    // Initialize the user's Nexus client with DAN actions
     usersNexusClient = await createNexusClient({
       signer: eoaAccount,
       chain,
@@ -89,19 +72,20 @@ describe("modules.smartSessions.dan", async () => {
 
     const danNexusClient = usersNexusClient.extend(danActions())
 
+    // Generate a session key using DAN
     const keyGenData = await danNexusClient.keyGen()
     const sessionPublicKey = keyGenData.sessionPublicKey
 
-    // Fund the account and deploy the smart contract wallet
+    // Fund and deploy the user's smart account
     await fundAndDeployClients(testClient, [usersNexusClient])
 
-    // Create a smart sessions module for the user's account
+    // Initialize the smart sessions validator module
     sessionsModule = toSmartSessionsValidator({
       account: usersNexusClient.account,
       signer: eoaAccount
     })
 
-    // Install the smart sessions module on the Nexus client's smart contract account
+    // Install the sessions module
     const hash = await usersNexusClient.installModule({
       module: sessionsModule.moduleInitData
     })
@@ -111,32 +95,31 @@ describe("modules.smartSessions.dan", async () => {
       smartSessionCreateActions(sessionsModule)
     )
 
-    // Wait for the module installation transaction to be mined and check its success
+    // Wait for the module installation to complete
     const { success: installSuccess } =
       await usersNexusClient.waitForUserOperationReceipt({ hash })
 
     expect(installSuccess).toBe(true)
 
-    // Define the session parameters
-    // This includes the session key, validator, and action policies
+    // Define the permissions for the smart session
     const sessionRequestedInfo: CreateSessionDataParams[] = [
       {
-        sessionPublicKey, // Public key of the session
+        sessionPublicKey, // Public key of the session stored in DAN
         actionPoliciesInfo: [
           {
             contractAddress: testAddresses.Counter,
-            functionSelector: "0x273ea3e3" as Hex // Selector for 'incrementNumber'
+            functionSelector: "0x273ea3e3" as Hex // Selector for 'incrementNumber' function
           }
         ]
       }
     ]
 
-    // Create the smart session
+    // Create the smart session with the specified permissions
     const createSessionsResponse = await nexusSessionClient.grantPermission({
       sessionRequestedInfo
     })
 
-    // Wait for the session creation transaction to be mined and check its success
+    // Wait for the permission grant operation to complete
     const { success: sessionCreateSuccess } =
       await usersNexusClient.waitForUserOperationReceipt({
         hash: createSessionsResponse.userOpHash
@@ -144,33 +127,26 @@ describe("modules.smartSessions.dan", async () => {
 
     expect(installSuccess).toBe(sessionCreateSuccess)
 
+    // Prepare the session data to be shared with the dApp
     const sessionData: SessionData = {
       granter: usersNexusClient.account.address,
       sessionPublicKey,
       moduleData: {
         keyGenData,
-        permissionId: createSessionsResponse.permissionIds[0],
+        permissionIds: createSessionsResponse.permissionIds,
         mode: SmartSessionMode.USE
       }
     }
 
-    // Zip the session data, and store it for later use by a dapp
+    // Serialize the session data
     zippedSessionDatum = stringify(sessionData)
   }, 200000)
 
   test("should demonstrate using a smart session using DAN", async () => {
-    // Now assume the user has left the dapp and the usersNexusClient signer is no longer available
-    // The following code demonstrates how a dapp can use the session to act on behalf of the user
+    // Parse the session data received from the user
+    const { moduleData, granter } = parse(zippedSessionDatum)
 
-    // Unzip the session data
-    const {
-      moduleData: { keyGenData },
-      moduleData,
-      granter
-    } = parse(zippedSessionDatum)
-
-    // Create a new Nexus client for the session
-    // This client will be used to interact with the smart contract account using the session key
+    // Initialize the smart session client's Nexus client
     const smartSessionNexusClient = await createNexusSessionClient({
       chain,
       accountAddress: granter,
@@ -179,21 +155,21 @@ describe("modules.smartSessions.dan", async () => {
       bundlerTransport: http(bundlerUrl)
     })
 
-    // Create a new smart sessions module with the session key
+    // Initialize the smart sessions validator module with the received module data
     const usePermissionsModule = toSmartSessionsValidator({
       account: smartSessionNexusClient.account,
       signer: dappAccount,
-      moduleData
+      moduleData // This includes the keyGenData
     })
 
-    // Extend the session client with smart session use actions
-    const danSessionClient = smartSessionNexusClient
-      .extend(smartSessionUseActions(usePermissionsModule))
-      .extend(danActions())
+    // Extend the Nexus client with smart session usage actions
+    const ssClient = smartSessionNexusClient.extend(
+      smartSessionUseActions(usePermissionsModule)
+    )
+    const danSessionClient = ssClient.extend(danActions())
 
-    // Use the session to perform an action (increment the counter)
-    const preppedUserOp = await danSessionClient.prepareUserOperation({
-      account: smartSessionNexusClient.account,
+    // Use the distributed permission to execute a transaction
+    const userOpHash = await danSessionClient.useDistributedPermission({
       calls: [
         {
           to: testAddresses.Counter,
@@ -205,25 +181,12 @@ describe("modules.smartSessions.dan", async () => {
       ]
     })
 
-    const { signature } = await danSessionClient.sigGen({
-      ...preppedUserOp,
-      keyGenData
-    })
-
-    const sessionsModule = parseModule(danSessionClient)
-    const extendedSignature = sessionsModule.sigGen(signature)
-
-    const userOpHash = await danSessionClient.sendUserOperation({
-      ...preppedUserOp,
-      signature: extendedSignature
-    })
-
-    // Wait for the action to be mined and check its success
+    // Wait for the transaction to be processed
     const { success: sessionUseSuccess } =
       await danSessionClient.waitForUserOperationReceipt({
         hash: userOpHash
       })
 
     expect(sessionUseSuccess).toBe(true)
-  }, 200000) // Test timeout set to 60 seconds
+  }, 200000) // Test timeout set to 200 seconds
 })
