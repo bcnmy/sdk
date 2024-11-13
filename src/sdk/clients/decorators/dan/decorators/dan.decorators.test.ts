@@ -1,5 +1,6 @@
 import { http, type Address, type Chain, type LocalAccount, isHex } from "viem"
 import { verifyMessage } from "viem"
+import type { UserOperation } from "viem/account-abstraction"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { toNetwork } from "../../../../../test/testSetup"
 import {
@@ -10,11 +11,9 @@ import {
   killNetwork,
   toTestClient
 } from "../../../../../test/testUtils"
-import type { UserOperationStruct } from "../../../../account/utils/Types"
 import { type NexusClient, createNexusClient } from "../../../createNexusClient"
 import { DanWallet, hexToUint8Array, uuid } from "../Helpers"
 import { danActions } from "./"
-import { keyGen } from "./keyGen"
 
 describe("dan.decorators", async () => {
   let network: NetworkConfig
@@ -124,7 +123,7 @@ describe("dan.decorators", async () => {
     // @ts-ignore
     const preparedUserOperation = (await danNexusClient.prepareUserOperation({
       calls: [{ to: userTwo.address, value: 1n }]
-    })) as Partial<UserOperationStruct>
+    })) as UserOperation
 
     const sendUserOperationParameters = await danNexusClient.sigGen({
       keyGenData,

@@ -6,14 +6,11 @@ import {
 import type { Chain, Client, Hex, PartialBy, Transport } from "viem"
 import {
   type PrepareUserOperationParameters,
+  type UserOperation,
   prepareUserOperation
 } from "viem/account-abstraction"
 import { getAction } from "viem/utils"
-import {
-  ERROR_MESSAGES,
-  type Signer,
-  type UserOperationStruct
-} from "../../../../account"
+import { ERROR_MESSAGES, type Signer } from "../../../../account"
 import { deepHexlify } from "../../../../account/utils/deepHexlify"
 import type {
   AnyData,
@@ -59,7 +56,7 @@ export const sigGen = async <
 >(
   client: Client<Transport, chain, TModularSmartAccount>,
   parameters: SigGenParameters
-): Promise<Partial<UserOperationStruct>> => {
+): Promise<Partial<UserOperation>> => {
   const {
     walletProviderUrl = DEFAULT_DAN_URL,
     partiesNumber = QUORUM_PARTIES,

@@ -14,7 +14,6 @@ import {
   encodePacked,
   hexToBytes,
   keccak256,
-  pad,
   parseAbi,
   parseAbiParameters,
   publicActions,
@@ -35,75 +34,7 @@ import {
   type ModuleType,
   moduleTypeIds
 } from "../../modules/utils/Types"
-import type {
-  AccountMetadata,
-  EIP712DomainReturn,
-  UserOperationStruct
-} from "./Types"
-
-/**
- * Packs a user operation into a standardized format for signing or calldata calculation.
- *
- * @param userOperation - The user operation to pack
- * @returns A packed representation of the user operation as a hex string
- */
-export function packUserOp(
-  userOperation: Partial<UserOperationStruct>
-): string {
-  const hashedInitCode = keccak256(
-    userOperation.factory && userOperation.factoryData
-      ? concat([userOperation.factory, userOperation.factoryData])
-      : "0x"
-  )
-  const hashedCallData = keccak256(userOperation.callData ?? "0x")
-  const hashedPaymasterAndData = keccak256(
-    userOperation.paymaster
-      ? concat([
-          userOperation.paymaster,
-          pad(toHex(userOperation.paymasterVerificationGasLimit || BigInt(0)), {
-            size: 16
-          }),
-          pad(toHex(userOperation.paymasterPostOpGasLimit || BigInt(0)), {
-            size: 16
-          }),
-          userOperation.paymasterData || "0x"
-        ])
-      : "0x"
-  )
-
-  return encodeAbiParameters(
-    [
-      { type: "address" },
-      { type: "uint256" },
-      { type: "bytes32" },
-      { type: "bytes32" },
-      { type: "bytes32" },
-      { type: "uint256" },
-      { type: "bytes32" },
-      { type: "bytes32" }
-    ],
-    [
-      userOperation.sender as Address,
-      userOperation.nonce ?? 0n,
-      hashedInitCode,
-      hashedCallData,
-      concat([
-        pad(toHex(userOperation.verificationGasLimit ?? 0n), {
-          size: 16
-        }),
-        pad(toHex(userOperation.callGasLimit ?? 0n), { size: 16 })
-      ]),
-      userOperation.preVerificationGas ?? 0n,
-      concat([
-        pad(toHex(userOperation.maxPriorityFeePerGas ?? 0n), {
-          size: 16
-        }),
-        pad(toHex(userOperation.maxFeePerGas ?? 0n), { size: 16 })
-      ]),
-      hashedPaymasterAndData
-    ]
-  )
-}
+import type { AccountMetadata, EIP712DomainReturn } from "./Types"
 
 /**
  * Type guard to check if a value is null or undefined.
