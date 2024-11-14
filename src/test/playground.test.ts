@@ -9,6 +9,7 @@ import {
   createWalletClient
 } from "viem"
 import { beforeAll, describe, expect, test } from "vitest"
+import { computeNexusAddress } from "../sdk/account/toNexusAccount"
 import { playgroundTrue } from "../sdk/account/utils/Utils"
 import {
   type NexusClient,
@@ -118,5 +119,18 @@ describe.skipIf(!playgroundTrue)("playground", () => {
     })
     expect(status).toBe("success")
     expect(balanceAfter - balanceBefore).toBe(1n)
+  })
+
+  test("should compute counterfactual address without creating account", async () => {
+    const computedAddress = await computeNexusAddress({
+      chain,
+      transport: http(),
+      signerAddress: eoaAccount.address
+    })
+
+    // Later when we create the actual account, the addresses should match
+    const actualAddress = await nexusClient.account.getCounterFactualAddress()
+    expect(computedAddress).toBe(actualAddress)
+    expect(computedAddress).toMatch(/^0x[a-fA-F0-9]{40}$/)
   })
 })

@@ -562,3 +562,49 @@ export const toNexusAccount = async (
     }
   })
 }
+
+/**
+ * @description Computes the counterfactual address for a Nexus account without creating it
+ * @param parameters - Configuration parameters
+ * @param parameters.chain - The chain netwrk
+ * @param parameters.transport - The transport configuration
+ * @param parameters.signerAddress - The EOA address that will control the account
+ * @param parameters.index - Optional index for the account (defaults to 0n)
+ * @param parameters.factoryAddress - Optional factory address
+ * @returns The computed counterfactual address
+ */
+export const computeNexusAddress = async ({
+  chain,
+  transport,
+  signerAddress,
+  index = 0n,
+  factoryAddress = k1ValidatorFactoryAddress
+}: {
+  chain: Chain
+  transport: ClientConfig["transport"]
+  signerAddress: Address
+  index?: bigint
+  factoryAddress?: Address
+}): Promise<Address> => {
+  const publicClient = createPublicClient({
+    chain,
+    transport
+  })
+
+  try {
+    const address = (await publicClient.readContract({
+      address: factoryAddress,
+      abi: K1ValidatorFactoryAbi,
+      functionName: "computeAccountAddress",
+      args: [signerAddress, index, [], 0]
+    })) as Address
+    return address
+  } catch (e: unknown) {
+    if (
+      (e as any).shortMessage?.includes(ERROR_MESSAGES.MISSING_ACCOUNT_CONTRACT)
+    ) {
+      throw new Error(ERROR_MESSAGES.FAILED_COMPUTE_ACCOUNT_ADDRESS)
+    }
+    throw e
+  }
+}
