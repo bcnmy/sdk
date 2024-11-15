@@ -127,7 +127,7 @@ describe("nexus.session.client", async () => {
       }
     ]
 
-    nexusClient.account.getCounterFactualAddress();
+    nexusClient.account.getCounterFactualAddress()
 
     const createSessionsResponse = await nexusSessionClient.grantPermission({
       sessionRequestedInfo
@@ -135,7 +135,7 @@ describe("nexus.session.client", async () => {
 
     expect(createSessionsResponse.userOpHash).toBeDefined()
     expect(createSessionsResponse.permissionIds).toBeDefined()
-      ;[cachedPermissionId] = createSessionsResponse.permissionIds
+    ;[cachedPermissionId] = createSessionsResponse.permissionIds
 
     const receipt = await nexusClient.waitForUserOperationReceipt({
       hash: createSessionsResponse.userOpHash

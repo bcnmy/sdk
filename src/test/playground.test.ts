@@ -69,8 +69,8 @@ describe.skipIf(!playgroundTrue)("playground", () => {
       bundlerTransport: http(bundlerUrl),
       paymaster: network.paymasterUrl
         ? createBicoPaymasterClient({
-          transport: http(network.paymasterUrl)
-        })
+            transport: http(network.paymasterUrl)
+          })
         : undefined,
       ...testParams
     })
