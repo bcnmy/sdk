@@ -41,7 +41,7 @@ import {
   type NexusClient,
   createNexusClient
 } from "../clients/createNexusClient"
-import { NexusAbi, k1ValidatorAddress } from "../constants"
+import { k1ValidatorAddress } from "../constants"
 import type { NexusAccount } from "./toNexusAccount"
 import {
   addressEquals,
@@ -149,7 +149,9 @@ describe("nexus.account", async () => {
 
     const contractResponse = await testClient.readContract({
       address: nexusAccountAddress,
-      abi: NexusAbi,
+      abi: parseAbi([
+        "function isValidSignature(bytes32,bytes) external view returns (bytes4)"
+      ]),
       functionName: "isValidSignature",
       args: [hashMessage(data), signature]
     })
@@ -353,7 +355,9 @@ describe("nexus.account", async () => {
 
     const contractResponse = await testClient.readContract({
       address: nexusAccountAddress,
-      abi: NexusAbi,
+      abi: parseAbi([
+        "function isValidSignature(bytes32,bytes) external view returns (bytes4)"
+      ]),
       functionName: "isValidSignature",
       args: [typedHashHashed, finalSignature]
     })
@@ -428,7 +432,9 @@ describe("nexus.account", async () => {
 
     const nexusResponse = await testClient.readContract({
       address: nexusAccountAddress,
-      abi: NexusAbi,
+      abi: parseAbi([
+        "function isValidSignature(bytes32,bytes) external view returns (bytes4)"
+      ]),
       functionName: "isValidSignature",
       args: [contentsHash, finalSignature]
     })
