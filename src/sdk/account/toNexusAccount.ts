@@ -1,3 +1,4 @@
+// viem
 import {
   type AbiParameter,
   type Account,
@@ -40,24 +41,27 @@ import {
   getUserOperationHash,
   toSmartAccount
 } from "viem/account-abstraction"
-import { EntrypointAbi, K1ValidatorFactoryAbi } from "../constants/abi"
-import type { Call, UserOperationStruct } from "./utils/Types"
-
-import {
-  ERROR_MESSAGES,
-  EXECUTE_BATCH,
-  EXECUTE_SINGLE,
-  MAGIC_BYTES,
-  PARENT_TYPEHASH
-} from "./utils/Constants"
 
 import {
   ENTRY_POINT_ADDRESS,
   k1ValidatorAddress as k1ValidatorAddress_,
   k1ValidatorFactoryAddress
 } from "../constants"
+// Constants
+import { EntrypointAbi } from "../constants/abi"
+
+// Modules
 import { toK1Validator } from "../modules/k1Validator/toK1Validator"
 import type { Module } from "../modules/utils/Types"
+
+import {
+  EXECUTE_BATCH,
+  EXECUTE_SINGLE,
+  MAGIC_BYTES,
+  PARENT_TYPEHASH
+} from "./utils/Constants"
+// Utils
+import type { Call } from "./utils/Types"
 import {
   type TypedDataWith712,
   addressEquals,
@@ -65,7 +69,6 @@ import {
   getAccountDomainStructFields,
   getTypesForEIP712Domain,
   isNullOrUndefined,
-  packUserOp,
   typeToString
 } from "./utils/Utils"
 import { type Signer, type UnknownSigner, toSigner } from "./utils/toSigner"
@@ -122,7 +125,7 @@ export type NexusSmartAccountImplementation = SmartAccountImplementation<
     getInitCode: () => Hex
     encodeExecute: (call: Call) => Promise<Hex>
     encodeExecuteBatch: (calls: readonly Call[]) => Promise<Hex>
-    getUserOpHash: (userOp: Partial<UserOperationStruct>) => Promise<Hex>
+    getUserOpHash: (userOp: UserOperation) => Hex
     setModule: (validationModule: Module) => void
     getModule: () => Module
     factoryData: Hex
@@ -195,36 +198,14 @@ export const toNexusAccount = async (
   // Review:
   // Todo: attesters can be added here to do one time setup upon deployment.
   const factoryData = encodeFunctionData({
-    abi: K1ValidatorFactoryAbi,
+    abi: parseAbi([
+      "function createAccount(address eoaOwner, uint256 index, address[] attesters, uint8 threshold) external returns (address)"
+    ]),
     functionName: "createAccount",
     args: [signerAddress, index, [], 0]
   })
 
   let _accountAddress: Address | undefined = parameters.accountAddress
-  /**
-   * @description Gets the address of the account
-   * @returns The address of the account
-   */
-  const getAddress = async (): Promise<Address> => {
-    if (!isNullOrUndefined(_accountAddress)) return _accountAddress
-
-    try {
-      _accountAddress = (await publicClient.readContract({
-        address: factoryAddress,
-        abi: K1ValidatorFactoryAbi,
-        functionName: "computeAccountAddress",
-        args: [signerAddress, index, [], 0]
-      })) as Address
-      // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-    } catch (e: any) {
-      if (e.shortMessage?.includes(ERROR_MESSAGES.MISSING_ACCOUNT_CONTRACT)) {
-        throw new Error(ERROR_MESSAGES.FAILED_COMPUTE_ACCOUNT_ADDRESS)
-      }
-      throw e
-    }
-
-    return _accountAddress
-  }
 
   /**
    * @description Gets the init code for the account
@@ -238,7 +219,7 @@ export const toNexusAccount = async (
    * @throws {Error} If unable to get the counterfactual address
    */
   const getCounterFactualAddress = async (): Promise<Address> => {
-    if (_accountAddress) return _accountAddress
+    if (!isNullOrUndefined(_accountAddress)) return _accountAddress
     try {
       await entryPointContract.simulate.getSenderAddress([getInitCode()])
       // biome-ignore lint/suspicious/noExplicitAny: <explanation>
@@ -278,16 +259,13 @@ export const toNexusAccount = async (
    * @param userOp - The user operation
    * @returns The hash of the user operation
    */
-  const getUserOpHash = async (
-    userOp: Partial<UserOperationStruct>
-  ): Promise<Hex> => {
-    const packedUserOp = packUserOp(userOp)
-    const userOpHash = keccak256(packedUserOp as Hex)
-    const enc = encodeAbiParameters(
-      parseAbiParameters("bytes32, address, uint256"),
-      [userOpHash, ENTRY_POINT_ADDRESS, BigInt(chain.id)]
-    )
-    return keccak256(enc)
+  const getUserOpHash = (userOp: UserOperation): Hex => {
+    return getUserOperationHash({
+      chainId: chain.id,
+      entryPointAddress: entryPoint07Address,
+      entryPointVersion: "0.7",
+      userOperation: userOp
+    })
   }
 
   /**
@@ -371,7 +349,7 @@ export const toNexusAccount = async (
         module.address as Hex
       ])
 
-      const accountAddress = await getAddress()
+      const accountAddress = await getCounterFactualAddress()
       return await entryPointContract.read.getNonce([
         accountAddress,
         BigInt(key)
@@ -463,7 +441,7 @@ export const toNexusAccount = async (
     const appDomainSeparator = domainSeparator({ domain })
     const accountDomainStructFields = await getAccountDomainStructFields(
       publicClient,
-      await getAddress()
+      await getCounterFactualAddress()
     )
 
     const parentStructHash = keccak256(
@@ -511,7 +489,7 @@ export const toNexusAccount = async (
       address: ENTRY_POINT_ADDRESS,
       version: "0.7"
     },
-    getAddress,
+    getAddress: getCounterFactualAddress,
     encodeCalls: (calls: readonly Call[]): Promise<Hex> => {
       return calls.length === 1
         ? encodeExecute(calls[0])

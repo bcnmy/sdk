@@ -1,5 +1,5 @@
 import type { Chain, Client, Transport } from "viem"
-import type { UserOperationStruct } from "../../../../account/utils/Types"
+import type { UserOperation } from "viem/account-abstraction"
 import type { ModularSmartAccount } from "../../../../modules/utils/Types"
 import { type KeyGenData, type KeyGenParameters, keyGen } from "./keyGen"
 import { type SigGenParameters, sigGen } from "./sigGen"
@@ -17,9 +17,7 @@ export type DanActions<
   keyGen: (args?: KeyGenParameters<TModularSmartAccount>) => Promise<KeyGenData>
   /** Generates signatures for user operations */
   /** Generates signatures for user operations */
-  sigGen: (
-    parameters: SigGenParameters
-  ) => Promise<Partial<UserOperationStruct>>
+  sigGen: (parameters: SigGenParameters) => Promise<Partial<UserOperation>>
 }
 
 /**

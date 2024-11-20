@@ -24,6 +24,7 @@ import {
   toBytes,
   toHex
 } from "viem"
+import type { UserOperation } from "viem/account-abstraction"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { MockSignatureValidatorAbi } from "../../test/__contracts/abi/MockSignatureValidatorAbi"
 import { TokenWithPermitAbi } from "../../test/__contracts/abi/TokenWithPermitAbi"
@@ -40,7 +41,7 @@ import {
   type NexusClient,
   createNexusClient
 } from "../clients/createNexusClient"
-import { NexusAbi, k1ValidatorAddress } from "../constants"
+import { k1ValidatorAddress } from "../constants"
 import type { NexusAccount } from "./toNexusAccount"
 import {
   addressEquals,
@@ -52,7 +53,7 @@ import {
   PARENT_TYPEHASH,
   eip1271MagicValue
 } from "./utils/Constants"
-import type { BytesLike, UserOperationStruct } from "./utils/Types"
+import type { BytesLike } from "./utils/Types"
 
 describe("nexus.account", async () => {
   let network: NetworkConfig
@@ -148,7 +149,9 @@ describe("nexus.account", async () => {
 
     const contractResponse = await testClient.readContract({
       address: nexusAccountAddress,
-      abi: NexusAbi,
+      abi: parseAbi([
+        "function isValidSignature(bytes32,bytes) external view returns (bytes4)"
+      ]),
       functionName: "isValidSignature",
       args: [hashMessage(data), signature]
     })
@@ -251,7 +254,7 @@ describe("nexus.account", async () => {
         callGasLimit: 1n,
         maxFeePerGas: 1n,
         maxPriorityFeePerGas: 1n
-      } as UserOperationStruct),
+      } as UserOperation),
       nexusAccount.getAddress(),
       nexusAccount.getFactoryArgs(),
       nexusAccount.getStubSignature(),
@@ -352,7 +355,9 @@ describe("nexus.account", async () => {
 
     const contractResponse = await testClient.readContract({
       address: nexusAccountAddress,
-      abi: NexusAbi,
+      abi: parseAbi([
+        "function isValidSignature(bytes32,bytes) external view returns (bytes4)"
+      ]),
       functionName: "isValidSignature",
       args: [typedHashHashed, finalSignature]
     })
@@ -427,7 +432,9 @@ describe("nexus.account", async () => {
 
     const nexusResponse = await testClient.readContract({
       address: nexusAccountAddress,
-      abi: NexusAbi,
+      abi: parseAbi([
+        "function isValidSignature(bytes32,bytes) external view returns (bytes4)"
+      ]),
       functionName: "isValidSignature",
       args: [contentsHash, finalSignature]
     })

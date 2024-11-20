@@ -127,6 +127,8 @@ describe("nexus.session.client", async () => {
       }
     ]
 
+    nexusClient.account.getCounterFactualAddress()
+
     const createSessionsResponse = await nexusSessionClient.grantPermission({
       sessionRequestedInfo
     })

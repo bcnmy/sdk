@@ -67,30 +67,6 @@ export type Service = "Bundler" | "Paymaster"
 export type BigNumberish = Hex | number | bigint
 export type BytesLike = Uint8Array | Hex | string
 
-//#region UserOperationStruct
-// based on @account-abstraction/common
-// this is used for building requests
-export type UserOperationStruct = {
-  sender: Address
-  nonce: bigint
-  factory?: Address
-  factoryData?: Hex
-  callData: Hex
-  callGasLimit: bigint
-  verificationGasLimit: bigint
-  preVerificationGas: bigint
-  maxFeePerGas: bigint
-  maxPriorityFeePerGas: bigint
-  paymaster?: Address
-  paymasterVerificationGasLimit?: bigint
-  paymasterPostOpGasLimit?: bigint
-  paymasterData?: Hex
-  signature: Hex
-  // initCode?: never
-  paymasterAndData?: never
-}
-//#endregion UserOperationStruct
-
 export type EIP712DomainReturn = [
   Hex,
   string,
