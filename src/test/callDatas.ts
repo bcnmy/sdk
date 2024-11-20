@@ -37,7 +37,7 @@ export const TEST_CONTRACTS: Record<
   UniActionPolicy: {
     chainId: baseSepolia.id,
     name: "UniActionPolicy",
-    address: "0x148CD6c24F4dd23C396E081bBc1aB1D92eeDe2BF"
+    address: "0x1D30AdF0133bFDfE9C106Aa5C4d86f08AEfDb5A1"
   },
   Counter: {
     chainId: baseSepolia.id,
