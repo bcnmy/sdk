@@ -346,7 +346,7 @@ export const toNexusAccount = async (
       const key: string = concat([
         toHex(defaultedKey, { size: 3 }),
         defaultedValidationMode,
-        module.address
+        module.address as Hex
       ])
 
       const accountAddress = await getCounterFactualAddress()
@@ -380,7 +380,7 @@ export const toNexusAccount = async (
 
     const signature = encodePacked(
       ["address", "bytes"],
-      [module.address, tempSignature]
+      [module.address as Hex, tempSignature]
     )
 
     const erc6492Signature = concat([
@@ -476,7 +476,7 @@ export const toNexusAccount = async (
 
     signature = encodePacked(
       ["address", "bytes"],
-      [module.address, signatureData]
+      [module.address as Hex, signatureData]
     )
 
     return signature

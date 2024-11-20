@@ -30,6 +30,7 @@ import {
   type NexusClient,
   createNexusClient
 } from "../../clients/createNexusClient"
+import { moduleActivator } from "../../clients/decorators/erc7579/moduleActivator"
 import { toK1Validator } from "../k1Validator/toK1Validator"
 import type { Module } from "../utils/Types"
 
@@ -72,7 +73,7 @@ describe("modules.ownableExecutor", async () => {
       accountAddress: nexusClient.account.address
     })
 
-    nexusClient.account.setModule(k1Module)
+    nexusClient.extend(moduleActivator(k1Module))
   })
 
   afterAll(async () => {
