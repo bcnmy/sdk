@@ -1,13 +1,17 @@
 import type {
+  Account,
   Address,
   BundlerRpcSchema,
   Chain,
   Client,
   ClientConfig,
   EstimateFeesPerGasReturnType,
+  LocalAccount,
+  OneOf,
   Prettify,
   RpcSchema,
-  Transport
+  Transport,
+  WalletClient
 } from "viem"
 import type {
   BundlerActions,
@@ -18,7 +22,8 @@ import type {
 } from "viem/account-abstraction"
 
 import { type NexusAccount, toNexusAccount } from "../account/toNexusAccount"
-import type { UnknownSigner } from "../account/utils/toSigner"
+import type { EthersWallet } from "../account/utils/Utils"
+import type { EthereumProvider } from "../account/utils/toSigner"
 import {
   k1ValidatorAddress as k1ValidatorAddress_,
   k1ValidatorFactoryAddress
@@ -131,7 +136,12 @@ export type NexusClientConfig<
         }
       | undefined
     /** Owner of the account. */
-    signer: UnknownSigner
+    signer: OneOf<
+      | EthereumProvider
+      | WalletClient<Transport, Chain | undefined, Account>
+      | LocalAccount
+      | EthersWallet
+    >
     /** Index of the account. */
     index?: bigint
     /** Active module of the account. */

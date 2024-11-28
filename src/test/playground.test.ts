@@ -22,7 +22,7 @@ import {
   getTestParamsForTestnet
 } from "./testUtils"
 
-describe.skipIf(!playgroundTrue)("playground", () => {
+describe.skipIf(!playgroundTrue())("playground", () => {
   let network: NetworkConfig
   // Required for "PUBLIC_TESTNET" networks
   let testParams: TestnetParams

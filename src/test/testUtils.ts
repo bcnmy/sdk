@@ -499,8 +499,8 @@ export const getTestParamsForTestnet = (publicClient: PublicClient) => ({
     estimateFeesPerGas: async (_) => {
       const feeData = await publicClient.estimateFeesPerGas()
       return {
-        maxFeePerGas: safeMultiplier(feeData.maxFeePerGas, 1.25),
-        maxPriorityFeePerGas: safeMultiplier(feeData.maxPriorityFeePerGas, 1.25)
+        maxFeePerGas: safeMultiplier(feeData.maxFeePerGas, 1.5),
+        maxPriorityFeePerGas: safeMultiplier(feeData.maxPriorityFeePerGas, 1.5)
       }
     }
   }
