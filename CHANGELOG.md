@@ -1,5 +1,11 @@
 # @biconomy/sdk
 
+## 0.0.11
+
+### Patch Changes
+
+- Fix WalletClient signer
+
 ## 0.0.10
 
 ### Patch Changes
