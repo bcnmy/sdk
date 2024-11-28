@@ -356,8 +356,22 @@ export const getAccountDomainStructFields = async (
     keccak256(encodePacked(["uint256[]"], [extensions]))
   ])
 }
-export const playgroundTrue = process?.env?.RUN_PLAYGROUND === "true"
-export const isTesting = process?.env?.TEST === "true"
+
+export const playgroundTrue = () => {
+  try {
+    return process?.env?.RUN_PLAYGROUND === "true"
+  } catch (e) {
+    return false
+  }
+}
+
+export const isTesting = () => {
+  try {
+    return process?.env?.TEST === "true"
+  } catch (e) {
+    return false
+  }
+}
 
 /**
  * Safely multiplies a bigint by a number, rounding appropriately.
