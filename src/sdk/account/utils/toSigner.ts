@@ -2,9 +2,6 @@ import {
   type Account,
   type Address,
   type Chain,
-  type EIP1193Provider,
-  type EIP1193RequestFn,
-  type EIP1474Methods,
   type Hex,
   type LocalAccount,
   type OneOf,
@@ -20,42 +17,12 @@ import { toAccount } from "viem/accounts"
 import { signTypedData } from "viem/actions"
 import { getAction } from "viem/utils"
 import type { AnyData } from "../../modules/utils/Types"
+import type { EthersWallet } from "./Utils"
 
-/**
- * Represents the minimum interface required for a signer implementation.
- * Provides basic signing capabilities for transactions, messages, and typed data.
- */
-export type MinimalSigner = {
-  /** Signs a transaction with the provided arguments */
-  signTransaction: (...args: AnyData[]) => Promise<AnyData>
-  /** Signs a message with the provided arguments */
-  signMessage: (...args: AnyData[]) => Promise<AnyData>
-  /** Signs typed data (EIP-712) with the provided arguments */
-  signTypedData: (...args: AnyData[]) => Promise<AnyData>
-  /** Optional method to retrieve the signer's address */
-  getAddress?: () => Promise<AnyData>
-  /** The signer's address */
-  address: Address | string
-  /** Optional provider instance */
-  provider?: AnyData
-  /** Allows for additional properties */
-  [key: string]: AnyData
-}
+export type EthereumProvider = { request(...args: AnyData): Promise<AnyData> }
 
 /** Represents a local account that can sign transactions and messages */
 export type Signer = LocalAccount
-
-/**
- * Union type of various signer implementations that can be converted to a LocalAccount.
- * Supports EIP-1193 providers, WalletClients, LocalAccounts, Accounts, and MinimalSigners.
- */
-export type UnknownSigner = OneOf<
-  | EIP1193Provider
-  | WalletClient<Transport, Chain | undefined, Account>
-  | LocalAccount
-  | Account
-  | MinimalSigner
->
 
 /**
  * Converts various signer types into a standardized LocalAccount format.
@@ -69,48 +36,49 @@ export type UnknownSigner = OneOf<
  * @throws {Error} When signTransaction is called (not supported)
  * @throws {Error} When address is required but not provided
  */
-export async function toSigner({
+export async function toSigner<
+  provider extends EthereumProvider,
+  wallet extends EthersWallet
+>({
   signer,
   address
 }: {
-  signer: UnknownSigner & {
-    getAddress: () => Promise<string>
-    signMessage: (message: AnyData) => Promise<string>
-    signTypedData: (
-      domain: AnyData,
-      types: AnyData,
-      value: AnyData
-    ) => Promise<string>
-  }
+  signer: OneOf<
+    | provider
+    | wallet
+    | WalletClient<Transport, Chain | undefined, Account>
+    | LocalAccount
+  >
   address?: Address
 }): Promise<LocalAccount> {
-  // ethers Wallet does not have type property
   if ("provider" in signer) {
+    const wallet = signer as EthersWallet
+    const address = await wallet.getAddress()
     return toAccount({
-      address: getAddress((await signer.getAddress()) as string),
+      address: getAddress(address),
       async signMessage({ message }): Promise<Hex> {
         if (typeof message === "string") {
-          return (await signer.signMessage(message)) as Hex
+          return await wallet.signMessage(message)
         }
-        // For ethers, raw messages need to be converted to Uint8Array
-        if (typeof message.raw === "string") {
-          return (await signer.signMessage(hexToBytes(message.raw))) as Hex
+        if (typeof message?.raw === "string") {
+          return await wallet.signMessage(hexToBytes(message.raw))
         }
-        return (await signer.signMessage(message.raw)) as Hex
+        return await wallet.signMessage(message.raw)
       },
       async signTransaction(_) {
         throw new Error("Not supported")
       },
       async signTypedData(typedData) {
-        return signer.signTypedData(
-          typedData.domain as AnyData,
-          typedData.types as AnyData,
-          typedData.message as AnyData
-        ) as Promise<Hex>
+        return wallet.signTypedData(
+          typedData.domain,
+          typedData.types,
+          typedData.message
+        )
       }
     })
   }
-  if ("type" in signer && ["local", "dan"].includes(signer.type)) {
+
+  if ("type" in signer && signer.type === "local") {
     return signer as LocalAccount
   }
 
@@ -118,27 +86,25 @@ export async function toSigner({
     | WalletClient<Transport, Chain | undefined, Account>
     | undefined = undefined
 
-  if ("request" in signer) {
+  if ("request" in signer && signer?.type !== "walletClient") {
     if (!address) {
       try {
-        ;[address] = await (signer.request as EIP1193RequestFn<EIP1474Methods>)(
-          {
-            method: "eth_requestAccounts"
-          }
-        )
+        ;[address] = await (signer as EthereumProvider).request({
+          method: "eth_requestAccounts"
+        })
       } catch {
-        ;[address] = await (signer.request as EIP1193RequestFn<EIP1474Methods>)(
-          {
-            method: "eth_accounts"
-          }
-        )
+        ;[address] = await (signer as EthereumProvider).request({
+          method: "eth_accounts"
+        })
       }
     }
-    if (!address) throw new Error("address required")
-
+    if (!address) {
+      // For TS to be happy
+      throw new Error("address is required")
+    }
     walletClient = createWalletClient({
       account: address,
-      transport: custom(signer as EIP1193Provider)
+      transport: custom(signer as EthereumProvider)
     })
   }
 
@@ -159,7 +125,7 @@ export async function toSigner({
       )(typedData as AnyData)
     },
     async signTransaction(_) {
-      throw new Error("Not supported")
+      throw new Error("Smart account signer doesn't need to sign transactions")
     }
   })
 }

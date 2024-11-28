@@ -58,5 +58,10 @@ export const toNetwork = async (
       : initLocalhostNetwork(forkBaseSepolia))
 }
 
-export const playgroundTrue = process.env.RUN_PLAYGROUND === "true"
-export const paymasterTruthy = !!process.env.PAYMASTER_URL
+export const paymasterTruthy = () => {
+  try {
+    return !!process.env.PAYMASTER_URL
+  } catch (e) {
+    return false
+  }
+}

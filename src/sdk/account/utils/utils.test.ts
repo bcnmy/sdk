@@ -2,6 +2,7 @@ import { ParamType, ethers } from "ethers"
 import { type AbiParameter, encodeAbiParameters } from "viem"
 import { generatePrivateKey } from "viem/accounts"
 import { describe, expect, test } from "vitest"
+import type { EthersWallet } from "./Utils"
 import { toSigner } from "./toSigner"
 
 describe("utils", async () => {
@@ -60,14 +61,14 @@ describe("utils", async () => {
   )
 
   test.concurrent("should support ethers Wallet", async () => {
-    const wallet = new ethers.Wallet(privKey)
+    const wallet = new ethers.Wallet(privKey) as EthersWallet
     const signer = await toSigner({ signer: wallet })
     const sig = await signer.signMessage({ message: "test" })
     expect(sig).toBeDefined()
   })
 
   test.concurrent("should support ethers Wallet signTypedData", async () => {
-    const wallet = new ethers.Wallet(privKey)
+    const wallet = new ethers.Wallet(privKey) as EthersWallet
     const signer = await toSigner({ signer: wallet })
     const appDomain = {
       chainId: 1,

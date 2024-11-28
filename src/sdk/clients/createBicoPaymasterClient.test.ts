@@ -23,7 +23,7 @@ import {
 } from "./createBicoPaymasterClient"
 import { type NexusClient, createNexusClient } from "./createNexusClient"
 
-describe.runIf(paymasterTruthy)("bico.paymaster", async () => {
+describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
   let network: NetworkConfig
   // Required for "PUBLIC_TESTNET" networks
   let testParams: TestnetParams

@@ -54,10 +54,10 @@ describe.each(COMPETITORS)(
           estimateFeesPerGas: async (_) => {
             const feeData = await publicClient.estimateFeesPerGas()
             return {
-              maxFeePerGas: safeMultiplier(feeData.maxFeePerGas, 1.4),
+              maxFeePerGas: safeMultiplier(feeData.maxFeePerGas, 1.6),
               maxPriorityFeePerGas: safeMultiplier(
                 feeData.maxPriorityFeePerGas,
-                1.4
+                1.6
               )
             }
           }

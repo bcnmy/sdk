@@ -382,3 +382,12 @@ export const isTesting = () => {
  */
 export const safeMultiplier = (bI: bigint, multiplier: number): bigint =>
   BigInt(Math.round(Number(bI) * multiplier))
+
+export type EthersWallet = {
+  signTransaction: (...args: AnyData[]) => Promise<AnyData>
+  signMessage: (...args: AnyData[]) => Promise<AnyData>
+  signTypedData: (...args: AnyData[]) => Promise<AnyData>
+  getAddress: () => Promise<AnyData>
+  address: Address | string
+  provider: AnyData
+}
