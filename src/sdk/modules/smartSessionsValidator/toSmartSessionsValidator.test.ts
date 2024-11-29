@@ -6,12 +6,10 @@ import {
   type LocalAccount,
   encodeFunctionData,
   pad,
-  toBytes,
   toHex
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
-import { MockRegistryAbi } from "../../../test/__contracts/abi"
 import { CounterAbi } from "../../../test/__contracts/abi/CounterAbi"
 import { testAddresses } from "../../../test/callDatas"
 import { toNetwork } from "../../../test/testSetup"
@@ -27,10 +25,9 @@ import {
   createNexusClient
 } from "../../clients/createNexusClient"
 import { createNexusSessionClient } from "../../clients/createNexusSessionClient"
-import { SIMPLE_SESSION_VALIDATOR_ADDRESS } from "../../constants"
 import { parseReferenceValue } from "../utils/Helpers"
 import type { Module } from "../utils/Types"
-import policies from "./Helpers"
+import policies, { toContractWhitelist } from "./Helpers"
 import type { CreateSessionDataParams } from "./Types"
 import { ParamCondition } from "./Types"
 import { smartSessionCreateActions, smartSessionUseActions } from "./decorators"
@@ -86,6 +83,40 @@ describe("modules.smartSessions", async () => {
       )
     )
     expect(bytecodes.every((bytecode) => !!bytecode?.length)).toBeTruthy()
+  })
+
+  test("should convert an ABI to a contract whitelist", async () => {
+    const contractWhitelist = toContractWhitelist({
+      abi: CounterAbi,
+      actionPolicyData: {
+        contractAddress: testAddresses.Counter
+      }
+    })
+
+    expect(contractWhitelist).toBeDefined()
+
+    // Verify the structure matches all CounterAbi functions
+    expect(contractWhitelist).toEqual([
+      {
+        contractAddress: testAddresses.Counter,
+        functionSelector: "0x871cc9d4" // decrementNumber
+      },
+      {
+        contractAddress: testAddresses.Counter,
+        functionSelector: "0xf2c9ecd8" // getNumber
+      },
+      {
+        contractAddress: testAddresses.Counter,
+        functionSelector: "0x273ea3e3" // incrementNumber
+      },
+      {
+        contractAddress: testAddresses.Counter,
+        functionSelector: "0x12467434" // revertOperation
+      }
+    ])
+
+    // Verify the length matches the number of functions in CounterAbi
+    expect(contractWhitelist).toHaveLength(4)
   })
 
   test.concurrent(

@@ -24,7 +24,7 @@ import {
 import { createNexusSessionClient } from "../../clients/createNexusSessionClient"
 import { danActions } from "../../clients/decorators/dan"
 import type { Module } from "../utils/Types"
-import { parse, stringify } from "./Helpers"
+import { parse, stringify, toContractWhitelist } from "./Helpers"
 import type { CreateSessionDataParams, SessionData } from "./Types"
 import { smartSessionCreateActions, smartSessionUseActions } from "./decorators"
 import { toSmartSessionsValidator } from "./toSmartSessionsValidator"
@@ -101,16 +101,18 @@ describe("modules.smartSessions.dan.dx", async () => {
 
     expect(installSuccess).toBe(true)
 
+    const contractWhitelist = toContractWhitelist({
+      abi: CounterAbi,
+      actionPolicyData: {
+        contractAddress: testAddresses.Counter
+      }
+    })
+
     // Define the permissions for the smart session
     const sessionRequestedInfo: CreateSessionDataParams[] = [
       {
         sessionPublicKey, // Public key of the session stored in DAN
-        actionPoliciesInfo: [
-          {
-            contractAddress: testAddresses.Counter,
-            functionSelector: "0x273ea3e3" as Hex // Selector for 'incrementNumber' function
-          }
-        ]
+        actionPoliciesInfo: [...contractWhitelist]
       }
     ]
 

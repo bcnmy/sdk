@@ -1,5 +1,6 @@
 import type { ActionData, PolicyData, Session } from "@rhinestone/module-sdk"
 import {
+  type Abi,
   type AbiFunction,
   type Address,
   type Hex,
@@ -8,6 +9,7 @@ import {
   encodePacked,
   pad,
   toBytes,
+  toFunctionSelector,
   toHex
 } from "viem"
 import {
@@ -23,6 +25,7 @@ import { parseReferenceValue } from "../utils/Helpers"
 import type { AnyData } from "../utils/Types"
 import type {
   ActionConfig,
+  ActionPolicyData,
   CreateSessionDataParams,
   FullCreateSessionDataParams,
   RawActionConfig,
@@ -337,6 +340,30 @@ export const getTrustedAttesters = async ({
     console.error(err)
     return []
   }
+}
+
+/**
+ * Converts an ABI to a list of ActionPolicyData objects.
+ *
+ * @param params - The parameters object
+ * @param params.abi - The ABI to convert
+ * @param params.actionPolicyData - The ActionPolicyData object to apply to each function in the ABI
+ * @returns An array of ActionPolicyData objects
+ */
+export function toContractWhitelist({
+  abi,
+  actionPolicyData
+}: {
+  abi: Abi
+  actionPolicyData: Omit<ActionPolicyData, "functionSelector">
+}): ActionPolicyData[] {
+  // Filter out only the functions from the ABI
+  return abi
+    .filter((item): item is AbiFunction => item.type === "function")
+    .map((func) => ({
+      ...actionPolicyData,
+      functionSelector: toFunctionSelector(func)
+    }))
 }
 
 export default policies

@@ -25,7 +25,7 @@ import {
 } from "../../clients/createNexusClient"
 import { createNexusSessionClient } from "../../clients/createNexusSessionClient"
 import type { Module } from "../utils/Types"
-import { parse, stringify } from "./Helpers"
+import { parse, stringify, toContractWhitelist } from "./Helpers"
 import type { CreateSessionDataParams, SessionData } from "./Types"
 import { smartSessionCreateActions, smartSessionUseActions } from "./decorators"
 import { toSmartSessionsValidator } from "./toSmartSessionsValidator"
@@ -113,17 +113,19 @@ describe("modules.smartSessions.dx", async () => {
 
     expect(installSuccess).toBe(true)
 
+    const actionPoliciesInfo = toContractWhitelist({
+      abi: CounterAbi,
+      actionPolicyData: {
+        contractAddress: testAddresses.Counter
+      }
+    })
+
     // Define the session parameters
     // This includes the session key, validator, and action policies
     const sessionRequestedInfo: CreateSessionDataParams[] = [
       {
         sessionPublicKey, // Public key of the session
-        actionPoliciesInfo: [
-          {
-            contractAddress: testAddresses.Counter,
-            functionSelector: "0x273ea3e3" as Hex // Selector for 'incrementNumber'
-          }
-        ]
+        actionPoliciesInfo
       }
     ]
 
