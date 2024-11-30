@@ -42,7 +42,7 @@ import type { AccountMetadata, EIP712DomainReturn } from "./Types"
  * @param value - The value to check
  * @returns True if the value is null or undefined
  */
-export const isNullOrUndefined = (value: any): value is undefined => {
+export const isNullOrUndefined = (value: AnyData): value is undefined => {
   return value === null || value === undefined
 }
 

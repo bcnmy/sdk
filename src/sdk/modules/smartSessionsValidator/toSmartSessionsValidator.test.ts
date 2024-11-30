@@ -6,12 +6,10 @@ import {
   type LocalAccount,
   encodeFunctionData,
   pad,
-  toBytes,
   toHex
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
-import { MockRegistryAbi } from "../../../test/__contracts/abi"
 import { CounterAbi } from "../../../test/__contracts/abi/CounterAbi"
 import { testAddresses } from "../../../test/callDatas"
 import { toNetwork } from "../../../test/testSetup"
@@ -26,8 +24,6 @@ import {
   type NexusClient,
   createNexusClient
 } from "../../clients/createNexusClient"
-import { createNexusSessionClient } from "../../clients/createNexusSessionClient"
-import { SIMPLE_SESSION_VALIDATOR_ADDRESS } from "../../constants"
 import { parseReferenceValue } from "../utils/Helpers"
 import type { Module } from "../utils/Types"
 import policies from "./Helpers"
@@ -52,7 +48,7 @@ describe("modules.smartSessions", async () => {
   let sessionsModule: Module
 
   beforeAll(async () => {
-    network = await toNetwork("BASE_SEPOLIA_FORKED")
+    ;[network] = await toNetworks("BESPOKE_ANVIL_NETWORK_FORKING_BASE_SEPOLIA")
 
     chain = network.chain
     bundlerUrl = network.bundlerUrl
@@ -247,7 +243,7 @@ describe("modules.smartSessions", async () => {
       functionName: "getNumber"
     })
 
-    const smartSessionNexusClient = await createNexusSessionClient({
+    const smartSessionNexusClient = await createNexusClient({
       chain,
       accountAddress: nexusClient.account.address,
       signer: sessionKeyAccount,

@@ -15,7 +15,7 @@ import {
   type NexusClient,
   createNexusClient
 } from "../sdk/clients/createNexusClient"
-import { toNetwork } from "./testSetup"
+import { toNetworks } from "./testSetup"
 import {
   type NetworkConfig,
   type TestnetParams,
@@ -24,7 +24,7 @@ import {
 
 describe.skipIf(!playgroundTrue())("playground", () => {
   let network: NetworkConfig
-  // Required for "PUBLIC_TESTNET" networks
+  // Required for "TESTNET_FROM_ENV_VARS" networks
   let testParams: TestnetParams
   // Nexus Config
   let chain: Chain
@@ -39,7 +39,7 @@ describe.skipIf(!playgroundTrue())("playground", () => {
   let nexusAccountAddress: Address
 
   beforeAll(async () => {
-    network = await toNetwork("PUBLIC_TESTNET")
+    ;[network] = await toNetworks("TESTNET_FROM_ENV_VARS")
 
     chain = network.chain
     bundlerUrl = network.bundlerUrl

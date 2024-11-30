@@ -35,26 +35,46 @@ export const testnetTest = test.extend<{
 }>({
   // biome-ignore lint/correctness/noEmptyPattern: Needed in vitest :/
   config: async ({}, use) => {
-    const testNetwork = await toNetwork("PUBLIC_TESTNET")
+    const testNetwork = await toNetwork("TESTNET_FROM_ENV_VARS")
     await use(testNetwork)
   }
 })
 
 export type TestFileNetworkType =
-  | "FILE_LOCALHOST"
-  | "COMMON_LOCALHOST"
-  | "PUBLIC_TESTNET"
-  | "BASE_SEPOLIA_FORKED"
+  | "BESPOKE_ANVIL_NETWORK"
+  | "BESPOKE_ANVIL_NETWORK_FORKING_BASE_SEPOLIA"
+  | "TESTNET_FROM_ENV_VARS"
+  | "TESTNET_FROM_ALT_ENV_VARS"
+  | "COMMUNAL_ANVIL_NETWORK"
+
+export const toNetworks = async (
+  networkTypes_: TestFileNetworkType | TestFileNetworkType[] = [
+    "BESPOKE_ANVIL_NETWORK"
+  ]
+): Promise<NetworkConfig[]> => {
+  const networkTypes = Array.isArray(networkTypes_)
+    ? networkTypes_
+    : [networkTypes_]
+
+  return await Promise.all(networkTypes.map((type) => toNetwork(type)))
+}
 
 export const toNetwork = async (
-  networkType: TestFileNetworkType = "FILE_LOCALHOST"
+  networkType: TestFileNetworkType = "BESPOKE_ANVIL_NETWORK"
 ): Promise<NetworkConfig> => {
-  const forkBaseSepolia = networkType === "BASE_SEPOLIA_FORKED"
-  return await (networkType === "COMMON_LOCALHOST"
+  const forkBaseSepolia =
+    networkType === "BESPOKE_ANVIL_NETWORK_FORKING_BASE_SEPOLIA"
+  const communalAnvil = networkType === "COMMUNAL_ANVIL_NETWORK"
+  const testNet = [
+    "TESTNET_FROM_ENV_VARS",
+    "TESTNET_FROM_ALT_ENV_VARS"
+  ].includes(networkType)
+
+  return await (communalAnvil
     ? // @ts-ignore
       inject("globalNetwork")
-    : networkType === "PUBLIC_TESTNET"
-      ? initTestnetNetwork()
+    : testNet
+      ? initTestnetNetwork(networkType)
       : initLocalhostNetwork(forkBaseSepolia))
 }
 

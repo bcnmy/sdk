@@ -14,11 +14,11 @@ import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { CounterAbi } from "../../test/__contracts/abi"
 import mockAddresses from "../../test/__contracts/mockAddresses"
-import { toNetwork } from "../../test/testSetup"
 import {
   getBalance,
   getTestAccount,
   killNetwork,
+  toNetwork,
   toTestClient,
   topUp
 } from "../../test/testUtils"
@@ -32,7 +32,6 @@ import {
 } from "../account/utils/Utils"
 import { getChain } from "../account/utils/getChain"
 import { k1ValidatorAddress } from "../constants"
-import type { AnyData } from "../modules"
 import { type NexusClient, createNexusClient } from "./createNexusClient"
 
 describe("nexus.client", async () => {

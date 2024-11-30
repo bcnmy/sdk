@@ -14,7 +14,6 @@ import {
   type NexusClient,
   createNexusClient
 } from "../../../clients/createNexusClient"
-import { createNexusSessionClient } from "../../../clients/createNexusSessionClient"
 import { toSmartSessionsValidator } from "../toSmartSessionsValidator"
 import { smartSessionCreateActions, smartSessionUseActions } from "./"
 
@@ -88,7 +87,7 @@ describe("modules.smartSessions.decorators", async () => {
       }
     })
 
-    const smartSessionNexusClient = await createNexusSessionClient({
+    const smartSessionNexusClient = await createNexusClient({
       chain,
       accountAddress: nexusClient.account.address,
       signer: sessionKeyAccount,

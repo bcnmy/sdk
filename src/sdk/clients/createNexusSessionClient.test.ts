@@ -22,7 +22,6 @@ import {
 import { toSmartSessionsValidator } from "../modules/smartSessionsValidator/toSmartSessionsValidator"
 import type { Module } from "../modules/utils/Types"
 import { type NexusClient, createNexusClient } from "./createNexusClient"
-import { createNexusSessionClient } from "./createNexusSessionClient"
 
 describe("nexus.session.client", async () => {
   let network: NetworkConfig
@@ -41,7 +40,7 @@ describe("nexus.session.client", async () => {
   let sessionsModule: Module
 
   beforeAll(async () => {
-    network = await toNetwork("BASE_SEPOLIA_FORKED")
+    ;[network] = await toNetworks("BESPOKE_ANVIL_NETWORK_FORKING_BASE_SEPOLIA")
 
     chain = network.chain
     bundlerUrl = network.bundlerUrl
@@ -158,7 +157,7 @@ describe("nexus.session.client", async () => {
       functionName: "getNumber"
     })
 
-    const smartSessionNexusClient = await createNexusSessionClient({
+    const smartSessionNexusClient = await createNexusClient({
       chain,
       accountAddress: nexusClient.account.address,
       signer: sessionKeyAccount,
@@ -217,7 +216,7 @@ describe("nexus.session.client", async () => {
       }
     })
 
-    const smartSessionNexusClient = await createNexusSessionClient({
+    const smartSessionNexusClient = await createNexusClient({
       chain,
       accountAddress: nexusClient.account.address,
       signer: sessionKeyAccount,

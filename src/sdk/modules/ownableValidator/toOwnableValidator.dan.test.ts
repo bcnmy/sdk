@@ -1,5 +1,4 @@
 import { http, type Chain, type LocalAccount } from "viem"
-import type { BundlerClient } from "viem/account-abstraction"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { toNetwork } from "../../../test/testSetup"
 import {
@@ -11,7 +10,6 @@ import {
 import type { MasterClient, NetworkConfig } from "../../../test/testUtils"
 import { createNexusClient } from "../../clients/createNexusClient"
 import { danActions } from "../../clients/decorators/dan/decorators"
-import { keyGen } from "../../clients/decorators/dan/decorators/keyGen"
 import { ownableActions } from "./decorators"
 import { toOwnableValidator } from "./toOwnableValidator"
 

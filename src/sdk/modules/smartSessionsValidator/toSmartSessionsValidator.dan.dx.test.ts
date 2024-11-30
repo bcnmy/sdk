@@ -21,7 +21,6 @@ import {
   type NexusClient,
   createNexusClient
 } from "../../clients/createNexusClient"
-import { createNexusSessionClient } from "../../clients/createNexusSessionClient"
 import { danActions } from "../../clients/decorators/dan"
 import type { Module } from "../utils/Types"
 import { parse, stringify } from "./Helpers"
@@ -48,7 +47,7 @@ describe("modules.smartSessions.dan.dx", async () => {
 
   beforeAll(async () => {
     // Setup test network and accounts
-    network = await toNetwork("BASE_SEPOLIA_FORKED")
+    ;[network] = await toNetworks("BESPOKE_ANVIL_NETWORK_FORKING_BASE_SEPOLIA")
     chain = network.chain
     bundlerUrl = network.bundlerUrl
     eoaAccount = getTestAccount(0)
@@ -147,7 +146,7 @@ describe("modules.smartSessions.dan.dx", async () => {
     const { moduleData, granter } = parse(zippedSessionDatum)
 
     // Initialize the smart session client's Nexus client
-    const smartSessionNexusClient = await createNexusSessionClient({
+    const smartSessionNexusClient = await createNexusClient({
       chain,
       accountAddress: granter,
       signer: dappAccount,

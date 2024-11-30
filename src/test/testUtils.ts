@@ -1,6 +1,5 @@
 import { config } from "dotenv"
 import getPort from "get-port"
-// @ts-ignore
 import { type AnvilParameters, alto, anvil } from "prool/instances"
 import {
   http,
@@ -39,6 +38,7 @@ import {
 } from "./callDatas"
 
 import * as hardhatExec from "./executables"
+import type { TestFileNetworkType } from "./testSetup"
 
 config()
 
@@ -62,6 +62,7 @@ export type NetworkConfig = Omit<
 > & {
   account?: PrivateKeyAccount
   paymasterUrl?: string
+  meeNodeUrl?: string
 }
 export const pKey =
   "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80" // This is a publicly available private key meant only for testing only
@@ -93,18 +94,25 @@ export const killNetwork = (ids: number[]) =>
     })
   )
 
-export const initTestnetNetwork = async (): Promise<NetworkConfig> => {
+export const initTestnetNetwork = async (
+  type: TestFileNetworkType = "TESTNET_FROM_ENV_VARS"
+): Promise<NetworkConfig> => {
   const privateKey = process.env.PRIVATE_KEY
-  const chainId = process.env.CHAIN_ID
+  const chainId_ = process.env.CHAIN_ID
+  const altChainId = process.env.ALT_CHAIN_ID
   const rpcUrl = process.env.RPC_URL //Optional, taken from chain (using chainId) if not provided
   const _bundlerUrl = process.env.BUNDLER_URL // Optional, taken from chain (using chainId) if not provided
   const paymasterUrl = process.env.PAYMASTER_URL // Optional
+  const meeNodeUrl = process.env.MEE_NODE_URL // Optional
+
+  const chainId = type === "TESTNET_FROM_ALT_ENV_VARS" ? altChainId : chainId_
 
   let chain: Chain
 
   if (!privateKey) throw new Error("Missing env var PRIVATE_KEY")
   if (!chainId) throw new Error("Missing env var CHAIN_ID")
   if (!paymasterUrl) console.log("Missing env var PAYMASTER_URL")
+  if (!meeNodeUrl) console.log("Missing env var MEE_NODE_URL")
 
   try {
     chain = getChain(+chainId)
@@ -125,7 +133,8 @@ export const initTestnetNetwork = async (): Promise<NetworkConfig> => {
     bundlerUrl,
     paymasterUrl,
     bundlerPort: 0,
-    account: holder
+    account: holder,
+    meeNodeUrl
   }
 }
 

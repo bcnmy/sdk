@@ -9,7 +9,7 @@ import {
   createWalletClient
 } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
-import { paymasterTruthy, toNetwork } from "../../test/testSetup"
+import { paymasterTruthy, toNetworks } from "../../test/testSetup"
 import { getTestParamsForTestnet, killNetwork } from "../../test/testUtils"
 import type { NetworkConfig, TestnetParams } from "../../test/testUtils"
 import { type NexusAccount, toNexusAccount } from "../account/toNexusAccount"
@@ -25,7 +25,7 @@ import { type NexusClient, createNexusClient } from "./createNexusClient"
 
 describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
   let network: NetworkConfig
-  // Required for "PUBLIC_TESTNET" networks
+  // Required for "TESTNET_FROM_ENV_VARS" networks
   let testParams: TestnetParams
 
   let chain: Chain
@@ -44,7 +44,7 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
   let nexusClient: NexusClient
 
   beforeAll(async () => {
-    network = await toNetwork("PUBLIC_TESTNET")
+    ;[network] = await toNetworks("TESTNET_FROM_ENV_VARS")
 
     chain = network.chain
     bundlerUrl = network.bundlerUrl

@@ -29,7 +29,7 @@ import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { MockSignatureValidatorAbi } from "../../test/__contracts/abi/MockSignatureValidatorAbi"
 import { TokenWithPermitAbi } from "../../test/__contracts/abi/TokenWithPermitAbi"
 import { testAddresses } from "../../test/callDatas"
-import { toNetwork } from "../../test/testSetup"
+import { toNetwork, toNetworks } from "../../test/testSetup"
 import {
   fundAndDeployClients,
   getTestAccount,
