@@ -11,7 +11,10 @@ import {
   killNetwork,
   toTestClient
 } from "../../../../../test/testUtils"
-import { type NexusClient, createNexusClient } from "../../../createNexusClient"
+import {
+  type NexusClient,
+  createSmartAccountClient
+} from "../../../createSmartAccountClient"
 import { DanWallet, hexToUint8Array, uuid } from "../Helpers"
 import { danActions } from "./"
 
@@ -38,7 +41,7 @@ describe("dan.decorators", async () => {
     userThree = getTestAccount(2)
     testClient = toTestClient(chain, getTestAccount(5))
 
-    nexusClient = await createNexusClient({
+    nexusClient = await createSmartAccountClient({
       signer: eoaAccount,
       chain,
       transport: http(),

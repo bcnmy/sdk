@@ -25,8 +25,8 @@ import {
 import type { MasterClient, NetworkConfig } from "../../../test/testUtils"
 import {
   type NexusClient,
-  createNexusClient
-} from "../../clients/createNexusClient"
+  createSmartAccountClient
+} from "../../clients/createSmartAccountClient"
 import { SMART_SESSIONS_ADDRESS } from "../../constants"
 import type { Module } from "../utils/Types"
 import { isPermissionEnabled } from "./Helpers"
@@ -62,7 +62,7 @@ describe("modules.smartSessions.uniPolicy", async () => {
 
     testClient = toTestClient(chain, getTestAccount(5))
 
-    nexusClient = await createNexusClient({
+    nexusClient = await createSmartAccountClient({
       signer: eoaAccount,
       chain,
       transport: http(),
@@ -270,7 +270,7 @@ describe("modules.smartSessions.uniPolicy", async () => {
     //   timestamp: 9727001666n
     // })
 
-    const smartSessionNexusClient = await createNexusClient({
+    const smartSessionNexusClient = await createSmartAccountClient({
       chain,
       accountAddress: nexusClient.account.address,
       signer: sessionKeyAccount,

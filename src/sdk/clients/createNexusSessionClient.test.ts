@@ -4,7 +4,7 @@ import { encodeFunctionData } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { CounterAbi } from "../../test/__contracts/abi"
 import { testAddresses } from "../../test/callDatas"
-import { toNetwork } from "../../test/testSetup"
+import { toNetwork, toNetworks } from "../../test/testSetup"
 import {
   fundAndDeployClients,
   getTestAccount,
@@ -21,7 +21,10 @@ import {
 } from "../modules/smartSessionsValidator/decorators"
 import { toSmartSessionsValidator } from "../modules/smartSessionsValidator/toSmartSessionsValidator"
 import type { Module } from "../modules/utils/Types"
-import { type NexusClient, createNexusClient } from "./createNexusClient"
+import {
+  type NexusClient,
+  createSmartAccountClient
+} from "./createSmartAccountClient"
 
 describe("nexus.session.client", async () => {
   let network: NetworkConfig
@@ -50,7 +53,7 @@ describe("nexus.session.client", async () => {
 
     testClient = toTestClient(chain, getTestAccount(5))
 
-    nexusClient = await createNexusClient({
+    nexusClient = await createSmartAccountClient({
       signer: eoaAccount,
       chain,
       transport: http(),
@@ -157,7 +160,7 @@ describe("nexus.session.client", async () => {
       functionName: "getNumber"
     })
 
-    const smartSessionNexusClient = await createNexusClient({
+    const smartSessionNexusClient = await createSmartAccountClient({
       chain,
       accountAddress: nexusClient.account.address,
       signer: sessionKeyAccount,
@@ -216,7 +219,7 @@ describe("nexus.session.client", async () => {
       }
     })
 
-    const smartSessionNexusClient = await createNexusClient({
+    const smartSessionNexusClient = await createSmartAccountClient({
       chain,
       accountAddress: nexusClient.account.address,
       signer: sessionKeyAccount,

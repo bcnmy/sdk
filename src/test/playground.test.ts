@@ -13,9 +13,9 @@ import { playgroundTrue } from "../sdk/account/utils/Utils"
 import { createBicoPaymasterClient } from "../sdk/clients/createBicoPaymasterClient"
 import {
   type NexusClient,
-  createNexusClient
-} from "../sdk/clients/createNexusClient"
-import { toNetworks } from "./testSetup"
+  createSmartAccountClient
+} from "../sdk/clients/createSmartAccountClient"
+import { toNetwork } from "./testSetup"
 import {
   type NetworkConfig,
   type TestnetParams,
@@ -39,7 +39,7 @@ describe.skipIf(!playgroundTrue())("playground", () => {
   let nexusAccountAddress: Address
 
   beforeAll(async () => {
-    ;[network] = await toNetworks("TESTNET_FROM_ENV_VARS")
+    network = await toNetwork("TESTNET_FROM_ENV_VARS")
 
     chain = network.chain
     bundlerUrl = network.bundlerUrl
@@ -62,7 +62,7 @@ describe.skipIf(!playgroundTrue())("playground", () => {
   })
 
   test("should init the smart account", async () => {
-    nexusClient = await createNexusClient({
+    nexusClient = await createSmartAccountClient({
       signer: eoaAccount,
       chain,
       transport: http(),

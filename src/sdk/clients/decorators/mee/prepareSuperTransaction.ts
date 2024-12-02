@@ -1,35 +1,31 @@
 import type { Transport } from "viem"
-import { parseAccount } from "viem/accounts"
-import { AccountNotFoundError } from "../../../../account/utils/AccountNotFound"
-import type {
-  AnyData,
-  ModularSmartAccount
-} from "../../../../modules/utils/Types"
-import type { MeeClient } from "../../../createMeeClient"
+import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
+import type { AnyData, ModularSmartAccount } from "../../../modules/utils/Types"
+import type { MeeClient } from "../../createMeeClient"
 
-export type MeeActionResponse = AnyData
+export type PrepareSuperTransaction = AnyData
 
 export type MeeRpcSchema = [
   {
-    Method: "mee_action"
+    Method: "mee_prepareSuperTransaction"
     Parameters: []
-    ReturnType: MeeActionResponse
+    ReturnType: PrepareSuperTransaction
   }
 ]
 
-export type MeeActionParameters<
+export type PrepareSuperTransactionParameters<
   TModularSmartAccount extends ModularSmartAccount | undefined
 > = {
   accounts?: TModularSmartAccount[]
   testParam: number
 }
 
-export async function meeAction<
+export async function prepareSuperTransaction<
   TModularSmartAccount extends ModularSmartAccount | undefined
 >(
   client: MeeClient<Transport, ModularSmartAccount>,
-  parameters: MeeActionParameters<TModularSmartAccount>
-): Promise<MeeActionResponse> {
+  parameters: PrepareSuperTransactionParameters<TModularSmartAccount>
+): Promise<PrepareSuperTransaction> {
   const { accounts: accounts_ = client.accounts, testParam } = parameters
 
   if (!accounts_?.length) {
@@ -38,14 +34,13 @@ export async function meeAction<
     })
   }
 
-  const accounts = accounts_.map((account) => parseAccount(account))
-  console.log({ accounts })
-
   // Do something in here...
   const paramsFromParameters = [testParam] as AnyData
 
+  console.log({ accounts_, paramsFromParameters })
+
   return await client.request({
-    method: "mee_action",
+    method: "mee_prepareSuperTransaction",
     params: paramsFromParameters
   })
 }

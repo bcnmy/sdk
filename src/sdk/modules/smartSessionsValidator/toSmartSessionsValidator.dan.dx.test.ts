@@ -19,8 +19,8 @@ import {
 import type { MasterClient, NetworkConfig } from "../../../test/testUtils"
 import {
   type NexusClient,
-  createNexusClient
-} from "../../clients/createNexusClient"
+  createSmartAccountClient
+} from "../../clients/createSmartAccountClient"
 import { danActions } from "../../clients/decorators/dan"
 import type { Module } from "../utils/Types"
 import { parse, stringify } from "./Helpers"
@@ -62,7 +62,7 @@ describe("modules.smartSessions.dan.dx", async () => {
 
   test("should demonstrate creating a smart session using DAN", async () => {
     // Initialize the user's Nexus client with DAN actions
-    usersNexusClient = await createNexusClient({
+    usersNexusClient = await createSmartAccountClient({
       signer: eoaAccount,
       chain,
       transport: http(),
@@ -146,7 +146,7 @@ describe("modules.smartSessions.dan.dx", async () => {
     const { moduleData, granter } = parse(zippedSessionDatum)
 
     // Initialize the smart session client's Nexus client
-    const smartSessionNexusClient = await createNexusClient({
+    const smartSessionNexusClient = await createSmartAccountClient({
       chain,
       accountAddress: granter,
       signer: dappAccount,

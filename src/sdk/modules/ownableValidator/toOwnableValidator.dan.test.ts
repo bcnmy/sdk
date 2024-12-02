@@ -8,7 +8,7 @@ import {
   toTestClient
 } from "../../../test/testUtils"
 import type { MasterClient, NetworkConfig } from "../../../test/testUtils"
-import { createNexusClient } from "../../clients/createNexusClient"
+import { createSmartAccountClient } from "../../clients/createSmartAccountClient"
 import { danActions } from "../../clients/decorators/dan/decorators"
 import { ownableActions } from "./decorators"
 import { toOwnableValidator } from "./toOwnableValidator"
@@ -39,7 +39,7 @@ describe("modules.dan.dx", async () => {
   })
 
   test("should demonstrate ownables module dx using a dan account", async () => {
-    const nexusClient = await createNexusClient({
+    const nexusClient = await createSmartAccountClient({
       signer: eoaAccount,
       chain,
       transport: http(),

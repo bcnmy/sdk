@@ -8,17 +8,17 @@ import {
   createPublicClient
 } from "viem"
 import { beforeAll, describe, expect, test } from "vitest"
-import { toNetwork } from "../../../../../test/testSetup"
-import type { NetworkConfig } from "../../../../../test/testUtils"
+import { toNetworks } from "../../../../test/testSetup"
+import type { NetworkConfig } from "../../../../test/testUtils"
 import {
   type NexusAccount,
   toNexusAccount
-} from "../../../../account/toNexusAccount"
+} from "../../../account/toNexusAccount"
 import {
   MAINNET_ADDRESS_K1_VALIDATOR_ADDRESS,
   MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
-} from "../../../../constants"
-import { type MeeClient, createMeeClient } from "../../../createMeeClient"
+} from "../../../constants"
+import { type MeeClient, createMeeClient } from "../../createMeeClient"
 
 describe("mee.decorators", async () => {
   let networkOne: NetworkConfig
@@ -74,14 +74,14 @@ describe("mee.decorators", async () => {
       factoryAddress: MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
     })
 
-    meeClient = createMeeClient({
+    meeClient = await createMeeClient({
       accounts: [nexusAccountOne, nexusAccountTwo]
     })
   })
 
-  test("should call meeAction ", async () => {
-    await expect(meeClient.meeAction({ testParam: 1 })).rejects.toThrow(
-      "Not Found, 404"
-    )
+  test("should call prepareUserOperation ", async () => {
+    await expect(
+      meeClient.prepareSuperTransaction({ testParam: 1 })
+    ).rejects.toThrow("Not Found, 404")
   })
 })

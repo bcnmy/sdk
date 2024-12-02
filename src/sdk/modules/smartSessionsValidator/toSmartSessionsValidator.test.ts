@@ -22,8 +22,8 @@ import {
 import type { MasterClient, NetworkConfig } from "../../../test/testUtils"
 import {
   type NexusClient,
-  createNexusClient
-} from "../../clients/createNexusClient"
+  createSmartAccountClient
+} from "../../clients/createSmartAccountClient"
 import { parseReferenceValue } from "../utils/Helpers"
 import type { Module } from "../utils/Types"
 import policies from "./Helpers"
@@ -57,7 +57,7 @@ describe("modules.smartSessions", async () => {
     sessionPublicKey = sessionKeyAccount.address
     testClient = toTestClient(chain, getTestAccount(5))
 
-    nexusClient = await createNexusClient({
+    nexusClient = await createSmartAccountClient({
       signer: eoaAccount,
       chain,
       transport: http(),
@@ -243,7 +243,7 @@ describe("modules.smartSessions", async () => {
       functionName: "getNumber"
     })
 
-    const smartSessionNexusClient = await createNexusClient({
+    const smartSessionNexusClient = await createSmartAccountClient({
       chain,
       accountAddress: nexusClient.account.address,
       signer: sessionKeyAccount,

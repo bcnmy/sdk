@@ -19,8 +19,8 @@ import {
 } from "../../../../test/testUtils"
 import {
   type NexusClient,
-  createNexusClient
-} from "../../../clients/createNexusClient"
+  createSmartAccountClient
+} from "../../../clients/createSmartAccountClient"
 import { toOwnableValidator } from "../toOwnableValidator"
 
 describe("modules.ownables.decorators", async () => {
@@ -50,7 +50,7 @@ describe("modules.ownables.decorators", async () => {
     userThreeAddress = userThree.address
     testClient = toTestClient(chain, getTestAccount(5))
 
-    nexusClient = await createNexusClient({
+    nexusClient = await createSmartAccountClient({
       signer: eoaAccount,
       chain,
       transport: http(),

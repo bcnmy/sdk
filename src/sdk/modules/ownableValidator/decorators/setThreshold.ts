@@ -40,7 +40,7 @@ export type SetThresholdParameters<
  *
  * @example
  * ```typescript
- * const nexusClient = createNexusClient({ ... });
+ * const nexusClient = createSmartAccountClient({ ... });
  * const hash = await setThreshold(nexusClient, {
  *   threshold: 2,
  *   maxFeePerGas: 1000000000n

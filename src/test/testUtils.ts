@@ -23,8 +23,8 @@ import { getChain, getCustomChain, safeMultiplier } from "../sdk/account/utils"
 import { Logger } from "../sdk/account/utils/Logger"
 import {
   type NexusClient,
-  createNexusClient
-} from "../sdk/clients/createNexusClient"
+  createSmartAccountClient
+} from "../sdk/clients/createSmartAccountClient"
 import {
   ENTRYPOINT_SIMULATIONS_ADDRESS,
   ENTRY_POINT_ADDRESS,
@@ -327,7 +327,7 @@ export const toFundedTestClients = async ({
 
   const testClient = toTestClient(chain, getTestAccount())
 
-  const nexus = await createNexusClient({
+  const nexus = await createSmartAccountClient({
     signer: account,
     transport: http(),
     bundlerTransport: http(bundlerUrl),

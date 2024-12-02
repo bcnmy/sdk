@@ -3,19 +3,35 @@ import {
   type Client,
   type ClientConfig,
   type CreateClientErrorType,
+  type OneOf,
   type Prettify,
   type RpcSchema,
   type Transport,
   createClient
 } from "viem"
+import {
+  type ToNexusSmartAccountParameters,
+  toNexusAccount
+} from "../account/toNexusAccount"
+import { Logger } from "../account/utils/Logger"
 import type { AnyData, ModularSmartAccount } from "../modules"
-import { HttpMethod, httpRequest } from "./decorators/mee/Helpers"
-import { type MeeActions, meeActions } from "./decorators/mee/decorators"
-import type { MeeRpcSchema } from "./decorators/mee/decorators/meeAction"
+import { type MeeActions, meeActions } from "./decorators/mee"
+import type { MeeRpcSchema } from "./decorators/mee/prepareSuperTransaction"
 
 export const DEFAULT_MEE_NODE = "https://biconomy.io/mee"
 
 export type ErrorType<name extends string = "Error"> = Error & { name: name }
+export enum HttpMethod {
+  Get = "get",
+  Post = "post",
+  Delete = "delete"
+}
+export interface HttpRequest {
+  url: string
+  method: HttpMethod
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+  body?: Record<string, any>
+}
 
 export type MeeClientConfig<
   transport extends Transport | undefined = Transport | undefined,
@@ -28,12 +44,17 @@ export type MeeClientConfig<
     "account" | "cacheTime" | "key" | "name" | "pollingInterval" | "rpcSchema"
   >
 > & {
-  /** Client that points to an Execution RPC URL. */
   client?: client | Client
   transport?: transport
-  /** Accounts to be used for the mee client */
-  accounts: account[]
-}
+} & OneOf<
+    | {
+        /** Accounts to be used for the mee client */
+        accounts: account[]
+      }
+    | {
+        accountParams: ChainAbstractedAccountParams
+      }
+  >
 
 export type MeeClient<
   transport extends Transport = Transport,
@@ -64,16 +85,25 @@ export function createMeeClient<
   rpcSchema extends RpcSchema | undefined = undefined
 >(
   parameters: MeeClientConfig<transport, account>
-): MeeClient<Transport, account>
+): Promise<MeeClient<Transport, account>>
 
-export function createMeeClient(parameters: MeeClientConfig): MeeClient {
+export async function createMeeClient(
+  parameters: MeeClientConfig
+): Promise<MeeClient> {
   const {
+    accountParams: accountParams_,
     accounts,
     client: client_,
     key = "mee",
     name = "Mee Client",
     transport = http(DEFAULT_MEE_NODE)
   } = parameters
+
+  let accounts_ = accounts
+  if (!accounts_) {
+    if (!accountParams_) throw new Error("No account params")
+    accounts_ = await toAccounts(accountParams_)
+  }
 
   const client = Object.assign(
     createClient({
@@ -84,20 +114,80 @@ export function createMeeClient(parameters: MeeClientConfig): MeeClient {
       type: "meeClient"
     }),
     {
-      accounts,
+      accounts: accounts_,
       client: client_,
       // Temporay while we wait for EIP1193 to be supported by meeNode
       // Can remove this when MEE node is EIP1193 compliant
-      request: (body: Record<string, AnyData>) => {
-        console.log("request body", body)
-        return httpRequest({
-          url: DEFAULT_MEE_NODE,
-          method: HttpMethod.Post,
-          body
+      request: async <T>(
+        body: Record<string, AnyData>,
+        url = DEFAULT_MEE_NODE,
+        method = HttpMethod.Post
+      ) => {
+        const stringifiedBody = JSON.stringify(body)
+        Logger.log("HTTP Request", { url, body: stringifiedBody })
+
+        const response = await fetch(url, {
+          method,
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json"
+          },
+          body: stringifiedBody
         })
+
+        // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+        let jsonResponse: any
+        try {
+          jsonResponse = await response.json()
+          Logger.log("HTTP Response", jsonResponse)
+        } catch (error) {
+          if (!response.ok) {
+            throw new Error([response.statusText, response.status].join(", "))
+          }
+        }
+
+        if (response.ok) {
+          return jsonResponse as T
+        }
+
+        const errorFields = [
+          "error",
+          "message",
+          "msg",
+          "data",
+          "detail",
+          "nonFieldErrors"
+        ]
+        const firstError = errorFields.find((field) =>
+          Boolean(jsonResponse[field])
+        )
+        if (firstError) {
+          throw new Error([response.status, firstError].join(", "))
+        }
+        throw new Error([response.status, jsonResponse.statusText].join(", "))
       }
     }
   )
 
   return client.extend(meeActions) as MeeClient
+}
+
+export type ChainAbstractedAccountParams = Omit<
+  ToNexusSmartAccountParameters,
+  "transport" | "chain"
+> & {
+  chainList: {
+    transport: ToNexusSmartAccountParameters["transport"]
+    chain: ToNexusSmartAccountParameters["chain"]
+  }[]
+}
+export const toAccounts = async (
+  accountParams: ChainAbstractedAccountParams
+): Promise<ModularSmartAccount[]> => {
+  const { chainList, ...chainAgnosticParams } = accountParams
+  return await Promise.all(
+    chainList.map((params) =>
+      toNexusAccount({ ...chainAgnosticParams, ...params })
+    )
+  )
 }

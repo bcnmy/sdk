@@ -21,7 +21,10 @@ import {
   type BicoPaymasterClient,
   createBicoPaymasterClient
 } from "./createBicoPaymasterClient"
-import { type NexusClient, createNexusClient } from "./createNexusClient"
+import {
+  type NexusClient,
+  createSmartAccountClient
+} from "./createSmartAccountClient"
 
 describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
   let network: NetworkConfig
@@ -84,7 +87,7 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
     })
     nexusAccountAddress = await nexusAccount.getCounterFactualAddress()
 
-    nexusClient = await createNexusClient({
+    nexusClient = await createSmartAccountClient({
       signer: account,
       chain,
       transport: http(),

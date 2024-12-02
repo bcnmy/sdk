@@ -21,14 +21,18 @@ import type {
   UserOperationRequest
 } from "viem/account-abstraction"
 
-import { type NexusAccount, toNexusAccount } from "../account/toNexusAccount"
+import { toNexusAccount } from "../account/toNexusAccount"
 import type { EthersWallet } from "../account/utils/Utils"
 import type { EthereumProvider } from "../account/utils/toSigner"
 import {
   k1ValidatorAddress as k1ValidatorAddress_,
   k1ValidatorFactoryAddress
 } from "../constants"
-import type { AnyData, Module } from "../modules/utils/Types"
+import type {
+  AnyData,
+  ModularSmartAccount,
+  Module
+} from "../modules/utils/Types"
 import { createBicoBundlerClient } from "./createBicoBundlerClient"
 import { type Erc7579Actions, erc7579Actions } from "./decorators/erc7579"
 import {
@@ -42,7 +46,9 @@ import {
 export type NexusClient<
   transport extends Transport = Transport,
   chain extends Chain | undefined = Chain | undefined,
-  account extends NexusAccount | undefined = NexusAccount | undefined,
+  account extends ModularSmartAccount | undefined =
+    | ModularSmartAccount
+    | undefined,
   client extends Client | undefined = Client | undefined,
   rpcSchema extends RpcSchema | undefined = undefined
 > = Prettify<
@@ -60,13 +66,13 @@ export type NexusClient<
     BundlerActions<account>
   >
 > &
-  BundlerActions<NexusAccount> &
-  Erc7579Actions<NexusAccount> &
-  SmartAccountActions<chain, NexusAccount> & {
+  BundlerActions<ModularSmartAccount> &
+  Erc7579Actions<ModularSmartAccount> &
+  SmartAccountActions<chain, ModularSmartAccount> & {
     /**
      * The Nexus account associated with this client
      */
-    account: NexusAccount
+    account: ModularSmartAccount
     /**
      * Optional client for additional functionality
      */
@@ -90,9 +96,9 @@ export type NexusClient<
   }
 
 /**
- * Configuration for creating a Nexus Client
+ * Configuration for creating a Smart account Client
  */
-export type NexusClientConfig<
+export type SmartAccountClientConfig<
   transport extends Transport = Transport,
   chain extends Chain | undefined = Chain | undefined,
   client extends Client | undefined = Client | undefined,
@@ -100,7 +106,13 @@ export type NexusClientConfig<
 > = Prettify<
   Pick<
     ClientConfig<transport, chain, SmartAccount, rpcSchema>,
-    "cacheTime" | "chain" | "key" | "name" | "pollingInterval" | "rpcSchema"
+    | "account"
+    | "cacheTime"
+    | "chain"
+    | "key"
+    | "name"
+    | "pollingInterval"
+    | "rpcSchema"
   > & {
     /** RPC URL. */
     transport: transport
@@ -158,25 +170,26 @@ export type NexusClientConfig<
 /**
  * Creates a Nexus Client for interacting with the Nexus smart account system.
  *
- * @param parameters - {@link NexusClientConfig}
+ * @param parameters - {@link SmartAccountClientConfig}
  * @returns Nexus Client. {@link NexusClient}
  *
  * @example
- * import { createNexusClient } from '@biconomy/sdk'
+ * import { createSmartAccountClient } from '@biconomy/sdk'
  * import { http } from 'viem'
  * import { mainnet } from 'viem/chains'
  *
- * const nexusClient = await createNexusClient({
+ * const nexusClient = await createSmartAccountClient({
  *   chain: mainnet,
  *   transport: http('https://mainnet.infura.io/v3/YOUR-PROJECT-ID'),
  *   bundlerTransport: http('https://api.biconomy.io'),
  *   signer: '0x...',
  * })
  */
-export async function createNexusClient(
-  parameters: NexusClientConfig
+export async function createSmartAccountClient(
+  parameters: SmartAccountClientConfig
 ): Promise<NexusClient> {
   const {
+    account: account_,
     client: client_,
     chain = parameters.chain ?? client_?.chain,
     signer,
@@ -194,23 +207,25 @@ export async function createNexusClient(
 
   if (!chain) throw new Error("Missing chain")
 
-  const nexusAccount = await toNexusAccount({
-    accountAddress,
-    transport,
-    chain,
-    signer,
-    index,
-    module,
-    factoryAddress,
-    k1ValidatorAddress
-  })
+  const account =
+    account_ ??
+    (await toNexusAccount({
+      accountAddress,
+      transport,
+      chain,
+      signer,
+      index,
+      module,
+      factoryAddress,
+      k1ValidatorAddress
+    }))
 
   const bundler_ = createBicoBundlerClient({
     ...bundlerConfig,
     chain,
     key,
     name,
-    account: nexusAccount,
+    account,
     transport: bundlerTransport
   })
     .extend(erc7579Actions())
@@ -218,3 +233,6 @@ export async function createNexusClient(
 
   return bundler_ as unknown as NexusClient
 }
+
+// An alias for backwards compatibility
+export const createNexusClient = createSmartAccountClient

@@ -8,7 +8,7 @@ import {
   toTestClient
 } from "../../../test/testUtils"
 import type { MasterClient, NetworkConfig } from "../../../test/testUtils"
-import { createNexusClient } from "../../clients/createNexusClient"
+import { createSmartAccountClient } from "../../clients/createSmartAccountClient"
 import { ownableActions } from "./decorators"
 import { toOwnableValidator } from "./toOwnableValidator"
 
@@ -59,7 +59,7 @@ describe("modules.ownableValidator.dx", async () => {
 
     // Create a Nexus client for the main account (eoaAccount)
     // This client will be used to interact with the smart contract account
-    const nexusClient = await createNexusClient({
+    const nexusClient = await createSmartAccountClient({
       signer: eoaAccount,
       chain,
       transport: http(),

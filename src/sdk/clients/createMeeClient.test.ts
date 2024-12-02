@@ -1,22 +1,20 @@
 import {
   http,
-  type Account,
   type Address,
   type Chain,
+  type LocalAccount,
   type PrivateKeyAccount,
   type PublicClient,
   createPublicClient
 } from "viem"
 import { beforeAll, describe, expect, test } from "vitest"
-import { toNetwork } from "../../test/testSetup"
+import { toNetworks } from "../../test/testSetup"
 import type { NetworkConfig } from "../../test/testUtils"
-import { type NexusAccount, addressEquals } from "../account"
 import { toNexusAccount } from "../account/toNexusAccount"
 import { MAINNET_ADDRESS_K1_VALIDATOR_ADDRESS } from "../constants"
 import { MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS } from "../constants"
 import { createMeeClient } from "./createMeeClient"
 import type { MeeClient } from "./createMeeClient"
-
 describe("mee.client", async () => {
   let networkOne: NetworkConfig
   let networkTwo: NetworkConfig
@@ -24,12 +22,8 @@ describe("mee.client", async () => {
   let chainOne: Chain
   let chainTwo: Chain
 
-  let eoaAccount: Account
+  let eoaAccount: LocalAccount
   let recipientAddress: Address
-  let nexusAccountOne: NexusAccount
-  let nexusAccountTwo: NexusAccount
-  let nexusAccountAddressOne: Address
-  let nexusAccountAddressTwo: Address
   let publicClientOne: PublicClient
   let publicClientTwo: PublicClient
 
@@ -58,23 +52,22 @@ describe("mee.client", async () => {
       transport: http()
     })
 
-    nexusAccountOne = await toNexusAccount({
-      transport: http(),
-      chain: chainOne,
-      signer: eoaAccount,
-      k1ValidatorAddress: MAINNET_ADDRESS_K1_VALIDATOR_ADDRESS,
-      factoryAddress: MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
-    })
-    nexusAccountTwo = await toNexusAccount({
-      transport: http(),
-      chain: chainTwo,
-      signer: eoaAccount,
-      k1ValidatorAddress: MAINNET_ADDRESS_K1_VALIDATOR_ADDRESS,
-      factoryAddress: MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
-    })
-
-    meeClient = createMeeClient({
-      accounts: [nexusAccountOne, nexusAccountTwo]
+    meeClient = await createMeeClient({
+      accountParams: {
+        signer: eoaAccount,
+        k1ValidatorAddress: MAINNET_ADDRESS_K1_VALIDATOR_ADDRESS,
+        factoryAddress: MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS,
+        chainList: [
+          {
+            transport: http(),
+            chain: chainOne
+          },
+          {
+            transport: http(),
+            chain: chainTwo
+          }
+        ]
+      }
     })
   })
 
@@ -85,9 +78,31 @@ describe("mee.client", async () => {
     expect(chainIds).to.equal([chainOne.id, chainTwo.id])
   })
 
-  test("should have matching addresses on different chains", async () => {
-    nexusAccountAddressOne = await nexusAccountOne.getAddress()
-    nexusAccountAddressTwo = await nexusAccountTwo.getAddress()
-    expect(addressEquals(nexusAccountAddressOne, nexusAccountAddressTwo))
+  test("should have relevant meeClient properties", async () => {
+    expect(meeClient).toHaveProperty("accounts")
+    expect(typeof meeClient.prepareSuperTransaction).toBe("function")
+  })
+
+  test("should alternatively create a mee client from two distinct nexus accounts", async () => {
+    const nexusAccountOne = await toNexusAccount({
+      transport: http(),
+      chain: chainOne,
+      signer: eoaAccount,
+      k1ValidatorAddress: MAINNET_ADDRESS_K1_VALIDATOR_ADDRESS,
+      factoryAddress: MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
+    })
+    const nexusAccountTwo = await toNexusAccount({
+      transport: http(),
+      chain: chainTwo,
+      signer: eoaAccount,
+      k1ValidatorAddress: MAINNET_ADDRESS_K1_VALIDATOR_ADDRESS,
+      factoryAddress: MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
+    })
+
+    const meeClient = await createMeeClient({
+      accounts: [nexusAccountOne, nexusAccountTwo]
+    })
+
+    expect(meeClient).toHaveProperty("accounts")
   })
 })
