@@ -357,14 +357,6 @@ export const getAccountDomainStructFields = async (
   ])
 }
 
-export const danTrue = () => {
-  try {
-    return process?.env?.RUN_DAN === "true"
-  } catch (e) {
-    return false
-  }
-}
-
 export const playgroundTrue = () => {
   try {
     return process?.env?.RUN_PLAYGROUND === "true"
