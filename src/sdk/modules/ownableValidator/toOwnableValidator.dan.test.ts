@@ -8,12 +8,13 @@ import {
   toTestClient
 } from "../../../test/testUtils"
 import type { MasterClient, NetworkConfig } from "../../../test/testUtils"
+import { danTrue } from "../../account"
 import { createSmartAccountClient } from "../../clients/createSmartAccountClient"
 import { danActions } from "../../clients/decorators/dan/decorators"
 import { ownableActions } from "./decorators"
 import { toOwnableValidator } from "./toOwnableValidator"
 
-describe("modules.dan.dx", async () => {
+describe.runIf(danTrue())("modules.dan.dx", async () => {
   let network: NetworkConfig
   let chain: Chain
   let bundlerUrl: string

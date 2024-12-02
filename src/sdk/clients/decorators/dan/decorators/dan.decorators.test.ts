@@ -11,6 +11,7 @@ import {
   killNetwork,
   toTestClient
 } from "../../../../../test/testUtils"
+import { danTrue } from "../../../../account/utils/Utils"
 import {
   type NexusClient,
   createSmartAccountClient
@@ -18,7 +19,7 @@ import {
 import { DanWallet, hexToUint8Array, uuid } from "../Helpers"
 import { danActions } from "./"
 
-describe("dan.decorators", async () => {
+describe.runIf(danTrue())("dan.decorators", async () => {
   let network: NetworkConfig
   let chain: Chain
   let bundlerUrl: string

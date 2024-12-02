@@ -17,6 +17,7 @@ import {
   toTestClient
 } from "../../../test/testUtils"
 import type { MasterClient, NetworkConfig } from "../../../test/testUtils"
+import { danTrue } from "../../account/utils/Utils"
 import {
   type NexusClient,
   createSmartAccountClient
@@ -32,7 +33,7 @@ import { toSmartSessionsValidator } from "./toSmartSessionsValidator"
 // Distributed Sessions enhance security and efficiency by storing session keys on Biconomy's Delegated Authorisation Network (DAN),
 // providing features like automated transaction processing and reduced exposure of private keys.
 
-describe("modules.smartSessions.dan.dx", async () => {
+describe.runIf(danTrue())("modules.smartSessions.dan.dx", async () => {
   let network: NetworkConfig
   let chain: Chain
   let bundlerUrl: string
