@@ -4,7 +4,7 @@ import { encodeFunctionData } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { CounterAbi } from "../../test/__contracts/abi"
 import { testAddresses } from "../../test/callDatas"
-import { toNetwork, toNetworks } from "../../test/testSetup"
+import { toNetwork } from "../../test/testSetup"
 import {
   fundAndDeployClients,
   getTestAccount,
@@ -43,7 +43,7 @@ describe("nexus.session.client", async () => {
   let sessionsModule: Module
 
   beforeAll(async () => {
-    ;[network] = await toNetworks("BESPOKE_ANVIL_NETWORK_FORKING_BASE_SEPOLIA")
+    network = await toNetwork("BESPOKE_ANVIL_NETWORK_FORKING_BASE_SEPOLIA")
 
     chain = network.chain
     bundlerUrl = network.bundlerUrl

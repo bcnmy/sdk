@@ -22,10 +22,6 @@ import { mnemonicToAccount, privateKeyToAccount } from "viem/accounts"
 import { getChain, getCustomChain, safeMultiplier } from "../sdk/account/utils"
 import { Logger } from "../sdk/account/utils/Logger"
 import {
-  type NexusClient,
-  createSmartAccountClient
-} from "../sdk/clients/createSmartAccountClient"
-import {
   ENTRYPOINT_SIMULATIONS_ADDRESS,
   ENTRY_POINT_ADDRESS,
   MAINNET_ADDRESS_K1_VALIDATOR_ADDRESS,
@@ -37,6 +33,10 @@ import {
   TEST_CONTRACTS
 } from "./callDatas"
 
+import {
+  type NexusClient,
+  createSmartAccountClient
+} from "../sdk/clients/createSmartAccountClient"
 import * as hardhatExec from "./executables"
 import type { TestFileNetworkType } from "./testSetup"
 

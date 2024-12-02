@@ -47,7 +47,7 @@ describe("modules.smartSessions.dan.dx", async () => {
 
   beforeAll(async () => {
     // Setup test network and accounts
-    ;[network] = await toNetworks("BESPOKE_ANVIL_NETWORK_FORKING_BASE_SEPOLIA")
+    network = await toNetwork("BESPOKE_ANVIL_NETWORK_FORKING_BASE_SEPOLIA")
     chain = network.chain
     bundlerUrl = network.bundlerUrl
     eoaAccount = getTestAccount(0)

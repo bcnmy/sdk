@@ -52,7 +52,7 @@ describe("modules.smartSessions.uniPolicy", async () => {
   let sessionsModule: Module
 
   beforeAll(async () => {
-    ;[network] = await toNetworks("BESPOKE_ANVIL_NETWORK_FORKING_BASE_SEPOLIA")
+    network = await toNetwork("BESPOKE_ANVIL_NETWORK_FORKING_BASE_SEPOLIA")
 
     chain = network.chain
     bundlerUrl = network.bundlerUrl

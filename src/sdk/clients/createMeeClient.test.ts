@@ -75,7 +75,7 @@ describe("mee.client", async () => {
     const chainIds = await Promise.all(
       [publicClientOne, publicClientTwo].map((client) => client.getChainId())
     )
-    expect(chainIds).to.equal([chainOne.id, chainTwo.id])
+    expect(chainIds).to.deep.equal([chainOne.id, chainTwo.id])
   })
 
   test("should have relevant meeClient properties", async () => {
