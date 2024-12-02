@@ -1,22 +1,11 @@
 import { ParamType, ethers } from "ethers"
 import { type AbiParameter, encodeAbiParameters } from "viem"
 import { generatePrivateKey } from "viem/accounts"
-import { beforeAll, describe, expect, test } from "vitest"
-import { toNetwork } from "../../../test/testSetup"
-import type { NetworkConfig } from "../../../test/testUtils"
+import { describe, expect, test } from "vitest"
 import type { EthersWallet } from "./Utils"
 import { toSigner } from "./toSigner"
 
 describe("utils", async () => {
-  let networks: NetworkConfig[]
-
-  beforeAll(async () => {
-    networks = await toNetworks([
-      "TESTNET_FROM_ENV_VARS",
-      "TESTNET_FROM_ENV_VARS"
-    ])
-  })
-
   const privKey = generatePrivateKey()
 
   test.concurrent(
