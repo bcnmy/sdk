@@ -1,5 +1,5 @@
 export * from "./createBicoBundlerClient"
 export * from "./createBicoPaymasterClient"
 export * from "./createSmartAccountClient"
-export * from "./createSmartAccountClient"
+export * from "./createMeeClient"
 export * from "./decorators"

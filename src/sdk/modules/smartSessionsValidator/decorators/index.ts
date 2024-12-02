@@ -1,5 +1,4 @@
 import type { Chain, Client, Hash, Transport } from "viem"
-import { danActions } from "../../../clients/decorators/dan/decorators"
 import type { ModularSmartAccount, Module } from "../../utils/Types"
 import type { GrantPermissionResponse } from "../Types"
 import type { SmartSessionModule } from "../toSmartSessionsValidator"
