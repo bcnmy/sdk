@@ -1,4 +1,9 @@
-import type { ActionData, PolicyData, Session } from "@rhinestone/module-sdk"
+import {
+  type ActionData,
+  type PolicyData,
+  type Session,
+  getSudoPolicy
+} from "@rhinestone/module-sdk"
 import {
   type Abi,
   type AbiFunction,
@@ -30,7 +35,8 @@ import type {
   FullCreateSessionDataParams,
   RawActionConfig,
   Rule,
-  SpendingLimitsParams
+  SpendingLimitsParams,
+  SudoPolicyData
 } from "./Types"
 
 export const MAX_RULES = 16
@@ -88,6 +94,23 @@ export const applyDefaults = (
       sessionInfo.sessionValidatorAddress ?? SIMPLE_SESSION_VALIDATOR_ADDRESS
   }
 }
+/**
+ * Creates an ActionData object for a sudo policy.
+ *
+ * @param contractAddress - The address of the contract.
+ * @param functionSelector - The function selector or AbiFunction.
+ * @returns An ActionData object.
+ */
+export const createSudoData = (
+  contractAddress: Address,
+  functionSelector: string | AbiFunction
+): ActionData => ({
+  actionTargetSelector: (typeof functionSelector === "string"
+    ? functionSelector
+    : functionSelector.name) as Hex,
+  actionTarget: contractAddress,
+  actionPolicies: [getSudoPolicy()]
+})
 
 /**
  * Creates an ActionData object.
@@ -238,14 +261,6 @@ export const toTimeRangePolicy = (
 }
 
 /**
- * A PolicyData object representing a sudo policy.
- */
-export const sudoPolicy: PolicyData = {
-  policy: "0x529Ad04F4D83aAb25144a90267D4a1443B84f5A6",
-  initData: "0x"
-}
-
-/**
  * Converts SpendingLimitsParams to a SpendingLimitsPolicy.
  *
  * @param params - An array of SpendingLimitsParams.
@@ -270,8 +285,7 @@ export const policies = {
   to: {
     universalAction: toUniversalActionPolicy,
     spendingLimits: toSpendingLimitsPolicy
-  },
-  sudo: sudoPolicy
+  }
 } as const
 
 /**
@@ -350,20 +364,40 @@ export const getTrustedAttesters = async ({
  * @param params.actionPolicyData - The ActionPolicyData object to apply to each function in the ABI
  * @returns An array of ActionPolicyData objects
  */
-export function toContractWhitelist({
+export const abi2ActionPolicy = ({
   abi,
   actionPolicyData
 }: {
   abi: Abi
-  actionPolicyData: Omit<ActionPolicyData, "functionSelector">
-}): ActionPolicyData[] {
-  // Filter out only the functions from the ABI
-  return abi
+  actionPolicyData: Omit<ActionPolicyData, "functionSelector"> & {
+    rules?: never // Rules should not be available here because they should be custom per method, not used in a loop
+  }
+}): ActionPolicyData[] =>
+  abi
     .filter((item): item is AbiFunction => item.type === "function")
     .map((func) => ({
       ...actionPolicyData,
       functionSelector: toFunctionSelector(func)
     }))
-}
 
-export default policies
+/**
+ * Converts an ABI to a list of SudoPolicyData objects.
+ *
+ * @param params - The parameters object
+ * @param params.abi - The ABI to convert
+ * @param params.contractAddress - The address of the contract
+ * @returns An array of SudoPolicyData objects
+ */
+export const abi2SudoPolicy = ({
+  abi,
+  contractAddress
+}: {
+  abi: Abi
+  contractAddress: Address
+}): SudoPolicyData[] =>
+  abi
+    .filter((item): item is AbiFunction => item.type === "function")
+    .map((func) => ({
+      contractAddress,
+      functionSelector: toFunctionSelector(func)
+    }))

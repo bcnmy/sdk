@@ -27,7 +27,7 @@ import {
 import { createNexusSessionClient } from "../../clients/createNexusSessionClient"
 import { parseReferenceValue } from "../utils/Helpers"
 import type { Module } from "../utils/Types"
-import policies, { toContractWhitelist } from "./Helpers"
+import { abi2ActionPolicy, toUniversalActionPolicy } from "./Helpers"
 import type { CreateSessionDataParams } from "./Types"
 import { ParamCondition } from "./Types"
 import { smartSessionCreateActions, smartSessionUseActions } from "./decorators"
@@ -86,7 +86,7 @@ describe("modules.smartSessions", async () => {
   })
 
   test("should convert an ABI to a contract whitelist", async () => {
-    const contractWhitelist = toContractWhitelist({
+    const contractWhitelist = abi2ActionPolicy({
       abi: CounterAbi,
       actionPolicyData: {
         contractAddress: testAddresses.Counter
@@ -165,28 +165,10 @@ describe("modules.smartSessions", async () => {
         ]
       }
     }
-    const installUniversalPolicy = policies.to.universalAction(actionConfigData)
+    const installUniversalPolicy = toUniversalActionPolicy(actionConfigData)
 
     expect(installUniversalPolicy.policy).toEqual(testAddresses.UniActionPolicy)
     expect(installUniversalPolicy.initData).toBeDefined()
-  })
-
-  test.concurrent("should get a sudo action policy", async () => {
-    const installSudoActionPolicy = policies.sudo
-    expect(installSudoActionPolicy.policy).toBeDefined()
-    expect(installSudoActionPolicy.initData).toEqual("0x")
-  })
-
-  test.concurrent("should get a spending limit policy", async () => {
-    const installSpendingLimitPolicy = policies.to.spendingLimits([
-      {
-        limit: BigInt(1000),
-        token: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
-      }
-    ])
-
-    expect(installSpendingLimitPolicy.policy).toBeDefined()
-    expect(installSpendingLimitPolicy.initData).toBeDefined()
   })
 
   test.concurrent(

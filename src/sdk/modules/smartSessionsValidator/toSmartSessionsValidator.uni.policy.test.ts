@@ -39,7 +39,7 @@ import { ParamCondition } from "./Types"
 import { smartSessionCreateActions, smartSessionUseActions } from "./decorators"
 import { toSmartSessionsValidator } from "./toSmartSessionsValidator"
 
-describe("modules.smartSessions.uniPolicy", async () => {
+describe("modules.smartSessions.uni.policy", async () => {
   let network: NetworkConfig
   let chain: Chain
   let bundlerUrl: string

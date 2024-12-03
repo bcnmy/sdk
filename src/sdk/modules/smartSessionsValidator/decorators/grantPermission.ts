@@ -21,6 +21,7 @@ import {
   applyDefaults,
   createActionConfig,
   createActionData,
+  createSudoData,
   generateSalt,
   getPermissionId,
   toTimeRangePolicy,
@@ -81,14 +82,21 @@ export const getPermissionAction = async ({
   // Start populating the session for each param provided
   for (const sessionInfo of sessionRequestedInfo) {
     const actionPolicies: ActionData[] = []
-    for (const actionPolicyInfo of sessionInfo.actionPoliciesInfo) {
+
+    for (const sudoPolicy of sessionInfo.sudoPoliciesInfo ?? []) {
+      const sudoPolicyData = createSudoData(
+        sudoPolicy.contractAddress,
+        sudoPolicy.functionSelector
+      )
+      actionPolicies.push(sudoPolicyData)
+    }
+
+    for (const actionPolicyInfo of sessionInfo.actionPoliciesInfo ?? []) {
       // TODO: make it easy to generate rules for particular contract and selectors.
       const actionConfig = createActionConfig(
         actionPolicyInfo.rules ?? [],
         actionPolicyInfo.valueLimit
       )
-
-      // one may also pass baked up policyData.
 
       // create uni action policy here..
       const uniActionPolicyData = toUniversalActionPolicy(actionConfig)
@@ -228,7 +236,8 @@ export async function grantPermission<
     throw new Error(ERROR_MESSAGES.CHAIN_NOT_FOUND)
   }
 
-  const defaultedSessionRequestedInfo = sessionRequestedInfo.map(applyDefaults)
+  const defaultedSessionRequestedInfo: FullCreateSessionDataParams[] =
+    sessionRequestedInfo.map(applyDefaults)
 
   const attestersToTrust = attesters ?? [MOCK_ATTESTER_ADDRESS]
   const actionResponse = await getPermissionAction({

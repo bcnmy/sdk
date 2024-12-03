@@ -3,7 +3,6 @@ import type {
   SmartSessionMode
 } from "@rhinestone/module-sdk"
 import type { AbiFunction, Address, Hex, OneOf } from "viem"
-import type { KeyGenData } from "../../clients/decorators/dan/decorators/keyGen"
 import type { AnyReferenceValue } from "../utils/Helpers"
 import type { Execution } from "../utils/Types"
 
@@ -60,8 +59,6 @@ export type UsePermissionModuleData = {
   mode?: SmartSessionModeType
   /** Data for enabling the session. */
   enableSessionData?: EnableSessionData
-  /** Key generation data for the session. */
-  keyGenData?: KeyGenData
   /** The index of the permission ID to use for the session. Defaults to 0. */
   permissionIdIndex?: number
 }
@@ -93,11 +90,18 @@ export type CreateSessionDataParams = OptionalSessionKeyData & {
   sessionValidUntil?: number
   /** Timestamp after which the session becomes valid. */
   sessionValidAfter?: number
-  /** Array of action policy data for the session. */
-  actionPoliciesInfo: ActionPolicyData[]
   /** Chain IDs where the session should be enabled. Useful for enable mode. */
   chainIds?: bigint[]
-}
+} & OneOf<
+    | {
+        /** Array of sudo policy data for the session. */
+        sudoPoliciesInfo: SudoPolicyData[]
+      }
+    | {
+        /** Array of action policy data for the session. */
+        actionPoliciesInfo: ActionPolicyData[]
+      }
+  >
 
 export type FullCreateSessionDataParams = {
   /** Public key for the session. Required for K1 algorithm validators. */
@@ -114,10 +118,24 @@ export type FullCreateSessionDataParams = {
   sessionValidUntil: number
   /** Timestamp after which the session becomes valid. */
   sessionValidAfter: number
-  /** Array of action policy data for the session. */
-  actionPoliciesInfo: ActionPolicyData[]
   /** Chain IDs where the session should be enabled. Useful for enable mode. */
   chainIds?: bigint[]
+} & OneOf<
+  | {
+      /** Array of sudo policy data for the session. */
+      sudoPoliciesInfo: SudoPolicyData[]
+    }
+  | {
+      /** Array of action policy data for the session. */
+      actionPoliciesInfo: ActionPolicyData[]
+    }
+>
+
+export type SudoPolicyData = {
+  /** The address of the contract to be included in the policy */
+  contractAddress: Hex
+  /** The specific function selector from the contract to be included in the policy */
+  functionSelector: string | AbiFunction
 }
 
 /**
