@@ -1,9 +1,4 @@
-import {
-  type ActionData,
-  type PolicyData,
-  type Session,
-  getSudoPolicy
-} from "@rhinestone/module-sdk"
+import type { ActionData, PolicyData, Session } from "@rhinestone/module-sdk"
 import {
   type Abi,
   type AbiFunction,
