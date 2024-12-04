@@ -5,8 +5,13 @@ import {
   OWNABLE_EXECUTOR_ADDRESS,
   OWNABLE_VALIDATOR_ADDRESS,
   REGISTRY_ADDRESS,
+  RHINESTONE_ATTESTER_ADDRESS,
   SIMPLE_SESSION_VALIDATOR_ADDRESS,
-  SMART_SESSIONS_ADDRESS
+  SMART_SESSIONS_ADDRESS,
+  TIME_FRAME_POLICY_ADDRESS,
+  UNIVERSAL_ACTION_POLICY_ADDRESS,
+  USAGE_LIMIT_POLICY_ADDRESS,
+  VALUE_LIMIT_POLICY_ADDRESS
 } from "../sdk/constants"
 
 export const TEST_CONTRACTS: Record<
@@ -37,7 +42,7 @@ export const TEST_CONTRACTS: Record<
   UniActionPolicy: {
     chainId: baseSepolia.id,
     name: "UniActionPolicy",
-    address: "0x148CD6c24F4dd23C396E081bBc1aB1D92eeDe2BF"
+    address: UNIVERSAL_ACTION_POLICY_ADDRESS
   },
   Counter: {
     chainId: baseSepolia.id,
@@ -64,6 +69,11 @@ export const TEST_CONTRACTS: Record<
     name: "MockAttester",
     address: MOCK_ATTESTER_ADDRESS
   },
+  RhinestoneAttester: {
+    chainId: baseSepolia.id,
+    name: "RhinestoneAttester",
+    address: RHINESTONE_ATTESTER_ADDRESS
+  },
   MockRegistry: {
     chainId: baseSepolia.id,
     name: "MockRegistry",
@@ -72,17 +82,17 @@ export const TEST_CONTRACTS: Record<
   TimeFramePolicy: {
     chainId: baseSepolia.id,
     name: "TimeFramePolicy",
-    address: "0x0B7BB9bD65858593D97f12001FaDa94828307805"
+    address: TIME_FRAME_POLICY_ADDRESS
   },
   UsageLimitPolicy: {
     chainId: baseSepolia.id,
     name: "UsageLimitPolicy",
-    address: "0x80EF509D2F79eA332540e9698bDbc7B7FA3E1f74"
+    address: USAGE_LIMIT_POLICY_ADDRESS
   },
   ValueLimitPolicy: {
     chainId: baseSepolia.id,
     name: "ValueLimitPolicy",
-    address: "0xDe9688b24c00699Ad51961ef90Ce5a9a8C49982B"
+    address: VALUE_LIMIT_POLICY_ADDRESS
   },
   WalletConnectCoSigner: {
     chainId: baseSepolia.id,

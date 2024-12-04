@@ -103,8 +103,7 @@ export const toSmartSessionsValidator = (
       permissionIdIndex = 0,
       permissionIds = [],
       mode = SmartSessionMode.USE,
-      enableSessionData,
-      keyGenData: _
+      enableSessionData
     } = {}
   } = parameters
 
@@ -135,16 +134,6 @@ export const toSmartSessionsValidator = (
         signature: await signer.signMessage({
           message: { raw: userOpHash as Hex }
         })
-      }),
-    extend: {
-      sigGen: (signature: Hex): Hex => {
-        return encodeSmartSessionSignature({
-          mode,
-          permissionId: permissionIds[permissionIdIndex],
-          enableSessionData,
-          signature
-        })
-      }
-    }
+      })
   }) as SmartSessionModule
 }

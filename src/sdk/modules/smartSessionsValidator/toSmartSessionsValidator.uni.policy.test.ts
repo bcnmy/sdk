@@ -1,5 +1,7 @@
+import { SmartSessionMode } from "@rhinestone/module-sdk"
 import {
   http,
+  type Abi,
   type AbiFunction,
   type Address,
   type Chain,
@@ -9,13 +11,11 @@ import {
   encodeFunctionData,
   getContract,
   slice,
-  toBytes,
-  toFunctionSelector,
-  toHex
+  toFunctionSelector
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
-import { MockRegistryAbi } from "../../../test/__contracts/abi"
+import { CounterAbi, MockRegistryAbi } from "../../../test/__contracts/abi"
 import { MockCalleeAbi } from "../../../test/__contracts/abi/MockCalleeAbi"
 import { testAddresses } from "../../../test/callDatas"
 import { toNetwork } from "../../../test/testSetup"
@@ -33,13 +33,13 @@ import {
 import { createNexusSessionClient } from "../../clients/createNexusSessionClient"
 import { SMART_SESSIONS_ADDRESS } from "../../constants"
 import type { Module } from "../utils/Types"
-import { isPermissionEnabled } from "./Helpers"
-import type { CreateSessionDataParams, Rule } from "./Types"
+import { abiToPoliciesInfo, isPermissionEnabled } from "./Helpers"
+import type { CreateSessionDataParams, Rule, SessionData } from "./Types"
 import { ParamCondition } from "./Types"
 import { smartSessionCreateActions, smartSessionUseActions } from "./decorators"
 import { toSmartSessionsValidator } from "./toSmartSessionsValidator"
 
-describe("modules.smartSessions.uniPolicy", async () => {
+describe("modules.smartSessions.uni.policy", async () => {
   let network: NetworkConfig
   let chain: Chain
   let bundlerUrl: string

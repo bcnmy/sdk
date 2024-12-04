@@ -5,7 +5,6 @@ import { getAction, parseAccount } from "viem/utils"
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
 import { MOCK_ATTESTER_ADDRESS, REGISTRY_ADDRESS } from "../../../constants"
 import type { ModularSmartAccount } from "../../utils/Types"
-
 /**
  * Parameters for trusting attesters in a smart session validator.
  *

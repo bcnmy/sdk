@@ -1,7 +1,5 @@
 [![Biconomy](https://img.shields.io/badge/Made_with_%F0%9F%8D%8A_by-Biconomy-ff4e17?style=flat)](https://biconomy.io) [![License MIT](https://img.shields.io/badge/License-MIT-blue?&style=flat)](./LICENSE) [![codecov](https://codecov.io/github/bcnmy/sdk/graph/badge.svg?token=DTdIR5aBDA)](https://codecov.io/github/bcnmy/sdk)
 
-
-
 # SDK 🚀
 
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/bcnmy/sdk)
@@ -54,6 +52,34 @@ const hash = await nexusClient.sendTransaction({ calls: [to: "0x...", value: 1] 
 const { status, transactionHash } = await nexusClient.waitForTransactionReceipt({ hash });
 
 ```
+
+3. Testing
+
+To run the tests, ensure you have the following prerequisites installed:
+
+- Node.js v22 or higher
+- [Bun](https://bun.sh/) package manager
+- [Foundry](https://book.getfoundry.sh/getting-started/installation)
+
+Install the dependencies:
+
+```bash
+bun install --frozen-lockfile
+```
+
+### Run all tests
+
+```bash
+bun run test
+```
+
+### Run tests for a specific module
+
+```bash
+bun run test -t=smartSessions 
+```
+
+For detailed information about the testing framework, network configurations, and debugging guidelines, please refer to our [Testing Documentation](./src/test/README.md).
 
 ## Documentation and Resources
 
