@@ -6,12 +6,10 @@ import {
   type LocalAccount,
   encodeFunctionData,
   pad,
-  toBytes,
   toHex
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
-import { MockRegistryAbi } from "../../../test/__contracts/abi"
 import { CounterAbi } from "../../../test/__contracts/abi/CounterAbi"
 import { testAddresses } from "../../../test/callDatas"
 import { toNetwork } from "../../../test/testSetup"
@@ -27,10 +25,9 @@ import {
   createNexusClient
 } from "../../clients/createNexusClient"
 import { createNexusSessionClient } from "../../clients/createNexusSessionClient"
-import { SIMPLE_SESSION_VALIDATOR_ADDRESS } from "../../constants"
 import { parseReferenceValue } from "../utils/Helpers"
 import type { Module } from "../utils/Types"
-import policies from "./Helpers"
+import { abiToPoliciesInfo, toUniversalActionPolicy } from "./Helpers"
 import type { CreateSessionDataParams } from "./Types"
 import { ParamCondition } from "./Types"
 import { smartSessionCreateActions, smartSessionUseActions } from "./decorators"
@@ -88,6 +85,42 @@ describe("modules.smartSessions", async () => {
     expect(bytecodes.every((bytecode) => !!bytecode?.length)).toBeTruthy()
   })
 
+  test("should convert an ABI to a contract whitelist", async () => {
+    const contractWhitelist = abiToPoliciesInfo({
+      abi: CounterAbi,
+      contractAddress: testAddresses.Counter
+    })
+
+    expect(contractWhitelist).toBeDefined()
+
+    // Verify the structure matches all CounterAbi functions
+    expect(contractWhitelist).toEqual([
+      {
+        contractAddress: testAddresses.Counter,
+        functionSelector: "0x871cc9d4", // decrementNumber
+        rules: []
+      },
+      {
+        contractAddress: testAddresses.Counter,
+        functionSelector: "0xf2c9ecd8", // getNumber
+        rules: []
+      },
+      {
+        contractAddress: testAddresses.Counter,
+        functionSelector: "0x273ea3e3", // incrementNumber
+        rules: []
+      },
+      {
+        contractAddress: testAddresses.Counter,
+        functionSelector: "0x12467434", // revertOperation
+        rules: []
+      }
+    ])
+
+    // Verify the length matches the number of functions in CounterAbi
+    expect(contractWhitelist).toHaveLength(4)
+  })
+
   test.concurrent(
     "should parse a human friendly policy reference value to the hex version expected by the contracts",
     async () => {
@@ -134,28 +167,10 @@ describe("modules.smartSessions", async () => {
         ]
       }
     }
-    const installUniversalPolicy = policies.to.universalAction(actionConfigData)
+    const installUniversalPolicy = toUniversalActionPolicy(actionConfigData)
 
     expect(installUniversalPolicy.policy).toEqual(testAddresses.UniActionPolicy)
     expect(installUniversalPolicy.initData).toBeDefined()
-  })
-
-  test.concurrent("should get a sudo action policy", async () => {
-    const installSudoActionPolicy = policies.sudo
-    expect(installSudoActionPolicy.policy).toBeDefined()
-    expect(installSudoActionPolicy.initData).toEqual("0x")
-  })
-
-  test.concurrent("should get a spending limit policy", async () => {
-    const installSpendingLimitPolicy = policies.to.spendingLimits([
-      {
-        limit: BigInt(1000),
-        token: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
-      }
-    ])
-
-    expect(installSpendingLimitPolicy.policy).toBeDefined()
-    expect(installSpendingLimitPolicy.initData).toBeDefined()
   })
 
   test.concurrent(
@@ -205,8 +220,6 @@ describe("modules.smartSessions", async () => {
     })
 
     expect(isInstalledBefore).toBe(true)
-
-    // Note: grantPermission decorator will take care of trusting the attester.
 
     // session key signer address is declared here
     const sessionRequestedInfo: CreateSessionDataParams[] = [

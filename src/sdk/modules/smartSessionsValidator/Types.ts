@@ -2,8 +2,7 @@ import type {
   EnableSessionData,
   SmartSessionMode
 } from "@rhinestone/module-sdk"
-import type { AbiFunction, Address, Hex, OneOf } from "viem"
-import type { KeyGenData } from "../../clients/decorators/dan/decorators/keyGen"
+import type { Abi, AbiFunction, Address, Hex, OneOf } from "viem"
 import type { AnyReferenceValue } from "../utils/Helpers"
 import type { Execution } from "../utils/Types"
 
@@ -60,8 +59,6 @@ export type UsePermissionModuleData = {
   mode?: SmartSessionModeType
   /** Data for enabling the session. */
   enableSessionData?: EnableSessionData
-  /** Key generation data for the session. */
-  keyGenData?: KeyGenData
   /** The index of the permission ID to use for the session. Defaults to 0. */
   permissionIdIndex?: number
 }
@@ -93,10 +90,10 @@ export type CreateSessionDataParams = OptionalSessionKeyData & {
   sessionValidUntil?: number
   /** Timestamp after which the session becomes valid. */
   sessionValidAfter?: number
-  /** Array of action policy data for the session. */
-  actionPoliciesInfo: ActionPolicyData[]
   /** Chain IDs where the session should be enabled. Useful for enable mode. */
   chainIds?: bigint[]
+  /** Array of action policy data for the session. */
+  actionPoliciesInfo: ActionPolicyInfo[]
 }
 
 export type FullCreateSessionDataParams = {
@@ -114,28 +111,63 @@ export type FullCreateSessionDataParams = {
   sessionValidUntil: number
   /** Timestamp after which the session becomes valid. */
   sessionValidAfter: number
-  /** Array of action policy data for the session. */
-  actionPoliciesInfo: ActionPolicyData[]
   /** Chain IDs where the session should be enabled. Useful for enable mode. */
   chainIds?: bigint[]
+  /** Array of action policy data for the session. */
+  actionPoliciesInfo: ActionPolicyInfo[]
 }
 
-/**
- * Represents the data structure for an action policy.
- */
-export type ActionPolicyData = {
+export type SpendingLimitPolicyData = {
+  /** The address of the token to be included in the policy */
+  token: Address
+  /** The limit for the token */
+  limit: bigint
+}
+
+export type SudoPolicyData = {
   /** The address of the contract to be included in the policy */
   contractAddress: Hex
   /** The specific function selector from the contract to be included in the policy */
   functionSelector: string | AbiFunction
-  /** Timestamp until which the policy is valid */
+}
+
+/**
+ * Represents the data structure for an action policy.
+ *
+ * Get the universal action policy to use when creating a new session.
+ * The universal action policy can be used to ensure that only actions where the calldata has certain parameters can be used.
+ * For example, it could restrict swaps on Uniswap to be only under X amount of input token.
+ */
+export type ActionPolicyInfo = {
+  /** The address of the contract to be included in the policy */
+  contractAddress: Hex
+  /** The timeframe policy can be used to restrict a session to only be able to be used within a certain timeframe */
   validUntil?: number
   /** Timestamp after which the policy becomes valid */
   validAfter?: number
-  /** Array of rules for the policy */
-  rules?: Rule[]
-  /** The maximum value that can be transferred in a single transaction */
+  /** The value limit policy can be used to enforce that only a certain amount of native value can be spent. For ERC-20 limits, use the spending limit policy */
   valueLimit?: bigint
+  /** The spending limits policy can be used to ensure that only a certain amount of ERC-20 tokens can be spent. For native value spends, use the value limit policy */
+  tokenLimits?: SpendingLimitPolicyData[]
+  /** The value limit policy can be used to enforce that only a certain amount of native value can be spent. For ERC-20 limits, use the spending limit policy. */
+  usageLimit?: bigint
+  /** The sudo policy is an action policy that will allow any action for the specified target and selector. */
+  sudo?: boolean
+} & OneOf<
+  | {
+      /** The specific function selector from the contract to be included in the policy */
+      functionSelector: string | AbiFunction
+      /** Array of rules for the policy */
+      rules?: Rule[]
+    }
+  | {
+      /** The ABI of the contract to be included in the policy */
+      abi: Abi
+    }
+>
+
+export type ResolvedActionPolicyInfo = ActionPolicyInfo & {
+  functionSelector: string | AbiFunction
 }
 
 /**
