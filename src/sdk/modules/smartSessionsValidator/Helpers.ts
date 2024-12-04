@@ -30,13 +30,12 @@ import { parseReferenceValue } from "../utils/Helpers"
 import type { AnyData } from "../utils/Types"
 import type {
   ActionConfig,
-  ActionPolicyData,
+  ActionPolicyInfo,
   CreateSessionDataParams,
   FullCreateSessionDataParams,
   RawActionConfig,
-  Rule,
-  SpendingLimitsParams,
-  SudoPolicyData
+  ResolvedActionPolicyInfo,
+  Rule
 } from "./Types"
 
 export const MAX_RULES = 16
@@ -94,23 +93,6 @@ export const applyDefaults = (
       sessionInfo.sessionValidatorAddress ?? SIMPLE_SESSION_VALIDATOR_ADDRESS
   }
 }
-/**
- * Creates an ActionData object for a sudo policy.
- *
- * @param contractAddress - The address of the contract.
- * @param functionSelector - The function selector or AbiFunction.
- * @returns An ActionData object.
- */
-export const createSudoData = (
-  contractAddress: Address,
-  functionSelector: string | AbiFunction
-): ActionData => ({
-  actionTargetSelector: (typeof functionSelector === "string"
-    ? functionSelector
-    : functionSelector.name) as Hex,
-  actionTarget: contractAddress,
-  actionPolicies: [getSudoPolicy()]
-})
 
 /**
  * Creates an ActionData object.
@@ -206,13 +188,14 @@ export const isPermissionEnabled = async ({
   client: PublicClient
   accountAddress: Address
   permissionId: Hex
-}) =>
-  client.readContract({
+}) => {
+  return client.readContract({
     address: SMART_SESSIONS_ADDRESS,
     abi: SmartSessionAbi,
     functionName: "isPermissionEnabled",
     args: [permissionId, accountAddress]
   })
+}
 
 /**
  * Converts an ActionConfig to a UniversalActionPolicy.
@@ -259,34 +242,6 @@ export const toTimeRangePolicy = (
   }
   return timeFramePolicyData
 }
-
-/**
- * Converts SpendingLimitsParams to a SpendingLimitsPolicy.
- *
- * @param params - An array of SpendingLimitsParams.
- * @returns A PolicyData object representing the SpendingLimitsPolicy.
- */
-export const toSpendingLimitsPolicy = (
-  params: SpendingLimitsParams
-): PolicyData => {
-  return {
-    policy: "0x8e58f4945e6ba2a11b184a9c20b6c765a0891b95",
-    initData: encodeAbiParameters(
-      [{ type: "address[]" }, { type: "uint256[]" }],
-      [params.map(({ token }) => token), params.map(({ limit }) => limit)]
-    )
-  }
-}
-
-/**
- * An object containing policy conversion functions.
- */
-export const policies = {
-  to: {
-    universalAction: toUniversalActionPolicy,
-    spendingLimits: toSpendingLimitsPolicy
-  }
-} as const
 
 /**
  * Stringifies an object, explicitly tagging BigInt values.
@@ -357,47 +312,39 @@ export const getTrustedAttesters = async ({
 }
 
 /**
- * Converts an ABI to a list of ActionPolicyData objects.
+ * Converts an ABI to a list of ActionPolicyInfo objects.
  *
  * @param params - The parameters object
  * @param params.abi - The ABI to convert
- * @param params.actionPolicyData - The ActionPolicyData object to apply to each function in the ABI
- * @returns An array of ActionPolicyData objects
+ * @param params.actionPolicyInfo - The ActionPolicyInfo object to apply to each function in the ABI
+ *
+ * @example
+ * const actionPoliciesInfo = abiToPoliciesInfo({
+ *   abi: CounterAbi,
+ *   actionPolicyInfo: {
+ *     contractAddress: testAddresses.Counter,
+ *     sudo: false,
+ *     tokenLimits: [],
+ *     usageLimit: 1000n,
+ *     valueLimit: 1000n
+ *   }
+ * })
+ * @returns An array of ActionPolicyInfo objects
  */
-export const abi2ActionPolicy = ({
-  abi,
-  actionPolicyData
-}: {
-  abi: Abi
-  actionPolicyData: Omit<ActionPolicyData, "functionSelector"> & {
-    rules?: never // Rules should not be available here because they should be custom per method, not used in a loop
-  }
-}): ActionPolicyData[] =>
-  abi
-    .filter((item): item is AbiFunction => item.type === "function")
-    .map((func) => ({
-      ...actionPolicyData,
-      functionSelector: toFunctionSelector(func)
-    }))
 
-/**
- * Converts an ABI to a list of SudoPolicyData objects.
- *
- * @param params - The parameters object
- * @param params.abi - The ABI to convert
- * @param params.contractAddress - The address of the contract
- * @returns An array of SudoPolicyData objects
- */
-export const abi2SudoPolicy = ({
+export type AbiToPoliciesInfoParams = Omit<
+  ActionPolicyInfo,
+  "functionSelector" | "rules"
+> & { abi: Abi }
+
+export const abiToPoliciesInfo = ({
   abi,
-  contractAddress
-}: {
-  abi: Abi
-  contractAddress: Address
-}): SudoPolicyData[] =>
-  abi
+  ...actionPolicyInfo
+}: AbiToPoliciesInfoParams): ResolvedActionPolicyInfo[] =>
+  (abi ?? [])
     .filter((item): item is AbiFunction => item.type === "function")
     .map((func) => ({
-      contractAddress,
-      functionSelector: toFunctionSelector(func)
+      ...actionPolicyInfo,
+      functionSelector: toFunctionSelector(func),
+      rules: [] // Rules should not be available here because they should be custom per method, not used in a loop
     }))

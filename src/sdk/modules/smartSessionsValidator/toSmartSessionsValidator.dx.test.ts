@@ -25,7 +25,7 @@ import {
 } from "../../clients/createNexusClient"
 import { createNexusSessionClient } from "../../clients/createNexusSessionClient"
 import type { Module } from "../utils/Types"
-import { abi2ActionPolicy, parse, stringify } from "./Helpers"
+import { abiToPoliciesInfo, parse, stringify } from "./Helpers"
 import type { CreateSessionDataParams, SessionData } from "./Types"
 import { smartSessionCreateActions, smartSessionUseActions } from "./decorators"
 import { toSmartSessionsValidator } from "./toSmartSessionsValidator"
@@ -122,15 +122,15 @@ describe("modules.smartSessions.dx", async () => {
           // sessionValidUntil: number
           // sessionValidAfter: number
           // chainIds: bigint[]
-          actionPoliciesInfo: abi2ActionPolicy({
-            abi: CounterAbi,
-            actionPolicyData: {
+          actionPoliciesInfo: [
+            {
+              abi: CounterAbi,
               contractAddress: testAddresses.Counter
               // validUntil?: number
               // validAfter?: number
               // valueLimit?: bigint
             }
-          })
+          ]
         }
       ]
     })

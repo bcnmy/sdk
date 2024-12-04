@@ -27,7 +27,7 @@ import {
 import { createNexusSessionClient } from "../../clients/createNexusSessionClient"
 import { parseReferenceValue } from "../utils/Helpers"
 import type { Module } from "../utils/Types"
-import { abi2ActionPolicy, toUniversalActionPolicy } from "./Helpers"
+import { abiToPoliciesInfo, toUniversalActionPolicy } from "./Helpers"
 import type { CreateSessionDataParams } from "./Types"
 import { ParamCondition } from "./Types"
 import { smartSessionCreateActions, smartSessionUseActions } from "./decorators"
@@ -86,11 +86,9 @@ describe("modules.smartSessions", async () => {
   })
 
   test("should convert an ABI to a contract whitelist", async () => {
-    const contractWhitelist = abi2ActionPolicy({
+    const contractWhitelist = abiToPoliciesInfo({
       abi: CounterAbi,
-      actionPolicyData: {
-        contractAddress: testAddresses.Counter
-      }
+      contractAddress: testAddresses.Counter
     })
 
     expect(contractWhitelist).toBeDefined()
@@ -99,19 +97,23 @@ describe("modules.smartSessions", async () => {
     expect(contractWhitelist).toEqual([
       {
         contractAddress: testAddresses.Counter,
-        functionSelector: "0x871cc9d4" // decrementNumber
+        functionSelector: "0x871cc9d4", // decrementNumber
+        rules: []
       },
       {
         contractAddress: testAddresses.Counter,
-        functionSelector: "0xf2c9ecd8" // getNumber
+        functionSelector: "0xf2c9ecd8", // getNumber
+        rules: []
       },
       {
         contractAddress: testAddresses.Counter,
-        functionSelector: "0x273ea3e3" // incrementNumber
+        functionSelector: "0x273ea3e3", // incrementNumber
+        rules: []
       },
       {
         contractAddress: testAddresses.Counter,
-        functionSelector: "0x12467434" // revertOperation
+        functionSelector: "0x12467434", // revertOperation
+        rules: []
       }
     ])
 
@@ -218,8 +220,6 @@ describe("modules.smartSessions", async () => {
     })
 
     expect(isInstalledBefore).toBe(true)
-
-    // Note: grantPermission decorator will take care of trusting the attester.
 
     // session key signer address is declared here
     const sessionRequestedInfo: CreateSessionDataParams[] = [

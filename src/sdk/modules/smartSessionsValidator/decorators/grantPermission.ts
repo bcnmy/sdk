@@ -1,27 +1,29 @@
 import {
   type ActionData,
+  MOCK_ATTESTER_ADDRESS,
   type PolicyData,
+  SMART_SESSIONS_ADDRESS,
   type Session,
   findTrustedAttesters,
-  getTrustAttestersAction
+  getSpendingLimitsPolicy,
+  getSudoPolicy,
+  getTrustAttestersAction,
+  getUsageLimitPolicy,
+  getValueLimitPolicy
 } from "@rhinestone/module-sdk"
 import type { Chain, Client, Hex, PublicClient, Transport } from "viem"
 import { sendUserOperation } from "viem/account-abstraction"
 import { encodeFunctionData, getAction, parseAccount } from "viem/utils"
-import { ERROR_MESSAGES, Logger } from "../../../account"
+import { type Call, ERROR_MESSAGES } from "../../../account"
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
-import { MOCK_ATTESTER_ADDRESS } from "../../../constants"
-import {
-  SIMPLE_SESSION_VALIDATOR_ADDRESS,
-  SMART_SESSIONS_ADDRESS
-} from "../../../constants"
+import { SIMPLE_SESSION_VALIDATOR_ADDRESS } from "../../../constants"
 import { SmartSessionAbi } from "../../../constants/abi/SmartSessionAbi"
 import type { ModularSmartAccount } from "../../utils/Types"
 import {
+  abiToPoliciesInfo,
   applyDefaults,
   createActionConfig,
   createActionData,
-  createSudoData,
   generateSalt,
   getPermissionId,
   toTimeRangePolicy,
@@ -29,7 +31,8 @@ import {
 } from "../Helpers"
 import type {
   CreateSessionDataParams,
-  FullCreateSessionDataParams
+  FullCreateSessionDataParams,
+  ResolvedActionPolicyInfo
 } from "../Types"
 import type {
   GrantPermissionActionReturnParams,
@@ -79,41 +82,83 @@ export const getPermissionAction = async ({
   const sessions: Session[] = []
   const permissionIds: Hex[] = []
 
+  const resolvedPolicyInfo2ActionData = (
+    actionPolicyInfo: ResolvedActionPolicyInfo
+  ): ActionData => {
+    const actionConfig = createActionConfig(
+      actionPolicyInfo.rules ?? [],
+      actionPolicyInfo.valueLimit
+    )
+
+    const policyData: PolicyData[] = []
+
+    // create uni action policy here..
+    const uniActionPolicyInfo = toUniversalActionPolicy(actionConfig)
+    policyData.push(uniActionPolicyInfo)
+
+    // create time frame policy here..
+    const timeFramePolicyData: PolicyData = toTimeRangePolicy(
+      actionPolicyInfo.validUntil ?? 0,
+      actionPolicyInfo.validAfter ?? 0
+    )
+    policyData.push(timeFramePolicyData)
+
+    // create sudo policy here..
+    if (actionPolicyInfo.sudo) {
+      const sudoPolicy = getSudoPolicy()
+      policyData.push(sudoPolicy)
+    }
+
+    // create value limit policy here..
+    if (actionPolicyInfo.valueLimit) {
+      const valueLimitPolicy = getValueLimitPolicy({
+        limit: actionPolicyInfo.valueLimit
+      })
+      policyData.push(valueLimitPolicy)
+    }
+
+    // create usage limit policy here..
+    if (actionPolicyInfo.usageLimit) {
+      const usageLimitPolicy = getUsageLimitPolicy({
+        limit: actionPolicyInfo.usageLimit
+      })
+      policyData.push(usageLimitPolicy)
+    }
+
+    // create token spending limit policy here..
+    if (actionPolicyInfo.tokenLimits?.length) {
+      const spendingLimitPolicy = getSpendingLimitsPolicy(
+        actionPolicyInfo.tokenLimits
+      )
+      policyData.push(spendingLimitPolicy)
+    }
+
+    // Create ActionData
+    const actionPolicy = createActionData(
+      actionPolicyInfo.contractAddress,
+      actionPolicyInfo.functionSelector,
+      policyData
+    )
+
+    return actionPolicy
+  }
+
   // Start populating the session for each param provided
   for (const sessionInfo of sessionRequestedInfo) {
     const actionPolicies: ActionData[] = []
 
-    for (const sudoPolicy of sessionInfo.sudoPoliciesInfo ?? []) {
-      const sudoPolicyData = createSudoData(
-        sudoPolicy.contractAddress,
-        sudoPolicy.functionSelector
-      )
-      actionPolicies.push(sudoPolicyData)
-    }
-
     for (const actionPolicyInfo of sessionInfo.actionPoliciesInfo ?? []) {
-      // TODO: make it easy to generate rules for particular contract and selectors.
-      const actionConfig = createActionConfig(
-        actionPolicyInfo.rules ?? [],
-        actionPolicyInfo.valueLimit
-      )
-
-      // create uni action policy here..
-      const uniActionPolicyData = toUniversalActionPolicy(actionConfig)
-      // create time range policy here..
-      const timeFramePolicyData: PolicyData = toTimeRangePolicy(
-        actionPolicyInfo.validUntil ?? 0,
-        actionPolicyInfo.validAfter ?? 0
-      )
-
-      // Create ActionData
-      const actionPolicy = createActionData(
-        actionPolicyInfo.contractAddress,
-        actionPolicyInfo.functionSelector,
-        [uniActionPolicyData, timeFramePolicyData]
-      )
-
-      actionPolicies.push(actionPolicy)
+      if (actionPolicyInfo.abi) {
+        // Resolve the abi to multiple function selectors...
+        const resolvedPolicyInfos = abiToPoliciesInfo(actionPolicyInfo)
+        const actionPolicies_ = resolvedPolicyInfos.map(
+          resolvedPolicyInfo2ActionData
+        )
+        actionPolicies.push(...actionPolicies_)
+      } else {
+        const actionPolicy = resolvedPolicyInfo2ActionData(actionPolicyInfo)
+        actionPolicies.push(actionPolicy)
+      }
     }
 
     const userOpTimeFramePolicyData: PolicyData = toTimeRangePolicy(
@@ -135,10 +180,10 @@ export const getPermissionAction = async ({
       }
     }
 
-    const permissionId = (await getPermissionId({
-      client: client,
-      session: session
-    })) as Hex
+    const permissionId = await getPermissionId({
+      client,
+      session
+    })
     // push permissionId to the array
     permissionIds.push(permissionId)
 
@@ -229,6 +274,9 @@ export async function grantPermission<
   }
 
   const account = parseAccount(account_) as ModularSmartAccount
+  if (!account || !account.address) {
+    throw new Error("Account not found")
+  }
 
   const chainId = publicClient_?.chain?.id
 
@@ -257,7 +305,7 @@ export async function grantPermission<
   })
 
   const needToAddTrustAttesters = trustedAttesters.length === 0
-  Logger.log("needToAddTrustAttesters", needToAddTrustAttesters)
+  console.log("needToAddTrustAttesters", needToAddTrustAttesters)
 
   if (!("action" in actionResponse)) {
     throw new Error("Error getting enable sessions action")
@@ -273,26 +321,21 @@ export async function grantPermission<
     throw new Error("Error getting trust attesters action")
   }
 
-  const calls = needToAddTrustAttesters
-    ? [
-        {
-          to: trustAttestersAction.target,
-          value: trustAttestersAction.value.valueOf(),
-          data: trustAttestersAction.callData
-        },
-        {
-          to: action.target,
-          value: action.value,
-          data: action.callData
-        }
-      ]
-    : [
-        {
-          to: action.target,
-          value: action.value,
-          data: action.callData
-        }
-      ]
+  const calls: Call[] = []
+
+  if (needToAddTrustAttesters) {
+    calls.push({
+      to: trustAttestersAction.target,
+      value: trustAttestersAction.value.valueOf(),
+      data: trustAttestersAction.callData
+    })
+  }
+
+  calls.push({
+    to: action.target,
+    value: action.value,
+    data: action.callData
+  })
 
   if ("action" in actionResponse) {
     const userOpHash = (await getAction(

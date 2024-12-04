@@ -6,11 +6,7 @@ import {
   type Chain,
   type Hex,
   type LocalAccount,
-  type PublicClient,
-  encodeFunctionData,
-  getContract,
-  slice,
-  toFunctionSelector
+  encodeFunctionData
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
@@ -30,8 +26,8 @@ import {
   createNexusClient
 } from "../../clients/createNexusClient"
 import type { Module } from "../utils/Types"
-import { abi2SudoPolicy, parse, stringify } from "./Helpers"
-import type { CreateSessionDataParams, SessionData } from "./Types"
+import { parse, stringify } from "./Helpers"
+import type { SessionData } from "./Types"
 import { smartSessionCreateActions, smartSessionUseActions } from "./decorators"
 import { toSmartSessionsValidator } from "./toSmartSessionsValidator"
 
@@ -96,6 +92,9 @@ describe("modules.smartSessions.sudo.policy", async () => {
       module: sessionsModule.moduleInitData
     })
 
+    const { success } = await nexusClient.waitForUserOperationReceipt({ hash })
+    expect(success).toBe(true)
+
     // Extend the Nexus client with smart session creation actions
     const usersNexusClient = nexusClient.extend(
       smartSessionCreateActions(sessionsModule)
@@ -104,14 +103,17 @@ describe("modules.smartSessions.sudo.policy", async () => {
     const createSessionsResponse = await usersNexusClient.grantPermission({
       sessionRequestedInfo: [
         {
-          sessionPublicKey, // session key signer
+          sessionPublicKey,
           // sessionValidUntil: number
           // sessionValidAfter: number
           // chainIds: bigint[]
-          sudoPoliciesInfo: abi2SudoPolicy({
-            abi: CounterAbi,
-            contractAddress: testAddresses.Counter
-          })
+          actionPoliciesInfo: [
+            {
+              abi: CounterAbi,
+              contractAddress: testAddresses.Counter,
+              sudo: true
+            }
+          ]
         }
       ]
     })
