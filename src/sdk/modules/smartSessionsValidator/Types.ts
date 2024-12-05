@@ -24,6 +24,9 @@ export type SessionData = {
 
   /** Module-specific data containing session configuration and permissions. */
   moduleData: UsePermissionModuleData
+
+  /** Description of the session. Useful for keeping humancontext about the session. */
+  description?: string
 }
 
 export type GrantPermissionActionReturnParams = {
@@ -39,9 +42,7 @@ export type GrantPermissionActionReturnParams = {
 export type GrantPermissionResponse = {
   /** The hash of the user operation. */
   userOpHash: Hex
-  /** Array of permission IDs for the created sessions. */
-  permissionIds: Hex[]
-}
+} & GrantPermissionActionReturnParams
 
 /**
  * Represents the possible modes for a smart session.
@@ -53,15 +54,13 @@ export type SmartSessionModeType =
  * Represents the data structure for using a session module.
  */
 export type UsePermissionModuleData = {
-  /** The permission ID for the session. */
-  permissionIds: Hex[]
   /** The mode of the smart session. */
   mode?: SmartSessionModeType
   /** Data for enabling the session. */
   enableSessionData?: EnableSessionData
   /** The index of the permission ID to use for the session. Defaults to 0. */
   permissionIdIndex?: number
-}
+} & GrantPermissionActionReturnParams
 
 type OptionalSessionKeyData = OneOf<
   | {

@@ -42,7 +42,7 @@ describe("modules.smartSessions.dx", async () => {
   let sessionKeyAccount: LocalAccount
   let sessionPublicKey: Address
 
-  let zippedSessionDatum: string
+  let stringifiedSessionDatum: string
   let sessionsModule: Module
 
   beforeAll(async () => {
@@ -147,14 +147,15 @@ describe("modules.smartSessions.dx", async () => {
     const sessionData: SessionData = {
       granter: usersNexusClient.account.address,
       sessionPublicKey,
+      description: `Session to increment a counter for ${testAddresses.Counter}`,
       moduleData: {
-        permissionIds: createSessionsResponse.permissionIds,
+        ...createSessionsResponse,
         mode: SmartSessionMode.USE
       }
     }
 
     // Zip the session data, and store it for later use by a dapp
-    zippedSessionDatum = stringify(sessionData)
+    stringifiedSessionDatum = stringify(sessionData)
   }, 200000)
 
   test("should demonstrate using a smart session from dapp's perspective", async () => {
@@ -162,7 +163,7 @@ describe("modules.smartSessions.dx", async () => {
     // The following code demonstrates how a dapp can use the session to act on behalf of the user
 
     // Unzip the session data
-    const usersSessionData = parse(zippedSessionDatum)
+    const usersSessionData = parse(stringifiedSessionDatum)
 
     // Create a new Nexus client for the session
     // This client will be used to interact with the smart contract account using the session key

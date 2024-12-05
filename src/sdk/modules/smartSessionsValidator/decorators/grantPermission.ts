@@ -346,7 +346,7 @@ export async function grantPermission<
 
     return {
       userOpHash: userOpHash,
-      permissionIds: actionResponse.permissionIds
+      ...actionResponse
     }
   }
   throw new Error("Error getting enable sessions action")
