@@ -213,14 +213,13 @@ export const toNexusAccount = async (
     args: [signerAddress, index, [], 0]
   })
 
-  let _accountAddress: Address | undefined = parameters.accountAddress
-
   /**
    * @description Gets the init code for the account
    * @returns The init code as a hexadecimal string
    */
   const getInitCode = () => concatHex([factoryAddress, factoryData])
 
+  let _accountAddress: Address | undefined = parameters.accountAddress
   /**
    * @description Gets the counterfactual address of the account
    * @returns The counterfactual address
@@ -233,12 +232,61 @@ export const toNexusAccount = async (
       // biome-ignore lint/suspicious/noExplicitAny: <explanation>
     } catch (e: any) {
       if (e?.cause?.data?.errorName === "SenderAddressResult") {
-        _accountAddress = e?.cause.data.args[0] as Address
-        if (!addressEquals(_accountAddress, zeroAddress)) {
-          return _accountAddress
+        const accountAddressFromError = e?.cause.data.args[0] as Address
+        if (!addressEquals(accountAddressFromError, zeroAddress)) {
+          _accountAddress = accountAddressFromError
+          return accountAddressFromError
         }
       }
     }
+
+    const addressFromFactory = (await publicClient.readContract({
+      address: factoryAddress,
+      abi: [
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "eoaOwner",
+              type: "address"
+            },
+            {
+              internalType: "uint256",
+              name: "index",
+              type: "uint256"
+            },
+            {
+              internalType: "address[]",
+              name: "attesters",
+              type: "address[]"
+            },
+            {
+              internalType: "uint8",
+              name: "threshold",
+              type: "uint8"
+            }
+          ],
+          name: "computeAccountAddress",
+          outputs: [
+            {
+              internalType: "address payable",
+              name: "expectedAddress",
+              type: "address"
+            }
+          ],
+          stateMutability: "view",
+          type: "function"
+        }
+      ],
+      functionName: "computeAccountAddress",
+      args: [signerAddress, index, [], 0]
+    })) as Address
+
+    if (!addressEquals(addressFromFactory, zeroAddress)) {
+      _accountAddress = addressFromFactory
+      return addressFromFactory
+    }
+
     throw new Error("Failed to get counterfactual account address")
   }
 
