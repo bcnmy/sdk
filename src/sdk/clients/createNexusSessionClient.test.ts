@@ -44,7 +44,7 @@ describe("nexus.session.client", async () => {
   let nexusAccountAddress: Address
   let sessionKeyAccount: LocalAccount
   let sessionPublicKey: Address
-  let stringifiedSessionData: string
+  let cachedSessionData: string
 
   let sessionsModule: Module
 
@@ -155,7 +155,7 @@ describe("nexus.session.client", async () => {
       }
     }
 
-    stringifiedSessionData = stringify(sessionData)
+    cachedSessionData = stringify(sessionData)
 
     const receipt = await nexusClient.waitForUserOperationReceipt({
       hash: createSessionsResponse.userOpHash
@@ -172,7 +172,7 @@ describe("nexus.session.client", async () => {
   }, 60000)
 
   test("session signer should use session to increment a counter for a user (USE MODE)", async () => {
-    const sessionData = parse(stringifiedSessionData) as SessionData
+    const sessionData = parse(cachedSessionData) as SessionData
 
     const counterBefore = await testClient.readContract({
       address: testAddresses.Counter,
@@ -229,7 +229,7 @@ describe("nexus.session.client", async () => {
   }, 60000)
 
   test("session signer is not allowed to send unauthorised action", async () => {
-    const sessionData = parse(stringifiedSessionData) as SessionData
+    const sessionData = parse(cachedSessionData) as SessionData
 
     const usePermissionsModule = toSmartSessionsValidator({
       account: nexusClient.account,

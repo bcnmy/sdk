@@ -50,7 +50,7 @@ describe("modules.smartSessions.uni.policy", async () => {
   let nexusAccountAddress: Address
   let sessionKeyAccount: LocalAccount
   let sessionPublicKey: Address
-  let stringifiedSessionData: string
+  let cachedSessionData: string
 
   let sessionsModule: Module
 
@@ -237,7 +237,7 @@ describe("modules.smartSessions.uni.policy", async () => {
       }
     }
 
-    stringifiedSessionData = stringify(sessionData)
+    cachedSessionData = stringify(sessionData)
 
     const receipt = await nexusClient.waitForUserOperationReceipt({
       hash: createSessionsResponse.userOpHash
@@ -254,7 +254,7 @@ describe("modules.smartSessions.uni.policy", async () => {
   }, 200000)
 
   test("should make use of already enabled session (USE mode) to add balance to MockCallee using a session key", async () => {
-    const parsedSessionData = parse(stringifiedSessionData) as SessionData
+    const parsedSessionData = parse(cachedSessionData) as SessionData
 
     const isEnabled = await isPermissionEnabled({
       client: nexusClient.account.client as PublicClient,

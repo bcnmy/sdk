@@ -48,7 +48,7 @@ describe("modules.smartSessions", async () => {
   let testClient: MasterClient
   let eoaAccount: LocalAccount
   let nexusClient: NexusClient
-  let stringifiedSessionData: string // Session data to be stored by the dApp
+  let cachedSessionData: string // Session data to be stored by the dApp
   let sessionKeyAccount: LocalAccount
   let sessionPublicKey: Address
 
@@ -261,7 +261,7 @@ describe("modules.smartSessions", async () => {
       }
     }
 
-    stringifiedSessionData = stringify(sessionData)
+    cachedSessionData = stringify(sessionData)
 
     const receipt = await nexusClient.waitForUserOperationReceipt({
       hash: createSessionsResponse.userOpHash
@@ -277,7 +277,7 @@ describe("modules.smartSessions", async () => {
       functionName: "getNumber"
     })
 
-    const parsedSessionData = parse(stringifiedSessionData) as SessionData
+    const parsedSessionData = parse(cachedSessionData) as SessionData
 
     const smartSessionNexusClient = await createNexusSessionClient({
       chain,
