@@ -46,6 +46,7 @@ import {
 
 import {
   ENTRY_POINT_ADDRESS,
+  RHINESTONE_ATTESTER_ADDRESS,
   k1ValidatorAddress as k1ValidatorAddress_,
   k1ValidatorFactoryAddress
 } from "../constants"
@@ -210,7 +211,7 @@ export const toNexusAccount = async (
       "function createAccount(address eoaOwner, uint256 index, address[] attesters, uint8 threshold) external returns (address)"
     ]),
     functionName: "createAccount",
-    args: [signerAddress, index, [], 0]
+    args: [signerAddress, index, [RHINESTONE_ATTESTER_ADDRESS], 1]
   })
 
   /**
