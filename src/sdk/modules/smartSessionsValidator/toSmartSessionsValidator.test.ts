@@ -1,3 +1,4 @@
+import { SmartSessionMode } from "@rhinestone/module-sdk"
 import {
   http,
   type Address,
@@ -27,8 +28,13 @@ import {
 import { createNexusSessionClient } from "../../clients/createNexusSessionClient"
 import { parseReferenceValue } from "../utils/Helpers"
 import type { Module } from "../utils/Types"
-import { abiToPoliciesInfo, toUniversalActionPolicy } from "./Helpers"
-import type { CreateSessionDataParams } from "./Types"
+import {
+  abiToPoliciesInfo,
+  parse,
+  stringify,
+  toUniversalActionPolicy
+} from "./Helpers"
+import type { CreateSessionDataParams, SessionData } from "./Types"
 import { ParamCondition } from "./Types"
 import { smartSessionCreateActions, smartSessionUseActions } from "./decorators"
 import { toSmartSessionsValidator } from "./toSmartSessionsValidator"
@@ -42,7 +48,7 @@ describe("modules.smartSessions", async () => {
   let testClient: MasterClient
   let eoaAccount: LocalAccount
   let nexusClient: NexusClient
-  let cachedPermissionId: Hex
+  let cachedSessionData: string // Session data to be stored by the dApp
   let sessionKeyAccount: LocalAccount
   let sessionPublicKey: Address
 
@@ -244,7 +250,18 @@ describe("modules.smartSessions", async () => {
 
     expect(createSessionsResponse.userOpHash).toBeDefined()
     expect(createSessionsResponse.permissionIds).toBeDefined()
-    ;[cachedPermissionId] = createSessionsResponse.permissionIds
+
+    const sessionData: SessionData = {
+      granter: nexusClient.account.address,
+      description: `Session to increment a counter for ${testAddresses.Counter}`,
+      sessionPublicKey,
+      moduleData: {
+        ...createSessionsResponse,
+        mode: SmartSessionMode.USE
+      }
+    }
+
+    cachedSessionData = stringify(sessionData)
 
     const receipt = await nexusClient.waitForUserOperationReceipt({
       hash: createSessionsResponse.userOpHash
@@ -260,6 +277,8 @@ describe("modules.smartSessions", async () => {
       functionName: "getNumber"
     })
 
+    const parsedSessionData = parse(cachedSessionData) as SessionData
+
     const smartSessionNexusClient = await createNexusSessionClient({
       chain,
       accountAddress: nexusClient.account.address,
@@ -271,9 +290,7 @@ describe("modules.smartSessions", async () => {
     const usePermissionsModule = toSmartSessionsValidator({
       account: smartSessionNexusClient.account,
       signer: sessionKeyAccount,
-      moduleData: {
-        permissionIds: [cachedPermissionId]
-      }
+      moduleData: parsedSessionData.moduleData
     })
 
     const useSmartSessionNexusClient = smartSessionNexusClient.extend(

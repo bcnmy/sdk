@@ -44,7 +44,7 @@ describe("modules.smartSessions.sudo.policy", async () => {
   let sessionKeyAccount: LocalAccount
   let sessionPublicKey: Address
 
-  let zippedSessionDatum: string // Session data to be stored by the dApp
+  let stringifiedSessionDatum: string // Session data to be stored by the dApp
 
   let sessionsModule: Module
 
@@ -130,14 +130,15 @@ describe("modules.smartSessions.sudo.policy", async () => {
     const sessionData: SessionData = {
       granter: usersNexusClient?.account?.address as Hex,
       sessionPublicKey,
+      description: `Session to increment a counter for ${testAddresses.Counter}`,
       moduleData: {
-        permissionIds: createSessionsResponse.permissionIds,
+        ...createSessionsResponse,
         mode: SmartSessionMode.USE
       }
     }
 
     // Zip the session data, and store it for later use by a dapp
-    zippedSessionDatum = stringify(sessionData)
+    stringifiedSessionDatum = stringify(sessionData)
   })
 
   test("should demonstrate using a smart session from dapp's perspective", async () => {
@@ -145,7 +146,7 @@ describe("modules.smartSessions.sudo.policy", async () => {
     // The following code demonstrates how a dapp can use the session to act on behalf of the user
 
     // Unzip the session data
-    const usersSessionData = parse(zippedSessionDatum)
+    const usersSessionData = parse(stringifiedSessionDatum)
 
     // Create a new Nexus client for the session
     // This client will be used to interact with the smart contract account using the session key

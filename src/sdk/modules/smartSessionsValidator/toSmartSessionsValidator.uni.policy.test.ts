@@ -15,7 +15,6 @@ import {
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
-import { CounterAbi, MockRegistryAbi } from "../../../test/__contracts/abi"
 import { MockCalleeAbi } from "../../../test/__contracts/abi/MockCalleeAbi"
 import { testAddresses } from "../../../test/callDatas"
 import { toNetwork } from "../../../test/testSetup"
@@ -33,7 +32,7 @@ import {
 import { createNexusSessionClient } from "../../clients/createNexusSessionClient"
 import { SMART_SESSIONS_ADDRESS } from "../../constants"
 import type { Module } from "../utils/Types"
-import { abiToPoliciesInfo, isPermissionEnabled } from "./Helpers"
+import { isPermissionEnabled, parse, stringify } from "./Helpers"
 import type { CreateSessionDataParams, Rule, SessionData } from "./Types"
 import { ParamCondition } from "./Types"
 import { smartSessionCreateActions, smartSessionUseActions } from "./decorators"
@@ -51,7 +50,7 @@ describe("modules.smartSessions.uni.policy", async () => {
   let nexusAccountAddress: Address
   let sessionKeyAccount: LocalAccount
   let sessionPublicKey: Address
-  let cachedPermissionId: Hex
+  let cachedSessionData: string
 
   let sessionsModule: Module
 
@@ -227,7 +226,18 @@ describe("modules.smartSessions.uni.policy", async () => {
 
     expect(createSessionsResponse.userOpHash).toBeDefined()
     expect(createSessionsResponse.permissionIds).toBeDefined()
-    ;[cachedPermissionId] = createSessionsResponse.permissionIds
+
+    const sessionData: SessionData = {
+      granter: nexusClient.account.address,
+      description: `Session to add balance to MockCallee for ${testAddresses.MockCallee}`,
+      sessionPublicKey,
+      moduleData: {
+        ...createSessionsResponse,
+        mode: SmartSessionMode.USE
+      }
+    }
+
+    cachedSessionData = stringify(sessionData)
 
     const receipt = await nexusClient.waitForUserOperationReceipt({
       hash: createSessionsResponse.userOpHash
@@ -238,16 +248,18 @@ describe("modules.smartSessions.uni.policy", async () => {
     const isEnabled = await isPermissionEnabled({
       client: nexusClient.account.client as PublicClient,
       accountAddress: nexusClient.account.address,
-      permissionId: cachedPermissionId
+      permissionId: sessionData.moduleData.permissionIds[0]
     })
     expect(isEnabled).toBe(true)
   }, 200000)
 
   test("should make use of already enabled session (USE mode) to add balance to MockCallee using a session key", async () => {
+    const parsedSessionData = parse(cachedSessionData) as SessionData
+
     const isEnabled = await isPermissionEnabled({
       client: nexusClient.account.client as PublicClient,
       accountAddress: nexusClient.account.address,
-      permissionId: cachedPermissionId
+      permissionId: parsedSessionData.moduleData.permissionIds[0]
     })
     expect(isEnabled).toBe(true)
 
@@ -285,9 +297,7 @@ describe("modules.smartSessions.uni.policy", async () => {
     const usePermissionsModule = toSmartSessionsValidator({
       account: smartSessionNexusClient.account,
       signer: sessionKeyAccount,
-      moduleData: {
-        permissionIds: [cachedPermissionId]
-      }
+      moduleData: parsedSessionData.moduleData
     })
 
     const useSmartSessionNexusClient = smartSessionNexusClient.extend(
