@@ -1,5 +1,10 @@
 export const MockValidatorAbi = [
   {
+    inputs: [],
+    name: "InvalidSignature",
+    type: "error"
+  },
+  {
     inputs: [
       {
         internalType: "address",

@@ -1,12 +1,15 @@
+import { SmartSessionMode } from "@rhinestone/module-sdk"
 import {
   http,
   type Address,
   type Chain,
+  type Hex,
   type PrivateKeyAccount,
   type PublicClient,
   type WalletClient,
   createPublicClient,
-  createWalletClient
+  createWalletClient,
+  encodeFunctionData
 } from "viem"
 import { beforeAll, describe, expect, test } from "vitest"
 import { playgroundTrue } from "../sdk/account/utils/Utils"
@@ -15,6 +18,17 @@ import {
   type NexusClient,
   createNexusClient
 } from "../sdk/clients/createNexusClient"
+import type {
+  CreateSessionDataParams,
+  SessionData
+} from "../sdk/modules/smartSessionsValidator/Types"
+import {
+  smartSessionCreateActions,
+  smartSessionUseActions
+} from "../sdk/modules/smartSessionsValidator/decorators"
+import { toSmartSessionsValidator } from "../sdk/modules/smartSessionsValidator/toSmartSessionsValidator"
+import { CounterAbi } from "./__contracts/abi/CounterAbi"
+import { testAddresses } from "./callDatas"
 import { toNetwork } from "./testSetup"
 import {
   type NetworkConfig,
@@ -37,6 +51,8 @@ describe.skipIf(!playgroundTrue())("playground", () => {
   let recipientAddress: Address
   let nexusClient: NexusClient
   let nexusAccountAddress: Address
+
+  const index = 4n
 
   beforeAll(async () => {
     network = await toNetwork("PUBLIC_TESTNET")
@@ -72,7 +88,10 @@ describe.skipIf(!playgroundTrue())("playground", () => {
             transport: http(network.paymasterUrl)
           })
         : undefined,
-      ...testParams
+      index,
+      ...testParams,
+      k1ValidatorAddress: "0x000000000EE7335c268e8225fcce3E913B8b30FE",
+      factoryAddress: "0x0000000000D8BA042724b13e85B5f40C715A5702"
     })
   })
 
@@ -91,6 +110,8 @@ describe.skipIf(!playgroundTrue())("playground", () => {
       })
     ])
 
+    console.log({ ownerBalance, smartAccountBalance })
+
     const balancesAreOfCorrectType = [ownerBalance, smartAccountBalance].every(
       (balance) => typeof balance === "bigint"
     )
@@ -99,7 +120,7 @@ describe.skipIf(!playgroundTrue())("playground", () => {
         chain,
         account: eoaAccount,
         to: nexusAccountAddress,
-        value: 1000000000000000000n
+        value: 100000000000000000n
       })
       const receipt = await publicClient.waitForTransactionReceipt({ hash })
     }
@@ -141,5 +162,110 @@ describe.skipIf(!playgroundTrue())("playground", () => {
     })
     expect(success).toBe("true")
     expect(balanceAfter - balanceBefore).toBe(1n)
+  })
+
+  test("should test creating and using a session", async () => {
+    const sessionsModule = toSmartSessionsValidator({
+      account: nexusClient.account,
+      signer: eoaAccount
+    })
+
+    const isInstalledBefore = await nexusClient.isModuleInstalled({
+      module: sessionsModule
+    })
+
+    if (!isInstalledBefore) {
+      const hash = await nexusClient.installModule({
+        module: sessionsModule.moduleInitData
+      })
+
+      const { success: installSuccess } =
+        await nexusClient.waitForUserOperationReceipt({ hash })
+      expect(installSuccess).toBe("true")
+    }
+
+    const isInstalledAfter = await nexusClient.isModuleInstalled({
+      module: sessionsModule
+    })
+    expect(isInstalledAfter).toBe(true)
+
+    const sessionRequestedInfo: CreateSessionDataParams[] = [
+      {
+        sessionPublicKey: eoaAccount.address, // session key signer
+        actionPoliciesInfo: [
+          {
+            contractAddress: testAddresses.Counter, // counter address
+            functionSelector: "0x273ea3e3" as Hex // function selector for increment count
+          }
+        ]
+      }
+    ]
+
+    const nexusSessionClient = nexusClient.extend(
+      smartSessionCreateActions(sessionsModule)
+    )
+
+    const createSessionsResponse = await nexusSessionClient.grantPermission({
+      sessionRequestedInfo
+    })
+
+    expect(createSessionsResponse.userOpHash).toBeDefined()
+    expect(createSessionsResponse.permissionIds).toBeDefined()
+
+    const receiptTwo = await nexusClient.waitForUserOperationReceipt({
+      hash: createSessionsResponse.userOpHash
+    })
+
+    expect(receiptTwo.success).toBe("true")
+
+    const sessionData: SessionData = {
+      granter: nexusClient.account.address,
+      sessionPublicKey: eoaAccount.address,
+      moduleData: {
+        permissionIds: createSessionsResponse.permissionIds,
+        mode: SmartSessionMode.USE
+      }
+    }
+
+    const smartSessionNexusClient = await createNexusClient({
+      chain,
+      accountAddress: nexusClient.account.address,
+      signer: eoaAccount,
+      transport: http(),
+      bundlerTransport: http(bundlerUrl),
+      index,
+      ...testParams,
+      k1ValidatorAddress: "0x000000000EE7335c268e8225fcce3E913B8b30FE",
+      factoryAddress: "0x0000000000D8BA042724b13e85B5f40C715A5702"
+    })
+
+    const usePermissionsModule = toSmartSessionsValidator({
+      account: smartSessionNexusClient.account,
+      signer: eoaAccount,
+      moduleData: sessionData.moduleData
+    })
+
+    const useSmartSessionNexusClient = smartSessionNexusClient.extend(
+      smartSessionUseActions(usePermissionsModule)
+    )
+
+    const userOpHash = await useSmartSessionNexusClient.usePermission({
+      calls: [
+        {
+          to: testAddresses.Counter,
+          data: encodeFunctionData({
+            abi: CounterAbi,
+            functionName: "incrementNumber",
+            args: []
+          })
+        }
+      ]
+    })
+
+    expect(userOpHash).toBeDefined()
+    const receiptThree =
+      await useSmartSessionNexusClient.waitForUserOperationReceipt({
+        hash: userOpHash
+      })
   })
 })
