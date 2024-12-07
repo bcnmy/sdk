@@ -18,7 +18,7 @@ import {
   MAINNET_ADDRESS_K1_VALIDATOR_ADDRESS,
   MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
 } from "../../../constants"
-import { type MeeAgent, createMeeAgent } from "../../createMeeAgent"
+import { type MeeService, createMeeService } from "../../createMeeService"
 
 describe("mee.decorators", async () => {
   let networkOne: NetworkConfig
@@ -34,7 +34,7 @@ describe("mee.decorators", async () => {
   let publicClientOne: PublicClient
   let publicClientTwo: PublicClient
 
-  let meeAgent: MeeAgent
+  let meeService: MeeService
 
   beforeAll(async () => {
     ;[networkOne, networkTwo] = await toNetworks([
@@ -74,14 +74,14 @@ describe("mee.decorators", async () => {
       factoryAddress: MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
     })
 
-    meeAgent = await createMeeAgent({
+    meeService = await createMeeService({
       accounts: [nexusAccountOne, nexusAccountTwo]
     })
   })
 
   test("should call prepareUserOperation ", async () => {
     await expect(
-      meeAgent.getFeeQuote({
+      meeService.getFeeQuote({
         calls: [
           {
             to: recipientAddress,

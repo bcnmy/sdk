@@ -25,7 +25,7 @@ export type ChainAbstractedAccountParams = Omit<
   }[]
 }
 
-export type MeeAgentParameters = {
+export type MeeServiceParameters = {
   baseUrl?: string
 } & OneOf<
   | {
@@ -35,19 +35,19 @@ export type MeeAgentParameters = {
       accountParams: ChainAbstractedAccountParams
     }
 >
-export type ResolvedMeeAgentParameters = {
+export type ResolvedMeeServiceParameters = {
   baseUrl?: string
   accounts: ModularSmartAccount[]
 }
 
-export type TBaseMeeAgent = Omit<BaseMeeAgent, "init" | "prototype">
-export type MeeAgent = Prettify<TBaseMeeAgent & MeeActions>
+export type TBaseMeeService = Omit<BaseMeeService, "init" | "prototype">
+export type MeeService = Prettify<TBaseMeeService & MeeActions>
 
-export class BaseMeeAgent {
+export class BaseMeeService {
   private baseUrl: string
   public accounts: ModularSmartAccount[]
 
-  constructor(config: ResolvedMeeAgentParameters) {
+  constructor(config: ResolvedMeeServiceParameters) {
     this.baseUrl = config.baseUrl || DEFAULT_MEE_NODE
     this.accounts = config.accounts || []
   }
@@ -100,7 +100,7 @@ export class BaseMeeAgent {
     throw new Error(`${response.status}, ${(response as AnyData).statusText}`)
   }
 
-  static async init(config: MeeAgentParameters): Promise<MeeAgent> {
+  static async init(config: MeeServiceParameters): Promise<MeeService> {
     let accounts: ModularSmartAccount[] = config.accounts || []
     if (!config.accounts && config.accountParams) {
       const { chainList, ...chainAgnosticParams } = config.accountParams
@@ -113,10 +113,10 @@ export class BaseMeeAgent {
     if (!accounts) {
       throw new Error("No accounts provided")
     }
-    const baseAgent = new BaseMeeAgent({ baseUrl: config.baseUrl, accounts })
-    return Object.assign(baseAgent, meeActions(baseAgent)) as MeeAgent
+    const baseAgent = new BaseMeeService({ baseUrl: config.baseUrl, accounts })
+    return Object.assign(baseAgent, meeActions(baseAgent)) as MeeService
   }
 }
 
-// Helper function to create a MeeAgent instance
-export const createMeeAgent = BaseMeeAgent.init
+// Helper function to create a MeeService instance
+export const createMeeService = BaseMeeService.init

@@ -1,7 +1,7 @@
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
 import type { Call } from "../../../account/utils/Types"
 import type { AnyData, ModularSmartAccount } from "../../../modules/utils/Types"
-import type { BaseMeeAgent } from "../../createMeeAgent"
+import type { BaseMeeService } from "../../createMeeService"
 
 export type GetFeeQuote = AnyData
 
@@ -21,7 +21,7 @@ export type GetFeeQuoteParameters<
 }
 
 export async function getFeeQuote(
-  client: BaseMeeAgent,
+  client: BaseMeeService,
   parameters: GetFeeQuoteParameters<ModularSmartAccount>
 ): Promise<GetFeeQuote> {
   const { accounts: accounts_ = client.accounts, calls } = parameters

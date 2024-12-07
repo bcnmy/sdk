@@ -1,5 +1,5 @@
 import type { AnyData, ModularSmartAccount } from "../../../modules/utils/Types"
-import type { BaseMeeAgent } from "../../createMeeAgent"
+import type { BaseMeeService } from "../../createMeeService"
 import { type GetFeeQuoteParameters, getFeeQuote } from "./getFeeQuote"
 
 export type MeeActions = {
@@ -9,7 +9,7 @@ export type MeeActions = {
   sendSuperTransaction: () => void
 }
 
-export function meeActions(client: BaseMeeAgent): MeeActions {
+export function meeActions(client: BaseMeeService): MeeActions {
   return {
     getFeeQuote: (parameters) => getFeeQuote(client, parameters),
     sendSuperTransaction: () => {} // etc etc
