@@ -16,8 +16,8 @@ import { playgroundTrue } from "../sdk/account/utils/Utils"
 import { createBicoPaymasterClient } from "../sdk/clients/createBicoPaymasterClient"
 import {
   type NexusClient,
-  createNexusClient
-} from "../sdk/clients/createNexusClient"
+  createSmartAccountClient
+} from "../sdk/clients/createSmartAccountClient"
 import type {
   CreateSessionDataParams,
   SessionData
@@ -38,8 +38,8 @@ import {
 
 describe.skipIf(!playgroundTrue())("playground", () => {
   let network: NetworkConfig
-  // Required for "PUBLIC_TESTNET" networks
-  let testParams: TestnetParams
+  // Required for "TESTNET_FROM_ENV_VARS" networks
+  let callss: TestnetParams
   // Nexus Config
   let chain: Chain
   let bundlerUrl: string
@@ -55,7 +55,7 @@ describe.skipIf(!playgroundTrue())("playground", () => {
   const index = 4n
 
   beforeAll(async () => {
-    network = await toNetwork("PUBLIC_TESTNET")
+    network = await toNetwork("TESTNET_FROM_ENV_VARS")
 
     chain = network.chain
     bundlerUrl = network.bundlerUrl
@@ -74,11 +74,11 @@ describe.skipIf(!playgroundTrue())("playground", () => {
       transport: http()
     })
 
-    testParams = getTestParamsForTestnet(publicClient)
+    callss = getTestParamsForTestnet(publicClient)
   })
 
   test("should init the smart account", async () => {
-    nexusClient = await createNexusClient({
+    nexusClient = await createSmartAccountClient({
       signer: eoaAccount,
       chain,
       transport: http(),
@@ -89,7 +89,7 @@ describe.skipIf(!playgroundTrue())("playground", () => {
           })
         : undefined,
       index,
-      ...testParams,
+      ...callss,
       k1ValidatorAddress: "0x000000000EE7335c268e8225fcce3E913B8b30FE",
       factoryAddress: "0x0000000000D8BA042724b13e85B5f40C715A5702"
     })
@@ -227,14 +227,14 @@ describe.skipIf(!playgroundTrue())("playground", () => {
       }
     }
 
-    const smartSessionNexusClient = await createNexusClient({
+    const smartSessionNexusClient = await createSmartAccountClient({
       chain,
       accountAddress: nexusClient.account.address,
       signer: eoaAccount,
       transport: http(),
       bundlerTransport: http(bundlerUrl),
       index,
-      ...testParams,
+      ...callss,
       k1ValidatorAddress: "0x000000000EE7335c268e8225fcce3E913B8b30FE",
       factoryAddress: "0x0000000000D8BA042724b13e85B5f40C715A5702"
     })

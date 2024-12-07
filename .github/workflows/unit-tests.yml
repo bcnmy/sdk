@@ -28,4 +28,5 @@ jobs:
           PIMLICO_API_KEY: ${{ secrets.PIMLICO_API_KEY }}
           BUNDLER_URL: https://api.pimlico.io/v2/84532/rpc?apikey=pim_im13GpaqtMDSiJFhXMxcVn
           CHAIN_ID: 84532
+          ALT_CHAIN_ID: 11155420
           CI: true 

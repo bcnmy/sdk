@@ -9,71 +9,21 @@
 - Tests are executed against locally deployed ephemeral Anvil chains (each with a different ID) with relevant contracts pre-deployed for each test.
 - Bundlers for testing are instantiated using [prool](https://github.com/wevm/prool), currently utilizing alto instances. We plan to switch to Biconomy's bundlers when they become available via `prool`.
 
-### Deployment Configuration
-A custom script `bun run fetch:deployment` is provided to search for the bytecode of deployed contracts from a customizable location (default: `../../nexus/deployments`). This folder is **auto-generated** in Nexus whenever a new Hardhat deployment is made, ensuring that the SDK remains up-to-date with the latest contract changes.
-
-The script performs the following:
-- **ABIs**: Moved to `./src/__contracts/{name}Abi.ts`
-- **Addresses**: Moved to `./src/addresses.ts`
-- **Additional Fixtures**: Copied to `tests__/contracts`
-
-The script accepts a number of args from the command line:
-  - nexusDeploymentPath (default: `"../node_modules/nexus/deployments"`)
-  - chainName (default: `"anvil-55000"`)
-  - forSrc (default: `["K1ValidatorFactory", "Nexus", "K1Validator"]`);
-
-Example usage:
-```bash
-bun run fetch:deployment:raw --chainName=anvil-52878 -forSrc=K1Validator -forSrc=Nexus --nexusDeploymentPath=../../nexus/deployments
-bun run lint --apply-unsafe
-```
-
-> **Note**:  
-> - Do not edit these files manually; they will be overridden if/when a new Nexus deployment occurs.
-> - Avoid hardcoding important addresses (e.g., `const k1ValidatorAddress = "0x"`). Use `./src/addresses.ts` instead.
-
-## Network Scopes for Tests
-
-To prevent tests from conflicting with one another, tests can be scoped to different networks in different ways.
-
 ### Global Scope
-- Use by setting `const NETWORK_TYPE: TestFileNetworkType = "COMMON_LOCALHOST"` at the top of the test file.
+- Use by setting `const NETWORK_TYPE: TestFileNetworkType = "COMMUNAL_ANVIL_NETWORK"` at the top of the test file.
 - Suitable when you're sure that tests in the file will **not** conflict with other tests using the common localhost network.
 
 ### Local Scope
-- Use by setting `const NETWORK_TYPE: TestFileNetworkType = "FILE_LOCALHOST"` for test files that may conflict with others.
+- Use by setting `const NETWORK_TYPE: TestFileNetworkType = "BESPOKE_ANVIL_NETWORK"` for test files that may conflict with others.
 - Networks scoped locally are isolated to the file in which they are used.
 - Tests within the same file using a local network may conflict with each other. If needed, split tests into separate files or use the Test Scope.
+- `"BESPOKE_ANVIL_NETWORK_FORKING_BASE_SEPOLIA"` does a similar thing, but anvil assumes the current state of base sepolia instead. Overusing this can cause throttling issues from tenderly or the service that you are finding the forkUrl from. 
 
-### Test Scope
-- A network is spun up *only* for the individual test in which it is used. Access this via the `localhostTest`/`testnetTest` helpers in the same file as `"COMMON_LOCALHOST"` or `"FILE_LOCALHOST"` network types.
-
-Example usage:
-```ts
-localhostTest("should be used in the following way", async({ config: { bundlerUrl, chain, fundedClients }}) => {
-    // chain, bundlerUrl spun up just in time for this test only...
-    expect(await fundedClients.smartAccount.getAccountAddress()).toBeTruthy();
-});
-```
-
-> **Note:** 
-> Please avoid using multiple nested describe blocks in a single test file, as it is unnecessary and can lead to confusion regarding network scope.
-> Using *many* test files is preferable, as describe blocks run in parallel. 
-
-## Testing on Testnets or New Chains
-- There is currently one area where SDK tests can be run against a remote testnet: the playground
-- You can run the playground using the command: `bun run playground`. They playground is automatically ommitted from CICD.
-- Additionally there are helpers for running tests on files on a public testnet:
-    - `const NETWORK_TYPE: TestFileNetworkType = "TESTNET"` will pick up relevant configuration from environment variables, and can be used at the top of a test file to have tests run against the specified testnet instead of the localhost
-    - If you want to run a single test on a public testnet *from inside a different describe block* you can use the: `testnetTest` helper:
-
-Example usage:
-```ts
-testnetTest("should be used in the following way", async({ config: { bundlerUrl, chain, account }}) => {
-    // chain, bundlerUrl etc taken from environment variables...
-    expect(account).toBeTruthy(); // from private key, please ensure it is funded if sending txs
-});
-```
+### Testnet Scope
+- Use by setting `const NETWORK_TYPE: TestFileNetworkType = "TESTNET_FROM_ENV_VARS"` for test files that rely on the network, private key and bundler url specified in your env vars.
+- `"TESTNET_FROM_ALT_ENV_VARS"` is also available, which uses alternative env vars which you've specified.
+- Networks scoped to a testnet are not isolated to the file in which they are used, they require tesnet tokens, can often fail for gas reasons, and they will add additional latency to tests. 
+- Avoid overusing this option
 
 > **Note:** 
 > As testnetTest runs against a public testnet the account related to the privatekey (in your env var) must be funded, and the testnet is not 'ephemeral', meaning state is obviously persisted on the testnet after the test finishes. 

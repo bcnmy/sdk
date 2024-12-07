@@ -9,7 +9,7 @@ import {
   createWalletClient
 } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
-import { paymasterTruthy, toNetwork } from "../../test/testSetup"
+import { paymasterTruthy, toNetworks } from "../../test/testSetup"
 import { getTestParamsForTestnet, killNetwork } from "../../test/testUtils"
 import type { NetworkConfig, TestnetParams } from "../../test/testUtils"
 import { type NexusAccount, toNexusAccount } from "../account/toNexusAccount"
@@ -21,12 +21,15 @@ import {
   type BicoPaymasterClient,
   createBicoPaymasterClient
 } from "./createBicoPaymasterClient"
-import { type NexusClient, createNexusClient } from "./createNexusClient"
+import {
+  type NexusClient,
+  createSmartAccountClient
+} from "./createSmartAccountClient"
 
 describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
   let network: NetworkConfig
-  // Required for "PUBLIC_TESTNET" networks
-  let testParams: TestnetParams
+  // Required for "TESTNET_FROM_ENV_VARS" networks
+  let callss: TestnetParams
 
   let chain: Chain
   let bundlerUrl: string
@@ -44,7 +47,7 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
   let nexusClient: NexusClient
 
   beforeAll(async () => {
-    network = await toNetwork("PUBLIC_TESTNET")
+    ;[network] = await toNetworks("TESTNET_FROM_ENV_VARS")
 
     chain = network.chain
     bundlerUrl = network.bundlerUrl
@@ -64,7 +67,7 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
       transport: http()
     })
 
-    testParams = getTestParamsForTestnet(publicClient)
+    callss = getTestParamsForTestnet(publicClient)
 
     paymaster = createBicoPaymasterClient({
       transport: http(paymasterUrl)
@@ -74,7 +77,7 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
       signer: account,
       chain,
       transport: http(),
-      ...testParams
+      ...callss
     })
 
     bicoBundler = createBicoBundlerClient({
@@ -84,13 +87,13 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
     })
     nexusAccountAddress = await nexusAccount.getCounterFactualAddress()
 
-    nexusClient = await createNexusClient({
+    nexusClient = await createSmartAccountClient({
       signer: account,
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl),
       paymaster,
-      ...testParams
+      ...callss
     })
   })
   afterAll(async () => {
