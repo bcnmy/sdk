@@ -13,8 +13,9 @@ import type { NetworkConfig } from "../../test/testUtils"
 import { toNexusAccount } from "../account/toNexusAccount"
 import { MAINNET_ADDRESS_K1_VALIDATOR_ADDRESS } from "../constants"
 import { MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS } from "../constants"
-import { createMeeClient } from "./createMeeClient"
-import type { MeeClient } from "./createMeeClient"
+import { createMeeAgent } from "./createMeeAgent"
+import type { MeeAgent } from "./createMeeAgent"
+
 describe("mee.client", async () => {
   let networkOne: NetworkConfig
   let networkTwo: NetworkConfig
@@ -27,7 +28,7 @@ describe("mee.client", async () => {
   let publicClientOne: PublicClient
   let publicClientTwo: PublicClient
 
-  let meeClient: MeeClient
+  let meeAgent: MeeAgent
 
   beforeAll(async () => {
     ;[networkOne, networkTwo] = await toNetworks([
@@ -52,7 +53,7 @@ describe("mee.client", async () => {
       transport: http()
     })
 
-    meeClient = await createMeeClient({
+    meeAgent = await createMeeAgent({
       accountParams: {
         signer: eoaAccount,
         k1ValidatorAddress: MAINNET_ADDRESS_K1_VALIDATOR_ADDRESS,
@@ -78,9 +79,9 @@ describe("mee.client", async () => {
     expect(chainIds).to.deep.equal([chainOne.id, chainTwo.id])
   })
 
-  test("should have relevant meeClient properties", async () => {
-    expect(meeClient).toHaveProperty("accounts")
-    expect(typeof meeClient.prepareSuperTransaction).toBe("function")
+  test("should have relevant meeAgent properties", async () => {
+    expect(meeAgent).toHaveProperty("accounts")
+    expect(typeof meeAgent.getFeeQuote).toBe("function")
   })
 
   test("should alternatively create a mee client from two distinct nexus accounts", async () => {
@@ -99,10 +100,10 @@ describe("mee.client", async () => {
       factoryAddress: MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
     })
 
-    const meeClient = await createMeeClient({
+    const meeAgent = await createMeeAgent({
       accounts: [nexusAccountOne, nexusAccountTwo]
     })
 
-    expect(meeClient).toHaveProperty("accounts")
+    expect(meeAgent).toHaveProperty("accounts")
   })
 })

@@ -1,6 +1,6 @@
 {
   "name": "@biconomy/sdk",
-  "version": "0.0.11",
+  "version": "0.0.13",
   "author": "Biconomy",
   "repository": "github:bcnmy/sdk",
   "main": "./dist/_cjs/index.js",
@@ -26,7 +26,7 @@
     "execa": "^9.3.1",
     "get-port": "^7.1.0",
     "gh-pages": "^6.1.1",
-    "nexus": "github:bcnmy/nexus#773943fb7bf6cd14a0dc6dcb9f513db53213d1d5",
+    "nexus": "github:bcnmy/nexus#ddfc4b3ec024f884e6f8b327e2b6840099f64293",
     "prool": "^0.0.16",
     "rimraf": "^5.0.5",
     "simple-git-hooks": "^2.9.0",
@@ -37,12 +37,13 @@
     "typedoc": "^0.25.9",
     "viem": "2.21.6",
     "vitest": "^1.3.1",
-    "yargs": "^17.7.2"
+    "yargs": "^17.7.2",
+    "@rhinestone/module-sdk": "^0.1.28"
   },
   "peerDependencies": {
     "typescript": "^5",
     "viem": "^2.20.0",
-    "@rhinestone/module-sdk": "^0.1.25"
+    "@rhinestone/module-sdk": "^0.1.28"
   },
   "exports": {
     ".": {

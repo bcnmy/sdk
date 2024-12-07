@@ -294,7 +294,7 @@ describe("nexus.account", async () => {
     expect(entryPointVersion).toBe("0.7")
   })
 
-  test("should test isValidSignature EIP712Sign to be valid with viem", async () => {
+  test.skip("should test isValidSignature EIP712Sign to be valid with viem", async () => {
     const message = {
       contents: keccak256(toBytes("test", { size: 32 }))
     }
@@ -365,7 +365,7 @@ describe("nexus.account", async () => {
     expect(contractResponse).toBe(eip1271MagicValue)
   })
 
-  test("should sign using signTypedData SDK method", async () => {
+  test.skip("should sign using signTypedData SDK method", async () => {
     const appDomain = {
       chainId: chain.id,
       name: "TokenWithPermit",

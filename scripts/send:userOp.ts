@@ -40,7 +40,9 @@ const main = async () => {
   const nexusAccount = await toNexusAccount({
     signer: account,
     chain,
-    transport: http()
+    transport: http(),
+    k1ValidatorAddress: "0x000000000EE7335c268e8225fcce3E913B8b30FE",
+    factoryAddress: "0x0000000000D8BA042724b13e85B5f40C715A5702"
   })
 
   const nexusBalance = await publicClient.getBalance({

@@ -18,7 +18,7 @@ import {
   MAINNET_ADDRESS_K1_VALIDATOR_ADDRESS,
   MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
 } from "../../../constants"
-import { type MeeClient, createMeeClient } from "../../createMeeClient"
+import { type MeeAgent, createMeeAgent } from "../../createMeeAgent"
 
 describe("mee.decorators", async () => {
   let networkOne: NetworkConfig
@@ -34,7 +34,7 @@ describe("mee.decorators", async () => {
   let publicClientOne: PublicClient
   let publicClientTwo: PublicClient
 
-  let meeClient: MeeClient
+  let meeAgent: MeeAgent
 
   beforeAll(async () => {
     ;[networkOne, networkTwo] = await toNetworks([
@@ -74,14 +74,21 @@ describe("mee.decorators", async () => {
       factoryAddress: MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
     })
 
-    meeClient = await createMeeClient({
+    meeAgent = await createMeeAgent({
       accounts: [nexusAccountOne, nexusAccountTwo]
     })
   })
 
   test("should call prepareUserOperation ", async () => {
     await expect(
-      meeClient.prepareSuperTransaction({ testParam: 1 })
+      meeAgent.getFeeQuote({
+        calls: [
+          {
+            to: recipientAddress,
+            data: "0x"
+          }
+        ]
+      })
     ).rejects.toThrow("Not Found, 404")
   })
 })

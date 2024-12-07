@@ -46,6 +46,7 @@ import {
 
 import {
   ENTRY_POINT_ADDRESS,
+  RHINESTONE_ATTESTER_ADDRESS,
   k1ValidatorAddress as k1ValidatorAddress_,
   k1ValidatorFactoryAddress
 } from "../constants"
@@ -210,10 +211,8 @@ export const toNexusAccount = async (
       "function createAccount(address eoaOwner, uint256 index, address[] attesters, uint8 threshold) external returns (address)"
     ]),
     functionName: "createAccount",
-    args: [signerAddress, index, [], 0]
+    args: [signerAddress, index, [RHINESTONE_ATTESTER_ADDRESS], 1]
   })
-
-  let _accountAddress: Address | undefined = parameters.accountAddress
 
   /**
    * @description Gets the init code for the account
@@ -221,6 +220,7 @@ export const toNexusAccount = async (
    */
   const getInitCode = () => concatHex([factoryAddress, factoryData])
 
+  let _accountAddress: Address | undefined = parameters.accountAddress
   /**
    * @description Gets the counterfactual address of the account
    * @returns The counterfactual address
@@ -233,12 +233,61 @@ export const toNexusAccount = async (
       // biome-ignore lint/suspicious/noExplicitAny: <explanation>
     } catch (e: any) {
       if (e?.cause?.data?.errorName === "SenderAddressResult") {
-        _accountAddress = e?.cause.data.args[0] as Address
-        if (!addressEquals(_accountAddress, zeroAddress)) {
-          return _accountAddress
+        const accountAddressFromError = e?.cause.data.args[0] as Address
+        if (!addressEquals(accountAddressFromError, zeroAddress)) {
+          _accountAddress = accountAddressFromError
+          return accountAddressFromError
         }
       }
     }
+
+    const addressFromFactory = (await publicClient.readContract({
+      address: factoryAddress,
+      abi: [
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "eoaOwner",
+              type: "address"
+            },
+            {
+              internalType: "uint256",
+              name: "index",
+              type: "uint256"
+            },
+            {
+              internalType: "address[]",
+              name: "attesters",
+              type: "address[]"
+            },
+            {
+              internalType: "uint8",
+              name: "threshold",
+              type: "uint8"
+            }
+          ],
+          name: "computeAccountAddress",
+          outputs: [
+            {
+              internalType: "address payable",
+              name: "expectedAddress",
+              type: "address"
+            }
+          ],
+          stateMutability: "view",
+          type: "function"
+        }
+      ],
+      functionName: "computeAccountAddress",
+      args: [signerAddress, index, [], 0]
+    })) as Address
+
+    if (!addressEquals(addressFromFactory, zeroAddress)) {
+      _accountAddress = addressFromFactory
+      return addressFromFactory
+    }
+
     throw new Error("Failed to get counterfactual account address")
   }
 

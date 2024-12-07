@@ -1,5 +1,6 @@
 import type { ActionData, PolicyData, Session } from "@rhinestone/module-sdk"
 import {
+  type Abi,
   type AbiFunction,
   type Address,
   type Hex,
@@ -8,6 +9,7 @@ import {
   encodePacked,
   pad,
   toBytes,
+  toFunctionSelector,
   toHex
 } from "viem"
 import {
@@ -23,11 +25,12 @@ import { parseReferenceValue } from "../utils/Helpers"
 import type { AnyData } from "../utils/Types"
 import type {
   ActionConfig,
+  ActionPolicyInfo,
   CreateSessionDataParams,
   FullCreateSessionDataParams,
   RawActionConfig,
-  Rule,
-  SpendingLimitsParams
+  ResolvedActionPolicyInfo,
+  Rule
 } from "./Types"
 
 export const MAX_RULES = 16
@@ -180,13 +183,14 @@ export const isPermissionEnabled = async ({
   client: PublicClient
   accountAddress: Address
   permissionId: Hex
-}) =>
-  client.readContract({
+}) => {
+  return client.readContract({
     address: SMART_SESSIONS_ADDRESS,
     abi: SmartSessionAbi,
     functionName: "isPermissionEnabled",
     args: [permissionId, accountAddress]
   })
+}
 
 /**
  * Converts an ActionConfig to a UniversalActionPolicy.
@@ -233,43 +237,6 @@ export const toTimeRangePolicy = (
   }
   return timeFramePolicyData
 }
-
-/**
- * A PolicyData object representing a sudo policy.
- */
-export const sudoPolicy: PolicyData = {
-  policy: "0x529Ad04F4D83aAb25144a90267D4a1443B84f5A6",
-  initData: "0x"
-}
-
-/**
- * Converts SpendingLimitsParams to a SpendingLimitsPolicy.
- *
- * @param params - An array of SpendingLimitsParams.
- * @returns A PolicyData object representing the SpendingLimitsPolicy.
- */
-export const toSpendingLimitsPolicy = (
-  params: SpendingLimitsParams
-): PolicyData => {
-  return {
-    policy: "0x8e58f4945e6ba2a11b184a9c20b6c765a0891b95",
-    initData: encodeAbiParameters(
-      [{ type: "address[]" }, { type: "uint256[]" }],
-      [params.map(({ token }) => token), params.map(({ limit }) => limit)]
-    )
-  }
-}
-
-/**
- * An object containing policy conversion functions.
- */
-export const policies = {
-  to: {
-    universalAction: toUniversalActionPolicy,
-    spendingLimits: toSpendingLimitsPolicy
-  },
-  sudo: sudoPolicy
-} as const
 
 /**
  * Stringifies an object, explicitly tagging BigInt values.
@@ -339,4 +306,40 @@ export const getTrustedAttesters = async ({
   }
 }
 
-export default policies
+/**
+ * Converts an ABI to a list of ActionPolicyInfo objects.
+ *
+ * @param params - The parameters object
+ * @param params.abi - The ABI to convert
+ * @param params.actionPolicyInfo - The ActionPolicyInfo object to apply to each function in the ABI
+ *
+ * @example
+ * const actionPoliciesInfo = abiToPoliciesInfo({
+ *   abi: CounterAbi,
+ *   actionPolicyInfo: {
+ *     contractAddress: testAddresses.Counter,
+ *     sudo: false,
+ *     tokenLimits: [],
+ *     usageLimit: 1000n,
+ *     valueLimit: 1000n
+ *   }
+ * })
+ * @returns An array of ActionPolicyInfo objects
+ */
+
+export type AbiToPoliciesInfoParams = Omit<
+  ActionPolicyInfo,
+  "functionSelector" | "rules"
+> & { abi: Abi }
+
+export const abiToPoliciesInfo = ({
+  abi,
+  ...actionPolicyInfo
+}: AbiToPoliciesInfoParams): ResolvedActionPolicyInfo[] =>
+  (abi ?? [])
+    .filter((item): item is AbiFunction => item.type === "function")
+    .map((func) => ({
+      ...actionPolicyInfo,
+      functionSelector: toFunctionSelector(func),
+      rules: [] // Rules should not be available here because they should be custom per method, not used in a loop
+    }))

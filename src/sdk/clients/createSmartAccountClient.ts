@@ -234,5 +234,6 @@ export async function createSmartAccountClient(
   return bundler_ as unknown as NexusClient
 }
 
-// An alias for backwards compatibility
+// Aliases for backwards compatibility
 export const createNexusClient = createSmartAccountClient
+export const createNexusSessionClient = createSmartAccountClient

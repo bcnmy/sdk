@@ -1,3 +1,4 @@
+import { SmartSessionMode } from "@rhinestone/module-sdk"
 import {
   http,
   type Address,
@@ -26,8 +27,13 @@ import {
 } from "../../clients/createSmartAccountClient"
 import { parseReferenceValue } from "../utils/Helpers"
 import type { Module } from "../utils/Types"
-import policies from "./Helpers"
-import type { CreateSessionDataParams } from "./Types"
+import {
+  abiToPoliciesInfo,
+  parse,
+  stringify,
+  toUniversalActionPolicy
+} from "./Helpers"
+import type { CreateSessionDataParams, SessionData } from "./Types"
 import { ParamCondition } from "./Types"
 import { smartSessionCreateActions, smartSessionUseActions } from "./decorators"
 import { toSmartSessionsValidator } from "./toSmartSessionsValidator"
@@ -41,7 +47,7 @@ describe("modules.smartSessions", async () => {
   let testClient: MasterClient
   let eoaAccount: LocalAccount
   let nexusClient: NexusClient
-  let cachedPermissionId: Hex
+  let cachedSessionData: string // Session data to be stored by the dApp
   let sessionKeyAccount: LocalAccount
   let sessionPublicKey: Address
 
@@ -82,6 +88,42 @@ describe("modules.smartSessions", async () => {
       )
     )
     expect(bytecodes.every((bytecode) => !!bytecode?.length)).toBeTruthy()
+  })
+
+  test("should convert an ABI to a contract whitelist", async () => {
+    const contractWhitelist = abiToPoliciesInfo({
+      abi: CounterAbi,
+      contractAddress: testAddresses.Counter
+    })
+
+    expect(contractWhitelist).toBeDefined()
+
+    // Verify the structure matches all CounterAbi functions
+    expect(contractWhitelist).toEqual([
+      {
+        contractAddress: testAddresses.Counter,
+        functionSelector: "0x871cc9d4", // decrementNumber
+        rules: []
+      },
+      {
+        contractAddress: testAddresses.Counter,
+        functionSelector: "0xf2c9ecd8", // getNumber
+        rules: []
+      },
+      {
+        contractAddress: testAddresses.Counter,
+        functionSelector: "0x273ea3e3", // incrementNumber
+        rules: []
+      },
+      {
+        contractAddress: testAddresses.Counter,
+        functionSelector: "0x12467434", // revertOperation
+        rules: []
+      }
+    ])
+
+    // Verify the length matches the number of functions in CounterAbi
+    expect(contractWhitelist).toHaveLength(4)
   })
 
   test.concurrent(
@@ -130,28 +172,10 @@ describe("modules.smartSessions", async () => {
         ]
       }
     }
-    const installUniversalPolicy = policies.to.universalAction(actionConfigData)
+    const installUniversalPolicy = toUniversalActionPolicy(actionConfigData)
 
     expect(installUniversalPolicy.policy).toEqual(testAddresses.UniActionPolicy)
     expect(installUniversalPolicy.initData).toBeDefined()
-  })
-
-  test.concurrent("should get a sudo action policy", async () => {
-    const installSudoActionPolicy = policies.sudo
-    expect(installSudoActionPolicy.policy).toBeDefined()
-    expect(installSudoActionPolicy.initData).toEqual("0x")
-  })
-
-  test.concurrent("should get a spending limit policy", async () => {
-    const installSpendingLimitPolicy = policies.to.spendingLimits([
-      {
-        limit: BigInt(1000),
-        token: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
-      }
-    ])
-
-    expect(installSpendingLimitPolicy.policy).toBeDefined()
-    expect(installSpendingLimitPolicy.initData).toBeDefined()
   })
 
   test.concurrent(
@@ -202,8 +226,6 @@ describe("modules.smartSessions", async () => {
 
     expect(isInstalledBefore).toBe(true)
 
-    // Note: grantPermission decorator will take care of trusting the attester.
-
     // session key signer address is declared here
     const sessionRequestedInfo: CreateSessionDataParams[] = [
       {
@@ -227,7 +249,18 @@ describe("modules.smartSessions", async () => {
 
     expect(createSessionsResponse.userOpHash).toBeDefined()
     expect(createSessionsResponse.permissionIds).toBeDefined()
-    ;[cachedPermissionId] = createSessionsResponse.permissionIds
+
+    const sessionData: SessionData = {
+      granter: nexusClient.account.address,
+      description: `Session to increment a counter for ${testAddresses.Counter}`,
+      sessionPublicKey,
+      moduleData: {
+        ...createSessionsResponse,
+        mode: SmartSessionMode.USE
+      }
+    }
+
+    cachedSessionData = stringify(sessionData)
 
     const receipt = await nexusClient.waitForUserOperationReceipt({
       hash: createSessionsResponse.userOpHash
@@ -243,6 +276,8 @@ describe("modules.smartSessions", async () => {
       functionName: "getNumber"
     })
 
+    const parsedSessionData = parse(cachedSessionData) as SessionData
+
     const smartSessionNexusClient = await createSmartAccountClient({
       chain,
       accountAddress: nexusClient.account.address,
@@ -254,9 +289,7 @@ describe("modules.smartSessions", async () => {
     const usePermissionsModule = toSmartSessionsValidator({
       account: smartSessionNexusClient.account,
       signer: sessionKeyAccount,
-      moduleData: {
-        permissionIds: [cachedPermissionId]
-      }
+      moduleData: parsedSessionData.moduleData
     })
 
     const useSmartSessionNexusClient = smartSessionNexusClient.extend(

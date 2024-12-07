@@ -1,28 +1,17 @@
-import type { Client, Transport } from "viem"
 import type { AnyData, ModularSmartAccount } from "../../../modules/utils/Types"
-import type { MeeClient } from "../../createMeeClient"
-import {
-  type PrepareSuperTransactionParameters,
-  prepareSuperTransaction
-} from "./prepareSuperTransaction"
+import type { BaseMeeAgent } from "../../createMeeAgent"
+import { type GetFeeQuoteParameters, getFeeQuote } from "./getFeeQuote"
 
 export type MeeActions = {
-  prepareSuperTransaction: (
-    parameters: PrepareSuperTransactionParameters<ModularSmartAccount>
+  getFeeQuote: (
+    parameters: GetFeeQuoteParameters<ModularSmartAccount>
   ) => Promise<AnyData>
   sendSuperTransaction: () => void
 }
 
-export function meeActions<
-  transport extends Transport = Transport,
-  account extends ModularSmartAccount = ModularSmartAccount
->(client: Client<transport, undefined, account>): MeeActions {
+export function meeActions(client: BaseMeeAgent): MeeActions {
   return {
-    prepareSuperTransaction: (parameters) =>
-      prepareSuperTransaction(
-        client as MeeClient<transport, account>,
-        parameters
-      ),
+    getFeeQuote: (parameters) => getFeeQuote(client, parameters),
     sendSuperTransaction: () => {} // etc etc
   }
 }

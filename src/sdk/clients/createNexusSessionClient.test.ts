@@ -1,4 +1,5 @@
-import { http, type Address, type Chain, type Hex, toBytes, toHex } from "viem"
+import { SmartSessionMode } from "@rhinestone/module-sdk"
+import { http, type Address, type Chain, type Hex } from "viem"
 import type { LocalAccount, PublicClient } from "viem"
 import { encodeFunctionData } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
@@ -13,8 +14,15 @@ import {
 } from "../../test/testUtils"
 import type { MasterClient, NetworkConfig } from "../../test/testUtils"
 import { SMART_SESSIONS_ADDRESS } from "../constants"
-import { isPermissionEnabled } from "../modules/smartSessionsValidator/Helpers"
-import type { CreateSessionDataParams } from "../modules/smartSessionsValidator/Types"
+import {
+  isPermissionEnabled,
+  parse,
+  stringify
+} from "../modules/smartSessionsValidator/Helpers"
+import type {
+  CreateSessionDataParams,
+  SessionData
+} from "../modules/smartSessionsValidator/Types"
 import {
   smartSessionCreateActions,
   smartSessionUseActions
@@ -38,7 +46,7 @@ describe("nexus.session.client", async () => {
   let nexusAccountAddress: Address
   let sessionKeyAccount: LocalAccount
   let sessionPublicKey: Address
-  let cachedPermissionId: Hex
+  let cachedSessionData: string
 
   let sessionsModule: Module
 
@@ -137,7 +145,19 @@ describe("nexus.session.client", async () => {
 
     expect(createSessionsResponse.userOpHash).toBeDefined()
     expect(createSessionsResponse.permissionIds).toBeDefined()
-    ;[cachedPermissionId] = createSessionsResponse.permissionIds
+
+    // Prepare the session data to be stored by the dApp. This could be saved in a Database by the dApp, or client side in local storage.
+    const sessionData: SessionData = {
+      granter: nexusSessionClient?.account?.address as Hex,
+      sessionPublicKey,
+      description: `Session to increment a counter for ${testAddresses.Counter}`,
+      moduleData: {
+        ...createSessionsResponse,
+        mode: SmartSessionMode.USE
+      }
+    }
+
+    cachedSessionData = stringify(sessionData)
 
     const receipt = await nexusClient.waitForUserOperationReceipt({
       hash: createSessionsResponse.userOpHash
@@ -148,12 +168,14 @@ describe("nexus.session.client", async () => {
     const isEnabled = await isPermissionEnabled({
       client: nexusClient.account.client as PublicClient,
       accountAddress: nexusClient.account.address,
-      permissionId: cachedPermissionId
+      permissionId: createSessionsResponse.permissionIds[0]
     })
     expect(isEnabled).toBe(true)
   }, 60000)
 
   test("session signer should use session to increment a counter for a user (USE MODE)", async () => {
+    const sessionData = parse(cachedSessionData) as SessionData
+
     const counterBefore = await testClient.readContract({
       address: testAddresses.Counter,
       abi: CounterAbi,
@@ -171,9 +193,7 @@ describe("nexus.session.client", async () => {
     const usePermissionsModule = toSmartSessionsValidator({
       account: smartSessionNexusClient.account,
       signer: sessionKeyAccount,
-      moduleData: {
-        permissionIds: [cachedPermissionId]
-      }
+      moduleData: sessionData.moduleData
     })
 
     const useSmartSessionNexusClient = smartSessionNexusClient.extend(
@@ -211,12 +231,12 @@ describe("nexus.session.client", async () => {
   }, 60000)
 
   test("session signer is not allowed to send unauthorised action", async () => {
+    const sessionData = parse(cachedSessionData) as SessionData
+
     const usePermissionsModule = toSmartSessionsValidator({
       account: nexusClient.account,
       signer: sessionKeyAccount,
-      moduleData: {
-        permissionIds: [cachedPermissionId]
-      }
+      moduleData: sessionData.moduleData
     })
 
     const smartSessionNexusClient = await createSmartAccountClient({
@@ -234,7 +254,7 @@ describe("nexus.session.client", async () => {
     const isEnabled = await isPermissionEnabled({
       client: testClient as unknown as PublicClient,
       accountAddress: nexusClient.account.address,
-      permissionId: cachedPermissionId
+      permissionId: sessionData.moduleData.permissionIds[0]
     })
     expect(isEnabled).toBe(true)
 
