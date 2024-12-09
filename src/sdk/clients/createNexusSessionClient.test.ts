@@ -150,7 +150,8 @@ describe("nexus.session.client", async () => {
       sessionPublicKey,
       description: `Session to increment a counter for ${testAddresses.Counter}`,
       moduleData: {
-        ...createSessionsResponse,
+        permissionIds: createSessionsResponse.permissionIds,
+        action: createSessionsResponse.action,
         mode: SmartSessionMode.USE
       }
     }

@@ -232,7 +232,8 @@ describe("modules.smartSessions.uni.policy", async () => {
       description: `Session to add balance to MockCallee for ${testAddresses.MockCallee}`,
       sessionPublicKey,
       moduleData: {
-        ...createSessionsResponse,
+        permissionIds: createSessionsResponse.permissionIds,
+        action: createSessionsResponse.action,
         mode: SmartSessionMode.USE
       }
     }
