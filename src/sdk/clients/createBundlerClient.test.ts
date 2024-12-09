@@ -14,7 +14,7 @@ import { smartAccountActions } from "./decorators/smartAccount"
 const COMPETITORS = [
   {
     name: "Pimlico",
-    bundlerUrl: `https://api.pimlico.io/v2/${process.env.CHAIN_ID}/rpc?apikey=${process.env.PIMLICO_API_KEY}`
+    bundlerUrl: `https://api.pimlico.io/v2/84532/rpc?apikey=${process.env.PIMLICO_API_KEY}`
   }
 ]
 
@@ -44,6 +44,16 @@ describe.each(COMPETITORS)(
       })
 
       nexusAccountAddress = await nexusAccount.getCounterFactualAddress()
+
+      const balance = await publicClient.getBalance({
+        address: nexusAccountAddress
+      })
+
+      if (balance === 0n) {
+        throw new Error(
+          `Insufficient balance at address: ${nexusAccountAddress}`
+        )
+      }
 
       bundlerClient = createBundlerClient({
         chain,

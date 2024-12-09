@@ -36,6 +36,8 @@ import {
   getTestParamsForTestnet
 } from "./testUtils"
 
+export const index = 8n
+
 describe.skipIf(!playgroundTrue())("playground", () => {
   let network: NetworkConfig
   // Required for "PUBLIC_TESTNET" networks
@@ -52,8 +54,6 @@ describe.skipIf(!playgroundTrue())("playground", () => {
   let nexusClient: NexusClient
   let nexusAccountAddress: Address
 
-  const index = 6n
-
   beforeAll(async () => {
     network = await toNetwork("PUBLIC_TESTNET")
 
@@ -61,7 +61,7 @@ describe.skipIf(!playgroundTrue())("playground", () => {
     bundlerUrl = network.bundlerUrl
     eoaAccount = network.account as PrivateKeyAccount
 
-    recipientAddress = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045" // vitalik.eth
+    recipientAddress = eoaAccount.address
 
     walletClient = createWalletClient({
       account: eoaAccount,
@@ -121,6 +121,15 @@ describe.skipIf(!playgroundTrue())("playground", () => {
         value: 100000000000000000n
       })
       const receipt = await publicClient.waitForTransactionReceipt({ hash })
+      const [ownerBalanceTwo, smartAccountBalanceTwo] = await Promise.all([
+        publicClient.getBalance({
+          address: eoaAccount.address
+        }),
+        publicClient.getBalance({
+          address: nexusAccountAddress
+        })
+      ])
+      console.log({ ownerBalanceTwo, smartAccountBalanceTwo })
     }
     expect(balancesAreOfCorrectType).toBeTruthy()
   })
@@ -162,8 +171,7 @@ describe.skipIf(!playgroundTrue())("playground", () => {
     expect(balanceAfter - balanceBefore).toBe(1n)
   })
 
-  // Skipped because on base sepolia the attestations for smart sessions have not been created yet
-  test.skip("should test creating and using a session", async () => {
+  test("should test creating and using a session", async () => {
     const sessionsModule = toSmartSessionsValidator({
       account: nexusClient.account,
       signer: eoaAccount
