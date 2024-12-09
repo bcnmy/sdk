@@ -1,5 +1,11 @@
 # @biconomy/sdk
 
+## 0.0.14
+
+### Patch Changes
+
+- Add rhintestones attestation address during createAccount
+
 ## 0.0.13
 
 ### Patch Changes

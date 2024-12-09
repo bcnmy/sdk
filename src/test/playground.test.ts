@@ -164,7 +164,8 @@ describe.skipIf(!playgroundTrue())("playground", () => {
     expect(balanceAfter - balanceBefore).toBe(1n)
   })
 
-  test("should test creating and using a session", async () => {
+  // Skipped because on base sepolia the attestations for smart sessions have not been created yet
+  test.skip("should test creating and using a session", async () => {
     const sessionsModule = toSmartSessionsValidator({
       account: nexusClient.account,
       signer: eoaAccount

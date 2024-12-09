@@ -256,7 +256,8 @@ describe("modules.smartSessions", async () => {
       description: `Session to increment a counter for ${testAddresses.Counter}`,
       sessionPublicKey,
       moduleData: {
-        ...createSessionsResponse,
+        permissionIds: createSessionsResponse.permissionIds,
+        action: createSessionsResponse.action,
         mode: SmartSessionMode.USE
       }
     }
