@@ -52,7 +52,7 @@ describe.skipIf(!playgroundTrue())("playground", () => {
   let nexusClient: NexusClient
   let nexusAccountAddress: Address
 
-  const index = 4n
+  const index = 6n
 
   beforeAll(async () => {
     network = await toNetwork("PUBLIC_TESTNET")
@@ -89,9 +89,7 @@ describe.skipIf(!playgroundTrue())("playground", () => {
           })
         : undefined,
       index,
-      ...testParams,
-      k1ValidatorAddress: "0x000000000EE7335c268e8225fcce3E913B8b30FE",
-      factoryAddress: "0x0000000000D8BA042724b13e85B5f40C715A5702"
+      ...testParams
     })
   })
 
@@ -223,7 +221,7 @@ describe.skipIf(!playgroundTrue())("playground", () => {
       granter: nexusClient.account.address,
       sessionPublicKey: eoaAccount.address,
       moduleData: {
-        permissionIds: createSessionsResponse.permissionIds,
+        ...createSessionsResponse,
         mode: SmartSessionMode.USE
       }
     }
@@ -235,9 +233,7 @@ describe.skipIf(!playgroundTrue())("playground", () => {
       transport: http(),
       bundlerTransport: http(bundlerUrl),
       index,
-      ...testParams,
-      k1ValidatorAddress: "0x000000000EE7335c268e8225fcce3E913B8b30FE",
-      factoryAddress: "0x0000000000D8BA042724b13e85B5f40C715A5702"
+      ...testParams
     })
 
     const usePermissionsModule = toSmartSessionsValidator({

@@ -1,5 +1,11 @@
 # @biconomy/sdk
 
+## 0.0.15
+
+### Patch Changes
+
+- Migrate to Nexus: b4d6ff463bc41dc232292c385bdb76814ca8689c
+
 ## 0.0.14
 
 ### Patch Changes

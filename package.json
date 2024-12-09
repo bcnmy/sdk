@@ -1,6 +1,6 @@
 {
   "name": "@biconomy/sdk",
-  "version": "0.0.14",
+  "version": "0.0.15",
   "author": "Biconomy",
   "repository": "github:bcnmy/sdk",
   "main": "./dist/_cjs/index.js",
@@ -26,7 +26,7 @@
     "execa": "^9.3.1",
     "get-port": "^7.1.0",
     "gh-pages": "^6.1.1",
-    "nexus": "github:bcnmy/nexus#ddfc4b3ec024f884e6f8b327e2b6840099f64293",
+    "nexus": "github:bcnmy/nexus#84d918d694b7619186769d160fd00629a233c0e6",
     "prool": "^0.0.16",
     "rimraf": "^5.0.5",
     "simple-git-hooks": "^2.9.0",
