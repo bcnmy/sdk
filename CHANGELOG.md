@@ -1,5 +1,11 @@
 # @biconomy/sdk
 
+## 0.0.16
+
+### Patch Changes
+
+- Add mock attestor and option to include attestors during createAccount
+
 ## 0.0.15
 
 ### Patch Changes

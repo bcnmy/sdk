@@ -18,6 +18,7 @@ import {
   type NexusClient,
   createNexusClient
 } from "../sdk/clients/createNexusClient"
+import { MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS } from "../sdk/constants"
 import type {
   CreateSessionDataParams,
   SessionData
@@ -36,6 +37,8 @@ import {
   getTestParamsForTestnet
 } from "./testUtils"
 
+export const index = 6n
+
 describe.skipIf(!playgroundTrue())("playground", () => {
   let network: NetworkConfig
   // Required for "PUBLIC_TESTNET" networks
@@ -51,8 +54,6 @@ describe.skipIf(!playgroundTrue())("playground", () => {
   let recipientAddress: Address
   let nexusClient: NexusClient
   let nexusAccountAddress: Address
-
-  const index = 6n
 
   beforeAll(async () => {
     network = await toNetwork("PUBLIC_TESTNET")
@@ -162,8 +163,7 @@ describe.skipIf(!playgroundTrue())("playground", () => {
     expect(balanceAfter - balanceBefore).toBe(1n)
   })
 
-  // Skipped because on base sepolia the attestations for smart sessions have not been created yet
-  test.skip("should test creating and using a session", async () => {
+  test("should test creating and using a session", async () => {
     const sessionsModule = toSmartSessionsValidator({
       account: nexusClient.account,
       signer: eoaAccount

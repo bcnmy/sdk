@@ -3,6 +3,7 @@ import { createBundlerClient } from "viem/account-abstraction"
 import { privateKeyToAccount } from "viem/accounts"
 import { baseSepolia } from "viem/chains"
 import { beforeAll, describe, expect, test } from "vitest"
+import { index } from "../../test/playground.test"
 import { type NexusAccount, toNexusAccount } from "../account/toNexusAccount"
 import { safeMultiplier } from "../account/utils"
 import { MAINNET_ADDRESS_K1_VALIDATOR_ADDRESS } from "../constants"
@@ -14,7 +15,7 @@ import { smartAccountActions } from "./decorators/smartAccount"
 const COMPETITORS = [
   {
     name: "Pimlico",
-    bundlerUrl: `https://api.pimlico.io/v2/${process.env.CHAIN_ID}/rpc?apikey=${process.env.PIMLICO_API_KEY}`
+    bundlerUrl: `https://api.pimlico.io/v2/84532/rpc?apikey=${process.env.PIMLICO_API_KEY}`
   }
 ]
 
@@ -40,10 +41,21 @@ describe.each(COMPETITORS)(
         transport: http(),
         // You can omit this outside of a testing context
         k1ValidatorAddress: MAINNET_ADDRESS_K1_VALIDATOR_ADDRESS,
-        factoryAddress: MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
+        factoryAddress: MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS,
+        index
       })
 
       nexusAccountAddress = await nexusAccount.getCounterFactualAddress()
+
+      const balance = await publicClient.getBalance({
+        address: nexusAccountAddress
+      })
+
+      if (balance === 0n) {
+        throw new Error(
+          `Insufficient balance at address: ${nexusAccountAddress}`
+        )
+      }
 
       bundlerClient = createBundlerClient({
         chain,
