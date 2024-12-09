@@ -14,7 +14,7 @@ import { smartAccountActions } from "./decorators/smartAccount"
 const COMPETITORS = [
   {
     name: "Pimlico",
-    bundlerUrl: `https://api.pimlico.io/v2/84532/rpc?apikey=${process.env.PIMLICO_API_KEY}`
+    bundlerUrl: `https://api.pimlico.io/v2/${process.env.CHAIN_ID}/rpc?apikey=${process.env.PIMLICO_API_KEY}`
   }
 ]
 
