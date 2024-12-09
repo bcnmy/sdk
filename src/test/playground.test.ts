@@ -39,7 +39,7 @@ import {
 describe.skipIf(!playgroundTrue())("playground", () => {
   let network: NetworkConfig
   // Required for "TESTNET_FROM_ENV_VARS" networks
-  let callss: TestnetParams
+  let testParams: TestnetParams
   // Nexus Config
   let chain: Chain
   let bundlerUrl: string
@@ -74,7 +74,7 @@ describe.skipIf(!playgroundTrue())("playground", () => {
       transport: http()
     })
 
-    callss = getTestParamsForTestnet(publicClient)
+    testParams = getTestParamsForTestnet(publicClient)
   })
 
   test("should init the smart account", async () => {
@@ -89,7 +89,7 @@ describe.skipIf(!playgroundTrue())("playground", () => {
           })
         : undefined,
       index,
-      ...callss,
+      ...testParams,
       k1ValidatorAddress: "0x000000000EE7335c268e8225fcce3E913B8b30FE",
       factoryAddress: "0x0000000000D8BA042724b13e85B5f40C715A5702"
     })
@@ -164,7 +164,8 @@ describe.skipIf(!playgroundTrue())("playground", () => {
     expect(balanceAfter - balanceBefore).toBe(1n)
   })
 
-  test("should test creating and using a session", async () => {
+  // Skipped because on base sepolia the attestations for smart sessions have not been created yet
+  test.skip("should test creating and using a session", async () => {
     const sessionsModule = toSmartSessionsValidator({
       account: nexusClient.account,
       signer: eoaAccount
@@ -223,6 +224,7 @@ describe.skipIf(!playgroundTrue())("playground", () => {
       sessionPublicKey: eoaAccount.address,
       moduleData: {
         permissionIds: createSessionsResponse.permissionIds,
+        action: createSessionsResponse.action,
         mode: SmartSessionMode.USE
       }
     }
@@ -234,7 +236,7 @@ describe.skipIf(!playgroundTrue())("playground", () => {
       transport: http(),
       bundlerTransport: http(bundlerUrl),
       index,
-      ...callss,
+      ...testParams,
       k1ValidatorAddress: "0x000000000EE7335c268e8225fcce3E913B8b30FE",
       factoryAddress: "0x0000000000D8BA042724b13e85B5f40C715A5702"
     })

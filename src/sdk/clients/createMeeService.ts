@@ -7,7 +7,7 @@ import { Logger } from "../account/utils/Logger"
 import type { AnyData, ModularSmartAccount } from "../modules"
 import { type MeeActions, meeActions } from "./decorators/mee"
 
-export const DEFAULT_MEE_NODE = "https://biconomy.io/mee"
+export const DEFAULT_MEE_NODE = "https://mee-node.biconomy.io"
 
 export enum HttpMethod {
   Get = "get",

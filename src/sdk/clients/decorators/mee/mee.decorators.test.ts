@@ -79,7 +79,7 @@ describe("mee.decorators", async () => {
     })
   })
 
-  test("should call prepareUserOperation ", async () => {
+  test("should call getFeeQuote ", async () => {
     await expect(
       meeService.getFeeQuote({
         calls: [
@@ -87,7 +87,11 @@ describe("mee.decorators", async () => {
             to: recipientAddress,
             data: "0x"
           }
-        ]
+        ],
+        paymentInfo: {
+          token: "0x",
+          chainId: chainOne.id
+        }
       })
     ).rejects.toThrow("Not Found, 404")
   })

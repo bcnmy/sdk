@@ -6,12 +6,21 @@ export type MeeActions = {
   getFeeQuote: (
     parameters: GetFeeQuoteParameters<ModularSmartAccount>
   ) => Promise<AnyData>
+  sendPreparedSuperTransaction: () => void
   sendSuperTransaction: () => void
 }
 
 export function meeActions(client: BaseMeeService): MeeActions {
   return {
     getFeeQuote: (parameters) => getFeeQuote(client, parameters),
-    sendSuperTransaction: () => {} // etc etc
+    sendPreparedSuperTransaction: () => {
+      // Sends a prepared super transaction with the retrievedfee quote
+    }, // etc etc
+    sendSuperTransaction: () => {
+      // Pairs fetching the fee quote with sending the super transaction
+      // getFeeQuote
+      // then...
+      // sendSuperTransactions
+    }
   }
 }
