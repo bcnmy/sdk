@@ -29,7 +29,7 @@ import {
 describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
   let network: NetworkConfig
   // Required for "TESTNET_FROM_ENV_VARS" networks
-  let callss: TestnetParams
+  let testnetParams: TestnetParams
 
   let chain: Chain
   let bundlerUrl: string
@@ -67,7 +67,7 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
       transport: http()
     })
 
-    callss = getTestParamsForTestnet(publicClient)
+    testnetParams = getTestParamsForTestnet(publicClient)
 
     paymaster = createBicoPaymasterClient({
       transport: http(paymasterUrl)
@@ -77,7 +77,7 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
       signer: account,
       chain,
       transport: http(),
-      ...callss
+      ...testnetParams
     })
 
     bicoBundler = createBicoBundlerClient({
@@ -93,7 +93,7 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
       transport: http(),
       bundlerTransport: http(bundlerUrl),
       paymaster,
-      ...callss
+      ...testnetParams
     })
   })
   afterAll(async () => {
