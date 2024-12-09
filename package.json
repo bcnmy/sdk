@@ -126,8 +126,5 @@
   },
   "type": "module",
   "types": "./dist/_types/index.d.ts",
-  "typings": "./dist/_types/index.d.ts",
-  "dependencies": {
-    "@silencelaboratories/walletprovider-sdk": "^0.3.0"
-  }
+  "typings": "./dist/_types/index.d.ts"
 }

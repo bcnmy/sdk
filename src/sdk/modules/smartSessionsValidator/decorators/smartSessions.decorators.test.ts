@@ -12,9 +12,8 @@ import {
 } from "../../../../test/testUtils"
 import {
   type NexusClient,
-  createNexusClient
-} from "../../../clients/createNexusClient"
-import { createNexusSessionClient } from "../../../clients/createNexusSessionClient"
+  createSmartAccountClient
+} from "../../../clients/createSmartAccountClient"
 import { toSmartSessionsValidator } from "../toSmartSessionsValidator"
 import { smartSessionCreateActions, smartSessionUseActions } from "./"
 
@@ -41,7 +40,7 @@ describe("modules.smartSessions.decorators", async () => {
     sessionPublicKey = sessionKeyAccount.address
     testClient = toTestClient(chain, getTestAccount(5))
 
-    nexusClient = await createNexusClient({
+    nexusClient = await createSmartAccountClient({
       signer: eoaAccount,
       chain,
       transport: http(),
@@ -88,7 +87,7 @@ describe("modules.smartSessions.decorators", async () => {
       }
     })
 
-    const smartSessionNexusClient = await createNexusSessionClient({
+    const smartSessionNexusClient = await createSmartAccountClient({
       chain,
       accountAddress: nexusClient.account.address,
       signer: sessionKeyAccount,
