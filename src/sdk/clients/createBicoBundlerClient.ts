@@ -15,12 +15,23 @@ import {
   type SmartAccount,
   createBundlerClient
 } from "viem/account-abstraction"
-import { biconomyPaymasterContext } from "./createBicoPaymasterClient"
 import { type BicoActions, bicoBundlerActions } from "./decorators/bundler"
 import type {
   BicoRpcSchema,
   GetGasFeeValuesReturnType
 } from "./decorators/bundler/getGasFeeValues"
+
+export const biconomySponsoredPaymasterContext = {
+  mode: "SPONSORED",
+  expiryDuration: 300,
+  calculateGasLimits: true,
+  sponsorshipInfo: {
+    smartAccountInfo: {
+      name: "BICONOMY",
+      version: "1.0.0"
+    }
+  }
+}
 
 export type BicoBundlerClient<
   transport extends Transport = Transport,
@@ -105,7 +116,7 @@ export const createBicoBundlerClient = (
   }
 
   const defaultedPaymasterContext = parameters.paymaster
-    ? parameters.paymasterContext ?? biconomyPaymasterContext
+    ? parameters.paymasterContext ?? biconomySponsoredPaymasterContext
     : undefined
 
   const bundler_ = createBundlerClient({

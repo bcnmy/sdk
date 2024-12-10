@@ -34,6 +34,7 @@ import {
 } from "../constants"
 import type { AnyData, Module } from "../modules/utils/Types"
 import { createBicoBundlerClient } from "./createBicoBundlerClient"
+import type { PaymasterContext } from "./createBicoPaymasterClient"
 import { type Erc7579Actions, erc7579Actions } from "./decorators/erc7579"
 import {
   type SmartAccountActions,
@@ -125,7 +126,7 @@ export type NexusClientConfig<
         }
       | undefined
     /** Paymaster context to pass to `getPaymasterData` and `getPaymasterStubData` calls. */
-    paymasterContext?: unknown
+    paymasterContext?: PaymasterContext
     /** User Operation configuration. */
     userOperation?:
       | {
@@ -197,6 +198,7 @@ export async function createNexusClient(
     bundlerTransport,
     transport,
     accountAddress,
+    paymasterContext: partialPaymasterContext,
     attesters,
     attesterThreshold,
     ...bundlerConfig
@@ -217,11 +219,25 @@ export async function createNexusClient(
     attesterThreshold
   })
 
+  const paymasterContextFull = {
+    ...partialPaymasterContext,
+    tokenInfo: {
+      feeTokenAddress: "0x036cbd53842c5426634e7929541ec2318f3dcf7e" // USDC on Base Sepolia
+    },
+    sponsorshipInfo: {
+      smartAccountInfo: {
+        name: "BICONOMY",
+        version: "2.0.0"
+      }
+    }
+  }
+
   const bundler_ = createBicoBundlerClient({
     ...bundlerConfig,
     chain,
     key,
     name,
+    paymasterContext: paymasterContextFull,
     account: nexusAccount,
     transport: bundlerTransport
   })

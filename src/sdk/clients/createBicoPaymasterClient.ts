@@ -1,11 +1,19 @@
-import { http, type OneOf, type Transport } from "viem"
+import { http, type Address, type OneOf, type Transport } from "viem"
 import {
   type PaymasterClient,
   type PaymasterClientConfig,
   createPaymasterClient
 } from "viem/account-abstraction"
+import {
+  type TokenPaymasterActions,
+  bicoTokenPaymasterActions
+} from "./decorators/tokenPaymaster"
 
-export type BicoPaymasterClient = Omit<PaymasterClient, "getPaymasterStubData">
+export type BicoPaymasterClient = Omit<
+  PaymasterClient,
+  "getPaymasterStubData"
+> &
+  TokenPaymasterActions
 
 /**
  * Configuration options for creating a Bico Paymaster Client.
@@ -30,20 +38,22 @@ type BicoPaymasterClientConfig = Omit<PaymasterClientConfig, "transport"> &
   >
 
 /**
- * Context for the Bico Paymaster.
+ * Context for the Bico SPONSORED Paymaster.
  */
-export const biconomyPaymasterContext = {
-  mode: "SPONSORED",
-  expiryDuration: 300,
-  calculateGasLimits: true,
-  sponsorshipInfo: {
+export type PaymasterContext = {
+  mode: "ERC20" | "SPONSORED"
+  sponsorshipInfo?: {
     smartAccountInfo: {
-      name: "BICONOMY",
-      version: "1.0.0"
+      name: string
+      version: string
     }
   }
+  tokenInfo?: {
+    feeTokenAddress: Address
+  }
+  expiryDuration?: number
+  calculateGasLimits?: boolean
 }
-
 /**
  * Creates a Bico Paymaster Client.
  *
@@ -64,6 +74,18 @@ export const biconomyPaymasterContext = {
  * @example
  * // Create a client with chain ID and API key
  * const client3 = createBicoPaymasterClient({ chainId: 1, apiKey: 'your-api-key' })
+ *
+ * @example
+ * // Create a Token Paymaster Client
+ * const tokenPaymasterClient = createBicoPaymasterClient({
+ *      paymasterUrl: 'https://example.com/paymaster',
+ *      paymasterContext: {
+ *        mode: "ERC20",
+ *        tokenInfo: {
+ *          feeTokenAddress: "0x..."
+ *        }
+ *      },
+ * })
  */
 export const createBicoPaymasterClient = (
   parameters: BicoPaymasterClientConfig
@@ -82,5 +104,5 @@ export const createBicoPaymasterClient = (
     transport: defaultedTransport
   })
 
-  return paymasterClient
+  return paymasterClient.extend(bicoTokenPaymasterActions())
 }
