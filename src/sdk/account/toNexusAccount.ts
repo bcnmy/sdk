@@ -103,9 +103,9 @@ export type ToNexusSmartAccountParameters = {
   k1ValidatorAddress?: Address
   /** Optional account address override */
   accountAddress?: Address
-  /** Attesters to add to the account */
+  /** Attester addresses to apply to the account */
   attesters?: Address[]
-  /** Optional threshold for the account */
+  /** Optional attestors threshold for the account */
   attesterThreshold?: number
 } & Prettify<
   Pick<

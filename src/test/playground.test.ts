@@ -38,8 +38,6 @@ import {
   getTestParamsForTestnet
 } from "./testUtils"
 
-export const index = 8n
-
 describe.skipIf(!playgroundTrue())("playground", () => {
   let network: NetworkConfig
   // Required for "PUBLIC_TESTNET" networks
@@ -90,7 +88,6 @@ describe.skipIf(!playgroundTrue())("playground", () => {
             transport: http(network.paymasterUrl)
           })
         : undefined,
-      index,
       ...testParams
     })
   })
@@ -123,6 +120,7 @@ describe.skipIf(!playgroundTrue())("playground", () => {
         value: parseEther("0.01")
       })
       const receipt = await publicClient.waitForTransactionReceipt({ hash })
+      expect(receipt.status).toBe("success")
       const [ownerBalanceTwo, smartAccountBalanceTwo] = await Promise.all([
         publicClient.getBalance({
           address: eoaAccount.address
@@ -242,7 +240,6 @@ describe.skipIf(!playgroundTrue())("playground", () => {
       signer: eoaAccount,
       transport: http(),
       bundlerTransport: http(bundlerUrl),
-      index,
       ...testParams
     })
 
