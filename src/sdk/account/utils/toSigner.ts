@@ -112,8 +112,15 @@ export async function toSigner<
     walletClient = signer as WalletClient<Transport, Chain | undefined, Account>
   }
 
+  const addressFromWalletClient =
+    walletClient?.account?.address ?? (await walletClient?.getAddresses())?.[0]
+
+  if (!addressFromWalletClient) {
+    throw new Error("address not found in wallet client")
+  }
+
   return toAccount({
-    address: walletClient.account.address,
+    address: addressFromWalletClient,
     async signMessage({ message }) {
       return walletClient.signMessage({ message })
     },
