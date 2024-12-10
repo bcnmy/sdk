@@ -9,7 +9,8 @@ import {
   type WalletClient,
   createPublicClient,
   createWalletClient,
-  encodeFunctionData
+  encodeFunctionData,
+  parseEther
 } from "viem"
 import { beforeAll, describe, expect, test } from "vitest"
 import { playgroundTrue } from "../sdk/account/utils/Utils"
@@ -18,6 +19,7 @@ import {
   type NexusClient,
   createNexusClient
 } from "../sdk/clients/createNexusClient"
+import { MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS } from "../sdk/constants"
 import type {
   CreateSessionDataParams,
   SessionData
@@ -118,7 +120,7 @@ describe.skipIf(!playgroundTrue())("playground", () => {
         chain,
         account: eoaAccount,
         to: nexusAccountAddress,
-        value: 100000000000000000n
+        value: parseEther("0.01")
       })
       const receipt = await publicClient.waitForTransactionReceipt({ hash })
       const [ownerBalanceTwo, smartAccountBalanceTwo] = await Promise.all([

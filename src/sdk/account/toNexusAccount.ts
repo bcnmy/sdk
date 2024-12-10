@@ -45,7 +45,6 @@ import {
 } from "viem/account-abstraction"
 
 import {
-  BICONOMY_ATTESTER_ADDRESS,
   ENTRY_POINT_ADDRESS,
   MOCK_ATTESTER_ADDRESS,
   RHINESTONE_ATTESTER_ADDRESS,
