@@ -1,5 +1,29 @@
 # @biconomy/sdk
 
+## 0.0.17
+
+### Patch Changes
+
+- Add mock attestor only for testnets
+
+## 0.0.16
+
+### Patch Changes
+
+- Add mock attestor and option to include attestors during createAccount
+
+## 0.0.15
+
+### Patch Changes
+
+- Migrate to Nexus: b4d6ff463bc41dc232292c385bdb76814ca8689c
+
+## 0.0.14
+
+### Patch Changes
+
+- Add rhintestones attestation address during createAccount
+
 ## 0.0.13
 
 ### Patch Changes

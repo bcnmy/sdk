@@ -45,6 +45,16 @@ describe.each(COMPETITORS)(
 
       nexusAccountAddress = await nexusAccount.getCounterFactualAddress()
 
+      const balance = await publicClient.getBalance({
+        address: nexusAccountAddress
+      })
+
+      if (balance === 0n) {
+        throw new Error(
+          `Insufficient balance at address: ${nexusAccountAddress}`
+        )
+      }
+
       bundlerClient = createBundlerClient({
         chain,
         transport: http(bundlerUrl),

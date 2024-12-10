@@ -10,7 +10,7 @@ type FetchDetails = {
 }
 const {
   nexusDeploymentPath = "../node_modules/nexus/deployments",
-  chainName = "anvil-51502",
+  chainName = "anvil-50597",
   forSrc = ["K1ValidatorFactory", "Nexus", "K1Validator"]
 } = yargs(hideBin(process.argv)).argv as unknown as FetchDetails
 
@@ -54,6 +54,10 @@ export const getDeployments = async () => {
         ? `${__dirname}/../src/sdk/__contracts/abi/${name}Abi.ts`
         : `${__dirname}/../src/test/__contracts/abi/${name}Abi.ts`
 
+      // Create all necessary directories recursively
+      fs.mkdirSync(`${__dirname}/../src/sdk/__contracts/abi`, {
+        recursive: true
+      })
       fs.writeFileSync(tsAbiPath, tsAbiContent)
 
       deployedContracts[name] = {

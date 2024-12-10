@@ -21,7 +21,11 @@ import type {
   UserOperationRequest
 } from "viem/account-abstraction"
 
-import { type NexusAccount, toNexusAccount } from "../account/toNexusAccount"
+import {
+  type NexusAccount,
+  type ToNexusSmartAccountParameters,
+  toNexusAccount
+} from "../account/toNexusAccount"
 import type { EthersWallet } from "../account/utils/Utils"
 import type { EthereumProvider } from "../account/utils/toSigner"
 import {
@@ -153,6 +157,10 @@ export type NexusClientConfig<
     k1ValidatorAddress?: Address
     /** Account address */
     accountAddress?: Address
+    /** Attesters */
+    attesters?: ToNexusSmartAccountParameters["attesters"]
+    /** Threshold */
+    attesterThreshold?: ToNexusSmartAccountParameters["attesterThreshold"]
   }
 >
 
@@ -191,6 +199,8 @@ export async function createNexusClient(
     transport,
     accountAddress,
     paymasterContext: partialPaymasterContext,
+    attesters,
+    attesterThreshold,
     ...bundlerConfig
   } = parameters
 
@@ -204,7 +214,9 @@ export async function createNexusClient(
     index,
     module,
     factoryAddress,
-    k1ValidatorAddress
+    k1ValidatorAddress,
+    attesters,
+    attesterThreshold
   })
 
   const paymasterContextFull = {

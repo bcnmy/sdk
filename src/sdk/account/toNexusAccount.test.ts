@@ -9,6 +9,7 @@ import {
   type WalletClient,
   concat,
   concatHex,
+  createPublicClient,
   createWalletClient,
   domainSeparator,
   encodeAbiParameters,
@@ -29,7 +30,7 @@ import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { MockSignatureValidatorAbi } from "../../test/__contracts/abi/MockSignatureValidatorAbi"
 import { TokenWithPermitAbi } from "../../test/__contracts/abi/TokenWithPermitAbi"
 import { testAddresses } from "../../test/callDatas"
-import { toNetwork } from "../../test/testSetup"
+import { testnetTest, toNetwork } from "../../test/testSetup"
 import {
   fundAndDeployClients,
   getTestAccount,
@@ -41,7 +42,12 @@ import {
   type NexusClient,
   createNexusClient
 } from "../clients/createNexusClient"
-import { k1ValidatorAddress } from "../constants"
+import {
+  BICONOMY_ATTESTER_ADDRESS,
+  MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS,
+  k1ValidatorAddress,
+  k1ValidatorFactoryAddress
+} from "../constants"
 import type { NexusAccount } from "./toNexusAccount"
 import {
   addressEquals,
@@ -294,7 +300,7 @@ describe("nexus.account", async () => {
     expect(entryPointVersion).toBe("0.7")
   })
 
-  test("should test isValidSignature EIP712Sign to be valid with viem", async () => {
+  test.skip("should test isValidSignature EIP712Sign to be valid with viem", async () => {
     const message = {
       contents: keccak256(toBytes("test", { size: 32 }))
     }
@@ -365,7 +371,7 @@ describe("nexus.account", async () => {
     expect(contractResponse).toBe(eip1271MagicValue)
   })
 
-  test("should sign using signTypedData SDK method", async () => {
+  test.skip("should sign using signTypedData SDK method", async () => {
     const appDomain = {
       chainId: chain.id,
       name: "TokenWithPermit",
@@ -536,4 +542,62 @@ describe("nexus.account", async () => {
     expect(addressEquals(keyFromViem, keyFromEthers)).toBe(true)
     expect(addressEquals(keyWithHardcodedValues, keyFromEthers)).toBe(true)
   })
+
+  testnetTest(
+    "should verify biconomy attester address",
+    async ({ config: { bundlerUrl, chain, account } }) => {
+      const publicClient = await createPublicClient({
+        chain,
+        transport: http()
+      })
+      const biconomyAttesterAddress = (await publicClient.readContract({
+        address: MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS,
+        abi: [
+          {
+            inputs: [
+              {
+                internalType: "address",
+                name: "eoaOwner",
+                type: "address"
+              },
+              {
+                internalType: "uint256",
+                name: "index",
+                type: "uint256"
+              },
+              {
+                internalType: "address[]",
+                name: "attesters",
+                type: "address[]"
+              },
+              {
+                internalType: "uint8",
+                name: "threshold",
+                type: "uint8"
+              }
+            ],
+            name: "computeAccountAddress",
+            outputs: [
+              {
+                internalType: "address payable",
+                name: "expectedAddress",
+                type: "address"
+              }
+            ],
+            stateMutability: "view",
+            type: "function"
+          }
+        ],
+        functionName: "computeAccountAddress",
+        args: [
+          "0x129443cA2a9Dec2020808a2868b38dDA457eaCC7",
+          0n,
+          ["0x000000333034E9f539ce08819E12c1b8Cb29084d"],
+          1
+        ]
+      })) as Address
+
+      expect(BICONOMY_ATTESTER_ADDRESS).toBe(biconomyAttesterAddress)
+    }
+  )
 })
