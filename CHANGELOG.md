@@ -1,5 +1,11 @@
 # @biconomy/sdk
 
+## 0.0.18
+
+### Patch Changes
+
+- fix window.ethereum
+
 ## 0.0.17
 
 ### Patch Changes
