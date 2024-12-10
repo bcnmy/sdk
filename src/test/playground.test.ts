@@ -6,7 +6,9 @@ import {
   type PublicClient,
   type WalletClient,
   createPublicClient,
-  createWalletClient
+  createWalletClient,
+  encodeFunctionData,
+  erc20Abi
 } from "viem"
 import { beforeAll, describe, expect, test } from "vitest"
 import { playgroundTrue } from "../sdk/account/utils/Utils"
@@ -30,19 +32,20 @@ describe.skipIf(!playgroundTrue())("playground", () => {
   let chain: Chain
   let bundlerUrl: string
   let walletClient: WalletClient
+  let paymasterUrl: string
 
   // Test utils
   let publicClient: PublicClient // testClient not available on public testnets
   let eoaAccount: PrivateKeyAccount
   let recipientAddress: Address
   let nexusClient: NexusClient
-  let nexusAccountAddress: Address
 
   beforeAll(async () => {
     network = await toNetwork("PUBLIC_TESTNET")
 
     chain = network.chain
     bundlerUrl = network.bundlerUrl
+    paymasterUrl = network.paymasterUrl || ""
     eoaAccount = network.account as PrivateKeyAccount
 
     recipientAddress = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045" // vitalik.eth
@@ -61,85 +64,82 @@ describe.skipIf(!playgroundTrue())("playground", () => {
     testParams = getTestParamsForTestnet(publicClient)
   })
 
-  test("should init the smart account", async () => {
+  test("should send a token paymaster user op", async () => {
+    nexusClient = await createNexusClient({
+      signer: eoaAccount,
+      chain,
+      paymaster: createBicoPaymasterClient({
+        paymasterUrl
+      }),
+      paymasterContext: {
+        mode: "ERC20",
+        tokenInfo: {
+          feeTokenAddress: "0x036cbd53842c5426634e7929541ec2318f3dcf7e" // USDC Base Sepolia (default if not provided)
+        }
+      },
+      transport: http(),
+      bundlerTransport: http(bundlerUrl),
+      ...testParams
+    })
+
+    const txHash = await nexusClient.sendTransaction({
+      calls: [
+        {
+          to: "0x036cbd53842c5426634e7929541ec2318f3dcf7e",
+          value: 0n,
+          data: "0x"
+        }
+      ]
+    })
+
+    const receipt = await nexusClient.waitForTransactionReceipt({
+      hash: txHash
+    })
+
+    expect(receipt.status).toBe("success")
+  })
+
+  test("should get quotes for token paymaster sponsored user op", async () => {
+    const paymasterClient = createBicoPaymasterClient({
+      paymasterUrl
+    })
     nexusClient = await createNexusClient({
       signer: eoaAccount,
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl),
-      paymaster: network.paymasterUrl
-        ? createBicoPaymasterClient({
-            transport: http(network.paymasterUrl)
-          })
-        : undefined,
+      paymaster: paymasterClient,
+      paymasterContext: {
+        mode: "ERC20"
+      },
       ...testParams
     })
-  })
 
-  test("should log relevant addresses", async () => {
-    nexusAccountAddress = await nexusClient.account.getCounterFactualAddress()
-    console.log({ nexusAccountAddress })
-  })
-
-  test("should check balances and top up relevant addresses", async () => {
-    const [ownerBalance, smartAccountBalance] = await Promise.all([
-      publicClient.getBalance({
-        address: eoaAccount.address
-      }),
-      publicClient.getBalance({
-        address: nexusAccountAddress
-      })
-    ])
-
-    const balancesAreOfCorrectType = [ownerBalance, smartAccountBalance].every(
-      (balance) => typeof balance === "bigint"
-    )
-    if (smartAccountBalance === 0n) {
-      const hash = await walletClient.sendTransaction({
-        chain,
-        account: eoaAccount,
-        to: nexusAccountAddress,
-        value: 1000000000000000000n
-      })
-      const receipt = await publicClient.waitForTransactionReceipt({ hash })
-    }
-    expect(balancesAreOfCorrectType).toBeTruthy()
-  })
-
-  test("should send some native token", async () => {
-    const balanceBefore = await publicClient.getBalance({
-      address: recipientAddress
-    })
-    const hash = await nexusClient.sendTransaction({
+    const userOp = await nexusClient.prepareUserOperation({
       calls: [
         {
-          to: recipientAddress,
-          value: 1n
+          to: "0x036cbd53842c5426634e7929541ec2318f3dcf7e",
+          value: 0n,
+          data: encodeFunctionData({
+            abi: erc20Abi,
+            functionName: "approve",
+            args: ["0x9C7BAEcAD667FD58331BEd9D5984Df03A78b87Bc", 10000000n]
+          })
         }
       ]
     })
-    const { status } = await publicClient.waitForTransactionReceipt({ hash })
-    const balanceAfter = await publicClient.getBalance({
-      address: recipientAddress
-    })
-    expect(status).toBe("success")
-    expect(balanceAfter - balanceBefore).toBe(1n)
-  })
 
-  test("should send a user operation using nexusClient.sendUserOperation", async () => {
-    const balanceBefore = await publicClient.getBalance({
-      address: recipientAddress
-    })
-    const userOpHash = await nexusClient.sendUserOperation({
-      calls: [{ to: recipientAddress, value: 1n }]
-    })
-    const { success } = await nexusClient.waitForUserOperationReceipt({
-      hash: userOpHash
-    })
-    const balanceAfter = await publicClient.getBalance({
-      address: recipientAddress
-    })
-    expect(success).toBe("true")
-    expect(balanceAfter - balanceBefore).toBe(1n)
+    const quotes = await paymasterClient.getPaymasterQuotes(userOp, [
+      "0x036cbd53842c5426634e7929541ec2318f3dcf7e"
+    ])
+    const usdcQuote = quotes.feeQuotes.find(
+      (quote: any) =>
+        quote.tokenAddress === "0x036cbd53842c5426634e7929541ec2318f3dcf7e"
+    )
+    expect(usdcQuote).toBeDefined()
+    expect(usdcQuote?.decimal).toBe(6)
+    expect(usdcQuote?.tokenAddress).toBe(
+      "0x036cbd53842c5426634e7929541ec2318f3dcf7e"
+    )
   })
 })
