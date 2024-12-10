@@ -86,7 +86,7 @@ export async function toSigner<
     | WalletClient<Transport, Chain | undefined, Account>
     | undefined = undefined
 
-  if ("request" in signer && signer?.type !== "walletClient") {
+  if ("request" in signer) {
     if (!address) {
       try {
         ;[address] = await (signer as EthereumProvider).request({
@@ -112,8 +112,15 @@ export async function toSigner<
     walletClient = signer as WalletClient<Transport, Chain | undefined, Account>
   }
 
+  const addressFromWalletClient =
+    walletClient?.account?.address ?? (await walletClient?.getAddresses())?.[0]
+
+  if (!addressFromWalletClient) {
+    throw new Error("address not found in wallet client")
+  }
+
   return toAccount({
-    address: walletClient.account.address,
+    address: addressFromWalletClient,
     async signMessage({ message }) {
       return walletClient.signMessage({ message })
     },
