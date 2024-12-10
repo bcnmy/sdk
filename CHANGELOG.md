@@ -1,5 +1,11 @@
 # @biconomy/sdk
 
+## 0.0.17
+
+### Patch Changes
+
+- Add mock attestor only for testnets
+
 ## 0.0.16
 
 ### Patch Changes

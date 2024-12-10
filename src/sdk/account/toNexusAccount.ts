@@ -45,7 +45,6 @@ import {
 } from "viem/account-abstraction"
 
 import {
-  BICONOMY_ATTESTER_ADDRESS,
   ENTRY_POINT_ADDRESS,
   MOCK_ATTESTER_ADDRESS,
   RHINESTONE_ATTESTER_ADDRESS,
@@ -104,9 +103,9 @@ export type ToNexusSmartAccountParameters = {
   k1ValidatorAddress?: Address
   /** Optional account address override */
   accountAddress?: Address
-  /** Attesters to add to the account */
+  /** Attester addresses to apply to the account */
   attesters?: Address[]
-  /** Optional threshold for the account */
+  /** Optional attestors threshold for the account */
   attesterThreshold?: number
 } & Prettify<
   Pick<
@@ -181,11 +180,7 @@ export const toNexusAccount = async (
     k1ValidatorAddress = k1ValidatorAddress_,
     key = "nexus account",
     name = "Nexus Account",
-    attesters = [
-      RHINESTONE_ATTESTER_ADDRESS,
-      MOCK_ATTESTER_ADDRESS,
-      BICONOMY_ATTESTER_ADDRESS
-    ],
+    attesters: attesters_ = [RHINESTONE_ATTESTER_ADDRESS],
     attesterThreshold = 1
   } = parameters
 
@@ -218,12 +213,13 @@ export const toNexusAccount = async (
 
   // Review:
   // Todo: attesters can be added here to do one time setup upon deployment.
+  chain?.testnet && attesters_.push(MOCK_ATTESTER_ADDRESS)
   const factoryData = encodeFunctionData({
     abi: parseAbi([
       "function createAccount(address eoaOwner, uint256 index, address[] attesters, uint8 threshold) external returns (address)"
     ]),
     functionName: "createAccount",
-    args: [signerAddress, index, attesters, attesterThreshold]
+    args: [signerAddress, index, attesters_, attesterThreshold]
   })
 
   /**
