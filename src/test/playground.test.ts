@@ -86,8 +86,8 @@ describe.skipIf(!playgroundTrue())("playground", () => {
       bundlerTransport: http(bundlerUrl),
       paymaster: network.paymasterUrl
         ? createBicoPaymasterClient({
-            transport: http(network.paymasterUrl)
-          })
+          transport: http(network.paymasterUrl)
+        })
         : undefined,
       ...testParams
     })
@@ -152,6 +152,23 @@ describe.skipIf(!playgroundTrue())("playground", () => {
       address: recipientAddress
     })
     expect(status).toBe("success")
+    expect(balanceAfter - balanceBefore).toBe(1n)
+  })
+
+  test("should send a user operation using nexusClient.sendUserOperation", async () => {
+    const balanceBefore = await publicClient.getBalance({
+      address: recipientAddress
+    })
+    const userOpHash = await nexusClient.sendUserOperation({
+      calls: [{ to: recipientAddress, value: 1n }]
+    })
+    const { success } = await nexusClient.waitForUserOperationReceipt({
+      hash: userOpHash
+    })
+    const balanceAfter = await publicClient.getBalance({
+      address: recipientAddress
+    })
+    expect(success).toBe("true")
     expect(balanceAfter - balanceBefore).toBe(1n)
   })
 
