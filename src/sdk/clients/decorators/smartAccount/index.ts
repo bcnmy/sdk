@@ -24,21 +24,21 @@ export type SmartAccountActions<
   TSmartAccount extends SmartAccount | undefined = SmartAccount | undefined
 > = {
   /**
- * Creates, signs, and sends a new transaction to the network using a smart account.
- * This function also allows you to sponsor this transaction if the sender is a smart account.
- *
- * @param client - The client instance.
- * @param args - Parameters for sending the transaction or user operation.
- * @param customApprovalAmount - The amount to approve for the Biconomy Token Paymaster to be spent on gas.
- * @returns The transaction hash as a hexadecimal string.
- * @throws {AccountNotFoundError} If the account is not found.
- *
- * @example
- * import { sendTransaction } from '@biconomy/sdk'
- *
- * const hash = await nexusClient.sendTransaction({calls: [{to: '0x...', value: parseEther('0.1'), data: '0x...'}]})
- * console.log(hash) // '0x...'
- */
+   * Creates, signs, and sends a new transaction to the network using a smart account.
+   * This function also allows you to sponsor this transaction if the sender is a smart account.
+   *
+   * @param client - The client instance.
+   * @param args - Parameters for sending the transaction or user operation.
+   * @param customApprovalAmount - The amount to approve for the Biconomy Token Paymaster to be spent on gas.
+   * @returns The transaction hash as a hexadecimal string.
+   * @throws {AccountNotFoundError} If the account is not found.
+   *
+   * @example
+   * import { sendTransaction } from '@biconomy/sdk'
+   *
+   * const hash = await nexusClient.sendTransaction({calls: [{to: '0x...', value: parseEther('0.1'), data: '0x...'}]})
+   * console.log(hash) // '0x...'
+   */
   sendTransaction: <
     TChainOverride extends Chain | undefined = undefined,
     accountOverride extends SmartAccount | undefined = undefined,
@@ -297,7 +297,8 @@ export function smartAccountActions() {
   >(
     client: Client<Transport, TChain, TSmartAccount>
   ): SmartAccountActions<TChain, TSmartAccount> => ({
-    sendTransaction: (args, customApprovalAmount) => sendTransaction(client, args as AnyData, customApprovalAmount),
+    sendTransaction: (args, customApprovalAmount) =>
+      sendTransaction(client, args as AnyData, customApprovalAmount),
     signMessage: (args) => signMessage(client, args),
     signTypedData: (args) => signTypedData(client, args),
     writeContract: (args) => writeContract(client, args),

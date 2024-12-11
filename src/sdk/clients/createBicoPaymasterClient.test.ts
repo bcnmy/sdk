@@ -8,8 +8,9 @@ import {
   createPublicClient,
   createWalletClient,
   parseAbi,
-  parseUnits,
+  parseUnits
 } from "viem"
+import { baseSepolia } from "viem/chains"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { paymasterTruthy, toNetwork } from "../../test/testSetup"
 import { getTestParamsForTestnet, killNetwork } from "../../test/testUtils"
@@ -24,7 +25,6 @@ import {
   createBicoPaymasterClient
 } from "./createBicoPaymasterClient"
 import { type NexusClient, createNexusClient } from "./createNexusClient"
-import { baseSepolia } from "viem/chains"
 
 describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
   let network: NetworkConfig
@@ -87,14 +87,14 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
     })
     nexusAccountAddress = await nexusAccount.getCounterFactualAddress()
 
-    nexusClient = await createNexusClient({
+    nexusClient = (await createNexusClient({
       signer: account,
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl),
       paymaster,
       ...testParams
-    }) as NexusClient
+    })) as NexusClient
   })
   afterAll(async () => {
     await killNetwork([network?.rpcPort, network?.bundlerPort])
@@ -148,7 +148,7 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
       paymasterContext: {
         mode: "ERC20",
         tokenInfo: {
-          feeTokenAddress: baseSepoliaUsdcAddress // USDC on Base Sepolia 
+          feeTokenAddress: baseSepoliaUsdcAddress // USDC on Base Sepolia
         }
       },
       transport: http(),
@@ -163,7 +163,7 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
     const hash = await nexusClient.sendTransaction({
       to: recipientAddress,
       value: 1n,
-      chain: baseSepolia,
+      chain: baseSepolia
     })
 
     // Wait for the transaction to be mined
@@ -180,7 +180,8 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
   })
 
   test("should use token paymaster to pay for gas fees, use custom approval with token paymaster quotes", async () => {
-    const baseSepoliaUsdcAddress = "0x036cbd53842c5426634e7929541ec2318f3dcf7e" as Address
+    const baseSepoliaUsdcAddress =
+      "0x036cbd53842c5426634e7929541ec2318f3dcf7e" as Address
     const nexusClient = await createNexusClient({
       signer: account,
       chain,
@@ -191,7 +192,7 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
       paymasterContext: {
         mode: "ERC20",
         tokenInfo: {
-          feeTokenAddress: baseSepoliaUsdcAddress // USDC on Base Sepolia 
+          feeTokenAddress: baseSepoliaUsdcAddress // USDC on Base Sepolia
         }
       },
       transport: http(),
@@ -224,15 +225,21 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
       ]
     })
     const quote = await paymaster.getTokenPaymasterQuotes(userOp, tokenList)
-    const usdcFeeAmount = parseUnits(quote.feeQuotes[0].maxGasFee.toString(), quote.feeQuotes[0].decimal);
+    const usdcFeeAmount = parseUnits(
+      quote.feeQuotes[0].maxGasFee.toString(),
+      quote.feeQuotes[0].decimal
+    )
 
     expect(usdcBalance).toBeGreaterThan(usdcFeeAmount)
 
-    const hash = await nexusClient.sendTransaction({
-      to: recipientAddress,
-      value: 1n,
-      chain: baseSepolia,
-    }, usdcFeeAmount)
+    const hash = await nexusClient.sendTransaction(
+      {
+        to: recipientAddress,
+        value: 1n,
+        chain: baseSepolia
+      },
+      usdcFeeAmount
+    )
 
     // Wait for the transaction to be mined
     const { status } = await nexusClient.waitForTransactionReceipt({ hash })

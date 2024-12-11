@@ -78,7 +78,6 @@ describe.skipIf(!playgroundTrue())("playground", () => {
     testParams = getTestParamsForTestnet(publicClient)
   })
 
-
   test("should log relevant addresses", async () => {
     nexusAccountAddress = await nexusClient.account.getCounterFactualAddress()
     console.log({ nexusAccountAddress })

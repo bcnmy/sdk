@@ -22,6 +22,7 @@ import {
   toBytes,
   toHex
 } from "viem"
+import type { BundlerClient } from "viem/account-abstraction"
 import {
   BICONOMY_TOKEN_PAYMASTER,
   MOCK_MULTI_MODULE_ADDRESS,
@@ -30,6 +31,8 @@ import {
   NEXUS_DOMAIN_TYPEHASH,
   NEXUS_DOMAIN_VERSION
 } from "../../account/utils/Constants"
+import type { PaymasterContext } from "../../clients/createBicoPaymasterClient"
+import type { NexusClient } from "../../clients/createNexusClient"
 import { EIP1271Abi } from "../../constants/abi"
 import {
   type AnyData,
@@ -37,9 +40,6 @@ import {
   moduleTypeIds
 } from "../../modules/utils/Types"
 import type { AccountMetadata, EIP712DomainReturn } from "./Types"
-import { type NexusClient } from "../../clients/createNexusClient"
-import { type BundlerClient } from "viem/account-abstraction"
-import { type PaymasterContext } from "../../clients/createBicoPaymasterClient"
 
 /**
  * Type guard to check if a value is null or undefined.
@@ -279,7 +279,7 @@ export const getAccountMeta = async (
         chainId: decoded?.[3]
       }
     }
-  } catch (error) { }
+  } catch (error) {}
   return {
     name: NEXUS_DOMAIN_NAME,
     version: NEXUS_DOMAIN_VERSION,
@@ -400,7 +400,7 @@ export type EthersWallet = {
 export const getAllowance = async (
   client: PublicClient,
   accountAddress: Address,
-  tokenAddress: Address,
+  tokenAddress: Address
 ): Promise<bigint> => {
   const approval = await client.readContract({
     address: tokenAddress,
@@ -409,12 +409,10 @@ export const getAllowance = async (
     args: [accountAddress, BICONOMY_TOKEN_PAYMASTER]
   })
 
-  return approval as bigint;
+  return approval as bigint
 }
 
-export const isNexusClient = (
-  client: Client
-): client is NexusClient => {
+export const isNexusClient = (client: Client): client is NexusClient => {
   return client.name === "Nexus Client"
 }
 
