@@ -26,15 +26,15 @@ export type BicoPaymasterClient = Omit<
 type BicoPaymasterClientConfig = Omit<PaymasterClientConfig, "transport"> &
   OneOf<
     | {
-        transport?: Transport
-      }
+      transport?: Transport
+    }
     | {
-        paymasterUrl: string
-      }
+      paymasterUrl: string
+    }
     | {
-        chainId: number
-        apiKey: string
-      }
+      chainId: number
+      apiKey: string
+    }
   >
 
 /**
@@ -54,6 +54,19 @@ export type PaymasterContext = {
   expiryDuration?: number
   calculateGasLimits?: boolean
 }
+
+export const biconomySponsoredPaymasterContext = {
+  mode: "SPONSORED",
+  expiryDuration: 300,
+  calculateGasLimits: true,
+  sponsorshipInfo: {
+    smartAccountInfo: {
+      name: "BICONOMY",
+      version: "1.0.0"
+    }
+  }
+}
+
 /**
  * Creates a Bico Paymaster Client.
  *
@@ -95,8 +108,8 @@ export const createBicoPaymasterClient = (
     : parameters.paymasterUrl
       ? http(parameters.paymasterUrl)
       : http(
-          `https://paymaster.biconomy.io/api/v2/${parameters.chainId}/${parameters.apiKey}`
-        )
+        `https://paymaster.biconomy.io/api/v2/${parameters.chainId}/${parameters.apiKey}`
+      )
 
   // Remove getPaymasterStubData from the client.
   const { getPaymasterStubData, ...paymasterClient } = createPaymasterClient({
