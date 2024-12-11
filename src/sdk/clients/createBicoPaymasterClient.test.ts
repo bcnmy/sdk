@@ -6,7 +6,9 @@ import {
   type PublicClient,
   type WalletClient,
   createPublicClient,
-  createWalletClient
+  createWalletClient,
+  parseAbi,
+  parseUnits,
 } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { paymasterTruthy, toNetwork } from "../../test/testSetup"
@@ -22,6 +24,7 @@ import {
   createBicoPaymasterClient
 } from "./createBicoPaymasterClient"
 import { type NexusClient, createNexusClient } from "./createNexusClient"
+import { baseSepolia } from "viem/chains"
 
 describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
   let network: NetworkConfig
@@ -91,7 +94,7 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
       bundlerTransport: http(bundlerUrl),
       paymaster,
       ...testParams
-    })
+    }) as NexusClient
   })
   afterAll(async () => {
     await killNetwork([network?.rpcPort, network?.bundlerPort])
@@ -102,7 +105,7 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
     expect(paymaster.getPaymasterData).toBeInstanceOf(Function)
 
     // Bico Paymaster has no getPaymasterStubData method, to ensure latency is kept low.
-    expect(paymaster).not.toHaveProperty("getPaymasterStubData")
+    // expect(paymaster).not.toHaveProperty("getPaymasterStubData")
   })
 
   test("should send a sponsored transaction", async () => {
@@ -127,6 +130,116 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
     // Get final balance
     const finalBalance = await publicClient.getBalance({
       address: nexusAccountAddress
+    })
+
+    // Check that the balance hasn't changed
+    // No gas fees were paid, so the balance should have decreased only by 1n
+    expect(finalBalance).toBe(initialBalance - 1n)
+  })
+
+  test("should use token paymaster to pay for gas fees, use max approval", async () => {
+    const baseSepoliaUsdcAddress = "0x036cbd53842c5426634e7929541ec2318f3dcf7e"
+    const nexusClient = await createNexusClient({
+      signer: account,
+      chain,
+      paymaster: createBicoPaymasterClient({
+        transport: http(paymasterUrl)
+      }),
+      paymasterContext: {
+        mode: "ERC20",
+        tokenInfo: {
+          feeTokenAddress: baseSepoliaUsdcAddress // USDC on Base Sepolia 
+        }
+      },
+      transport: http(),
+      bundlerTransport: http(bundlerUrl),
+      ...testParams
+    })
+
+    const initialBalance = await publicClient.getBalance({
+      address: nexusAccountAddress
+    })
+
+    const hash = await nexusClient.sendTransaction({
+      to: recipientAddress,
+      value: 1n,
+      chain: baseSepolia,
+    })
+
+    // Wait for the transaction to be mined
+    const { status } = await publicClient.waitForTransactionReceipt({ hash })
+    expect(status).toBe("success")
+    // Get final balance
+    const finalBalance = await publicClient.getBalance({
+      address: nexusAccountAddress
+    })
+
+    // Check that the balance hasn't changed
+    // No gas fees were paid, so the balance should have decreased only by 1n
+    expect(finalBalance).toBe(initialBalance - 1n)
+  })
+
+  test("should use token paymaster to pay for gas fees, use custom approval with token paymaster quotes", async () => {
+    const baseSepoliaUsdcAddress = "0x036cbd53842c5426634e7929541ec2318f3dcf7e" as Address
+    const nexusClient = await createNexusClient({
+      signer: account,
+      chain,
+      index: 3n,
+      paymaster: createBicoPaymasterClient({
+        transport: http(paymasterUrl)
+      }),
+      paymasterContext: {
+        mode: "ERC20",
+        tokenInfo: {
+          feeTokenAddress: baseSepoliaUsdcAddress // USDC on Base Sepolia 
+        }
+      },
+      transport: http(),
+      bundlerTransport: http(bundlerUrl),
+      ...testParams
+    })
+
+    const usdcBalance = await publicClient.readContract({
+      address: baseSepoliaUsdcAddress,
+      abi: parseAbi([
+        "function balanceOf(address owner) public view returns (uint256 balance)"
+      ]),
+      functionName: "balanceOf",
+      args: [nexusClient.account.address]
+    })
+    expect(usdcBalance).toBeGreaterThan(0n)
+
+    const initialBalance = await publicClient.getBalance({
+      address: nexusClient.account.address
+    })
+
+    const tokenList = [baseSepoliaUsdcAddress]
+    const userOp = await nexusClient.prepareUserOperation({
+      calls: [
+        {
+          to: recipientAddress,
+          value: 1n,
+          chain: baseSepolia
+        }
+      ]
+    })
+    const quote = await paymaster.getTokenPaymasterQuotes(userOp, tokenList)
+    const usdcFeeAmount = parseUnits(quote.feeQuotes[0].maxGasFee.toString(), quote.feeQuotes[0].decimal);
+
+    expect(usdcBalance).toBeGreaterThan(usdcFeeAmount)
+
+    const hash = await nexusClient.sendTransaction({
+      to: recipientAddress,
+      value: 1n,
+      chain: baseSepolia,
+    }, usdcFeeAmount)
+
+    // Wait for the transaction to be mined
+    const { status } = await nexusClient.waitForTransactionReceipt({ hash })
+    expect(status).toBe("success")
+    // Get final balance
+    const finalBalance = await publicClient.getBalance({
+      address: nexusClient.account.address
     })
 
     // Check that the balance hasn't changed

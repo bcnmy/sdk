@@ -10,7 +10,6 @@ import {
   createPublicClient,
   createWalletClient,
   encodeFunctionData,
-  erc20Abi,
   parseEther
 } from "viem"
 import { beforeAll, describe, expect, test } from "vitest"
@@ -20,7 +19,6 @@ import {
   type NexusClient,
   createNexusClient
 } from "../sdk/clients/createNexusClient"
-import { MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS } from "../sdk/constants"
 import type {
   CreateSessionDataParams,
   SessionData
@@ -80,84 +78,6 @@ describe.skipIf(!playgroundTrue())("playground", () => {
     testParams = getTestParamsForTestnet(publicClient)
   })
 
-  test("should send a token paymaster user op", async () => {
-    nexusClient = await createNexusClient({
-      signer: eoaAccount,
-      chain,
-      paymaster: createBicoPaymasterClient({
-        paymasterUrl
-      }),
-      paymasterContext: {
-        mode: "ERC20",
-        tokenInfo: {
-          feeTokenAddress: "0x036cbd53842c5426634e7929541ec2318f3dcf7e" // USDC Base Sepolia (default if not provided)
-        }
-      },
-      transport: http(),
-      bundlerTransport: http(bundlerUrl),
-      ...testParams
-    })
-
-    const txHash = await nexusClient.sendTransaction({
-      calls: [
-        {
-          to: "0x036cbd53842c5426634e7929541ec2318f3dcf7e",
-          value: 0n,
-          data: "0x"
-        }
-      ]
-    })
-
-    const receipt = await nexusClient.waitForTransactionReceipt({
-      hash: txHash
-    })
-
-    expect(receipt.status).toBe("success")
-  })
-
-  test("should get quotes for token paymaster sponsored user op", async () => {
-    const paymasterClient = createBicoPaymasterClient({
-      paymasterUrl
-    })
-    nexusClient = await createNexusClient({
-      signer: eoaAccount,
-      chain,
-      transport: http(),
-      bundlerTransport: http(bundlerUrl),
-      paymaster: paymasterClient,
-      paymasterContext: {
-        mode: "ERC20"
-      },
-      ...testParams
-    })
-
-    const userOp = await nexusClient.prepareUserOperation({
-      calls: [
-        {
-          to: "0x036cbd53842c5426634e7929541ec2318f3dcf7e",
-          value: 0n,
-          data: encodeFunctionData({
-            abi: erc20Abi,
-            functionName: "approve",
-            args: ["0x9C7BAEcAD667FD58331BEd9D5984Df03A78b87Bc", 10000000n]
-          })
-        }
-      ]
-    })
-
-    const quotes = await paymasterClient.getPaymasterQuotes(userOp, [
-      "0x036cbd53842c5426634e7929541ec2318f3dcf7e"
-    ])
-    const usdcQuote = quotes.feeQuotes.find(
-      (quote: any) =>
-        quote.tokenAddress === "0x036cbd53842c5426634e7929541ec2318f3dcf7e"
-    )
-    expect(usdcQuote).toBeDefined()
-    expect(usdcQuote?.decimal).toBe(6)
-    expect(usdcQuote?.tokenAddress).toBe(
-      "0x036cbd53842c5426634e7929541ec2318f3dcf7e"
-    )
-  })
 
   test("should log relevant addresses", async () => {
     nexusAccountAddress = await nexusClient.account.getCounterFactualAddress()

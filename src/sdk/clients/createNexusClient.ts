@@ -54,14 +54,14 @@ export type NexusClient<
   Client<
     transport,
     chain extends Chain
-      ? chain
-      : client extends Client<AnyData, infer chain>
-        ? chain
-        : undefined,
+    ? chain
+    : client extends Client<AnyData, infer chain>
+    ? chain
+    : undefined,
     account,
     rpcSchema extends RpcSchema
-      ? [...BundlerRpcSchema, ...rpcSchema]
-      : BundlerRpcSchema,
+    ? [...BundlerRpcSchema, ...rpcSchema]
+    : BundlerRpcSchema,
     BundlerActions<account>
   >
 > &
@@ -87,7 +87,7 @@ export type NexusClient<
     /**
      * Optional paymaster context
      */
-    paymasterContext?: BundlerClientConfig["paymasterContext"] | undefined
+    paymasterContext?: PaymasterContext | undefined
     /**
      * Optional user operation configuration
      */
@@ -115,31 +115,31 @@ export type NexusClientConfig<
     client?: client | Client | undefined
     /** Paymaster configuration. */
     paymaster?:
-      | true
-      | {
-          /** Retrieves paymaster-related User Operation properties to be used for sending the User Operation. */
-          getPaymasterData?: PaymasterActions["getPaymasterData"] | undefined
-          /** Retrieves paymaster-related User Operation properties to be used for gas estimation. */
-          getPaymasterStubData?:
-            | PaymasterActions["getPaymasterStubData"]
-            | undefined
-        }
+    | true
+    | {
+      /** Retrieves paymaster-related User Operation properties to be used for sending the User Operation. */
+      getPaymasterData?: PaymasterActions["getPaymasterData"] | undefined
+      /** Retrieves paymaster-related User Operation properties to be used for gas estimation. */
+      getPaymasterStubData?:
+      | PaymasterActions["getPaymasterStubData"]
       | undefined
+    }
+    | undefined
     /** Paymaster context to pass to `getPaymasterData` and `getPaymasterStubData` calls. */
     paymasterContext?: PaymasterContext
     /** User Operation configuration. */
     userOperation?:
-      | {
-          /** Prepares fee properties for the User Operation request. */
-          estimateFeesPerGas?:
-            | ((parameters: {
-                account: SmartAccount | undefined
-                bundlerClient: Client
-                userOperation: UserOperationRequest
-              }) => Promise<EstimateFeesPerGasReturnType<"eip1559">>)
-            | undefined
-        }
+    | {
+      /** Prepares fee properties for the User Operation request. */
+      estimateFeesPerGas?:
+      | ((parameters: {
+        account: SmartAccount | undefined
+        bundlerClient: Client
+        userOperation: UserOperationRequest
+      }) => Promise<EstimateFeesPerGasReturnType<"eip1559">>)
       | undefined
+    }
+    | undefined
     /** Owner of the account. */
     signer: OneOf<
       | EthereumProvider
@@ -198,7 +198,7 @@ export async function createNexusClient(
     bundlerTransport,
     transport,
     accountAddress,
-    paymasterContext: partialPaymasterContext,
+    paymasterContext,
     attesters,
     attesterThreshold,
     ...bundlerConfig
@@ -219,25 +219,25 @@ export async function createNexusClient(
     attesterThreshold
   })
 
-  const paymasterContextFull = {
-    ...partialPaymasterContext,
-    tokenInfo: {
-      feeTokenAddress: "0x036cbd53842c5426634e7929541ec2318f3dcf7e" // USDC on Base Sepolia
-    },
-    sponsorshipInfo: {
-      smartAccountInfo: {
-        name: "BICONOMY",
-        version: "2.0.0"
-      }
-    }
-  }
-
   const bundler_ = createBicoBundlerClient({
     ...bundlerConfig,
     chain,
     key,
     name,
-    paymasterContext: paymasterContextFull,
+    paymasterContext: paymasterContext ? {
+      mode: paymasterContext.mode,
+      sponsorshipInfo: {
+        smartAccountInfo: {
+          name: "BICONOMY",
+          version: "2.0.0"
+        }
+      },
+      tokenInfo: {
+        feeTokenAddress: paymasterContext.tokenInfo.feeTokenAddress
+      },
+      expiryDuration: paymasterContext.expiryDuration ?? 6000,
+      calculateGasLimits: paymasterContext.calculateGasLimits ?? true
+    } : undefined,
     account: nexusAccount,
     transport: bundlerTransport
   })

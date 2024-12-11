@@ -290,8 +290,7 @@ export const nonZeroBalance = async (
   const balance = await getBalance(testClient, address, tokenAddress)
   if (balance > BigInt(0)) return
   throw new Error(
-    `Insufficient balance ${
-      tokenAddress ? `of token ${tokenAddress}` : "of native token"
+    `Insufficient balance ${tokenAddress ? `of token ${tokenAddress}` : "of native token"
     } during test setup of owner: ${address}`
   )
 }
@@ -389,7 +388,7 @@ export const safeTopUp = async (
 ) => {
   try {
     return await topUp(testClient, recipient, amount, token)
-  } catch (error) {}
+  } catch (error) { }
 }
 
 export const topUp = async (
@@ -402,8 +401,7 @@ export const topUp = async (
 
   if (balanceOfRecipient > amount) {
     Logger.log(
-      `balanceOfRecipient (${recipient}) already has enough ${
-        token ?? "native token"
+      `balanceOfRecipient (${recipient}) already has enough ${token ?? "native token"
       } (${balanceOfRecipient}) during safeTopUp`
     )
     return await Promise.resolve()
@@ -494,14 +492,14 @@ export const setByteCodeDynamic = async (
 export type TestnetParams = ReturnType<typeof getTestParamsForTestnet>
 export const getTestParamsForTestnet = (publicClient: PublicClient) => ({
   k1ValidatorAddress: MAINNET_ADDRESS_K1_VALIDATOR_ADDRESS,
-  factoryAddress: MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
-  // userOperation: {
-  //   estimateFeesPerGas: async (_) => {
-  //     const feeData = await publicClient.estimateFeesPerGas()
-  //     return {
-  //       maxFeePerGas: safeMultiplier(feeData.maxFeePerGas, 1.5),
-  //       maxPriorityFeePerGas: safeMultiplier(feeData.maxPriorityFeePerGas, 1.5)
-  //     }
-  //   }
-  // }
+  factoryAddress: MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS,
+  userOperation: {
+    estimateFeesPerGas: async (_) => {
+      const feeData = await publicClient.estimateFeesPerGas()
+      return {
+        maxFeePerGas: safeMultiplier(feeData.maxFeePerGas, 1.5),
+        maxPriorityFeePerGas: safeMultiplier(feeData.maxPriorityFeePerGas, 1.5)
+      }
+    }
+  }
 })

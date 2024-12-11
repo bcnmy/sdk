@@ -83,7 +83,7 @@ export type TokenPaymasterConfigParams = {
  * ];
  *
  * // Get paymaster quotes
- * const quotes = await paymasterClient.getPaymasterQuotes(userOp, tokenList);
+ * const quotes = await paymasterClient.getTokenPaymasterQuotes(userOp, tokenList);
  *
  * // Example response:
  * // {
@@ -104,7 +104,7 @@ export type TokenPaymasterConfigParams = {
  * // }
  * ```
  */
-export const getPaymasterQuotes = async (
+export const getTokenPaymasterQuotes = async (
   userOp: UserOperation,
   client: Client<
     Transport,

@@ -12,6 +12,7 @@ import {
   encodeAbiParameters,
   encodeFunctionData,
   encodePacked,
+  erc20Abi,
   hexToBytes,
   keccak256,
   parseAbi,
@@ -22,6 +23,7 @@ import {
   toHex
 } from "viem"
 import {
+  BICONOMY_TOKEN_PAYMASTER,
   MOCK_MULTI_MODULE_ADDRESS,
   MODULE_ENABLE_MODE_TYPE_HASH,
   NEXUS_DOMAIN_NAME,
@@ -35,6 +37,9 @@ import {
   moduleTypeIds
 } from "../../modules/utils/Types"
 import type { AccountMetadata, EIP712DomainReturn } from "./Types"
+import { type NexusClient } from "../../clients/createNexusClient"
+import { type BundlerClient } from "viem/account-abstraction"
+import { type PaymasterContext } from "../../clients/createBicoPaymasterClient"
 
 /**
  * Type guard to check if a value is null or undefined.
@@ -274,7 +279,7 @@ export const getAccountMeta = async (
         chainId: decoded?.[3]
       }
     }
-  } catch (error) {}
+  } catch (error) { }
   return {
     name: NEXUS_DOMAIN_NAME,
     version: NEXUS_DOMAIN_VERSION,
@@ -390,4 +395,35 @@ export type EthersWallet = {
   getAddress: () => Promise<AnyData>
   address: Address | string
   provider: AnyData
+}
+
+export const getAllowance = async (
+  client: PublicClient,
+  accountAddress: Address,
+  tokenAddress: Address,
+): Promise<bigint> => {
+  const approval = await client.readContract({
+    address: tokenAddress,
+    abi: erc20Abi,
+    functionName: "allowance",
+    args: [accountAddress, BICONOMY_TOKEN_PAYMASTER]
+  })
+
+  return approval as bigint;
+}
+
+export const isNexusClient = (
+  client: Client
+): client is NexusClient => {
+  return client.name === "Nexus Client"
+}
+
+export type ExtendedBundlerClient = BundlerClient & {
+  paymasterContext?: PaymasterContext
+}
+
+export const isBundlerClient = (
+  client: Client
+): client is ExtendedBundlerClient => {
+  return client.type === "bundlerClient"
 }
