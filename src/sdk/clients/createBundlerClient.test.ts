@@ -86,7 +86,7 @@ describe.each(COMPETITORS)(
       expect(bundlerClient.getUserOperationReceipt).toBeInstanceOf(Function)
     })
 
-    test.skip("should send a transaction through bundler", async () => {
+    test("should send a transaction through bundler", async () => {
       // Get initial balance
       const initialBalance = await publicClient.getBalance({
         address: nexusAccountAddress
