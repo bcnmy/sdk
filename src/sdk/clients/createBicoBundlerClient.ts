@@ -15,12 +15,12 @@ import {
   type SmartAccount,
   createBundlerClient
 } from "viem/account-abstraction"
+import { biconomySponsoredPaymasterContext } from "./createBicoPaymasterClient"
 import { type BicoActions, bicoBundlerActions } from "./decorators/bundler"
 import type {
   BicoRpcSchema,
   GetGasFeeValuesReturnType
 } from "./decorators/bundler/getGasFeeValues"
-import { biconomySponsoredPaymasterContext } from "./createBicoPaymasterClient"
 
 export type BicoBundlerClient<
   transport extends Transport = Transport,
@@ -32,15 +32,15 @@ export type BicoBundlerClient<
   Client<
     transport,
     chain extends Chain
-    ? chain
-    : // biome-ignore lint/suspicious/noExplicitAny: We need any to infer the chain type
-    client extends Client<any, infer chain>
-    ? chain
-    : undefined,
+      ? chain
+      : // biome-ignore lint/suspicious/noExplicitAny: We need any to infer the chain type
+        client extends Client<any, infer chain>
+        ? chain
+        : undefined,
     account,
     rpcSchema extends RpcSchema
-    ? [...BundlerRpcSchema, ...BicoRpcSchema, ...rpcSchema]
-    : [...BundlerRpcSchema, ...BicoRpcSchema],
+      ? [...BundlerRpcSchema, ...BicoRpcSchema, ...rpcSchema]
+      : [...BundlerRpcSchema, ...BicoRpcSchema],
     BundlerActions<account> & PaymasterActions & BicoActions
   >
 >
@@ -48,14 +48,14 @@ export type BicoBundlerClient<
 type BicoBundlerClientConfig = Omit<BundlerClientConfig, "transport"> &
   OneOf<
     | {
-      transport: Transport
-    }
+        transport: Transport
+      }
     | {
-      bundlerUrl: string
-    }
+        bundlerUrl: string
+      }
     | {
-      apiKey?: string
-    }
+        apiKey?: string
+      }
   >
 
 /**
@@ -89,11 +89,12 @@ export const createBicoBundlerClient = (
     : parameters.bundlerUrl
       ? http(parameters.bundlerUrl)
       : http(
-        // @ts-ignore: Type saftey provided by the if statement above
-        `https://bundler.biconomy.io/api/v3/${parameters.chain.id}/${parameters.apiKey ??
-        "nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f14"
-        }`
-      )
+          // @ts-ignore: Type saftey provided by the if statement above
+          `https://bundler.biconomy.io/api/v3/${parameters.chain.id}/${
+            parameters.apiKey ??
+            "nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f14"
+          }`
+        )
 
   const defaultedUserOperation = parameters.userOperation ?? {
     estimateFeesPerGas: async (_) => {
