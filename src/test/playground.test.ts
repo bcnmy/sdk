@@ -78,6 +78,21 @@ describe.skipIf(!playgroundTrue())("playground", () => {
     testParams = getTestParamsForTestnet(publicClient)
   })
 
+  test("should init the smart account", async () => {
+    nexusClient = await createNexusClient({
+      signer: eoaAccount,
+      chain,
+      transport: http(),
+      bundlerTransport: http(bundlerUrl),
+      paymaster: network.paymasterUrl
+        ? createBicoPaymasterClient({
+            transport: http(network.paymasterUrl)
+          })
+        : undefined,
+      ...testParams
+    })
+  })
+
   test("should log relevant addresses", async () => {
     nexusAccountAddress = await nexusClient.account.getCounterFactualAddress()
     console.log({ nexusAccountAddress })
