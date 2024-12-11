@@ -46,6 +46,11 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
   let nexusAccount: NexusAccount
   let nexusClient: NexusClient
 
+  const baseSepoliaUSDCAddress: Address =
+    "0x036cbd53842c5426634e7929541ec2318f3dcf7e"
+  const baseSepoliaDAIAddress: Address =
+    "0x7683022d84f726a96c4a6611cd31dbf5409c0ac9"
+
   beforeAll(async () => {
     network = await toNetwork("PUBLIC_TESTNET")
 
@@ -138,7 +143,6 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
   })
 
   test("should use token paymaster to pay for gas fees, use max approval", async () => {
-    const baseSepoliaUsdcAddress = "0x036cbd53842c5426634e7929541ec2318f3dcf7e"
     const nexusClient = await createNexusClient({
       signer: account,
       chain,
@@ -148,7 +152,7 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
       paymasterContext: {
         mode: "ERC20",
         tokenInfo: {
-          feeTokenAddress: baseSepoliaUsdcAddress // USDC on Base Sepolia
+          feeTokenAddress: baseSepoliaUSDCAddress
         }
       },
       transport: http(),
@@ -180,8 +184,6 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
   })
 
   test("should use token paymaster to pay for gas fees, use custom approval with token paymaster quotes", async () => {
-    const baseSepoliaUsdcAddress =
-      "0x036cbd53842c5426634e7929541ec2318f3dcf7e" as Address
     const nexusClient = await createNexusClient({
       signer: account,
       chain,
@@ -192,7 +194,7 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
       paymasterContext: {
         mode: "ERC20",
         tokenInfo: {
-          feeTokenAddress: baseSepoliaUsdcAddress // USDC on Base Sepolia
+          feeTokenAddress: baseSepoliaUSDCAddress
         }
       },
       transport: http(),
@@ -201,7 +203,7 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
     })
 
     const usdcBalance = await publicClient.readContract({
-      address: baseSepoliaUsdcAddress,
+      address: baseSepoliaUSDCAddress,
       abi: parseAbi([
         "function balanceOf(address owner) public view returns (uint256 balance)"
       ]),
@@ -214,7 +216,7 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
       address: nexusClient.account.address
     })
 
-    const tokenList = [baseSepoliaUsdcAddress]
+    const tokenList = [baseSepoliaUSDCAddress]
     const userOp = await nexusClient.prepareUserOperation({
       calls: [
         {
@@ -253,4 +255,29 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
     // No gas fees were paid, so the balance should have decreased only by 1n
     expect(finalBalance).toBe(initialBalance - 1n)
   })
+
+  test("should retrieve all supported token addresses from the token paymaster", async () => {
+    const nexusClient = await createNexusClient({
+      signer: account,
+      chain,
+      paymaster: createBicoPaymasterClient({
+        transport: http(paymasterUrl)
+      }),
+      paymasterContext: {
+        mode: "ERC20",
+        tokenInfo: {
+          feeTokenAddress: baseSepoliaUSDCAddress
+        }
+      },
+      transport: http(),
+      bundlerTransport: http(bundlerUrl),
+      ...testParams
+    })
+
+    const supportedTokens = await paymaster.getSupportedTokens(nexusClient);
+    const supportedTokenAddresses = supportedTokens.map((token) => token.tokenAddress);
+    expect(supportedTokenAddresses).toContain(baseSepoliaUSDCAddress);
+    expect(supportedTokenAddresses).toContain(baseSepoliaDAIAddress);
+  })
 })
+
