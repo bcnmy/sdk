@@ -274,10 +274,11 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
       ...testParams
     })
 
-    const supportedTokens = await paymaster.getSupportedTokens(nexusClient);
-    const supportedTokenAddresses = supportedTokens.map((token) => token.tokenAddress);
-    expect(supportedTokenAddresses).toContain(baseSepoliaUSDCAddress);
-    expect(supportedTokenAddresses).toContain(baseSepoliaDAIAddress);
+    const supportedTokens = await paymaster.getSupportedTokens(nexusClient)
+    const supportedTokenAddresses = supportedTokens.map(
+      (token) => token.tokenAddress
+    )
+    expect(supportedTokenAddresses).toContain(baseSepoliaUSDCAddress)
+    expect(supportedTokenAddresses).toContain(baseSepoliaDAIAddress)
   })
 })
-
