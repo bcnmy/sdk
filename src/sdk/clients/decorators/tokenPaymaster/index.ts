@@ -57,6 +57,18 @@ export type TokenPaymasterActions = {
     userOp: UserOperation,
     tokenList: Address[]
   ) => Promise<TokenPaymasterQuotesResponse>
+  /**
+   * Retrieves the supported tokens for the Biconomy Token Paymaster..
+   *
+   * @param client - The Nexus client instance
+   * @returns A promise that resolves to an array of FeeQuote objects.
+   *
+   * @example
+   * ```typescript
+   * const supportedTokens = await paymaster.getSupportedTokens(nexusClient);
+   * console.log(supportedTokens);
+   * ```
+   */
   getSupportedTokens: (client: NexusClient) => Promise<FeeQuote[]>
 }
 
@@ -111,6 +123,18 @@ export const bicoTokenPaymasterActions =
       userOp: UserOperation,
       tokenList: Address[]
     ) => getTokenPaymasterQuotes(userOp, client, tokenList),
+    /**
+     * Retrieves the supported tokens for the Biconomy Token Paymaster..
+     *
+     * @param client - The Nexus client instance
+     * @returns A promise that resolves to an array of FeeQuote objects.
+     *
+     * @example
+     * ```typescript
+     * const supportedTokens = await paymaster.getSupportedTokens(nexusClient);
+     * console.log(supportedTokens);
+     * ```
+     */
     getSupportedTokens: async (client: NexusClient) =>
       getSupportedTokens(client)
   })
