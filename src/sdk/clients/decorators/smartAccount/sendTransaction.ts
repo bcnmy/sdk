@@ -92,8 +92,6 @@ export async function sendTransaction<
 
     if (!to) throw new Error("Missing to address")
 
-    console.log(customApprovalAmount, "customApprovalAmount")
-
     userOpHash = await getAction(
       client,
       sendUserOperation,
@@ -160,7 +158,8 @@ export async function sendTransaction<
               ...args.calls
               // @ts-ignore
             ]
-          : [...args.calls]
+          : // @ts-ignore
+            [...args.calls]
     } as SendUserOperationParameters<account, accountOverride>)
   }
 
