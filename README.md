@@ -25,18 +25,12 @@ The Biconomy SDK is your all-in-one toolkit for building decentralized applicati
 
 ### Installation
 
-1. **Add the package and install dependencies:**
-
+1. **Add the package:**
 ```bash
 bun add @biconomy/sdk viem @rhinestone/module-sdk
 ```
 
-2. **Install dependencies:**
-
-```bash
-bun i
-```
-
+2. **Basic Usage:**
 ```typescript
 import { createNexusClient } from "@biconomy/sdk";
 import { http } from "viem";
@@ -48,35 +42,32 @@ const nexusClient = await createNexusClient({
   bundlerTransport: http(bundlerUrl),
 });
 
-const hash = await nexusClient.sendTransaction({ calls: [to: "0x...", value: 1] });
-const { status, transactionHash } = await nexusClient.waitForTransactionReceipt({ hash });
+const hash = await nexusClient.sendTransaction({ 
+  calls: [{ to: "0x...", value: 1 }] 
+});
 
+const { status, transactionHash } = await nexusClient.waitForTransactionReceipt({ hash });
 ```
 
-3. Testing
+### Testing
 
-To run the tests, ensure you have the following prerequisites installed:
-
+**Prerequisites:**
 - Node.js v22 or higher
 - [Bun](https://bun.sh/) package manager
 - [Foundry](https://book.getfoundry.sh/getting-started/installation)
 
-Install the dependencies:
-
+**Setup:**
 ```bash
 bun install --frozen-lockfile
 ```
 
-### Run all tests
-
+**Running Tests:**
 ```bash
+# Run all tests
 bun run test
-```
 
-### Run tests for a specific module
-
-```bash
-bun run test -t=smartSessions 
+# Run tests for a specific module
+bun run test -t=smartSessions
 ```
 
 For detailed information about the testing framework, network configurations, and debugging guidelines, please refer to our [Testing Documentation](./src/test/README.md).
