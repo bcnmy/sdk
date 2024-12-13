@@ -14,10 +14,6 @@ import { getTestParamsForTestnet, killNetwork } from "../../test/testUtils"
 import type { NetworkConfig, TestnetParams } from "../../test/testUtils"
 import { type NexusAccount, toNexusAccount } from "../account/toNexusAccount"
 import {
-  type BicoBundlerClient,
-  createBicoBundlerClient
-} from "./createBicoBundlerClient"
-import {
   type BicoPaymasterClient,
   createBicoPaymasterClient
 } from "./createBicoPaymasterClient"
