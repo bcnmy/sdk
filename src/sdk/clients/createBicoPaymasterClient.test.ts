@@ -17,10 +17,6 @@ import { getTestParamsForTestnet, killNetwork } from "../../test/testUtils"
 import type { NetworkConfig, TestnetParams } from "../../test/testUtils"
 import { type NexusAccount, toNexusAccount } from "../account/toNexusAccount"
 import {
-  type BicoBundlerClient,
-  createBicoBundlerClient
-} from "./createBicoBundlerClient"
-import {
   type BicoPaymasterClient,
   createBicoPaymasterClient
 } from "./createBicoPaymasterClient"
@@ -40,7 +36,6 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
   let publicClient: PublicClient // testClient not available on public testnets
   let account: PrivateKeyAccount
   let recipientAddress: Address
-  let bicoBundler: BicoBundlerClient
   let nexusAccountAddress: Address
   let paymaster: BicoPaymasterClient
   let nexusAccount: NexusAccount
@@ -85,11 +80,6 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
       ...testParams
     })
 
-    bicoBundler = createBicoBundlerClient({
-      bundlerUrl,
-      chain,
-      account: nexusAccount
-    })
     nexusAccountAddress = await nexusAccount.getCounterFactualAddress()
 
     nexusClient = (await createNexusClient({
