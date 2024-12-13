@@ -82,10 +82,7 @@ describe("modules.smartSessions.decorators", async () => {
   test("should test use smart session decorators", async () => {
     const usePermissionsModule = toSmartSessionsValidator({
       account: nexusClient.account,
-      signer: sessionKeyAccount,
-      moduleData: {
-        permissionIds: []
-      }
+      signer: sessionKeyAccount
     })
 
     const smartSessionNexusClient = await createNexusSessionClient({
