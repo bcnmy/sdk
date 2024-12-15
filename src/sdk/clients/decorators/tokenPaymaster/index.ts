@@ -16,7 +16,7 @@ export type TokenPaymasterActions = {
    * @param client - Viem Client configured with BicoTokenPaymaster RPC methods
    * @param tokenList - Array of ERC20 token addresses to get quotes for
    *
-   * @returns Promise containing paymaster quotes response with fee details for each supported token
+   * @returns A promise of {@link TokenPaymasterQuotesResponse}
    *
    * @example
    * ```typescript
@@ -82,7 +82,7 @@ export const bicoTokenPaymasterActions =
      * @param client - Viem Client configured with BicoTokenPaymaster RPC methods
      * @param tokenList - Array of ERC20 token addresses to get quotes for
      *
-     * @returns Promise containing paymaster quotes response with fee details for each supported token
+     * @returns A promise of {@link TokenPaymasterQuotesResponse}
      *
      * @example
      * ```typescript

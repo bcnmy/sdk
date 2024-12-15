@@ -16,13 +16,15 @@ import { paymasterTruthy, toNetwork } from "../../test/testSetup"
 import { getTestParamsForTestnet, killNetwork } from "../../test/testUtils"
 import type { NetworkConfig, TestnetParams } from "../../test/testUtils"
 import { type NexusAccount, toNexusAccount } from "../account/toNexusAccount"
+import { ENTRY_POINT_ADDRESS } from "../constants"
 import {
   type BicoBundlerClient,
   createBicoBundlerClient
 } from "./createBicoBundlerClient"
 import {
   type BicoPaymasterClient,
-  createBicoPaymasterClient
+  createBicoPaymasterClient,
+  toBiconomyTokenPaymasterContext
 } from "./createBicoPaymasterClient"
 import { type NexusClient, createNexusClient } from "./createNexusClient"
 
@@ -143,18 +145,16 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
   })
 
   test("should use token paymaster to pay for gas fees, use max approval", async () => {
+    const paymasterContext = toBiconomyTokenPaymasterContext({
+      feeTokenAddress: baseSepoliaUSDCAddress
+    })
     const nexusClient = await createNexusClient({
       signer: account,
       chain,
       paymaster: createBicoPaymasterClient({
         transport: http(paymasterUrl)
       }),
-      paymasterContext: {
-        mode: "ERC20",
-        tokenInfo: {
-          feeTokenAddress: baseSepoliaUSDCAddress
-        }
-      },
+      paymasterContext,
       transport: http(),
       bundlerTransport: http(bundlerUrl),
       ...testParams
@@ -255,6 +255,8 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
     // No gas fees were paid, so the balance should have decreased only by 1n
     expect(finalBalance).toBe(initialBalance - 1n)
   })
+
+  ENTRY_POINT_ADDRESS
 
   test("should retrieve all supported token addresses from the token paymaster", async () => {
     const nexusClient = await createNexusClient({

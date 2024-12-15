@@ -55,6 +55,10 @@ export type PaymasterContext = {
   calculateGasLimits?: boolean
 }
 
+type ToBiconomyTokenPaymasterContextParams = {
+  feeTokenAddress: Address
+}
+
 export const biconomySponsoredPaymasterContext = {
   mode: "SPONSORED",
   expiryDuration: 300,
@@ -63,6 +67,17 @@ export const biconomySponsoredPaymasterContext = {
     smartAccountInfo: {
       name: "BICONOMY",
       version: "1.0.0"
+    }
+  }
+}
+
+export const toBiconomyTokenPaymasterContext = ({
+  feeTokenAddress
+}: ToBiconomyTokenPaymasterContextParams): PaymasterContext => {
+  return {
+    mode: "ERC20",
+    tokenInfo: {
+      feeTokenAddress
     }
   }
 }
