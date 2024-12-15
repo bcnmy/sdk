@@ -26,7 +26,10 @@ export const getSupportedTokens = async (
     ]
   })
   const paymaster = client.paymaster as BicoPaymasterClient
-  const quote = await paymaster.getTokenPaymasterQuotes(userOp, [])
+  const quote = await paymaster.getTokenPaymasterQuotes({
+    userOp,
+    tokenList: []
+  })
 
   return quote.feeQuotes
 }

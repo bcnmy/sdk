@@ -60,6 +60,11 @@ export type TokenPaymasterConfigParams = {
   calculateGasLimits: boolean
 }
 
+export type GetTokenPaymasterQuotesParameters = {
+  userOp: UserOperation
+  tokenList: Address[]
+}
+
 /**
  * Fetches paymaster quotes for ERC20 token payment options for a given UserOperation.
  *
@@ -105,15 +110,15 @@ export type TokenPaymasterConfigParams = {
  * ```
  */
 export const getTokenPaymasterQuotes = async (
-  userOp: UserOperation,
   client: Client<
     Transport,
     Chain | undefined,
     Account | undefined,
     BicoTokenPaymasterRpcSchema
   >,
-  tokenList: Address[]
+  parameters: GetTokenPaymasterQuotesParameters
 ): Promise<TokenPaymasterQuotesResponse> => {
+  const { userOp, tokenList } = parameters
   const quote = await client.request({
     method: "pm_getFeeQuoteOrData",
     params: [

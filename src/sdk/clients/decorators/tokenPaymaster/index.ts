@@ -1,9 +1,9 @@
-import type { Address } from "viem"
-import type { PaymasterClient, UserOperation } from "viem/account-abstraction"
+import type { PaymasterClient } from "viem/account-abstraction"
 import type { NexusClient } from "../../createNexusClient"
 import { getSupportedTokens } from "./getSupportedTokens"
 import {
   type FeeQuote,
+  type GetTokenPaymasterQuotesParameters,
   type TokenPaymasterQuotesResponse,
   getTokenPaymasterQuotes
 } from "./getTokenPaymasterQuotes"
@@ -54,8 +54,7 @@ export type TokenPaymasterActions = {
    * ```
    */
   getTokenPaymasterQuotes: (
-    userOp: UserOperation,
-    tokenList: Address[]
+    parameters: GetTokenPaymasterQuotesParameters
   ) => Promise<TokenPaymasterQuotesResponse>
   /**
    * Retrieves the supported tokens for the Biconomy Token Paymaster..
@@ -120,9 +119,8 @@ export const bicoTokenPaymasterActions =
      * ```
      */
     getTokenPaymasterQuotes: async (
-      userOp: UserOperation,
-      tokenList: Address[]
-    ) => getTokenPaymasterQuotes(userOp, client, tokenList),
+      parameters: GetTokenPaymasterQuotesParameters
+    ) => getTokenPaymasterQuotes(client, parameters),
     /**
      * Retrieves the supported tokens for the Biconomy Token Paymaster..
      *

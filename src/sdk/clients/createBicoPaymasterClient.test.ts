@@ -184,6 +184,9 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
   })
 
   test("should use token paymaster to pay for gas fees, use custom approval with token paymaster quotes", async () => {
+    const paymasterContext = toBiconomyTokenPaymasterContext({
+      feeTokenAddress: baseSepoliaUSDCAddress
+    })
     const nexusClient = await createNexusClient({
       signer: account,
       chain,
@@ -191,12 +194,7 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
       paymaster: createBicoPaymasterClient({
         transport: http(paymasterUrl)
       }),
-      paymasterContext: {
-        mode: "ERC20",
-        tokenInfo: {
-          feeTokenAddress: baseSepoliaUSDCAddress
-        }
-      },
+      paymasterContext,
       transport: http(),
       bundlerTransport: http(bundlerUrl),
       ...testParams
@@ -226,7 +224,7 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
         }
       ]
     })
-    const quote = await paymaster.getTokenPaymasterQuotes(userOp, tokenList)
+    const quote = await paymaster.getTokenPaymasterQuotes({ userOp, tokenList })
     const usdcFeeAmount = parseUnits(
       quote.feeQuotes[0].maxGasFee.toString(),
       quote.feeQuotes[0].decimal

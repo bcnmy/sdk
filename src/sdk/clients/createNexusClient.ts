@@ -224,22 +224,7 @@ export async function createNexusClient(
     chain,
     key,
     name,
-    paymasterContext: paymasterContext
-      ? {
-          mode: paymasterContext.mode,
-          sponsorshipInfo: {
-            smartAccountInfo: {
-              name: "BICONOMY",
-              version: "2.0.0"
-            }
-          },
-          tokenInfo: {
-            feeTokenAddress: paymasterContext.tokenInfo.feeTokenAddress
-          },
-          expiryDuration: paymasterContext.expiryDuration ?? 6000,
-          calculateGasLimits: paymasterContext.calculateGasLimits ?? true
-        }
-      : undefined,
+    paymasterContext,
     account: nexusAccount,
     transport: bundlerTransport
   })
