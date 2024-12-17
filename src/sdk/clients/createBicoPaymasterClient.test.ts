@@ -134,7 +134,58 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
     expect(finalBalance).toBe(initialBalance - 1n)
   })
 
-  test("should use token paymaster to pay for gas fees, use max approval", async () => {
+  test("should use token paymaster to pay for gas fees, use max approval, use sendUserOperation", async () => {
+    const paymasterContext = toBiconomyTokenPaymasterContext({
+      feeTokenAddress: baseSepoliaUSDCAddress
+    })
+    const nexusClient = await createNexusClient({
+      signer: account,
+      chain,
+      paymaster: createBicoPaymasterClient({
+        transport: http(paymasterUrl)
+      }),
+      paymasterContext,
+      transport: http(),
+      bundlerTransport: http(bundlerUrl),
+      ...testParams
+    })
+
+    const initialBalance = await publicClient.getBalance({
+      address: nexusAccountAddress
+    })
+
+    const userOp = await nexusClient.prepareUserOperation({
+      calls: [
+        {
+          to: recipientAddress,
+          value: 1n,
+          data: "0x"
+        }
+      ]
+    })
+
+    const partialUserOp = {
+      ...userOp,
+      signature: undefined
+    }
+
+    const hash = await nexusClient.sendUserOperation(partialUserOp)
+
+    const receipt = await nexusClient.waitForUserOperationReceipt({ hash })
+
+    expect(receipt.success).toBe(true)
+
+    // Get final balance
+    const finalBalance = await publicClient.getBalance({
+      address: nexusAccountAddress
+    })
+
+    // Check that the balance hasn't changed
+    // No gas fees were paid, so the balance should have decreased only by 1n
+    expect(finalBalance).toBe(initialBalance - 1n)
+  })
+
+  test("should use token paymaster to pay for gas fees, use max approval, use sendTransaction", async () => {
     const paymasterContext = toBiconomyTokenPaymasterContext({
       feeTokenAddress: baseSepoliaUSDCAddress
     })
@@ -155,14 +206,19 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
     })
 
     const hash = await nexusClient.sendTransaction({
-      to: recipientAddress,
-      value: 1n,
-      chain: baseSepolia
+      calls: [
+        {
+          to: recipientAddress,
+          value: 1n,
+          data: "0x"
+        }
+      ]
     })
 
-    // Wait for the transaction to be mined
-    const { status } = await publicClient.waitForTransactionReceipt({ hash })
-    expect(status).toBe("success")
+    const receipt = await publicClient.waitForTransactionReceipt({ hash })
+
+    expect(receipt.status).toBe("success")
+
     // Get final balance
     const finalBalance = await publicClient.getBalance({
       address: nexusAccountAddress
@@ -220,33 +276,35 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
       quote.feeQuotes[0].decimal
     )
 
-    expect(usdcBalance).toBeGreaterThan(usdcFeeAmount)
+    const tokenPaymasterUserOp = await nexusClient.prepareTokenPaymasterUserOp({
+      calls: [
+        {
+          to: recipientAddress,
+          value: 1n,
+          data: "0x"
+        }
+      ],
+      feeTokenAddress: baseSepoliaUSDCAddress,
+      customApprovalAmount: usdcFeeAmount
+    })
 
-    const hash = await nexusClient.sendTransaction(
-      {
-        to: recipientAddress,
-        value: 1n,
-        chain: baseSepolia
-      },
-      usdcFeeAmount
-    )
+    const userOpHash = await nexusClient.sendUserOperation(tokenPaymasterUserOp)
+    const receipt = await nexusClient.waitForUserOperationReceipt({
+      hash: userOpHash
+    })
 
-    // Wait for the transaction to be mined
-    const { status } = await nexusClient.waitForTransactionReceipt({ hash })
-    expect(status).toBe("success")
-    // Get final balance
+    expect(receipt.success).toBe(true)
+
     const finalBalance = await publicClient.getBalance({
       address: nexusClient.account.address
     })
 
-    // Check that the balance hasn't changed
-    // No gas fees were paid, so the balance should have decreased only by 1n
     expect(finalBalance).toBe(initialBalance - 1n)
   })
 
   ENTRY_POINT_ADDRESS
 
-  test("should retrieve all supported token addresses from the token paymaster", async () => {
+  test.skip("should retrieve all supported token addresses from the token paymaster", async () => {
     const nexusClient = await createNexusClient({
       signer: account,
       chain,

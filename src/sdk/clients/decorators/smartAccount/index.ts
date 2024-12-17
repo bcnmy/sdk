@@ -11,8 +11,12 @@ import type {
   WaitForTransactionReceiptReturnType,
   WriteContractParameters
 } from "viem"
-import type { SmartAccount } from "viem/account-abstraction"
+import type { SmartAccount, UserOperation } from "viem/account-abstraction"
 import type { AnyData } from "../../../modules/utils/Types"
+import {
+  type PrepareTokenPaymasterUserOpParameters,
+  prepareTokenPaymasterUserOp
+} from "./prepareTokenPaymasterUserOp"
 import { sendTransaction } from "./sendTransaction"
 import { signMessage } from "./signMessage"
 import { signTypedData } from "./signTypedData"
@@ -23,6 +27,9 @@ export type SmartAccountActions<
   TChain extends Chain | undefined = Chain | undefined,
   TSmartAccount extends SmartAccount | undefined = SmartAccount | undefined
 > = {
+  prepareTokenPaymasterUserOp: (
+    args: PrepareTokenPaymasterUserOpParameters
+  ) => Promise<Omit<UserOperation, "signature">>
   /**
    * Creates, signs, and sends a new transaction to the network using a smart account.
    * This function also allows you to sponsor this transaction if the sender is a smart account.
@@ -52,8 +59,7 @@ export type SmartAccountActions<
         TChainOverride,
         calls
       >
-    >[1],
-    customApprovalAmount?: bigint
+    >[1]
   ) => Promise<Hash>
 
   /**
@@ -297,8 +303,9 @@ export function smartAccountActions() {
   >(
     client: Client<Transport, TChain, TSmartAccount>
   ): SmartAccountActions<TChain, TSmartAccount> => ({
-    sendTransaction: (args, customApprovalAmount) =>
-      sendTransaction(client, args as AnyData, customApprovalAmount),
+    prepareTokenPaymasterUserOp: (args) =>
+      prepareTokenPaymasterUserOp(client, args),
+    sendTransaction: (args) => sendTransaction(client, args as AnyData),
     signMessage: (args) => signMessage(client, args),
     signTypedData: (args) => signTypedData(client, args),
     writeContract: (args) => writeContract(client, args),

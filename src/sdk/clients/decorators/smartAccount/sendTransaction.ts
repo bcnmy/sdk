@@ -1,13 +1,9 @@
-import {
-  type Address,
-  type Chain,
-  type Client,
-  type Hash,
-  type PublicClient,
-  type SendTransactionParameters,
-  type Transport,
-  erc20Abi,
-  maxUint256
+import type {
+  Chain,
+  Client,
+  Hash,
+  SendTransactionParameters,
+  Transport
 } from "viem"
 import {
   type SendUserOperationParameters,
@@ -15,12 +11,7 @@ import {
   sendUserOperation,
   waitForUserOperationReceipt
 } from "viem/account-abstraction"
-import { encodeFunctionData, getAction, parseAccount } from "viem/utils"
-import {
-  BICONOMY_TOKEN_PAYMASTER,
-  getAllowance,
-  isBundlerClient
-} from "../../../account"
+import { getAction, parseAccount } from "viem/utils"
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
 
 /**
@@ -29,7 +20,6 @@ import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
  *
  * @param client - The client instance.
  * @param args - Parameters for sending the transaction or user operation.
- * @param customApprovalAmount - The amount to approve for the fee token to the Biconomy Token.
  * @returns The transaction hash as a hexadecimal string.
  * @throws {AccountNotFoundError} If the account is not found.
  *
@@ -53,23 +43,9 @@ export async function sendTransaction<
   client: Client<Transport, chain, account>,
   args:
     | SendTransactionParameters<chain, account, chainOverride>
-    | SendUserOperationParameters<account, accountOverride, calls>,
-  customApprovalAmount?: bigint
+    | SendUserOperationParameters<account, accountOverride, calls>
 ): Promise<Hash> {
-  if (!isBundlerClient(client)) {
-    throw new Error("Client must be a NexusClient instance")
-  }
-
   let userOpHash: Hash
-
-  let gasTokenAllowance = 0n
-  if (client.paymasterContext?.mode === "ERC20") {
-    gasTokenAllowance = await getAllowance(
-      client.account?.client as PublicClient,
-      client.account?.address as Address,
-      client.paymasterContext?.tokenInfo.feeTokenAddress as Address
-    )
-  }
 
   if ("to" in args) {
     const {
@@ -97,35 +73,13 @@ export async function sendTransaction<
       sendUserOperation,
       "sendUserOperation"
     )({
-      calls:
-        client.paymasterContext?.mode === "ERC20" &&
-        (gasTokenAllowance <= 0 || customApprovalAmount)
-          ? [
-              {
-                to: client.paymasterContext?.tokenInfo.feeTokenAddress ?? null,
-                data: encodeFunctionData({
-                  functionName: "approve",
-                  abi: erc20Abi,
-                  args: [
-                    BICONOMY_TOKEN_PAYMASTER,
-                    customApprovalAmount ?? maxUint256
-                  ]
-                }),
-                value: BigInt(0)
-              },
-              {
-                to,
-                value: value || BigInt(0),
-                data: data || "0x"
-              }
-            ].filter(Boolean)
-          : [
-              {
-                to,
-                value: value || BigInt(0),
-                data: data || "0x"
-              }
-            ].filter(Boolean),
+      calls: [
+        {
+          to,
+          value: value || BigInt(0),
+          data: data || "0x"
+        }
+      ],
       account,
       maxFeePerGas,
       maxPriorityFeePerGas,
@@ -136,31 +90,7 @@ export async function sendTransaction<
       client,
       sendUserOperation,
       "sendUserOperation"
-    )({
-      ...args,
-      calls:
-        client.paymasterContext?.mode === "ERC20" &&
-        (gasTokenAllowance <= 0 || customApprovalAmount)
-          ? [
-              {
-                to: client.paymasterContext?.tokenInfo.feeTokenAddress ?? null,
-                data: encodeFunctionData({
-                  functionName: "approve",
-                  abi: erc20Abi,
-                  args: [
-                    BICONOMY_TOKEN_PAYMASTER,
-                    customApprovalAmount ?? maxUint256
-                  ]
-                }),
-                value: BigInt(0)
-              },
-              // @ts-ignore
-              ...args.calls
-              // @ts-ignore
-            ]
-          : // @ts-ignore
-            [...args.calls]
-    } as SendUserOperationParameters<account, accountOverride>)
+    )({ ...args } as SendUserOperationParameters<account, accountOverride>)
   }
 
   const userOperationReceipt = await getAction(
