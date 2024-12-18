@@ -141,7 +141,7 @@ export const createBicoPaymasterClient = (
   const { getPaymasterStubData, ...paymasterClient } = createPaymasterClient({
     ...parameters,
     transport: defaultedTransport
-  })
+  }).extend(bicoTokenPaymasterActions())
 
-  return paymasterClient.extend(bicoTokenPaymasterActions())
+  return paymasterClient
 }

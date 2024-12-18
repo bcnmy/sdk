@@ -16,7 +16,6 @@ import { paymasterTruthy, toNetwork } from "../../test/testSetup"
 import { getTestParamsForTestnet, killNetwork } from "../../test/testUtils"
 import type { NetworkConfig, TestnetParams } from "../../test/testUtils"
 import { type NexusAccount, toNexusAccount } from "../account/toNexusAccount"
-import { ENTRY_POINT_ADDRESS } from "../constants"
 import {
   type BicoPaymasterClient,
   createBicoPaymasterClient,
@@ -102,7 +101,7 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
     expect(paymaster.getPaymasterData).toBeInstanceOf(Function)
 
     // Bico Paymaster has no getPaymasterStubData method, to ensure latency is kept low.
-    // expect(paymaster).not.toHaveProperty("getPaymasterStubData")
+    expect(paymaster).not.toHaveProperty("getPaymasterStubData")
   })
 
   test("should send a sponsored transaction", async () => {
@@ -172,8 +171,7 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
     const hash = await nexusClient.sendUserOperation(partialUserOp)
 
     const receipt = await nexusClient.waitForUserOperationReceipt({ hash })
-
-    expect(receipt.success).toBe(true)
+    expect(receipt.success).toBe("true")
 
     // Get final balance
     const finalBalance = await publicClient.getBalance({
@@ -293,7 +291,7 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
       hash: userOpHash
     })
 
-    expect(receipt.success).toBe(true)
+    expect(receipt.success).toBe("true")
 
     const finalBalance = await publicClient.getBalance({
       address: nexusClient.account.address
@@ -302,21 +300,17 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
     expect(finalBalance).toBe(initialBalance - 1n)
   })
 
-  ENTRY_POINT_ADDRESS
-
-  test.skip("should retrieve all supported token addresses from the token paymaster", async () => {
+  test("should retrieve all supported token addresses from the token paymaster", async () => {
+    const paymasterContext = toBiconomyTokenPaymasterContext({
+      feeTokenAddress: baseSepoliaUSDCAddress
+    })
     const nexusClient = await createNexusClient({
       signer: account,
       chain,
       paymaster: createBicoPaymasterClient({
         transport: http(paymasterUrl)
       }),
-      paymasterContext: {
-        mode: "ERC20",
-        tokenInfo: {
-          feeTokenAddress: baseSepoliaUSDCAddress
-        }
-      },
+      paymasterContext,
       transport: http(),
       bundlerTransport: http(bundlerUrl),
       ...testParams

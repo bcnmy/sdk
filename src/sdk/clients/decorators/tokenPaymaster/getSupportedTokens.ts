@@ -21,7 +21,8 @@ export const getSupportedTokens = async (
     calls: [
       {
         to: client.account.address,
-        data: "0x"
+        data: "0x",
+        value: 0n
       }
     ]
   })
