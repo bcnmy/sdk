@@ -14,9 +14,8 @@ import {
 } from "../../../../test/testUtils"
 import {
   type NexusClient,
-  createNexusClient
-} from "../../../clients/createNexusClient"
-import { createNexusSessionClient } from "../../../clients/createNexusSessionClient"
+  createSmartAccountClient
+} from "../../../clients/createSmartAccountClient"
 import type { CreateSessionDataParams } from "../Types"
 import {
   type SmartSessionModule,
@@ -50,6 +49,13 @@ describe("modules.smartSessions.decorators", async () => {
     sessionPublicKey = sessionKeyAccount.address
     testClient = toTestClient(chain, getTestAccount(5))
 
+    nexusClient = await createSmartAccountClient({
+      signer: eoaAccount,
+      chain,
+      transport: http(),
+      bundlerTransport: http(bundlerUrl)
+    })
+
     sessionRequestedInfo = [
       {
         sessionPublicKey, // Public key of the session
@@ -67,13 +73,6 @@ describe("modules.smartSessions.decorators", async () => {
         ]
       }
     ]
-
-    nexusClient = await createNexusClient({
-      signer: eoaAccount,
-      chain,
-      transport: http(),
-      bundlerTransport: http(bundlerUrl)
-    })
 
     nexusAccountAddress = await nexusClient.account.getCounterFactualAddress()
     await fundAndDeployClients(testClient, [nexusClient])
@@ -112,7 +111,7 @@ describe("modules.smartSessions.decorators", async () => {
       signer: sessionKeyAccount
     })
 
-    const smartSessionNexusClient = await createNexusSessionClient({
+    const smartSessionNexusClient = await createSmartAccountClient({
       chain,
       accountAddress: nexusClient.account.address,
       signer: sessionKeyAccount,

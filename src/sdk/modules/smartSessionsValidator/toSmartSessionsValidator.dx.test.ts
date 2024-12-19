@@ -21,9 +21,8 @@ import {
 import type { MasterClient, NetworkConfig } from "../../../test/testUtils"
 import {
   type NexusClient,
-  createNexusClient
-} from "../../clients/createNexusClient"
-import { createNexusSessionClient } from "../../clients/createNexusSessionClient"
+  createSmartAccountClient
+} from "../../clients/createSmartAccountClient"
 import type { Module } from "../utils/Types"
 import { abiToPoliciesInfo, parse, stringify } from "./Helpers"
 import type { CreateSessionDataParams, SessionData } from "./Types"
@@ -46,7 +45,7 @@ describe("modules.smartSessions.dx", async () => {
   let sessionsModule: Module
 
   beforeAll(async () => {
-    network = await toNetwork("BASE_SEPOLIA_FORKED")
+    network = await toNetwork("BESPOKE_ANVIL_NETWORK_FORKING_BASE_SEPOLIA")
 
     chain = network.chain
     bundlerUrl = network.bundlerUrl
@@ -81,7 +80,7 @@ describe("modules.smartSessions.dx", async () => {
 
     // Create a Nexus client for the main account (eoaAccount)
     // This client will be used to interact with the smart contract account
-    usersNexusClient = await createNexusClient({
+    usersNexusClient = await createSmartAccountClient({
       signer: eoaAccount,
       chain,
       transport: http(),
@@ -168,7 +167,7 @@ describe("modules.smartSessions.dx", async () => {
 
     // Create a new Nexus client for the session
     // This client will be used to interact with the smart contract account using the session key
-    const smartSessionNexusClient = await createNexusSessionClient({
+    const smartSessionNexusClient = await createSmartAccountClient({
       chain,
       accountAddress: usersSessionData.granter,
       signer: sessionKeyAccount,

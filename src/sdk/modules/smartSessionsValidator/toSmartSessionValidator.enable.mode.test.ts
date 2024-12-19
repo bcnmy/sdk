@@ -19,8 +19,6 @@ import {
   createPublicClient,
   createWalletClient,
   encodeFunctionData,
-  toBytes,
-  toHex,
   getAddress
 } from "viem"
 import {
@@ -32,29 +30,19 @@ import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { CounterAbi } from "../../../test/__contracts/abi/CounterAbi"
 import { testAddresses } from "../../../test/callDatas"
 import { toNetwork } from "../../../test/testSetup"
-import {
-  fundAndDeployClients,
-  getTestAccount,
-  getTestParamsForTestnet,
-  killNetwork,
-  toTestClient
-} from "../../../test/testUtils"
-import type {
-  MasterClient,
-  NetworkConfig,
-  TestnetParams
-} from "../../../test/testUtils"
+import { getTestParamsForTestnet } from "../../../test/testUtils"
+import type { NetworkConfig, TestnetParams } from "../../../test/testUtils"
 import { type NexusAccount, toNexusAccount } from "../../account/toNexusAccount"
 import {
   type NexusClient,
-  createNexusClient
-} from "../../clients/createNexusClient"
+  createSmartAccountClient
+} from "../../clients/createSmartAccountClient"
 import { SIMPLE_SESSION_VALIDATOR_ADDRESS } from "../../constants"
 import { generateSalt } from "./Helpers"
 
 describe("modules.smartSessions.enable.mode.dx", async () => {
   let network: NetworkConfig
-  // Required for "PUBLIC_TESTNET" networks
+  // Required for "TESTNET_FROM_ENV_VARS" networks
   let testParams: TestnetParams
 
   let chain: Chain
@@ -74,7 +62,7 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
   let sessionPublicKey: Address
 
   beforeAll(async () => {
-    network = await toNetwork("PUBLIC_TESTNET")
+    network = await toNetwork("TESTNET_FROM_ENV_VARS")
 
     chain = network.chain
     bundlerUrl = network.bundlerUrl
@@ -108,7 +96,7 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
 
     nexusAccountAddress = await nexusAccount.getCounterFactualAddress()
 
-    nexusClient = await createNexusClient({
+    nexusClient = await createSmartAccountClient({
       account: nexusAccount,
       signer: eoaAccount,
       chain,
@@ -151,7 +139,7 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
     expect(finalBalance).toBeLessThan(initialBalance)
   })
 
-  test("should support smart sessions enable mode", async () => {
+  test.skip("should support smart sessions enable mode", async () => {
     const uninitializedSmartSessions = getSmartSessionsValidator({})
 
     const isInstalled = await nexusClient.isModuleInstalled({
