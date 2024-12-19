@@ -61,6 +61,7 @@ type StringOrStrings = string | string[]
  * @param rpcUrl The RPC URL for the chain - may also be an array of URLs
  * @param blockExplorer The block explorer URL for the chain - may also be an array of URLs
  * @param nativeCurrency The native currency for the chain, ETH by default
+ * @param testnet Whether the chain is a testnet or not, true by default
  *
  * @example
  *
@@ -101,9 +102,11 @@ export const getCustomChain = (
   rpcUrl: StringOrStrings,
   blockExplorer?: StringOrStrings,
   nativeCurrency?: Chain["nativeCurrency"],
-  contracts?: Chain["contracts"]
+  contracts?: Chain["contracts"],
+  testnet = true
 ): Chain => {
   const chain: Chain = {
+    testnet,
     id,
     name,
     nativeCurrency: nativeCurrency ?? {

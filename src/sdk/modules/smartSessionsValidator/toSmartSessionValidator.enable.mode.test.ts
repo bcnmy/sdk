@@ -1,0 +1,266 @@
+import { getAccount } from "@rhinestone/module-sdk/account"
+import {
+  type Session,
+  SmartSessionMode,
+  decodeSmartSessionSignature,
+  encodeSmartSessionSignature,
+  getEnableSessionDetails,
+  getSmartSessionsValidator,
+  getSudoPolicy
+} from "@rhinestone/module-sdk/module"
+import {
+  http,
+  type Address,
+  type Chain,
+  type LocalAccount,
+  type PrivateKeyAccount,
+  type PublicClient,
+  type WalletClient,
+  createPublicClient,
+  createWalletClient,
+  encodeFunctionData,
+  toBytes,
+  toHex
+} from "viem"
+import {
+  entryPoint07Address,
+  getUserOperationHash
+} from "viem/account-abstraction"
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
+import { afterAll, beforeAll, describe, expect, test } from "vitest"
+import { CounterAbi } from "../../../test/__contracts/abi/CounterAbi"
+import { testAddresses } from "../../../test/callDatas"
+import { toNetwork } from "../../../test/testSetup"
+import {
+  fundAndDeployClients,
+  getTestAccount,
+  getTestParamsForTestnet,
+  killNetwork,
+  toTestClient
+} from "../../../test/testUtils"
+import type {
+  MasterClient,
+  NetworkConfig,
+  TestnetParams
+} from "../../../test/testUtils"
+import { type NexusAccount, toNexusAccount } from "../../account/toNexusAccount"
+import {
+  type NexusClient,
+  createNexusClient
+} from "../../clients/createNexusClient"
+import { SIMPLE_SESSION_VALIDATOR_ADDRESS } from "../../constants"
+import { generateSalt } from "./Helpers"
+
+describe("modules.smartSessions.enable.mode.dx", async () => {
+  let network: NetworkConfig
+  // Required for "PUBLIC_TESTNET" networks
+  let testParams: TestnetParams
+
+  let chain: Chain
+  let bundlerUrl: string
+  let paymasterUrl: undefined | string
+  let walletClient: WalletClient
+
+  // Test utils
+  let publicClient: PublicClient // testClient not available on public testnets
+  let eoaAccount: PrivateKeyAccount
+  let recipientAddress: Address
+  let nexusAccountAddress: Address
+  let nexusAccount: NexusAccount
+  let nexusClient: NexusClient
+
+  let sessionKeyAccount: LocalAccount
+  let sessionPublicKey: Address
+
+  beforeAll(async () => {
+    network = await toNetwork("PUBLIC_TESTNET")
+
+    chain = network.chain
+    bundlerUrl = network.bundlerUrl
+    paymasterUrl = network.paymasterUrl
+    eoaAccount = network.account as PrivateKeyAccount
+
+    sessionKeyAccount = privateKeyToAccount(generatePrivateKey()) // Generally belongs to the dapp
+    sessionPublicKey = toHex(toBytes(sessionKeyAccount.address))
+
+    recipientAddress = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045" // vitalik.eth
+
+    walletClient = createWalletClient({
+      account: eoaAccount,
+      chain,
+      transport: http()
+    })
+
+    publicClient = createPublicClient({
+      chain,
+      transport: http()
+    })
+
+    testParams = getTestParamsForTestnet(publicClient)
+
+    nexusAccount = await toNexusAccount({
+      signer: eoaAccount,
+      chain,
+      transport: http(),
+      ...testParams
+    })
+
+    nexusAccountAddress = await nexusAccount.getCounterFactualAddress()
+
+    nexusClient = await createNexusClient({
+      account: nexusAccount,
+      signer: eoaAccount,
+      chain,
+      transport: http(),
+      bundlerTransport: http(bundlerUrl),
+      ...testParams
+    })
+  })
+
+  test("should send a sponsored transaction", async () => {
+    // Get initial balance
+    const initialBalance = await publicClient.getBalance({
+      address: nexusAccountAddress
+    })
+
+    if (initialBalance === 0n) {
+      console.log("Fund account", nexusAccountAddress)
+    }
+
+    // Send user operation
+    const hash = await nexusClient.sendTransaction({
+      calls: [
+        {
+          to: recipientAddress,
+          value: 1n
+        }
+      ]
+    })
+
+    // Wait for the transaction to be mined
+    const { status } = await publicClient.waitForTransactionReceipt({ hash })
+    expect(status).toBe("success")
+    // Get final balance
+    const finalBalance = await publicClient.getBalance({
+      address: nexusAccountAddress
+    })
+
+    // Check that the balance hasn't changed
+    // No gas fees were paid, so the balance should have decreased only by 1n
+    expect(finalBalance).toBeLessThan(initialBalance)
+  })
+
+  test("should support smart sessions enable mode", async () => {
+    const uninitializedSmartSessions = getSmartSessionsValidator({})
+
+    const isInstalled = await nexusClient.isModuleInstalled({
+      module: uninitializedSmartSessions
+    })
+
+    if (!isInstalled) {
+      const opHash = await nexusClient.installModule({
+        module: uninitializedSmartSessions
+      })
+      const installReceipt = await nexusClient.waitForUserOperationReceipt({
+        hash: opHash
+      })
+      expect(installReceipt.success).toBe(true)
+    }
+
+    const session: Session = {
+      sessionValidator: SIMPLE_SESSION_VALIDATOR_ADDRESS,
+      sessionValidatorInitData: sessionPublicKey,
+      salt: generateSalt(),
+      userOpPolicies: [],
+      erc7739Policies: {
+        allowedERC7739Content: [],
+        erc1271Policies: []
+      },
+      actions: [
+        {
+          actionTarget: testAddresses.Counter,
+          actionTargetSelector: "0x273ea3e3", // incrementNumber
+          actionPolicies: [getSudoPolicy()]
+        }
+      ],
+      chainId: BigInt(chain.id)
+    }
+
+    const nexusAccount = getAccount({
+      address: nexusClient.account.address,
+      type: "nexus"
+    })
+
+    const sessionDetails = await getEnableSessionDetails({
+      sessions: [session],
+      account: nexusAccount,
+      clients: [publicClient]
+    })
+
+    const sessionDetailKeys = Object.keys(sessionDetails)
+    console.log({ sessionDetailKeys })
+
+    sessionDetails.enableSessionData.enableSession.permissionEnableSig =
+      await eoaAccount.signMessage({
+        message: { raw: sessionDetails.permissionEnableHash }
+      })
+
+    const signature = encodeSmartSessionSignature(sessionDetails)
+
+    const decodededSignature = decodeSmartSessionSignature({
+      signature,
+      account: nexusAccount
+    })
+
+    expect(decodededSignature.mode).toBe(SmartSessionMode.ENABLE)
+    expect(decodededSignature.permissionId).toBe(sessionDetails.permissionId)
+    expect(decodededSignature.signature).toBe(sessionDetails.signature)
+
+    console.log({ decodededSignature })
+
+    const calls = [
+      {
+        to: session.actions[0].actionTarget,
+        data: session.actions[0].actionTargetSelector
+      }
+    ]
+
+    expect(session.actions[0].actionTargetSelector).toBe(
+      encodeFunctionData({
+        abi: CounterAbi,
+        functionName: "incrementNumber"
+      })
+    )
+
+    console.log({ calls })
+
+    const userOperation = await nexusClient.prepareUserOperation({
+      account: nexusClient.account,
+      calls,
+      signature
+    })
+
+    const userOpHashToSign = getUserOperationHash({
+      chainId: chain.id,
+      entryPointAddress: entryPoint07Address,
+      entryPointVersion: "0.7",
+      userOperation
+    })
+
+    sessionDetails.signature = await sessionKeyAccount.signMessage({
+      message: { raw: userOpHashToSign }
+    })
+
+    userOperation.signature = encodeSmartSessionSignature(sessionDetails)
+
+    console.log({ userOperation })
+    console.log("It fails at this point...")
+    const userOpHash = await nexusClient.sendUserOperation(userOperation)
+
+    const receipt = await nexusClient.waitForUserOperationReceipt({
+      hash: userOpHash
+    })
+
+    console.log({ receipt })
+  })
+})

@@ -1,43 +1,10 @@
-import {
-  type ActionData,
-  MOCK_ATTESTER_ADDRESS,
-  type PolicyData,
-  SMART_SESSIONS_ADDRESS,
-  type Session,
-  findTrustedAttesters,
-  getSpendingLimitsPolicy,
-  getSudoPolicy,
-  getTrustAttestersAction,
-  getUsageLimitPolicy,
-  getValueLimitPolicy
-} from "@rhinestone/module-sdk"
 import type { Chain, Client, Hex, PublicClient, Transport } from "viem"
 import { sendUserOperation } from "viem/account-abstraction"
-import { encodeFunctionData, getAction, parseAccount } from "viem/utils"
-import { type Call, ERROR_MESSAGES } from "../../../account"
+import { getAction, parseAccount } from "viem/utils"
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
-import { SIMPLE_SESSION_VALIDATOR_ADDRESS } from "../../../constants"
-import { SmartSessionAbi } from "../../../constants/abi/SmartSessionAbi"
 import type { ModularSmartAccount } from "../../utils/Types"
-import {
-  abiToPoliciesInfo,
-  applyDefaults,
-  createActionConfig,
-  createActionData,
-  generateSalt,
-  getPermissionId,
-  toTimeRangePolicy,
-  toUniversalActionPolicy
-} from "../Helpers"
-import type {
-  CreateSessionDataParams,
-  FullCreateSessionDataParams,
-  ResolvedActionPolicyInfo
-} from "../Types"
-import type {
-  GrantPermissionActionReturnParams,
-  GrantPermissionResponse
-} from "../Types"
+import type { CreateSessionDataParams, GrantPermissionResponse } from "../Types"
+import { preparePermission } from "./preparePermission"
 
 /**
  * Parameters for creating sessions in a modular smart account.
@@ -61,150 +28,6 @@ export type GrantPermissionParameters<
   account?: TModularSmartAccount
   /** Optional attesters to trust. */
   attesters?: Hex[]
-}
-
-/**
- * Generates the action data for creating sessions in the SmartSessionValidator.
- *
- * @param sessionRequestedInfo - Array of session data parameters.
- * @param client - The public client for blockchain interactions.
- * @returns A promise that resolves to the action data and permission IDs, or an Error.
- */
-export const getPermissionAction = async ({
-  chainId,
-  sessionRequestedInfo,
-  client
-}: {
-  chainId: number
-  sessionRequestedInfo: FullCreateSessionDataParams[]
-  client: PublicClient
-}): Promise<GrantPermissionActionReturnParams | Error> => {
-  const sessions: Session[] = []
-  const permissionIds: Hex[] = []
-
-  const resolvedPolicyInfo2ActionData = (
-    actionPolicyInfo: ResolvedActionPolicyInfo
-  ): ActionData => {
-    const actionConfig = createActionConfig(
-      actionPolicyInfo.rules ?? [],
-      actionPolicyInfo.valueLimit
-    )
-
-    const policyData: PolicyData[] = []
-
-    // create uni action policy here..
-    const uniActionPolicyInfo = toUniversalActionPolicy(actionConfig)
-    policyData.push(uniActionPolicyInfo)
-
-    // create time frame policy here..
-    const timeFramePolicyData: PolicyData = toTimeRangePolicy(
-      actionPolicyInfo.validUntil ?? 0,
-      actionPolicyInfo.validAfter ?? 0
-    )
-    policyData.push(timeFramePolicyData)
-
-    // create sudo policy here..
-    if (actionPolicyInfo.sudo) {
-      const sudoPolicy = getSudoPolicy()
-      policyData.push(sudoPolicy)
-    }
-
-    // create value limit policy here..
-    if (actionPolicyInfo.valueLimit) {
-      const valueLimitPolicy = getValueLimitPolicy({
-        limit: actionPolicyInfo.valueLimit
-      })
-      policyData.push(valueLimitPolicy)
-    }
-
-    // create usage limit policy here..
-    if (actionPolicyInfo.usageLimit) {
-      const usageLimitPolicy = getUsageLimitPolicy({
-        limit: actionPolicyInfo.usageLimit
-      })
-      policyData.push(usageLimitPolicy)
-    }
-
-    // create token spending limit policy here..
-    if (actionPolicyInfo.tokenLimits?.length) {
-      const spendingLimitPolicy = getSpendingLimitsPolicy(
-        actionPolicyInfo.tokenLimits
-      )
-      policyData.push(spendingLimitPolicy)
-    }
-
-    // Create ActionData
-    const actionPolicy = createActionData(
-      actionPolicyInfo.contractAddress,
-      actionPolicyInfo.functionSelector,
-      policyData
-    )
-
-    return actionPolicy
-  }
-
-  // Start populating the session for each param provided
-  for (const sessionInfo of sessionRequestedInfo) {
-    const actionPolicies: ActionData[] = []
-
-    for (const actionPolicyInfo of sessionInfo.actionPoliciesInfo ?? []) {
-      if (actionPolicyInfo.abi) {
-        // Resolve the abi to multiple function selectors...
-        const resolvedPolicyInfos = abiToPoliciesInfo(actionPolicyInfo)
-        const actionPolicies_ = resolvedPolicyInfos.map(
-          resolvedPolicyInfo2ActionData
-        )
-        actionPolicies.push(...actionPolicies_)
-      } else {
-        const actionPolicy = resolvedPolicyInfo2ActionData(actionPolicyInfo)
-        actionPolicies.push(actionPolicy)
-      }
-    }
-
-    const userOpTimeFramePolicyData: PolicyData = toTimeRangePolicy(
-      sessionInfo.sessionValidUntil ?? 0,
-      sessionInfo.sessionValidAfter ?? 0
-    )
-
-    const session: Session = {
-      chainId: BigInt(chainId),
-      sessionValidator:
-        sessionInfo.sessionValidatorAddress ?? SIMPLE_SESSION_VALIDATOR_ADDRESS,
-      sessionValidatorInitData: sessionInfo.sessionKeyData, // sessionValidatorInitData: abi.encodePacked(sessionSigner.addr),
-      salt: sessionInfo.salt ?? generateSalt(),
-      userOpPolicies: [userOpTimeFramePolicyData],
-      actions: actionPolicies,
-      erc7739Policies: {
-        allowedERC7739Content: [],
-        erc1271Policies: []
-      }
-    }
-
-    const permissionId = await getPermissionId({
-      client,
-      session
-    })
-    // push permissionId to the array
-    permissionIds.push(permissionId)
-
-    // Push to sessions array
-    sessions.push(session)
-  }
-
-  const grantPermissionData = encodeFunctionData({
-    abi: SmartSessionAbi,
-    functionName: "enableSessions",
-    args: [sessions]
-  })
-
-  return {
-    action: {
-      target: SMART_SESSIONS_ADDRESS,
-      value: BigInt(0),
-      callData: grantPermissionData
-    },
-    permissionIds: permissionIds
-  }
 }
 
 /**
@@ -258,13 +81,10 @@ export async function grantPermission<
   parameters: GrantPermissionParameters<TModularSmartAccount>
 ): Promise<GrantPermissionResponse> {
   const {
-    publicClient: publicClient_ = client.account?.client as PublicClient,
     account: account_ = client.account,
     maxFeePerGas,
     maxPriorityFeePerGas,
-    nonce,
-    sessionRequestedInfo,
-    attesters
+    nonce
   } = parameters
 
   if (!account_) {
@@ -278,76 +98,26 @@ export async function grantPermission<
     throw new Error("Account not found")
   }
 
-  const chainId = publicClient_?.chain?.id
+  const preparedPermission = await getAction(
+    client,
+    preparePermission,
+    "preparePermission"
+  )(parameters)
 
-  if (!chainId) {
-    throw new Error(ERROR_MESSAGES.CHAIN_NOT_FOUND)
-  }
-
-  const defaultedSessionRequestedInfo: FullCreateSessionDataParams[] =
-    sessionRequestedInfo.map(applyDefaults)
-
-  const attestersToTrust = attesters ?? [MOCK_ATTESTER_ADDRESS]
-  const actionResponse = await getPermissionAction({
-    chainId,
-    client: publicClient_,
-    sessionRequestedInfo: defaultedSessionRequestedInfo
+  const userOpHash = await getAction(
+    client,
+    sendUserOperation,
+    "sendUserOperation"
+  )({
+    calls: preparedPermission.calls,
+    maxFeePerGas,
+    maxPriorityFeePerGas,
+    nonce,
+    account
   })
 
-  const trustAttestersAction = getTrustAttestersAction({
-    attesters: attestersToTrust,
-    threshold: attestersToTrust.length
-  })
-
-  const trustedAttesters = await findTrustedAttesters({
-    client: publicClient_,
-    accountAddress: account.address
-  })
-
-  const needToAddTrustAttesters = trustedAttesters.length === 0
-  console.log("needToAddTrustAttesters", needToAddTrustAttesters)
-
-  if (!("action" in actionResponse)) {
-    throw new Error("Error getting enable sessions action")
+  return {
+    userOpHash,
+    ...preparedPermission
   }
-
-  const { action } = actionResponse
-
-  if (!("callData" in action)) {
-    throw new Error("Error getting enable sessions action")
-  }
-
-  if (!("callData" in trustAttestersAction)) {
-    throw new Error("Error getting trust attesters action")
-  }
-
-  const calls: Call[] = []
-
-  if (needToAddTrustAttesters) {
-    calls.push({
-      to: trustAttestersAction.target,
-      value: trustAttestersAction.value.valueOf(),
-      data: trustAttestersAction.callData
-    })
-  }
-
-  calls.push({
-    to: action.target,
-    value: action.value,
-    data: action.callData
-  })
-
-  if ("action" in actionResponse) {
-    const userOpHash = (await getAction(
-      client,
-      sendUserOperation,
-      "sendUserOperation"
-    )({ calls, maxFeePerGas, maxPriorityFeePerGas, nonce, account })) as Hex
-
-    return {
-      userOpHash: userOpHash,
-      ...actionResponse
-    }
-  }
-  throw new Error("Error getting enable sessions action")
 }

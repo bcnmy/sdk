@@ -104,7 +104,13 @@ export type NexusClientConfig<
 > = Prettify<
   Pick<
     ClientConfig<transport, chain, SmartAccount, rpcSchema>,
-    "cacheTime" | "chain" | "key" | "name" | "pollingInterval" | "rpcSchema"
+    | "account"
+    | "cacheTime"
+    | "chain"
+    | "key"
+    | "name"
+    | "pollingInterval"
+    | "rpcSchema"
   > & {
     /** RPC URL. */
     transport: transport
@@ -185,6 +191,7 @@ export async function createNexusClient(
   parameters: NexusClientConfig
 ): Promise<NexusClient> {
   const {
+    account: account_,
     client: client_,
     chain = parameters.chain ?? client_?.chain,
     signer,
@@ -204,18 +211,20 @@ export async function createNexusClient(
 
   if (!chain) throw new Error("Missing chain")
 
-  const nexusAccount = await toNexusAccount({
-    accountAddress,
-    transport,
-    chain,
-    signer,
-    index,
-    module,
-    factoryAddress,
-    k1ValidatorAddress,
-    attesters,
-    attesterThreshold
-  })
+  const nexusAccount =
+    account_ ??
+    (await toNexusAccount({
+      accountAddress,
+      transport,
+      chain,
+      signer,
+      index,
+      module,
+      factoryAddress,
+      k1ValidatorAddress,
+      attesters,
+      attesterThreshold
+    }))
 
   const bundler_ = createBicoBundlerClient({
     ...bundlerConfig,

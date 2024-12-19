@@ -102,14 +102,14 @@ describe("modules.smartSessions.dx", async () => {
       module: sessionsModule.moduleInitData
     })
 
+    // Wait for the module installation transaction to be mined and check its success
+    const { success: installSuccess } =
+      await usersNexusClient.waitForUserOperationReceipt({ hash })
+
     // Extend the Nexus client with smart session creation actions
     const nexusSessionClient = usersNexusClient.extend(
       smartSessionCreateActions(sessionsModule)
     )
-
-    // Wait for the module installation transaction to be mined and check its success
-    const { success: installSuccess } =
-      await usersNexusClient.waitForUserOperationReceipt({ hash })
 
     expect(installSuccess).toBe(true)
 
