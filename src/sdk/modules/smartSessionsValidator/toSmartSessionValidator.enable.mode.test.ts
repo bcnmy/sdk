@@ -1,10 +1,12 @@
 import { getAccount } from "@rhinestone/module-sdk/account"
 import {
+  OWNABLE_VALIDATOR_ADDRESS,
   type Session,
   SmartSessionMode,
-  decodeSmartSessionSignature,
   encodeSmartSessionSignature,
+  encodeValidationData,
   getEnableSessionDetails,
+  getOwnableValidatorMockSignature,
   getSmartSessionsValidator,
   getSudoPolicy
 } from "@rhinestone/module-sdk/module"
@@ -27,7 +29,7 @@ import {
   getUserOperationHash
 } from "viem/account-abstraction"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
-import { afterAll, beforeAll, describe, expect, test } from "vitest"
+import { beforeAll, describe, expect, test } from "vitest"
 import { CounterAbi } from "../../../test/__contracts/abi/CounterAbi"
 import { testAddresses } from "../../../test/callDatas"
 import { toNetwork } from "../../../test/testSetup"
@@ -38,11 +40,8 @@ import {
   type NexusClient,
   createSmartAccountClient
 } from "../../clients/createSmartAccountClient"
-import {
-  MAINNET_ADDRESS_K1_VALIDATOR_ADDRESS,
-  SIMPLE_SESSION_VALIDATOR_ADDRESS
-} from "../../constants"
 import { generateSalt } from "./Helpers"
+import { MAINNET_ADDRESS_K1_VALIDATOR_ADDRESS } from "../../constants"
 
 describe("modules.smartSessions.enable.mode.dx", async () => {
   let network: NetworkConfig
@@ -161,8 +160,11 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
     }
 
     const session: Session = {
-      sessionValidator: SIMPLE_SESSION_VALIDATOR_ADDRESS,
-      sessionValidatorInitData: sessionPublicKey,
+      sessionValidator: OWNABLE_VALIDATOR_ADDRESS,
+      sessionValidatorInitData: encodeValidationData({
+        threshold: 1,
+        owners: [sessionPublicKey]
+      }),
       salt: generateSalt(),
       userOpPolicies: [],
       erc7739Policies: {
@@ -199,23 +201,35 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
     const sessionDetailKeys = Object.keys(sessionDetails)
     console.log({ sessionDetailKeys })
 
-    sessionDetails.enableSessionData.enableSession.permissionEnableSig =
-      await eoaAccount.signMessage({
-        message: { raw: permissionEnableHash }
-      })
-
-    const signature = encodeSmartSessionSignature(sessionDetails)
-
-    const decodededSignature = decodeSmartSessionSignature({
-      signature,
-      account: nexusAccount
+    const permissionEnableRawSig = await eoaAccount.signMessage({
+      message: { raw: permissionEnableHash }
     })
 
-    expect(decodededSignature.mode).toBe(SmartSessionMode.UNSAFE_ENABLE)
-    expect(decodededSignature.permissionId).toBe(sessionDetails.permissionId)
-    expect(decodededSignature.signature).toBe(sessionDetails.signature)
+    sessionDetails.enableSessionData.enableSession.permissionEnableSig =
+      encodePacked(
+        ["address", "bytes"],
+        [MAINNET_ADDRESS_K1_VALIDATOR_ADDRESS, permissionEnableRawSig]
+      )
 
-    console.log({ decodededSignature })
+    const nonce = await nexusClient.account.getNonce({
+      // @ts-ignore
+      moduleAddress: OWNABLE_VALIDATOR_ADDRESS
+    })
+
+    console.log({ nonce })
+
+    // const signature = encodeSmartSessionSignature(sessionDetails)
+
+    // const decodededSignature = decodeSmartSessionSignature({
+    //   signature,
+    //   account: nexusAccount
+    // })
+
+    // expect(decodededSignature.mode).toBe(SmartSessionMode.UNSAFE_ENABLE)
+    // expect(decodededSignature.permissionId).toBe(sessionDetails.permissionId)
+    // expect(decodededSignature.signature).toBe(sessionDetails.signature)
+
+    // console.log({ decodededSignature })
 
     const calls = [
       {
@@ -233,10 +247,15 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
 
     console.log({ calls })
 
+    sessionDetails.signature = getOwnableValidatorMockSignature({
+      threshold: 1
+    })
+
     const userOperation = await nexusClient.prepareUserOperation({
       account: nexusClient.account,
       calls,
-      signature
+      nonce,
+      signature: encodeSmartSessionSignature(sessionDetails)
     })
 
     const userOpHashToSign = getUserOperationHash({

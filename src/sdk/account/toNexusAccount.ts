@@ -402,6 +402,7 @@ export const toNexusAccount = async (
   const getNonce = async (parameters?: {
     key?: bigint
     validationMode?: "0x00" | "0x01"
+    moduleAddress?: Address
   }): Promise<bigint> => {
     try {
       const TIMESTAMP_ADJUSTMENT = 16777215n
@@ -410,7 +411,7 @@ export const toNexusAccount = async (
       const key: string = concat([
         toHex(defaultedKey, { size: 3 }),
         defaultedValidationMode,
-        module.address as Hex
+        parameters?.moduleAddress ?? (module.address as Hex)
       ])
 
       const accountAddress = await getCounterFactualAddress()
