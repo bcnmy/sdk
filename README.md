@@ -52,9 +52,10 @@ const { status, transactionHash } = await nexusClient.waitForTransactionReceipt(
 ### Testing
 
 **Prerequisites:**
-- Node.js v22 or higher
+- [Node.js](https://nodejs.org/en/download/package-manager) *(v22 or higher)*
 - [Bun](https://bun.sh/) package manager
 - [Foundry](https://book.getfoundry.sh/getting-started/installation)
+- [Yarn](https://www.npmjs.com/package/yarn) *(must be 1.1.x, not 3.x)*. This is necessary because the nexus contracts repo relies on yarn.
 
 **Setup:**
 ```bash

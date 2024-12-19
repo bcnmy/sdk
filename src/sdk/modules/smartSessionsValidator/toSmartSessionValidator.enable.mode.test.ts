@@ -20,7 +20,8 @@ import {
   createWalletClient,
   encodeFunctionData,
   toBytes,
-  toHex
+  toHex,
+  getAddress
 } from "viem"
 import {
   entryPoint07Address,
@@ -81,7 +82,7 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
     eoaAccount = network.account as PrivateKeyAccount
 
     sessionKeyAccount = privateKeyToAccount(generatePrivateKey()) // Generally belongs to the dapp
-    sessionPublicKey = toHex(toBytes(sessionKeyAccount.address))
+    sessionPublicKey = getAddress(sessionKeyAccount.address)
 
     recipientAddress = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045" // vitalik.eth
 
@@ -164,7 +165,7 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
       const installReceipt = await nexusClient.waitForUserOperationReceipt({
         hash: opHash
       })
-      expect(installReceipt.success).toBe(true)
+      expect(installReceipt.success).toBe("true")
     }
 
     const session: Session = {
