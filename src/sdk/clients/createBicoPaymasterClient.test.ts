@@ -10,7 +10,6 @@ import {
   parseAbi,
   parseUnits
 } from "viem"
-import { baseSepolia } from "viem/chains"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { paymasterTruthy, toNetwork } from "../../test/testSetup"
 import { getTestParamsForTestnet, killNetwork } from "../../test/testUtils"
@@ -153,20 +152,16 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
       address: nexusAccountAddress
     })
 
-    const userOp = await nexusClient.prepareUserOperation({
+    const partialUserOp = await nexusClient.prepareTokenPaymasterUserOp({
       calls: [
         {
           to: recipientAddress,
           value: 1n,
           data: "0x"
         }
-      ]
+      ],
+      feeTokenAddress: baseSepoliaUSDCAddress
     })
-
-    const partialUserOp = {
-      ...userOp,
-      signature: undefined
-    }
 
     const hash = await nexusClient.sendUserOperation(partialUserOp)
 
@@ -264,7 +259,7 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
         {
           to: recipientAddress,
           value: 1n,
-          chain: baseSepolia
+          data: "0x"
         }
       ]
     })
