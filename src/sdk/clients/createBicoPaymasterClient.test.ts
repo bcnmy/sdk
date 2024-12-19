@@ -198,15 +198,18 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
       address: nexusAccountAddress
     })
 
-    const hash = await nexusClient.sendTransaction({
+    const tokenPaymasterUserOp = await nexusClient.prepareTokenPaymasterUserOp({
       calls: [
         {
           to: recipientAddress,
           value: 1n,
           data: "0x"
         }
-      ]
+      ],
+      feeTokenAddress: baseSepoliaUSDCAddress
     })
+
+    const hash = await nexusClient.sendTransaction(tokenPaymasterUserOp)
 
     const receipt = await publicClient.waitForTransactionReceipt({ hash })
 
@@ -229,7 +232,6 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
     const nexusClient = await createNexusClient({
       signer: account,
       chain,
-      index: 3n,
       paymaster: createBicoPaymasterClient({
         transport: http(paymasterUrl)
       }),
@@ -247,6 +249,7 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
       functionName: "balanceOf",
       args: [nexusClient.account.address]
     })
+
     expect(usdcBalance).toBeGreaterThan(0n)
 
     const initialBalance = await publicClient.getBalance({
