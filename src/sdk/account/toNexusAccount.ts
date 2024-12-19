@@ -324,14 +324,13 @@ export const toNexusAccount = async (
    * @param userOp - The user operation
    * @returns The hash of the user operation
    */
-  const getUserOpHash = (userOp: UserOperation): Hex => {
-    return getUserOperationHash({
+  const getUserOpHash = (userOp: UserOperation): Hex =>
+    getUserOperationHash({
       chainId: chain.id,
       entryPointAddress: entryPoint07Address,
       entryPointVersion: "0.7",
       userOperation: userOp
     })
-  }
 
   /**
    * @description Encodes a batch of calls for execution

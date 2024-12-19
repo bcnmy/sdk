@@ -12,7 +12,10 @@ import {
   killNetwork,
   toTestClient
 } from "../../../../test/testUtils"
-import { type NexusClient, createNexusClient } from "../../createNexusClient"
+import {
+  type NexusClient,
+  createSmartAccountClient
+} from "../../createSmartAccountClient"
 
 describe("account.decorators", async () => {
   let network: NetworkConfig
@@ -37,7 +40,7 @@ describe("account.decorators", async () => {
     recipientAddress = recipient.address
     testClient = toTestClient(chain, getTestAccount(5))
 
-    nexusClient = await createNexusClient({
+    nexusClient = await createSmartAccountClient({
       signer: eoaAccount,
       chain,
       transport: http(),
