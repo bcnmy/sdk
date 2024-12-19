@@ -1,6 +1,5 @@
 import { config } from "dotenv"
 import getPort from "get-port"
-// @ts-ignore
 import { type AnvilParameters, alto, anvil } from "prool/instances"
 import {
   http,
@@ -23,10 +22,6 @@ import { mnemonicToAccount, privateKeyToAccount } from "viem/accounts"
 import { getChain, getCustomChain, safeMultiplier } from "../sdk/account/utils"
 import { Logger } from "../sdk/account/utils/Logger"
 import {
-  type NexusClient,
-  createNexusClient
-} from "../sdk/clients/createNexusClient"
-import {
   ENTRYPOINT_SIMULATIONS_ADDRESS,
   ENTRY_POINT_ADDRESS,
   MAINNET_ADDRESS_K1_VALIDATOR_ADDRESS,
@@ -38,7 +33,12 @@ import {
   TEST_CONTRACTS
 } from "./callDatas"
 
+import {
+  type NexusClient,
+  createSmartAccountClient
+} from "../sdk/clients/createSmartAccountClient"
 import * as hardhatExec from "./executables"
+import type { TestFileNetworkType } from "./testSetup"
 
 config()
 
@@ -62,6 +62,7 @@ export type NetworkConfig = Omit<
 > & {
   account?: PrivateKeyAccount
   paymasterUrl?: string
+  meeNodeUrl?: string
 }
 export const pKey =
   "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80" // This is a publicly available private key meant only for testing only
@@ -93,12 +94,17 @@ export const killNetwork = (ids: number[]) =>
     })
   )
 
-export const initTestnetNetwork = async (): Promise<NetworkConfig> => {
+export const initTestnetNetwork = async (
+  type: TestFileNetworkType = "TESTNET_FROM_ENV_VARS"
+): Promise<NetworkConfig> => {
   const privateKey = process.env.PRIVATE_KEY
-  const chainId = process.env.CHAIN_ID
+  const chainId_ = process.env.CHAIN_ID
+  const altChainId = process.env.ALT_CHAIN_ID
   const rpcUrl = process.env.RPC_URL //Optional, taken from chain (using chainId) if not provided
   const _bundlerUrl = process.env.BUNDLER_URL // Optional, taken from chain (using chainId) if not provided
   const paymasterUrl = process.env.PAYMASTER_URL // Optional
+
+  const chainId = type === "TESTNET_FROM_ALT_ENV_VARS" ? altChainId : chainId_
 
   let chain: Chain
 
@@ -318,7 +324,7 @@ export const toFundedTestClients = async ({
 
   const testClient = toTestClient(chain, getTestAccount())
 
-  const nexus = await createNexusClient({
+  const nexus = await createSmartAccountClient({
     signer: account,
     transport: http(),
     bundlerTransport: http(bundlerUrl),

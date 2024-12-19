@@ -324,14 +324,13 @@ export const toNexusAccount = async (
    * @param userOp - The user operation
    * @returns The hash of the user operation
    */
-  const getUserOpHash = (userOp: UserOperation): Hex => {
-    return getUserOperationHash({
+  const getUserOpHash = (userOp: UserOperation): Hex =>
+    getUserOperationHash({
       chainId: chain.id,
       entryPointAddress: entryPoint07Address,
       entryPointVersion: "0.7",
       userOperation: userOp
     })
-  }
 
   /**
    * @description Encodes a batch of calls for execution
@@ -403,6 +402,7 @@ export const toNexusAccount = async (
   const getNonce = async (parameters?: {
     key?: bigint
     validationMode?: "0x00" | "0x01"
+    moduleAddress?: Address
   }): Promise<bigint> => {
     try {
       const TIMESTAMP_ADJUSTMENT = 16777215n
@@ -411,7 +411,7 @@ export const toNexusAccount = async (
       const key: string = concat([
         toHex(defaultedKey, { size: 3 }),
         defaultedValidationMode,
-        module.address as Hex
+        parameters?.moduleAddress ?? (module.address as Hex)
       ])
 
       const accountAddress = await getCounterFactualAddress()
