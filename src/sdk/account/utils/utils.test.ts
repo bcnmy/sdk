@@ -7,6 +7,7 @@ import { toSigner } from "./toSigner"
 
 describe("utils", async () => {
   const privKey = generatePrivateKey()
+
   test.concurrent(
     "should have consistent behaviour between ethers.AbiCoder.defaultAbiCoder() and viem.encodeAbiParameters()",
     async () => {

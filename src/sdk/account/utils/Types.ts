@@ -63,7 +63,6 @@ export type UserOpReceipt = {
   logs: Log[]
 }
 
-export type Service = "Bundler" | "Paymaster"
 export type BigNumberish = Hex | number | bigint
 export type BytesLike = Uint8Array | Hex | string
 

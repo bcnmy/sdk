@@ -32,10 +32,10 @@ bun add @biconomy/sdk viem @rhinestone/module-sdk
 
 2. **Basic Usage:**
 ```typescript
-import { createNexusClient } from "@biconomy/sdk";
+import { createSmartAccountClient } from "@biconomy/sdk";
 import { http } from "viem";
 
-const nexusClient = await createNexusClient({
+const nexusClient = await createSmartAccountClient({
   signer: account,
   chain,
   transport: http(),

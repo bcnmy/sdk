@@ -5,7 +5,7 @@ import {
   getUsageLimitPolicy,
   getValueLimitPolicy
 } from "@rhinestone/module-sdk"
-import { type Hex, getAddress, toBytes, toHex } from "viem"
+import { type Hex, toBytes, toHex } from "viem"
 import { isTesting } from "../account"
 import { ParamCondition } from "../modules/smartSessionsValidator/Types"
 

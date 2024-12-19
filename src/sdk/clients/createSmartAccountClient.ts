@@ -22,7 +22,6 @@ import type {
 } from "viem/account-abstraction"
 
 import {
-  type NexusAccount,
   type ToNexusSmartAccountParameters,
   toNexusAccount
 } from "../account/toNexusAccount"
@@ -32,7 +31,11 @@ import {
   k1ValidatorAddress as k1ValidatorAddress_,
   k1ValidatorFactoryAddress
 } from "../constants"
-import type { AnyData, Module } from "../modules/utils/Types"
+import type {
+  AnyData,
+  ModularSmartAccount,
+  Module
+} from "../modules/utils/Types"
 import { createBicoBundlerClient } from "./createBicoBundlerClient"
 import { type Erc7579Actions, erc7579Actions } from "./decorators/erc7579"
 import {
@@ -46,7 +49,9 @@ import {
 export type NexusClient<
   transport extends Transport = Transport,
   chain extends Chain | undefined = Chain | undefined,
-  account extends NexusAccount | undefined = NexusAccount | undefined,
+  account extends ModularSmartAccount | undefined =
+    | ModularSmartAccount
+    | undefined,
   client extends Client | undefined = Client | undefined,
   rpcSchema extends RpcSchema | undefined = undefined
 > = Prettify<
@@ -64,13 +69,13 @@ export type NexusClient<
     BundlerActions<account>
   >
 > &
-  BundlerActions<NexusAccount> &
-  Erc7579Actions<NexusAccount> &
-  SmartAccountActions<chain, NexusAccount> & {
+  BundlerActions<ModularSmartAccount> &
+  Erc7579Actions<ModularSmartAccount> &
+  SmartAccountActions<chain, ModularSmartAccount> & {
     /**
      * The Nexus account associated with this client
      */
-    account: NexusAccount
+    account: ModularSmartAccount
     /**
      * Optional client for additional functionality
      */
@@ -94,9 +99,9 @@ export type NexusClient<
   }
 
 /**
- * Configuration for creating a Nexus Client
+ * Configuration for creating a Smart account Client
  */
-export type NexusClientConfig<
+export type SmartAccountClientConfig<
   transport extends Transport = Transport,
   chain extends Chain | undefined = Chain | undefined,
   client extends Client | undefined = Client | undefined,
@@ -172,7 +177,7 @@ export type NexusClientConfig<
 /**
  * Creates a Nexus Client for interacting with the Nexus smart account system.
  *
- * @param parameters - {@link NexusClientConfig}
+ * @param parameters - {@link SmartAccountClientConfig}
  * @returns Nexus Client. {@link NexusClient}
  *
  * @example
@@ -188,7 +193,7 @@ export type NexusClientConfig<
  * })
  */
 export async function createSmartAccountClient(
-  parameters: NexusClientConfig
+  parameters: SmartAccountClientConfig
 ): Promise<NexusClient> {
   const {
     account: account_,
@@ -239,3 +244,7 @@ export async function createSmartAccountClient(
 
   return bundler_ as unknown as NexusClient
 }
+
+// Aliases for backwards compatibility
+export const createNexusClient = createSmartAccountClient
+export const createNexusSessionClient = createSmartAccountClient

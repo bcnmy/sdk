@@ -32,8 +32,10 @@ import {
 } from "../account/utils/Utils"
 import { getChain } from "../account/utils/getChain"
 import { k1ValidatorAddress } from "../constants"
-import type { AnyData } from "../modules"
-import { type NexusClient, createNexusClient } from "./createNexusClient"
+import {
+  type NexusClient,
+  createSmartAccountClient
+} from "./createSmartAccountClient"
 
 describe("nexus.client", async () => {
   let network: NetworkConfig
@@ -63,7 +65,7 @@ describe("nexus.client", async () => {
     privKey = generatePrivateKey()
     const account = privateKeyToAccount(privKey)
 
-    nexusClient = await createNexusClient({
+    nexusClient = await createSmartAccountClient({
       signer: account,
       chain,
       transport: http(),
@@ -264,14 +266,14 @@ describe("nexus.client", async () => {
 
     const wallet = new Wallet(privKey)
 
-    const viemNexusClient = await createNexusClient({
+    const viemNexusClient = await createSmartAccountClient({
       signer: viemSigner,
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl)
     })
 
-    const ethersNexusClient = await createNexusClient({
+    const ethersNexusClient = await createSmartAccountClient({
       signer: wallet as EthersWallet,
       chain,
       transport: http(),
@@ -286,7 +288,7 @@ describe("nexus.client", async () => {
 
   test("should send user operation using ethers Wallet", async () => {
     const ethersWallet = new ethers.Wallet(privKey)
-    const ethersNexusClient = await createNexusClient({
+    const ethersNexusClient = await createSmartAccountClient({
       signer: ethersWallet as EthersWallet,
       chain,
       transport: http(),

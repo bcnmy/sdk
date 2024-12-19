@@ -18,7 +18,10 @@ import {
   toTestClient
 } from "../../../../test/testUtils"
 import { k1ValidatorAddress } from "../../../constants"
-import { type NexusClient, createNexusClient } from "../../createNexusClient"
+import {
+  type NexusClient,
+  createSmartAccountClient
+} from "../../createSmartAccountClient"
 
 describe("erc7579.decorators", async () => {
   let network: NetworkConfig
@@ -43,7 +46,7 @@ describe("erc7579.decorators", async () => {
     recipientAddress = recipient.address
     testClient = toTestClient(chain, getTestAccount(5))
 
-    nexusClient = await createNexusClient({
+    nexusClient = await createSmartAccountClient({
       signer: eoaAccount,
       chain,
       transport: http(),

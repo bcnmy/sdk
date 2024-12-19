@@ -36,7 +36,7 @@ export type GetThresholdParameters<
  *
  * @example
  * ```typescript
- * const nexusClient = createNexusClient({ ... });
+ * const nexusClient = createSmartAccountClient({ ... });
  * const threshold = await getThreshold(nexusClient);
  * console.log(`Current approval threshold: ${threshold}`);
  * ```

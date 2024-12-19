@@ -17,9 +17,8 @@ import { playgroundTrue } from "../sdk/account/utils/Utils"
 import { createBicoPaymasterClient } from "../sdk/clients/createBicoPaymasterClient"
 import {
   type NexusClient,
-  createNexusClient
-} from "../sdk/clients/createNexusClient"
-import { MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS } from "../sdk/constants"
+  createSmartAccountClient
+} from "../sdk/clients/createSmartAccountClient"
 import type {
   CreateSessionDataParams,
   SessionData
@@ -40,7 +39,7 @@ import {
 
 describe.skipIf(!playgroundTrue())("playground", () => {
   let network: NetworkConfig
-  // Required for "PUBLIC_TESTNET" networks
+  // Required for "TESTNET_FROM_ENV_VARS" networks
   let testParams: TestnetParams
   // Nexus Config
   let chain: Chain
@@ -55,7 +54,7 @@ describe.skipIf(!playgroundTrue())("playground", () => {
   let nexusAccountAddress: Address
 
   beforeAll(async () => {
-    network = await toNetwork("PUBLIC_TESTNET")
+    network = await toNetwork("TESTNET_FROM_ENV_VARS")
 
     chain = network.chain
     bundlerUrl = network.bundlerUrl
@@ -78,7 +77,7 @@ describe.skipIf(!playgroundTrue())("playground", () => {
   })
 
   test("should init the smart account", async () => {
-    nexusClient = await createNexusClient({
+    nexusClient = await createSmartAccountClient({
       signer: eoaAccount,
       chain,
       transport: http(),
@@ -171,7 +170,8 @@ describe.skipIf(!playgroundTrue())("playground", () => {
     expect(balanceAfter - balanceBefore).toBe(1n)
   })
 
-  test("should test creating and using a session", async () => {
+  // Skipped because on base sepolia the attestations for smart sessions have not been created yet
+  test.skip("should test creating and using a session", async () => {
     const sessionsModule = toSmartSessionsValidator({
       account: nexusClient.account,
       signer: eoaAccount
@@ -229,12 +229,13 @@ describe.skipIf(!playgroundTrue())("playground", () => {
       granter: nexusClient.account.address,
       sessionPublicKey: eoaAccount.address,
       moduleData: {
-        ...createSessionsResponse,
+        permissionIds: createSessionsResponse.permissionIds,
+        action: createSessionsResponse.action,
         mode: SmartSessionMode.USE
       }
     }
 
-    const smartSessionNexusClient = await createNexusClient({
+    const smartSessionNexusClient = await createSmartAccountClient({
       chain,
       accountAddress: nexusClient.account.address,
       signer: eoaAccount,

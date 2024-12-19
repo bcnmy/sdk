@@ -40,8 +40,8 @@ import {
 import type { MasterClient, NetworkConfig } from "../../test/testUtils"
 import {
   type NexusClient,
-  createNexusClient
-} from "../clients/createNexusClient"
+  createSmartAccountClient
+} from "../clients/createSmartAccountClient"
 import {
   BICONOMY_ATTESTER_ADDRESS,
   MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS,
@@ -90,7 +90,7 @@ describe("nexus.account", async () => {
       transport: http()
     })
 
-    nexusClient = await createNexusClient({
+    nexusClient = await createSmartAccountClient({
       signer: eoaAccount,
       chain,
       transport: http(),
@@ -106,7 +106,7 @@ describe("nexus.account", async () => {
   })
 
   test("should override account address", async () => {
-    const newNexusClient = await createNexusClient({
+    const newNexusClient = await createSmartAccountClient({
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl),

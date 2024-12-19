@@ -19,9 +19,8 @@ import {
   createPublicClient,
   createWalletClient,
   encodeFunctionData,
-  toBytes,
-  toHex,
-  getAddress
+  getAddress,
+  encodePacked
 } from "viem"
 import {
   entryPoint07Address,
@@ -32,29 +31,22 @@ import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { CounterAbi } from "../../../test/__contracts/abi/CounterAbi"
 import { testAddresses } from "../../../test/callDatas"
 import { toNetwork } from "../../../test/testSetup"
-import {
-  fundAndDeployClients,
-  getTestAccount,
-  getTestParamsForTestnet,
-  killNetwork,
-  toTestClient
-} from "../../../test/testUtils"
-import type {
-  MasterClient,
-  NetworkConfig,
-  TestnetParams
-} from "../../../test/testUtils"
+import { getTestParamsForTestnet } from "../../../test/testUtils"
+import type { NetworkConfig, TestnetParams } from "../../../test/testUtils"
 import { type NexusAccount, toNexusAccount } from "../../account/toNexusAccount"
 import {
   type NexusClient,
-  createNexusClient
-} from "../../clients/createNexusClient"
-import { SIMPLE_SESSION_VALIDATOR_ADDRESS } from "../../constants"
+  createSmartAccountClient
+} from "../../clients/createSmartAccountClient"
+import {
+  MAINNET_ADDRESS_K1_VALIDATOR_ADDRESS,
+  SIMPLE_SESSION_VALIDATOR_ADDRESS
+} from "../../constants"
 import { generateSalt } from "./Helpers"
 
 describe("modules.smartSessions.enable.mode.dx", async () => {
   let network: NetworkConfig
-  // Required for "PUBLIC_TESTNET" networks
+  // Required for "TESTNET_FROM_ENV_VARS" networks
   let testParams: TestnetParams
 
   let chain: Chain
@@ -74,7 +66,7 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
   let sessionPublicKey: Address
 
   beforeAll(async () => {
-    network = await toNetwork("PUBLIC_TESTNET")
+    network = await toNetwork("TESTNET_FROM_ENV_VARS")
 
     chain = network.chain
     bundlerUrl = network.bundlerUrl
@@ -108,7 +100,7 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
 
     nexusAccountAddress = await nexusAccount.getCounterFactualAddress()
 
-    nexusClient = await createNexusClient({
+    nexusClient = await createSmartAccountClient({
       account: nexusAccount,
       signer: eoaAccount,
       chain,
@@ -192,18 +184,24 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
       type: "nexus"
     })
 
-    const sessionDetails = await getEnableSessionDetails({
-      sessions: [session],
-      account: nexusAccount,
-      clients: [publicClient]
-    })
+    const sessionDetailsWitPermissionEnableHash = await getEnableSessionDetails(
+      {
+        enableMode: SmartSessionMode.UNSAFE_ENABLE,
+        sessions: [session],
+        account: nexusAccount,
+        clients: [publicClient]
+      }
+    )
+
+    const { permissionEnableHash, ...sessionDetails } =
+      sessionDetailsWitPermissionEnableHash
 
     const sessionDetailKeys = Object.keys(sessionDetails)
     console.log({ sessionDetailKeys })
 
     sessionDetails.enableSessionData.enableSession.permissionEnableSig =
       await eoaAccount.signMessage({
-        message: { raw: sessionDetails.permissionEnableHash }
+        message: { raw: permissionEnableHash }
       })
 
     const signature = encodeSmartSessionSignature(sessionDetails)
@@ -213,7 +211,7 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
       account: nexusAccount
     })
 
-    expect(decodededSignature.mode).toBe(SmartSessionMode.ENABLE)
+    expect(decodededSignature.mode).toBe(SmartSessionMode.UNSAFE_ENABLE)
     expect(decodededSignature.permissionId).toBe(sessionDetails.permissionId)
     expect(decodededSignature.signature).toBe(sessionDetails.signature)
 
@@ -256,6 +254,7 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
 
     console.log({ userOperation })
     console.log("It fails at this point...")
+
     const userOpHash = await nexusClient.sendUserOperation(userOperation)
 
     const receipt = await nexusClient.waitForUserOperationReceipt({

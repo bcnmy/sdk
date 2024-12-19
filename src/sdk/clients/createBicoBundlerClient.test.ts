@@ -45,6 +45,7 @@ describe("bico.bundler", async () => {
     nexusAccountAddress = await nexusAccount.getCounterFactualAddress()
     await topUp(testClient, nexusAccountAddress)
   })
+
   afterAll(async () => {
     await killNetwork([network?.rpcPort, network?.bundlerPort])
   })
