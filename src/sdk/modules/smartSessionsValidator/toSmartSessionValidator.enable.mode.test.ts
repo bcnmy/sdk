@@ -43,6 +43,7 @@ import {
 } from "../../clients/createSmartAccountClient"
 import {
   MAINNET_ADDRESS_K1_VALIDATOR_ADDRESS,
+  SIMPLE_SESSION_VALIDATOR_ADDRESS,
   SMART_SESSIONS_ADDRESS
 } from "../../constants"
 import { generateSalt } from "./Helpers"
@@ -257,31 +258,14 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
         }
       })
 
-    // sessionDetails.enableSessionData.enableSession.permissionEnableSig =
-    //   encodePacked(
-    //     ["address", "bytes"],
-    //     [MAINNET_ADDRESS_K1_VALIDATOR_ADDRESS, permissionEnableRawSig]
-    //   )
-
     const nonce = await nexusClient.account.getNonce({
       // @ts-ignore
-      moduleAddress: SMART_SESSIONS_ADDRESS
+      moduleAddress: SMART_SESSIONS_ADDRESS,
+      key: BigInt(Date.now()),
+      validationMode: "0x00"
     })
 
     console.log({ nonce })
-
-    // const signature = encodeSmartSessionSignature(sessionDetails)
-
-    // const decodededSignature = decodeSmartSessionSignature({
-    //   signature,
-    //   account: nexusAccount
-    // })
-
-    // expect(decodededSignature.mode).toBe(SmartSessionMode.UNSAFE_ENABLE)
-    // expect(decodededSignature.permissionId).toBe(sessionDetails.permissionId)
-    // expect(decodededSignature.signature).toBe(sessionDetails.signature)
-
-    // console.log({ decodededSignature })
 
     const calls = [
       {
@@ -303,9 +287,10 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
       threshold: 1
     })
 
+    console.log("here 1")
+
     const userOperation = await nexusClient.prepareUserOperation({
       calls,
-      nonce,
       signature: encodeSmartSessionSignature(sessionDetails)
     })
 
@@ -316,11 +301,15 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
     })
 
     userOperation.signature = encodeSmartSessionSignature(sessionDetails)
+    userOperation.nonce = nonce
 
     console.log({ userOperation })
-    console.log("It fails at this point...")
+    console.log("here 2")
 
-    const userOpHash = await nexusClient.sendUserOperation(userOperation)
+    const userOp = await nexusClient.prepareUserOperation(userOperation)
+
+    console.log({ userOp })
+    const userOpHash = await nexusClient.sendUserOperation(userOp)
 
     const receipt = await nexusClient.waitForUserOperationReceipt({
       hash: userOpHash
