@@ -22,7 +22,6 @@ import {
   toBytes,
   toHex
 } from "viem"
-import type { BundlerClient } from "viem/account-abstraction"
 import {
   BICONOMY_TOKEN_PAYMASTER,
   MOCK_MULTI_MODULE_ADDRESS,
@@ -31,8 +30,6 @@ import {
   NEXUS_DOMAIN_TYPEHASH,
   NEXUS_DOMAIN_VERSION
 } from "../../account/utils/Constants"
-import type { PaymasterContext } from "../../clients/createBicoPaymasterClient"
-import type { NexusClient } from "../../clients/createNexusClient"
 import { EIP1271Abi } from "../../constants/abi"
 import {
   type AnyData,
@@ -279,7 +276,7 @@ export const getAccountMeta = async (
         chainId: decoded?.[3]
       }
     }
-  } catch (error) { }
+  } catch (error) {}
   return {
     name: NEXUS_DOMAIN_NAME,
     version: NEXUS_DOMAIN_VERSION,
