@@ -140,10 +140,7 @@ export async function sendDebugUserOperation<
     signature
   } as UserOperation)
 
-  console.log("Sending User Operation:", {
-    formatted: rpcParameters,
-    raw: request
-  })
+  console.log("Sending User Operation:", rpcParameters)
 
   // Create Tenderly debug URL
   const tenderlyUrl = new URL(
@@ -199,7 +196,7 @@ export async function sendDebugUserOperation<
     console.log("User Operation Hash:", hash)
     return hash
   } catch (error) {
-    console.error("User Operation Failed:", error)
+    // console.error("User Operation Failed:", error)
     const calls = (parameters as any).calls
     throw getUserOperationError(error as BaseError, {
       ...(request as UserOperation),

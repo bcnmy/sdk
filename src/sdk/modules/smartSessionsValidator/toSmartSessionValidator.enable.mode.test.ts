@@ -49,6 +49,7 @@ import {
   SMART_SESSIONS_ADDRESS
 } from "../../constants"
 import { generateSalt } from "./Helpers"
+import { DUMMY_ECDSA_SIG } from "./toSmartSessionsValidator"
 
 describe("modules.smartSessions.enable.mode.dx", async () => {
   let network: NetworkConfig
@@ -98,6 +99,7 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
     testParams = getTestParamsForTestnet(publicClient)
 
     nexusAccount = await toNexusAccount({
+      index: 1n,
       signer: eoaAccount,
       chain,
       transport: http(),
@@ -106,9 +108,13 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
 
     nexusAccountAddress = await nexusAccount.getCounterFactualAddress()
 
-    console.log({ nexusAccountAddress })
+    console.log(
+      { nexusAccountAddress, sessionPublicKey },
+      { eoaAccountAddress: eoaAccount.address }
+    )
 
     nexusClient = await createSmartAccountClient({
+      index: 1n,
       account: nexusAccount,
       signer: eoaAccount,
       chain,
@@ -121,27 +127,32 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
   test("should pack user operation", async () => {
     const packed = toPackedUserOperation({
       signature:
-        "0x02010000e014010040e0141d020004e02004e033000080e0163ce0165f010420e0163f0001e0141f1f014a345c1919b8c57af968a155f2554b43897682979db7c0f499c1c28b438546020aa184e0033f132483da3a338895199e5e538530213157e931bf06e0031fe00a001fc0920a0f5a416164e457eaa8a6d6274c1290214351cbbf8d0b39475a89f19cc40003e00a33e00200010160e0020ce00a000001e1163f0002e00a33e00400e0163fe1163fe2181fe0053f13548435df309866a3880fc4ce84298019691bb1372023e03300e2169f0000e1163fe03800e2155f06000020273ea3e32007e01c001314e4829e655f0b3a1793838ddd47273d5341d416e01638e017dfe0189fe0035f13529ad04f4d83aab25144a90267d4a1443b84f5a6e0031fe00a00e1177fe01700005520201f2d6db27c52e3c11c1cf24072004ac75cba55e47aabf13d40b29fa092d038572f1fe089db55aea6df9d9abe02e6c38d97de397afd949eb1dcf4526280d6855333d41166ec237cd5ff66c5831847c416b22367fb1b2054e01e001f418b49b48ae9d1d856d927e00a1d759c9e003b06c75f5058631a6aee4a3db74f1f9675cb003a60b1eba3502cdd8401f184cb4e215e7a2c4ee30e628fa05536d65f01551ce01168040000000000",
-      sender: "0x9d853Bb2cF20B803f7B0F4535EF46a35685802e9",
-      maxFeePerGas: 1500717n,
-      maxPriorityFeePerGas: 1500000n,
+        "0x02010000e014010040e0141d020004802004e03300e0173f00e0e0155c0103c0e0151f0100012003e011001f014a34ae11a739a10c39be924306d512bff8c480de193a42f1209c99d1b2950c02e20f42e0033c1341f143f4b5f19afcd2602f6ade18e75e9b5e37d3e0031fe00a001fc06d47491264728e9233d06d2b0efbc5689de47b89e9fe3d419365676ef3d77d001de00a33e00200e015be201f00202004e012000101a0e0121c400014147a478affccf9ba4722b4fd42fb68e460d16fbc1e4018e03e00e2163f0100602003e05300e117400420273ea3e3e01f801314e4829e655f0b3a1793838ddd47273d5341d416e0163be017dfe0189fe0035f13529ad04f4d83aab25144a90267d4a1443b84f5a6e0031fe00a00e1177fe01700005520201f2d6db27c52e3c11c1cf24072004ac75cba04086e15e6bd4485230c7655d5d1e01f1bef115c8098335703bda6e3f8f565bd2c00485124334422c5798da167e63a5d1179826812046dd500cf2a1a7439b0c83d6d1c2054e01e001f414c83cd664b8fcb40e8e06152028f452d11e9ed58e80de3825645d3f53b16c31f4b7e84ab430dc42200d802a42e85b98eb1d5e319e32ceb4ee3b349e285025bdc01661be01168040000000000",
       callData:
         "0xe9ae5c5300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000003814e4829e655f0b3a1793838ddd47273d5341d4160000000000000000000000000000000000000000000000000000000000000000273ea3e30000000000000000",
+      sender: "0xdC66A533f27aC804B40c991F6016ceAAb8d7Defc",
+      maxFeePerGas: 3500855n,
+      maxPriorityFeePerGas: 3500000n,
       factory: undefined,
       factoryData: undefined,
       nonce:
-        13699614532694608868838846670020553880181607859668085174656940422496488783872n,
-      callGasLimit: 562217n,
-      preVerificationGas: 221775n,
-      verificationGasLimit: 167305n,
-      paymasterPostOpGasLimit: 167305n,
-      paymasterVerificationGasLimit: 167305n
+        84423803952951738471617358635217431751803879867990993447121768113268552892416n,
+      callGasLimit: 1562217n,
+      verificationGasLimit: 1567305n,
+      paymasterPostOpGasLimit: 1567305n,
+      paymasterVerificationGasLimit: 1567305n,
+      preVerificationGas: 10000000000n
     })
+
+    // console.log(JSON.stringify(deepHexlify(packed), null, 2))
+    expect(packed.nonce).toBe(
+      84423803952951738471617358635217431751803879867990993447121768113268552892416n
+    )
 
     console.log(JSON.stringify(deepHexlify(packed), null, 2))
   })
 
-  test.skip("should send a sponsored transaction", async () => {
+  test("should send a sponsored transaction", async () => {
     // Get initial balance
     const initialBalance = await publicClient.getBalance({
       address: nexusAccountAddress
@@ -237,11 +248,8 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
     }
 
     const session: Session = {
-      sessionValidator: OWNABLE_VALIDATOR_ADDRESS,
-      sessionValidatorInitData: encodeValidationData({
-        threshold: 1,
-        owners: [sessionPublicKey]
-      }),
+      sessionValidator: SIMPLE_SESSION_VALIDATOR_ADDRESS,
+      sessionValidatorInitData: sessionPublicKey,
       salt: generateSalt(),
       userOpPolicies: [],
       erc7739Policies: {
@@ -300,13 +308,21 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
 
     console.log(1, { calls })
 
-    sessionDetails.signature = getOwnableValidatorMockSignature({
-      threshold: 1
-    })
+    // Here we are setting the signature to the mock signature
+
+    // sessionDetails.signature = getOwnableValidatorMockSignature({
+    //   threshold: 1
+    // })
+    sessionDetails.signature = "0x"
 
     console.log(2, { sessionDetails })
 
     const userOperation = await nexusClient.prepareUserOperation({
+      verificationGasLimit: 10000000n,
+      paymasterVerificationGasLimit: 10000000n,
+      callGasLimit: 10000000n,
+      paymasterPostOpGasLimit: 10000000n,
+      preVerificationGas: 10000000n,
       calls,
       signature: encodeSmartSessionSignature(sessionDetails)
     })
@@ -329,7 +345,7 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
 
     console.log(4, { userOperation })
 
-    const userOpHash = await nexusClient.sendUserOperation(userOperation)
+    const userOpHash = await nexusClient.sendDebugUserOperation(userOperation)
 
     console.log(5, { userOpHash })
     const receipt = await nexusClient.waitForUserOperationReceipt({
