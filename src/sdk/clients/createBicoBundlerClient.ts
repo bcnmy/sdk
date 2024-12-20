@@ -15,7 +15,7 @@ import {
   type SmartAccount,
   createBundlerClient
 } from "viem/account-abstraction"
-import { biconomyPaymasterContext } from "./createBicoPaymasterClient"
+import { biconomySponsoredPaymasterContext } from "./createBicoPaymasterClient"
 import { type BicoActions, bicoBundlerActions } from "./decorators/bundler"
 import type {
   BicoRpcSchema,
@@ -105,7 +105,7 @@ export const createBicoBundlerClient = (
   }
 
   const defaultedPaymasterContext = parameters.paymaster
-    ? parameters.paymasterContext ?? biconomyPaymasterContext
+    ? parameters.paymasterContext ?? biconomySponsoredPaymasterContext
     : undefined
 
   const bundler_ = createBundlerClient({
