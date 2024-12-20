@@ -27,7 +27,8 @@ import {
 } from "viem"
 import {
   entryPoint07Address,
-  getUserOperationHash
+  getUserOperationHash,
+  toPackedUserOperation
 } from "viem/account-abstraction"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { beforeAll, describe, expect, test } from "vitest"
@@ -37,6 +38,7 @@ import { toNetwork } from "../../../test/testSetup"
 import { getTestParamsForTestnet } from "../../../test/testUtils"
 import type { NetworkConfig, TestnetParams } from "../../../test/testUtils"
 import { type NexusAccount, toNexusAccount } from "../../account/toNexusAccount"
+import { deepHexlify } from "../../account/utils/deepHexlify"
 import {
   type NexusClient,
   createSmartAccountClient
@@ -112,6 +114,29 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
       bundlerTransport: http(bundlerUrl),
       ...testParams
     })
+  })
+
+  test("should pack user operation", async () => {
+    const packed = toPackedUserOperation({
+      signature:
+        "0x02010000e014010040e0141d020004e02004e033000080e0163ce0165f010420e0163f0001e0141f1f014a345c1919b8c57af968a155f2554b43897682979db7c0f499c1c28b438546020aa184e0033f132483da3a338895199e5e538530213157e931bf06e0031fe00a001fc0920a0f5a416164e457eaa8a6d6274c1290214351cbbf8d0b39475a89f19cc40003e00a33e00200010160e0020ce00a000001e1163f0002e00a33e00400e0163fe1163fe2181fe0053f13548435df309866a3880fc4ce84298019691bb1372023e03300e2169f0000e1163fe03800e2155f06000020273ea3e32007e01c001314e4829e655f0b3a1793838ddd47273d5341d416e01638e017dfe0189fe0035f13529ad04f4d83aab25144a90267d4a1443b84f5a6e0031fe00a00e1177fe01700005520201f2d6db27c52e3c11c1cf24072004ac75cba55e47aabf13d40b29fa092d038572f1fe089db55aea6df9d9abe02e6c38d97de397afd949eb1dcf4526280d6855333d41166ec237cd5ff66c5831847c416b22367fb1b2054e01e001f418b49b48ae9d1d856d927e00a1d759c9e003b06c75f5058631a6aee4a3db74f1f9675cb003a60b1eba3502cdd8401f184cb4e215e7a2c4ee30e628fa05536d65f01551ce01168040000000000",
+      sender: "0x9d853Bb2cF20B803f7B0F4535EF46a35685802e9",
+      maxFeePerGas: 1500717n,
+      maxPriorityFeePerGas: 1500000n,
+      callData:
+        "0xe9ae5c5300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000003814e4829e655f0b3a1793838ddd47273d5341d4160000000000000000000000000000000000000000000000000000000000000000273ea3e30000000000000000",
+      factory: undefined,
+      factoryData: undefined,
+      nonce:
+        13699614532694608868838846670020553880181607859668085174656940422496488783872n,
+      callGasLimit: 562217n,
+      preVerificationGas: 221775n,
+      verificationGasLimit: 67305n,
+      paymasterPostOpGasLimit: 67305n,
+      paymasterVerificationGasLimit: 67305n
+    })
+
+    console.log(JSON.stringify(deepHexlify(packed), null, 2))
   })
 
   test.skip("should send a sponsored transaction", async () => {
@@ -257,16 +282,6 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
           raw: permissionEnableHash
         }
       })
-
-    const nonce = await nexusClient.account.getNonce({
-      // @ts-ignore
-      moduleAddress: SMART_SESSIONS_ADDRESS,
-      key: BigInt(Date.now()),
-      validationMode: "0x00"
-    })
-
-    console.log({ nonce })
-
     const calls = [
       {
         to: session.actions[0].actionTarget,
@@ -281,13 +296,13 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
       })
     )
 
-    console.log({ calls })
+    console.log(1, { calls })
 
     sessionDetails.signature = getOwnableValidatorMockSignature({
       threshold: 1
     })
 
-    console.log("here 1")
+    console.log(2, { sessionDetails })
 
     const userOperation = await nexusClient.prepareUserOperation({
       calls,
@@ -300,17 +315,21 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
       message: { raw: userOpHashToSign }
     })
 
+    console.log(3, { sessionDetails })
+
     userOperation.signature = encodeSmartSessionSignature(sessionDetails)
-    userOperation.nonce = nonce
+    userOperation.nonce = await nexusClient.account.getNonce({
+      // @ts-ignore
+      moduleAddress: SMART_SESSIONS_ADDRESS,
+      key: BigInt(Date.now()),
+      validationMode: "0x00"
+    })
 
-    console.log({ userOperation })
-    console.log("here 2")
+    console.log(4, { userOperation })
 
-    const userOp = await nexusClient.prepareUserOperation(userOperation)
+    const userOpHash = await nexusClient.sendUserOperation(userOperation)
 
-    console.log({ userOp })
-    const userOpHash = await nexusClient.sendUserOperation(userOp)
-
+    console.log(5, { userOpHash })
     const receipt = await nexusClient.waitForUserOperationReceipt({
       hash: userOpHash
     })
