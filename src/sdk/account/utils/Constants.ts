@@ -97,7 +97,7 @@ export const MOCK_MULTI_MODULE_ADDRESS =
 export const MODULE_TYPE_MULTI = 0
 
 export const NEXUS_DOMAIN_NAME = "nexus"
-export const NEXUS_DOMAIN_VERSION = "1.0.0"
+export const NEXUS_DOMAIN_VERSION = "1.0.1"
 export const NEXUS_DOMAIN_TYPEHASH =
   "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
 

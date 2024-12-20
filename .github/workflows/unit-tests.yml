@@ -30,4 +30,5 @@ jobs:
           BUNDLER_URL: ${{ secrets.BUNDLER_URL }}
           VIRTUAL_BASE_SEPOLIA: ${{ secrets.VIRTUAL_BASE_SEPOLIA }}
           CHAIN_ID: 84532
+          ALT_CHAIN_ID: 11155420
           CI: true 

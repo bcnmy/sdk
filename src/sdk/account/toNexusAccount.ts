@@ -144,6 +144,7 @@ export type NexusSmartAccountImplementation = SmartAccountImplementation<
     getModule: () => Module
     factoryData: Hex
     factoryAddress: Address
+    k1ValidatorAddress: Address
     signer: Signer
     publicClient: PublicClient
     walletClient: WalletClient
@@ -324,14 +325,13 @@ export const toNexusAccount = async (
    * @param userOp - The user operation
    * @returns The hash of the user operation
    */
-  const getUserOpHash = (userOp: UserOperation): Hex => {
-    return getUserOperationHash({
+  const getUserOpHash = (userOp: UserOperation): Hex =>
+    getUserOperationHash({
       chainId: chain.id,
       entryPointAddress: entryPoint07Address,
       entryPointVersion: "0.7",
       userOperation: userOp
     })
-  }
 
   /**
    * @description Encodes a batch of calls for execution
@@ -397,12 +397,13 @@ export const toNexusAccount = async (
 
   /**
    * @description Gets the nonce for the account
-   * @param args - Optional arguments for getting the nonce
+   * @param parameters - Optional parameters for getting the nonce
    * @returns The nonce
    */
   const getNonce = async (parameters?: {
     key?: bigint
     validationMode?: "0x00" | "0x01"
+    moduleAddress?: Address
   }): Promise<bigint> => {
     try {
       const TIMESTAMP_ADJUSTMENT = 16777215n
@@ -411,7 +412,7 @@ export const toNexusAccount = async (
       const key: string = concat([
         toHex(defaultedKey, { size: 3 }),
         defaultedValidationMode,
-        module.address as Hex
+        parameters?.moduleAddress ?? (module.address as Hex)
       ])
 
       const accountAddress = await getCounterFactualAddress()
@@ -599,6 +600,7 @@ export const toNexusAccount = async (
       getModule: () => module,
       factoryData,
       factoryAddress,
+      k1ValidatorAddress,
       signer,
       walletClient,
       publicClient

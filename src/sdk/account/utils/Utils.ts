@@ -42,7 +42,7 @@ import type { AccountMetadata, EIP712DomainReturn } from "./Types"
  * @param value - The value to check
  * @returns True if the value is null or undefined
  */
-export const isNullOrUndefined = (value: any): value is undefined => {
+export const isNullOrUndefined = (value: AnyData): value is undefined => {
   return value === null || value === undefined
 }
 
@@ -370,6 +370,31 @@ export const isTesting = () => {
     return process?.env?.TEST === "true"
   } catch (e) {
     return false
+  }
+}
+
+type TenderlyDetails = {
+  accountSlug: string
+  projectSlug: string
+  apiKey: string
+}
+export const getTenderlyDetails = (): TenderlyDetails | null => {
+  try {
+    const accountSlug = process?.env?.TENDERLY_ACCOUNT_SLUG
+    const projectSlug = process?.env?.TENDERLY_PROJECT_SLUG
+    const apiKey = process?.env?.TENDERLY_API_KEY
+
+    if (!accountSlug || !projectSlug || !apiKey) {
+      return null
+    }
+
+    return {
+      accountSlug,
+      projectSlug,
+      apiKey
+    }
+  } catch (e) {
+    return null
   }
 }
 

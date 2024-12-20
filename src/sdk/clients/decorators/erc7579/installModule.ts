@@ -12,7 +12,10 @@ import {
   sendUserOperation
 } from "viem/account-abstraction"
 import { getAction, parseAccount } from "viem/utils"
+import type { NexusAccount } from "../../../account/toNexusAccount"
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
+import { addressEquals } from "../../../account/utils/Utils"
+import { SMART_SESSIONS_ADDRESS } from "../../../constants"
 import type { ModuleMeta } from "../../../modules/utils/Types"
 import { parseModuleTypeId } from "./supportsModule"
 
@@ -67,43 +70,73 @@ export async function installModule<
 
   const account = parseAccount(account_) as SmartAccount
 
-  return getAction(
-    client,
-    sendUserOperation,
-    "sendUserOperation"
-  )({
-    calls: [
-      {
-        to: account.address,
+  const calls = [
+    {
+      to: account.address,
+      value: BigInt(0),
+      data: encodeFunctionData({
+        abi: [
+          {
+            name: "installModule",
+            type: "function",
+            stateMutability: "nonpayable",
+            inputs: [
+              {
+                type: "uint256",
+                name: "moduleTypeId"
+              },
+              {
+                type: "address",
+                name: "module"
+              },
+              {
+                type: "bytes",
+                name: "initData"
+              }
+            ],
+            outputs: []
+          }
+        ],
+        functionName: "installModule",
+        args: [parseModuleTypeId(type), getAddress(address), initData ?? "0x"]
+      })
+    }
+  ]
+
+  if (addressEquals(address, SMART_SESSIONS_ADDRESS)) {
+    const nexusAccount = account as NexusAccount
+    if (nexusAccount?.k1ValidatorAddress) {
+      calls.push({
+        to: nexusAccount.k1ValidatorAddress,
         value: BigInt(0),
         data: encodeFunctionData({
           abi: [
             {
-              name: "installModule",
+              name: "addSafeSender",
               type: "function",
               stateMutability: "nonpayable",
               inputs: [
                 {
-                  type: "uint256",
-                  name: "moduleTypeId"
-                },
-                {
                   type: "address",
-                  name: "module"
-                },
-                {
-                  type: "bytes",
-                  name: "initData"
+                  name: "sender"
                 }
               ],
               outputs: []
             }
           ],
-          functionName: "installModule",
-          args: [parseModuleTypeId(type), getAddress(address), initData ?? "0x"]
+          functionName: "addSafeSender",
+          args: [address]
         })
-      }
-    ],
+      })
+    }
+  }
+
+  return getAction(
+    client,
+    sendUserOperation,
+    "sendUserOperation"
+  )({
+    calls,
     maxFeePerGas,
     maxPriorityFeePerGas,
     nonce,

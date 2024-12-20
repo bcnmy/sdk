@@ -1,5 +1,4 @@
 import { BaseError } from "viem"
-import type { Service } from ".."
 export type KnownError = {
   name: string
   regex: string
@@ -22,21 +21,23 @@ const matchError = (message: string): null | KnownError =>
       message.toLowerCase().indexOf(knownError.regex.toLowerCase()) > -1
   ) ?? null
 
-const buildErrorStrings = (
-  error: KnownError,
-  status: string,
-  service?: Service
-): string[] =>
-  [
-    `${status}: ${error.description}\n`,
-    error.causes?.length
-      ? ["Potential cause(s): \n", ...error.causes, ""].join("\n")
-      : "",
-    error.solutions?.length
-      ? ["Potential solution(s): \n", ...error.solutions].join("\n")
-      : "",
-    service ? `\nSent via: ${service}` : ""
-  ].filter(Boolean)
+const buildErrorStrings = (error: KnownError, status: string): string[] => {
+  const strings: string[] = []
+
+  strings.push(`${status}: ${error.description}`)
+
+  if (error.causes?.length) {
+    strings.push("Potential cause(s):")
+    strings.push(...error.causes)
+  }
+
+  if (error.solutions?.length) {
+    strings.push("Potential solution(s):")
+    strings.push(...error.solutions)
+  }
+
+  return strings
+}
 
 type AccountAbstractionErrorParams = {
   docsSlug?: string
@@ -53,33 +54,21 @@ class AccountAbstractionError extends BaseError {
   }
 }
 
-export const getAAError = async (
-  message: string,
-  httpStatus?: number,
-  service?: Service
-) => {
+export const getAAError = async (message: string, httpStatus?: number) => {
   if (!knownErrors.length) {
     const errors = (await (await fetch(ERRORS_URL)).json()) as KnownError[]
     knownErrors.push(...errors)
   }
 
-  const details: string =
-    `${service} - ${typeof message}` === "string"
-      ? message
-      : JSON.stringify(message)
-  const matchedError = matchError(details)
+  const matchedError = matchError(message)
   const status =
     matchedError?.regex ?? (httpStatus ?? UNKOWN_ERROR_CODE).toString()
 
   const metaMessages = matchedError
-    ? buildErrorStrings(matchedError, status, service)
+    ? buildErrorStrings(matchedError, status)
     : []
   const title = matchedError ? matchedError.name : "Unknown Error"
   const docsSlug = matchedError?.docsUrl ?? DOCS_URL
 
-  return new AccountAbstractionError(title, {
-    docsSlug,
-    metaMessages,
-    details
-  })
+  return { title, docsSlug, metaMessages, message }
 }
