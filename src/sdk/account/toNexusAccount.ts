@@ -144,6 +144,7 @@ export type NexusSmartAccountImplementation = SmartAccountImplementation<
     getModule: () => Module
     factoryData: Hex
     factoryAddress: Address
+    k1ValidatorAddress: Address
     signer: Signer
     publicClient: PublicClient
     walletClient: WalletClient
@@ -599,6 +600,7 @@ export const toNexusAccount = async (
       getModule: () => module,
       factoryData,
       factoryAddress,
+      k1ValidatorAddress,
       signer,
       walletClient,
       publicClient

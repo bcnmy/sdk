@@ -106,6 +106,8 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
 
     nexusAccountAddress = await nexusAccount.getCounterFactualAddress()
 
+    console.log({ nexusAccountAddress })
+
     nexusClient = await createSmartAccountClient({
       account: nexusAccount,
       signer: eoaAccount,
@@ -131,9 +133,9 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
         13699614532694608868838846670020553880181607859668085174656940422496488783872n,
       callGasLimit: 562217n,
       preVerificationGas: 221775n,
-      verificationGasLimit: 67305n,
-      paymasterPostOpGasLimit: 67305n,
-      paymasterVerificationGasLimit: 67305n
+      verificationGasLimit: 167305n,
+      paymasterPostOpGasLimit: 167305n,
+      paymasterVerificationGasLimit: 167305n
     })
 
     console.log(JSON.stringify(deepHexlify(packed), null, 2))

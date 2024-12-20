@@ -2,7 +2,6 @@ import type { Address, Assign, Chain, Hex, SignableMessage } from "viem"
 import type { SmartAccount } from "viem/account-abstraction"
 import type { NexusSmartAccountImplementation } from "../../account/toNexusAccount"
 import type { Signer } from "./../../account/utils/toSigner"
-export type ModuleVersion = "1.0.0" // | 'V1_0_1'
 
 export type SignerData = {
   /** This is not the public as provided by viem, key but address for the given pvKey */

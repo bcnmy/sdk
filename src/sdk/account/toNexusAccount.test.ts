@@ -221,7 +221,7 @@ describe("nexus.account", async () => {
       calls: [{ to: userTwo.address, value: 1n }]
     })
 
-    const userOpHash = await nexusClient.account.getUserOpHash(userOperation)
+    const userOpHash = nexusClient.account.getUserOpHash(userOperation)
 
     const isValid = await mockSigVerifierContract.read.verify([
       userOpHash,
