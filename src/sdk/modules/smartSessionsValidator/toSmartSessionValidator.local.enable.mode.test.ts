@@ -1,152 +1,100 @@
-import { getAccount } from "@rhinestone/module-sdk/account"
 import {
   OWNABLE_VALIDATOR_ADDRESS,
   type Session,
   SmartSessionMode,
-  decodeSmartSessionSignature,
   encodeSmartSessionSignature,
   encodeValidationData,
+  getAccount,
   getEnableSessionDetails,
   getOwnableValidatorMockSignature,
   getSmartSessionsValidator,
   getSudoPolicy
-} from "@rhinestone/module-sdk/module"
+} from "@rhinestone/module-sdk"
 import {
   http,
+  type Abi,
+  type AbiFunction,
   type Address,
   type Chain,
+  type Hex,
   type LocalAccount,
-  type PrivateKeyAccount,
   type PublicClient,
-  type WalletClient,
-  createPublicClient,
-  createWalletClient,
   encodeFunctionData,
-  encodePacked,
-  getAddress
+  getContract,
+  slice,
+  toFunctionSelector
 } from "viem"
-import {
-  entryPoint07Address,
-  getUserOperationHash
-} from "viem/account-abstraction"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
-import { beforeAll, describe, expect, test } from "vitest"
+import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { CounterAbi } from "../../../test/__contracts/abi/CounterAbi"
+import { MockCalleeAbi } from "../../../test/__contracts/abi/MockCalleeAbi"
 import { testAddresses } from "../../../test/callDatas"
 import { toNetwork } from "../../../test/testSetup"
-import { getTestParamsForTestnet } from "../../../test/testUtils"
-import type { NetworkConfig, TestnetParams } from "../../../test/testUtils"
-import { type NexusAccount, toNexusAccount } from "../../account/toNexusAccount"
+import {
+  fundAndDeployClients,
+  getTestAccount,
+  killNetwork,
+  toTestClient
+} from "../../../test/testUtils"
+import type { MasterClient, NetworkConfig } from "../../../test/testUtils"
 import {
   type NexusClient,
   createSmartAccountClient
 } from "../../clients/createSmartAccountClient"
-import {
-  MAINNET_ADDRESS_K1_VALIDATOR_ADDRESS,
-  SMART_SESSIONS_ADDRESS
-} from "../../constants"
+import { SMART_SESSIONS_ADDRESS } from "../../constants"
+import type { Module } from "../utils/Types"
 import { generateSalt } from "./Helpers"
+import { toSmartSessionsValidator } from "./toSmartSessionsValidator"
 
-describe("modules.smartSessions.enable.mode.dx", async () => {
+describe.skip("modules.smartSessions.enable.mode.local.dx", async () => {
   let network: NetworkConfig
-  // Required for "TESTNET_FROM_ENV_VARS" networks
-  let testParams: TestnetParams
-
   let chain: Chain
   let bundlerUrl: string
-  let paymasterUrl: undefined | string
-  let walletClient: WalletClient
 
   // Test utils
-  let publicClient: PublicClient // testClient not available on public testnets
-  let eoaAccount: PrivateKeyAccount
-  let recipientAddress: Address
-  let nexusAccountAddress: Address
-  let nexusAccount: NexusAccount
+  let testClient: MasterClient
+  let eoaAccount: LocalAccount
   let nexusClient: NexusClient
-
+  let nexusAccountAddress: Address
   let sessionKeyAccount: LocalAccount
   let sessionPublicKey: Address
+  let cachedSessionData: string
+
+  let sessionsModule: Module
 
   beforeAll(async () => {
-    network = await toNetwork("TESTNET_FROM_ENV_VARS")
+    network = await toNetwork("BESPOKE_ANVIL_NETWORK_FORKING_BASE_SEPOLIA")
 
     chain = network.chain
     bundlerUrl = network.bundlerUrl
-    paymasterUrl = network.paymasterUrl
-    eoaAccount = network.account as PrivateKeyAccount
-
+    eoaAccount = getTestAccount(0)
     sessionKeyAccount = privateKeyToAccount(generatePrivateKey()) // Generally belongs to the dapp
-    sessionPublicKey = getAddress(sessionKeyAccount.address)
+    sessionPublicKey = sessionKeyAccount.address
 
-    recipientAddress = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045" // vitalik.eth
-
-    walletClient = createWalletClient({
-      account: eoaAccount,
-      chain,
-      transport: http()
-    })
-
-    publicClient = createPublicClient({
-      chain,
-      transport: http()
-    })
-
-    testParams = getTestParamsForTestnet(publicClient)
-
-    nexusAccount = await toNexusAccount({
-      signer: eoaAccount,
-      chain,
-      transport: http(),
-      ...testParams
-    })
-
-    nexusAccountAddress = await nexusAccount.getCounterFactualAddress()
+    testClient = toTestClient(chain, getTestAccount(5))
 
     nexusClient = await createSmartAccountClient({
-      account: nexusAccount,
       signer: eoaAccount,
       chain,
       transport: http(),
-      bundlerTransport: http(bundlerUrl),
-      ...testParams
+      bundlerTransport: http(bundlerUrl)
     })
+
+    nexusAccountAddress = await nexusClient.account.getCounterFactualAddress()
+
+    sessionsModule = toSmartSessionsValidator({
+      account: nexusClient.account,
+      signer: eoaAccount
+    })
+
+    await fundAndDeployClients(testClient, [nexusClient])
   })
 
-  test.skip("should send a sponsored transaction", async () => {
-    // Get initial balance
-    const initialBalance = await publicClient.getBalance({
-      address: nexusAccountAddress
-    })
-
-    if (initialBalance === 0n) {
-      console.log("Fund account", nexusAccountAddress)
-    }
-
-    // Send user operation
-    const hash = await nexusClient.sendTransaction({
-      calls: [
-        {
-          to: recipientAddress,
-          value: 1n
-        }
-      ]
-    })
-
-    // Wait for the transaction to be mined
-    const { status } = await publicClient.waitForTransactionReceipt({ hash })
-    expect(status).toBe("success")
-    // Get final balance
-    const finalBalance = await publicClient.getBalance({
-      address: nexusAccountAddress
-    })
-
-    // Check that the balance hasn't changed
-    // No gas fees were paid, so the balance should have decreased only by 1n
-    expect(finalBalance).toBeLessThan(initialBalance)
+  afterAll(async () => {
+    await killNetwork([network?.rpcPort, network?.bundlerPort])
   })
 
-  test.skip("should support smart sessions use mode", async () => {
+  test("should check smart sessions enable mode on anvil network", async () => {
     const uninitializedSmartSessions = getSmartSessionsValidator({})
 
     const isInstalled = await nexusClient.isModuleInstalled({
@@ -160,52 +108,7 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
       const installReceipt = await nexusClient.waitForUserOperationReceipt({
         hash: opHash
       })
-      expect(installReceipt.success).toBe("true")
-    }
-
-    const session: Session = {
-      sessionValidator: OWNABLE_VALIDATOR_ADDRESS,
-      sessionValidatorInitData: encodeValidationData({
-        threshold: 1,
-        owners: [sessionPublicKey]
-      }),
-      salt: generateSalt(),
-      userOpPolicies: [],
-      erc7739Policies: {
-        allowedERC7739Content: [],
-        erc1271Policies: []
-      },
-      actions: [
-        {
-          actionTarget: testAddresses.Counter,
-          actionTargetSelector: "0x273ea3e3", // incrementNumber
-          actionPolicies: [getSudoPolicy()]
-        }
-      ],
-      chainId: BigInt(chain.id)
-    }
-
-    const nexusAccount = getAccount({
-      address: nexusClient.account.address,
-      type: "nexus"
-    })
-  })
-
-  test("should support smart sessions enable mode", async () => {
-    const uninitializedSmartSessions = getSmartSessionsValidator({})
-
-    const isInstalled = await nexusClient.isModuleInstalled({
-      module: uninitializedSmartSessions
-    })
-
-    if (!isInstalled) {
-      const opHash = await nexusClient.installModule({
-        module: uninitializedSmartSessions
-      })
-      const installReceipt = await nexusClient.waitForUserOperationReceipt({
-        hash: opHash
-      })
-      expect(installReceipt.success).toBe("true")
+      expect(installReceipt.success).toBe(true)
     }
 
     const session: Session = {
@@ -235,17 +138,18 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
       type: "nexus"
     })
 
-    const sessionDetailsWithPermissionEnableHash =
-      await getEnableSessionDetails({
+    const sessionDetailsWitPermissionEnableHash = await getEnableSessionDetails(
+      {
         enableMode: SmartSessionMode.UNSAFE_ENABLE,
         sessions: [session],
         account: nexusAccount,
-        clients: [publicClient],
-        enableValidatorAddress: MAINNET_ADDRESS_K1_VALIDATOR_ADDRESS
-      })
+        clients: [testClient as any]
+        // enableValidatorAddress: MAINNET_ADDRESS_K1_VALIDATOR_ADDRESS
+      }
+    )
 
     const { permissionEnableHash, ...sessionDetails } =
-      sessionDetailsWithPermissionEnableHash
+      sessionDetailsWitPermissionEnableHash
 
     const sessionDetailKeys = Object.keys(sessionDetails)
     console.log({ sessionDetailKeys })

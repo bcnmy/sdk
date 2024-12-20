@@ -396,7 +396,7 @@ export const toNexusAccount = async (
 
   /**
    * @description Gets the nonce for the account
-   * @param args - Optional arguments for getting the nonce
+   * @param parameters - Optional parameters for getting the nonce
    * @returns The nonce
    */
   const getNonce = async (parameters?: {
