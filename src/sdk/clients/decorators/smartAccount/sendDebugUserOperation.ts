@@ -145,17 +145,18 @@ export async function sendDebugUserOperation<
   const signature = (parameters.signature ||
     (await account?.signUserOperation(request as UserOperation)))!
 
-  const rpcParameters = formatUserOperationRequest({
+  const userOpWithSignature = {
     ...request,
     signature
-  } as UserOperation)
+  } as UserOperation
 
-  console.log("Sending UserOperation to bundler:", rpcParameters)
-  const packed = toPackedUserOperation(request as UserOperation)
+  const packed = toPackedUserOperation(userOpWithSignature)
   console.log(
-    "Packed user operation: ",
-    JSON.stringify(deepHexlify(packed), null, 2)
+    "Packed userOp:\n",
+    JSON.stringify([deepHexlify(packed)], null, 2)
   )
+  const rpcParameters = formatUserOperationRequest(userOpWithSignature)
+  console.log("Bundler userOp:", rpcParameters)
 
   const chainId = client.account?.client?.chain?.id?.toString()
 
@@ -165,30 +166,25 @@ export async function sendDebugUserOperation<
     )
 
     const formattedRpcParams = {
-      callData: rpcParameters.callData,
-      callGasLimit: rpcParameters.callGasLimit,
-      maxFeePerGas: rpcParameters.maxFeePerGas,
-      maxPriorityFeePerGas: rpcParameters.maxPriorityFeePerGas,
-      nonce: rpcParameters.nonce,
-      paymasterPostOpGasLimit: rpcParameters.paymasterPostOpGasLimit,
-      paymasterVerificationGasLimit:
-        rpcParameters.paymasterVerificationGasLimit,
-      preVerificationGas: rpcParameters.preVerificationGas,
       sender: rpcParameters.sender,
-      signature: rpcParameters.signature,
-      verificationGasLimit: rpcParameters.verificationGasLimit
+      nonce: rpcParameters.nonce,
+      initCode: rpcParameters.initCode,
+      callData: rpcParameters.callData,
+      accountGasLimits: rpcParameters.callGasLimit,
+      preVerificationGas: rpcParameters.preVerificationGas,
+      gasFees: rpcParameters.maxFeePerGas,
+      maxPriorityFeePerGas: rpcParameters.maxPriorityFeePerGas,
+      paymasterAndData: rpcParameters.paymasterAndData,
+      signature: rpcParameters.signature
     }
 
     const params = new URLSearchParams({
-      contractAddress: "0x0000000071727de22e5e9d8baf0edac6f37da032",
+      contractAddress: ENTRY_POINT_ADDRESS,
       value: "0",
       network: chainId ?? "84532",
-      // simulationId: generateRandomHex(),
       contractFunction: "0x765e827f",
-      rawFunctionInput: rpcParameters.callData,
+      rawFunctionInput: packed.callData,
       functionInputs: JSON.stringify([formattedRpcParams]),
-      headerBlockNumber: "19463586",
-      headerTimestamp: "1734695460",
       stateOverrides: JSON.stringify([
         {
           contractAddress: rpcParameters.sender,
@@ -197,9 +193,6 @@ export async function sendDebugUserOperation<
       ])
     })
     tenderlyUrl.search = params.toString()
-    console.log("Tenderly Simulation URL:", tenderlyUrl.toString())
-
-    // Also do a simulation using the publicClient
   } else {
     console.log(
       "Tenderly details not found in environment variables. Please set TENDERLY_API_KEY, TENDERLY_ACCOUNT_SLUG, and TENDERLY_PROJECT_SLUG."

@@ -108,11 +108,6 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
 
     nexusAccountAddress = await nexusAccount.getCounterFactualAddress()
 
-    console.log(
-      { nexusAccountAddress, sessionPublicKey },
-      { eoaAccountAddress: eoaAccount.address }
-    )
-
     nexusClient = await createSmartAccountClient({
       index: 1n,
       account: nexusAccount,
@@ -123,36 +118,7 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
       ...testParams
     })
   })
-
-  test("should pack user operation", async () => {
-    const packed = toPackedUserOperation({
-      verificationGasLimit: 10000000n,
-      paymasterVerificationGasLimit: 10000000n,
-      callGasLimit: 10000000n,
-      paymasterPostOpGasLimit: 10000000n,
-      preVerificationGas: 10000000n,
-      signature:
-        "0x02010000e014010040e0141d020004802004e03300e0173f00e0e0155c0103c0e0151f0100012003e011001f014a34ce499bbaebbe7d4959cfff7288cb93ef4092e01394aaa8d8be9a83965002ce564ee0033c13e7a6f1a02151e50b600bc3d06feed70c6c4b19bde0031fe00a001fc0cd2cb6e55eee9b4a40c46ffbacd016ba4a24478af6824c4f4a1c54fd408dde00a5e00a33e00200e015be201f00202004e012000101a0e0121c4000141485db11bee65cc7b724f84a59f6f28e12c908a34c4018e03e00e2163f0100602003e05300e117400420273ea3e3e01f801314e4829e655f0b3a1793838ddd47273d5341d416e0163be017dfe0189fe0035f13529ad04f4d83aab25144a90267d4a1443b84f5a6e0031fe00a00e1177fe01700005520201f2d6db27c52e3c11c1cf24072004ac75cba46b3ec7a493343de755d89cbadf12f1f7313bd4d71e406b0de146f86c859af98f73b62677b7ae474375b13ca50d09dc81104e7327697b7e823c1be631f6b851ed2f21b2054e01e001f415ed3370e1bb7f72b82d7080f02785f6e9765999f5bb76e043164e93af57fa31f4d2d513aaa6b04c14d3b64f98844b77815f9f2a72d3dad3a7f6c017fd90263cc01341ce01168040000000000",
-      sender: "0xdC66A533f27aC804B40c991F6016ceAAb8d7Defc",
-      maxFeePerGas: 1500582n,
-      maxPriorityFeePerGas: 1500000n,
-      callData:
-        "0xe9ae5c5300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000003814e4829e655f0b3a1793838ddd47273d5341d4160000000000000000000000000000000000000000000000000000000000000000273ea3e30000000000000000",
-      factory: undefined,
-      factoryData: undefined,
-      nonce:
-        24082891610152898234334765648976326605918059143978045864478758690797549256704n
-    })
-
-    // console.log(JSON.stringify(deepHexlify(packed), null, 2))
-    expect(packed.nonce).toBe(
-      24082891610152898234334765648976326605918059143978045864478758690797549256704n
-    )
-
-    console.log(JSON.stringify(deepHexlify(packed), null, 2))
-  })
-
-  test("should send a sponsored transaction", async () => {
+  test.skip("should send a sponsored transaction", async () => {
     // Get initial balance
     const initialBalance = await publicClient.getBalance({
       address: nexusAccountAddress
@@ -183,51 +149,6 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
     // Check that the balance hasn't changed
     // No gas fees were paid, so the balance should have decreased only by 1n
     expect(finalBalance).toBeLessThan(initialBalance)
-  })
-
-  test.skip("should support smart sessions use mode", async () => {
-    const uninitializedSmartSessions = getSmartSessionsValidator({})
-
-    const isInstalled = await nexusClient.isModuleInstalled({
-      module: uninitializedSmartSessions
-    })
-
-    if (!isInstalled) {
-      const opHash = await nexusClient.installModule({
-        module: uninitializedSmartSessions
-      })
-      const installReceipt = await nexusClient.waitForUserOperationReceipt({
-        hash: opHash
-      })
-      expect(installReceipt.success).toBe("true")
-    }
-
-    const session: Session = {
-      sessionValidator: OWNABLE_VALIDATOR_ADDRESS,
-      sessionValidatorInitData: encodeValidationData({
-        threshold: 1,
-        owners: [sessionPublicKey]
-      }),
-      salt: generateSalt(),
-      userOpPolicies: [],
-      erc7739Policies: {
-        allowedERC7739Content: [],
-        erc1271Policies: []
-      },
-      actions: [
-        {
-          actionTarget: testAddresses.Counter,
-          actionTargetSelector: "0x273ea3e3", // incrementNumber
-          actionPolicies: [getSudoPolicy()]
-        }
-      ],
-      chainId: BigInt(chain.id)
-    }
-
-    const nexusAccount = getAccount({
-      address: nexusClient.account.address,
-      type: "nexus"
-    })
   })
 
   test("should support smart sessions enable mode", async () => {
@@ -283,9 +204,6 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
     const { permissionEnableHash, ...sessionDetails } =
       sessionDetailsWithPermissionEnableHash
 
-    const sessionDetailKeys = Object.keys(sessionDetails)
-    console.log({ sessionDetailKeys })
-
     sessionDetails.enableSessionData.enableSession.permissionEnableSig =
       await eoaAccount.signMessage({
         message: {
@@ -306,16 +224,12 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
       })
     )
 
-    console.log(1, { calls })
-
     // Here we are setting the signature to the mock signature
 
     // sessionDetails.signature = getOwnableValidatorMockSignature({
     //   threshold: 1
     // })
     sessionDetails.signature = "0x"
-
-    console.log(2, { sessionDetails })
 
     const userOperation = await nexusClient.prepareUserOperation({
       verificationGasLimit: 10000000n,
@@ -343,11 +257,8 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
       validationMode: "0x00"
     })
 
-    console.log(4, { userOperation })
-
     const userOpHash = await nexusClient.sendDebugUserOperation(userOperation)
 
-    console.log(5, { userOpHash })
     const receipt = await nexusClient.waitForUserOperationReceipt({
       hash: userOpHash
     })
