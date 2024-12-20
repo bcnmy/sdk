@@ -279,7 +279,7 @@ export const getAccountMeta = async (
         chainId: decoded?.[3]
       }
     }
-  } catch (error) {}
+  } catch (error) { }
   return {
     name: NEXUS_DOMAIN_NAME,
     version: NEXUS_DOMAIN_VERSION,
@@ -410,18 +410,4 @@ export const getAllowance = async (
   })
 
   return approval as bigint
-}
-
-export const isNexusClient = (client: Client): client is NexusClient => {
-  return client.name === "Nexus Client"
-}
-
-export type ExtendedBundlerClient = BundlerClient & {
-  paymasterContext?: PaymasterContext
-}
-
-export const isBundlerClient = (
-  client: Client
-): client is ExtendedBundlerClient => {
-  return client.type === "bundlerClient"
 }

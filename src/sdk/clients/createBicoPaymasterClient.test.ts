@@ -82,14 +82,14 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
 
     nexusAccountAddress = await nexusAccount.getCounterFactualAddress()
 
-    nexusClient = (await createNexusClient({
+    nexusClient = await createNexusClient({
       signer: account,
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl),
       paymaster,
       ...testParams
-    })) as NexusClient
+    })
   })
   afterAll(async () => {
     await killNetwork([network?.rpcPort, network?.bundlerPort])
