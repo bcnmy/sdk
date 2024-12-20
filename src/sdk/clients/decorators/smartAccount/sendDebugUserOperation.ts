@@ -1,15 +1,3 @@
-import type {
-  Address,
-  Assign,
-  BaseError,
-  Chain,
-  Client,
-  Hex,
-  MaybeRequired,
-  Narrow,
-  OneOf,
-  Transport
-} from "viem"
 import {
   type DeriveEntryPointVersion,
   type DeriveSmartAccount,
@@ -25,13 +13,33 @@ import {
   type UserOperationRequest,
   formatUserOperationRequest,
   getUserOperationError,
-  prepareUserOperation
+  prepareUserOperation,
+  toPackedUserOperation
 } from "viem/account-abstraction"
-import { parseAccount } from "viem/accounts"
+
+import {
+  http,
+  type Assign,
+  type BaseError,
+  type Chain,
+  type Client,
+  type Hex,
+  type MaybeRequired,
+  type Narrow,
+  type OneOf,
+  type Transport,
+  createPublicClient,
+  parseEther,
+  zeroAddress
+} from "viem"
+import { type Address, parseAccount } from "viem/accounts"
 import { type RequestErrorType, getAction } from "viem/utils"
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
-import { generateRandomHex } from "../../../modules/utils/Uid"
-
+import { getTenderlyDetails } from "../../../account/utils/Utils"
+import { deepHexlify } from "../../../account/utils/deepHexlify"
+import { getAAError } from "../../../account/utils/getAAError"
+import { getChain } from "../../../account/utils/getChain"
+import { ENTRY_POINT_ADDRESS, EntrypointAbi } from "../../../constants"
 export type SendDebugUserOperationParameters<
   account extends SmartAccount | undefined = SmartAccount | undefined,
   accountOverride extends SmartAccount | undefined = SmartAccount | undefined,
@@ -118,6 +126,8 @@ export async function sendDebugUserOperation<
   client: Client<Transport, Chain | undefined, account>,
   parameters: SendDebugUserOperationParameters<account, accountOverride, calls>
 ) {
+  const tenderlyDetails = getTenderlyDetails()
+
   const { account: account_ = client.account, entryPointAddress } = parameters
 
   if (!account_ && !parameters.sender) throw new AccountNotFoundError()
@@ -140,46 +150,84 @@ export async function sendDebugUserOperation<
     signature
   } as UserOperation)
 
-  console.log("Sending User Operation:", rpcParameters)
-
-  // Create Tenderly debug URL
-  const tenderlyUrl = new URL(
-    "https://dashboard.tenderly.co/JoeBico/biconomy/simulator/new"
+  console.log("Sending UserOperation to bundler:", rpcParameters)
+  const packed = toPackedUserOperation(request as UserOperation)
+  console.log(
+    "Packed user operation: ",
+    JSON.stringify(deepHexlify(packed), null, 2)
   )
-  const formattedRpcParams = {
-    callData: rpcParameters.callData,
-    callGasLimit: rpcParameters.callGasLimit,
-    maxFeePerGas: rpcParameters.maxFeePerGas,
-    maxPriorityFeePerGas: rpcParameters.maxPriorityFeePerGas,
-    nonce: rpcParameters.nonce,
-    paymasterPostOpGasLimit: rpcParameters.paymasterPostOpGasLimit,
-    paymasterVerificationGasLimit: rpcParameters.paymasterVerificationGasLimit,
-    preVerificationGas: rpcParameters.preVerificationGas,
-    sender: rpcParameters.sender,
-    signature: rpcParameters.signature,
-    verificationGasLimit: rpcParameters.verificationGasLimit
+
+  const chainId = client.account?.client?.chain?.id?.toString()
+
+  if (tenderlyDetails) {
+    const tenderlyUrl = new URL(
+      `https://dashboard.tenderly.co/${tenderlyDetails.accountSlug}/${tenderlyDetails.projectSlug}/simulator/new`
+    )
+
+    const formattedRpcParams = {
+      callData: rpcParameters.callData,
+      callGasLimit: rpcParameters.callGasLimit,
+      maxFeePerGas: rpcParameters.maxFeePerGas,
+      maxPriorityFeePerGas: rpcParameters.maxPriorityFeePerGas,
+      nonce: rpcParameters.nonce,
+      paymasterPostOpGasLimit: rpcParameters.paymasterPostOpGasLimit,
+      paymasterVerificationGasLimit:
+        rpcParameters.paymasterVerificationGasLimit,
+      preVerificationGas: rpcParameters.preVerificationGas,
+      sender: rpcParameters.sender,
+      signature: rpcParameters.signature,
+      verificationGasLimit: rpcParameters.verificationGasLimit
+    }
+
+    const params = new URLSearchParams({
+      contractAddress: "0x0000000071727de22e5e9d8baf0edac6f37da032",
+      value: "0",
+      network: chainId ?? "84532",
+      // simulationId: generateRandomHex(),
+      contractFunction: "0x765e827f",
+      rawFunctionInput: rpcParameters.callData,
+      functionInputs: JSON.stringify([formattedRpcParams]),
+      headerBlockNumber: "19463586",
+      headerTimestamp: "1734695460",
+      stateOverrides: JSON.stringify([
+        {
+          contractAddress: rpcParameters.sender,
+          balance: "100000000000000000000"
+        }
+      ])
+    })
+    tenderlyUrl.search = params.toString()
+    console.log("Tenderly Simulation URL:", tenderlyUrl.toString())
+
+    // Also do a simulation using the publicClient
+  } else {
+    console.log(
+      "Tenderly details not found in environment variables. Please set TENDERLY_API_KEY, TENDERLY_ACCOUNT_SLUG, and TENDERLY_PROJECT_SLUG."
+    )
   }
 
-  const params = new URLSearchParams({
-    contractAddress: "0x0000000071727de22e5e9d8baf0edac6f37da032",
-    value: "0",
-    network: "84532",
-    // simulationId: generateRandomHex(),
-    contractFunction: "0x765e827f",
-    rawFunctionInput: rpcParameters.callData,
-    functionInputs: JSON.stringify([formattedRpcParams]),
-    headerBlockNumber: "19463586",
-    headerTimestamp: "1734695460",
-    stateOverrides: JSON.stringify([
-      {
-        contractAddress: rpcParameters.sender,
-        balance: "100000000000000000000"
-      }
-    ])
-  })
-  tenderlyUrl.search = params.toString()
+  try {
+    const simulation = await createPublicClient({
+      chain: client.account?.client?.chain ?? getChain(Number(chainId)),
+      transport: http()
+    }).simulateContract({
+      account: rpcParameters.sender,
+      address: ENTRY_POINT_ADDRESS,
+      abi: EntrypointAbi,
+      functionName: "handleOps",
+      args: [[packed], rpcParameters.sender],
+      stateOverride: [
+        {
+          address: rpcParameters.sender,
+          balance: parseEther("1000")
+        }
+      ]
+    })
 
-  console.log("Tenderly Simulation URL:", tenderlyUrl.toString())
+    console.log("Simulation:", { simulation })
+  } catch (error) {
+    console.error("Simulation failed")
+  }
 
   try {
     const hash = await client.request(
@@ -197,6 +245,12 @@ export async function sendDebugUserOperation<
     return hash
   } catch (error) {
     // console.error("User Operation Failed:", error)
+
+    if (error?.details) {
+      const aaError = await getAAError(error.details)
+      console.log({ aaError })
+    }
+
     const calls = (parameters as any).calls
     throw getUserOperationError(error as BaseError, {
       ...(request as UserOperation),

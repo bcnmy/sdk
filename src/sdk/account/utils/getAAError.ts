@@ -21,16 +21,23 @@ const matchError = (message: string): null | KnownError =>
       message.toLowerCase().indexOf(knownError.regex.toLowerCase()) > -1
   ) ?? null
 
-const buildErrorStrings = (error: KnownError, status: string): string[] =>
-  [
-    `${status}: ${error.description}\n`,
-    error.causes?.length
-      ? ["Potential cause(s): \n", ...error.causes, ""].join("\n")
-      : "",
-    error.solutions?.length
-      ? ["Potential solution(s): \n", ...error.solutions].join("\n")
-      : ""
-  ].filter(Boolean)
+const buildErrorStrings = (error: KnownError, status: string): string[] => {
+  const strings: string[] = []
+
+  strings.push(`${status}: ${error.description}`)
+
+  if (error.causes?.length) {
+    strings.push("Potential cause(s):")
+    strings.push(...error.causes)
+  }
+
+  if (error.solutions?.length) {
+    strings.push("Potential solution(s):")
+    strings.push(...error.solutions)
+  }
+
+  return strings
+}
 
 type AccountAbstractionErrorParams = {
   docsSlug?: string
@@ -53,8 +60,7 @@ export const getAAError = async (message: string, httpStatus?: number) => {
     knownErrors.push(...errors)
   }
 
-  const details: string = JSON.stringify(message)
-  const matchedError = matchError(details)
+  const matchedError = matchError(message)
   const status =
     matchedError?.regex ?? (httpStatus ?? UNKOWN_ERROR_CODE).toString()
 
@@ -64,9 +70,5 @@ export const getAAError = async (message: string, httpStatus?: number) => {
   const title = matchedError ? matchedError.name : "Unknown Error"
   const docsSlug = matchedError?.docsUrl ?? DOCS_URL
 
-  return new AccountAbstractionError(title, {
-    docsSlug,
-    metaMessages,
-    details
-  })
+  return { title, docsSlug, metaMessages, message }
 }

@@ -12,7 +12,7 @@ import { ParamCondition } from "../modules/smartSessionsValidator/Types"
 export * from "./abi"
 
 export const SIMPLE_SESSION_VALIDATOR_ADDRESS: Hex =
-  "0x41f143f4B5f19AfCd2602F6ADE18E75e9b5E37d3"
+  "0xE7A6F1a02151E50b600BC3d06FeEd70C6c4B19Bd"
 export const ENTRY_POINT_ADDRESS: Hex =
   "0x0000000071727De22E5E9d8BAf0edAc6f37da032"
 export const ENTRYPOINT_SIMULATIONS_ADDRESS: Hex =

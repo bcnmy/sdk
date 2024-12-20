@@ -373,6 +373,31 @@ export const isTesting = () => {
   }
 }
 
+type TenderlyDetails = {
+  accountSlug: string
+  projectSlug: string
+  apiKey: string
+}
+export const getTenderlyDetails = (): TenderlyDetails | null => {
+  try {
+    const accountSlug = process?.env?.TENDERLY_ACCOUNT_SLUG
+    const projectSlug = process?.env?.TENDERLY_PROJECT_SLUG
+    const apiKey = process?.env?.TENDERLY_API_KEY
+
+    if (!accountSlug || !projectSlug || !apiKey) {
+      return null
+    }
+
+    return {
+      accountSlug,
+      projectSlug,
+      apiKey
+    }
+  } catch (e) {
+    return null
+  }
+}
+
 /**
  * Safely multiplies a bigint by a number, rounding appropriately.
  *
