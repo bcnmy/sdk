@@ -4,22 +4,22 @@ import { maxUint256 } from "viem"
 import { erc20Abi } from "viem"
 import { type Address, encodeFunctionData } from "viem"
 import {
-    type SmartAccount,
-    type WaitForUserOperationReceiptReturnType,
-    sendUserOperation,
-    waitForUserOperationReceipt
+  type SmartAccount,
+  type WaitForUserOperationReceiptReturnType,
+  sendUserOperation,
+  waitForUserOperationReceipt
 } from "viem/account-abstraction"
 import { getAction } from "viem/utils"
 import { BICONOMY_TOKEN_PAYMASTER } from "../../../account/utils/Constants"
 import {
-    type Transaction,
-    prepareTokenPaymasterUserOp
+  type Transaction,
+  prepareTokenPaymasterUserOp
 } from "./prepareTokenPaymasterUserOp"
 
 export type SendTokenPaymasterUserOpParameters = {
-    calls: Transaction[]
-    feeTokenAddress: Address
-    customApprovalAmount?: bigint
+  calls: Transaction[]
+  feeTokenAddress: Address
+  customApprovalAmount?: bigint
 }
 
 /**
@@ -47,53 +47,53 @@ export type SendTokenPaymasterUserOpParameters = {
  * @returns A promise that resolves to the user operation receipt {@link WaitForUserOperationReceiptReturnType}
  */
 export async function sendTokenPaymasterUserOp<
-    TChain extends Chain | undefined = Chain | undefined,
-    TSmartAccount extends SmartAccount | undefined = SmartAccount | undefined
+  TChain extends Chain | undefined = Chain | undefined,
+  TSmartAccount extends SmartAccount | undefined = SmartAccount | undefined
 >(
-    client: Client<Transport, TChain, TSmartAccount>,
-    args: SendTokenPaymasterUserOpParameters
+  client: Client<Transport, TChain, TSmartAccount>,
+  args: SendTokenPaymasterUserOpParameters
 ): Promise<WaitForUserOperationReceiptReturnType> {
-    const { calls, feeTokenAddress, customApprovalAmount } = args
+  const { calls, feeTokenAddress, customApprovalAmount } = args
 
-    const userOp = await getAction(
-        client,
-        prepareTokenPaymasterUserOp,
-        "prepareTokenPaymasterUserOperation"
-    )({
-        calls: [
-            {
-                to: feeTokenAddress,
-                data: encodeFunctionData({
-                    functionName: "approve",
-                    abi: erc20Abi,
-                    args: [BICONOMY_TOKEN_PAYMASTER, customApprovalAmount ?? maxUint256]
-                }),
-                value: BigInt(0)
-            },
-            ...calls
-        ],
-        feeTokenAddress,
-        customApprovalAmount
-    })
+  const userOp = await getAction(
+    client,
+    prepareTokenPaymasterUserOp,
+    "prepareTokenPaymasterUserOperation"
+  )({
+    calls: [
+      {
+        to: feeTokenAddress,
+        data: encodeFunctionData({
+          functionName: "approve",
+          abi: erc20Abi,
+          args: [BICONOMY_TOKEN_PAYMASTER, customApprovalAmount ?? maxUint256]
+        }),
+        value: BigInt(0)
+      },
+      ...calls
+    ],
+    feeTokenAddress,
+    customApprovalAmount
+  })
 
-    const partialUserOp = {
-        ...userOp,
-        signature: undefined
-    }
+  const partialUserOp = {
+    ...userOp,
+    signature: undefined
+  }
 
-    const userOpHash = await getAction(
-        client,
-        sendUserOperation,
-        "sendUserOperation"
-    )(partialUserOp)
+  const userOpHash = await getAction(
+    client,
+    sendUserOperation,
+    "sendUserOperation"
+  )(partialUserOp)
 
-    const receipt = await getAction(
-        client,
-        waitForUserOperationReceipt,
-        "waitForUserOperationReceipt"
-    )({
-        hash: userOpHash
-    })
+  const receipt = await getAction(
+    client,
+    waitForUserOperationReceipt,
+    "waitForUserOperationReceipt"
+  )({
+    hash: userOpHash
+  })
 
-    return receipt
+  return receipt
 }
