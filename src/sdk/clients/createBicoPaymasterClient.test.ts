@@ -152,7 +152,7 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
       address: nexusAccountAddress
     })
 
-    const partialUserOp = await nexusClient.prepareTokenPaymasterUserOp({
+    const receipt = await nexusClient.sendTokenPaymasterUserOp({
       calls: [
         {
           to: recipientAddress,
@@ -162,10 +162,6 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
       ],
       feeTokenAddress: baseSepoliaUSDCAddress
     })
-
-    const hash = await nexusClient.sendUserOperation(partialUserOp)
-
-    const receipt = await nexusClient.waitForUserOperationReceipt({ hash })
     expect(receipt.success).toBe("true")
 
     // Get final balance
@@ -272,7 +268,7 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
       quote.feeQuotes[0].decimal
     )
 
-    const tokenPaymasterUserOp = await nexusClient.prepareTokenPaymasterUserOp({
+    const receipt = await nexusClient.sendTokenPaymasterUserOp({
       calls: [
         {
           to: recipientAddress,
@@ -282,11 +278,6 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
       ],
       feeTokenAddress: baseSepoliaUSDCAddress,
       customApprovalAmount: usdcFeeAmount
-    })
-
-    const userOpHash = await nexusClient.sendUserOperation(tokenPaymasterUserOp)
-    const receipt = await nexusClient.waitForUserOperationReceipt({
-      hash: userOpHash
     })
 
     expect(receipt.success).toBe("true")

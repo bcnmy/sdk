@@ -11,12 +11,20 @@ import type {
   WaitForTransactionReceiptReturnType,
   WriteContractParameters
 } from "viem"
-import type { SmartAccount, UserOperation } from "viem/account-abstraction"
+import type {
+  SmartAccount,
+  UserOperation,
+  WaitForUserOperationReceiptReturnType
+} from "viem/account-abstraction"
 import type { AnyData } from "../../../modules/utils/Types"
 import {
   type PrepareTokenPaymasterUserOpParameters,
   prepareTokenPaymasterUserOp
 } from "./prepareTokenPaymasterUserOp"
+import {
+  type SendTokenPaymasterUserOpParameters,
+  sendTokenPaymasterUserOp
+} from "./sendTokenPaymasterUserOp"
 import { sendTransaction } from "./sendTransaction"
 import { signMessage } from "./signMessage"
 import { signTypedData } from "./signTypedData"
@@ -27,6 +35,65 @@ export type SmartAccountActions<
   TChain extends Chain | undefined = Chain | undefined,
   TSmartAccount extends SmartAccount | undefined = SmartAccount | undefined
 > = {
+  /**
+   * Prepares and sends a user operation with token paymaster
+   *
+   * @param client - The Nexus client instance
+   * @param args - The parameters for the token paymaster user operation
+   * @param args.calls - Array of transactions to be executed
+   * @param args.feeTokenAddress - Address of the token to be used for paying gas fees
+   * @param args.customApprovalAmount - Optional custom amount to approve for the paymaster (defaults to unlimited)
+   *
+   * @example
+   * ```ts
+   * const receipt = await sendTokenPaymasterUserOp(client, {
+   *   calls: [{
+   *     to: "0x...", // Contract address
+   *     data: "0x...", // Encoded function data
+   *     value: BigInt(0)
+   *   }],
+   *   feeTokenAddress: "0x...", // USDC/USDT/etc address
+   *   customApprovalAmount: BigInt(1000) // Optional: specific approval amount
+   * })
+   * ```
+   *
+   * @returns A promise that resolves to the user operation receipt {@link WaitForUserOperationReceiptReturnType}
+   */
+  sendTokenPaymasterUserOp: (
+    args: SendTokenPaymasterUserOpParameters
+  ) => Promise<WaitForUserOperationReceiptReturnType>
+  /**
+   * Prepares a user operation with token paymaster configuration, including ERC20 token approval
+   *
+   * This function handles:
+   * 1. Checking current token allowance of Smart Account
+   * 2. Creating an approval transaction for the token paymaster if needed
+   * 3. Preparing the user operation with the approval and user transactions
+   *
+   * @param client - The NexusClient instance
+   * @param args.txs - Array of transactions to be executed
+   * @param args.feeTokenAddress - Token used for paying for the gas
+   * @param args.customApprovalAmount - Optional custom approval amount
+   *
+   * @returns A prepared user operation without signature (will be signed by the Smart Account when sent)
+   *
+   * @example
+   * ```typescript
+   * const userOp = await prepareTokenPaymasterUserOp(nexusClient, {
+   *    txs: [
+   *      {
+   *        to: recipientAddress,
+   *        value: 1n,
+   *        data: "0x"
+   *      }
+   *    ],
+   *    feeTokenAddress: baseSepoliaUSDCAddress,
+   *    customApprovalAmount: usdcFeeAmount
+   *  })
+   * ```
+   *
+   * @throws Will throw an error if client account or paymaster context is not properly configured
+   */
   prepareTokenPaymasterUserOp: (
     args: PrepareTokenPaymasterUserOpParameters
   ) => Promise<Omit<UserOperation, "signature">>
@@ -303,6 +370,7 @@ export function smartAccountActions() {
   >(
     client: Client<Transport, TChain, TSmartAccount>
   ): SmartAccountActions<TChain, TSmartAccount> => ({
+    sendTokenPaymasterUserOp: (args) => sendTokenPaymasterUserOp(client, args),
     prepareTokenPaymasterUserOp: (args) =>
       prepareTokenPaymasterUserOp(client, args),
     sendTransaction: (args) => sendTransaction(client, args as AnyData),

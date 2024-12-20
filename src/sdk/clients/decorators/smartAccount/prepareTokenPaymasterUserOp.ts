@@ -15,7 +15,7 @@ import {
 import { getAction } from "viem/utils"
 import { BICONOMY_TOKEN_PAYMASTER } from "../../../account/utils/Constants"
 
-type Transaction = {
+export type Transaction = {
   to: Address
   data: `0x${string}`
   value: bigint
@@ -70,7 +70,7 @@ export async function prepareTokenPaymasterUserOp<
 >(
   client: Client<Transport, chain, account>,
   args: PrepareTokenPaymasterUserOpParameters
-): Promise<Omit<UserOperation, "signature">> {
+): Promise<Omit<UserOperation<"0.7">, "signature">> {
   const { calls, customApprovalAmount, feeTokenAddress } = args
 
   const userOp = await getAction(
