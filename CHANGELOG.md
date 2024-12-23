@@ -1,5 +1,11 @@
 # @biconomy/sdk
 
+## 0.0.20
+
+### Patch Changes
+
+- Counterfactual address helper export
+
 ## 0.0.18
 
 ### Patch Changes
