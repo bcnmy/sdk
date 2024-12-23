@@ -1,14 +1,9 @@
-import type { Chain, Transport } from "viem"
+import type { Chain, Hash, Transport } from "viem"
 import type { Client } from "viem"
 import { maxUint256 } from "viem"
 import { erc20Abi } from "viem"
 import { type Address, encodeFunctionData } from "viem"
-import {
-  type SmartAccount,
-  type WaitForUserOperationReceiptReturnType,
-  sendUserOperation,
-  waitForUserOperationReceipt
-} from "viem/account-abstraction"
+import { type SmartAccount, sendUserOperation } from "viem/account-abstraction"
 import { getAction } from "viem/utils"
 import { BICONOMY_TOKEN_PAYMASTER } from "../../../account/utils/Constants"
 import {
@@ -33,7 +28,7 @@ export type SendTokenPaymasterUserOpParameters = {
  *
  * @example
  * ```ts
- * const receipt = await sendTokenPaymasterUserOp(client, {
+ * const hash = await sendTokenPaymasterUserOp(client, {
  *   calls: [{
  *     to: "0x...", // Contract address
  *     data: "0x...", // Encoded function data
@@ -44,7 +39,7 @@ export type SendTokenPaymasterUserOpParameters = {
  * })
  * ```
  *
- * @returns A promise that resolves to the user operation receipt {@link WaitForUserOperationReceiptReturnType}
+ * @returns A promise that resolves to the user operation hash {@link Hash}
  */
 export async function sendTokenPaymasterUserOp<
   TChain extends Chain | undefined = Chain | undefined,
@@ -52,7 +47,7 @@ export async function sendTokenPaymasterUserOp<
 >(
   client: Client<Transport, TChain, TSmartAccount>,
   args: SendTokenPaymasterUserOpParameters
-): Promise<WaitForUserOperationReceiptReturnType> {
+): Promise<Hash> {
   const { calls, feeTokenAddress, customApprovalAmount } = args
 
   const userOp = await getAction(
@@ -87,13 +82,5 @@ export async function sendTokenPaymasterUserOp<
     "sendUserOperation"
   )(partialUserOp)
 
-  const receipt = await getAction(
-    client,
-    waitForUserOperationReceipt,
-    "waitForUserOperationReceipt"
-  )({
-    hash: userOpHash
-  })
-
-  return receipt
+  return userOpHash
 }
