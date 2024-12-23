@@ -11,11 +11,7 @@ import type {
   WaitForTransactionReceiptReturnType,
   WriteContractParameters
 } from "viem"
-import type {
-  SmartAccount,
-  UserOperation,
-  WaitForUserOperationReceiptReturnType
-} from "viem/account-abstraction"
+import type { SmartAccount, UserOperation } from "viem/account-abstraction"
 import type { AnyData } from "../../../modules/utils/Types"
 import {
   type PrepareTokenPaymasterUserOpParameters,
@@ -46,7 +42,7 @@ export type SmartAccountActions<
    *
    * @example
    * ```ts
-   * const receipt = await sendTokenPaymasterUserOp(client, {
+   * const hash = await sendTokenPaymasterUserOp(client, {
    *   calls: [{
    *     to: "0x...", // Contract address
    *     data: "0x...", // Encoded function data
@@ -57,11 +53,11 @@ export type SmartAccountActions<
    * })
    * ```
    *
-   * @returns A promise that resolves to the user operation receipt {@link WaitForUserOperationReceiptReturnType}
+   * @returns A promise that resolves to the user operation hash {@link Hash}
    */
   sendTokenPaymasterUserOp: (
     args: SendTokenPaymasterUserOpParameters
-  ) => Promise<WaitForUserOperationReceiptReturnType>
+  ) => Promise<Hash>
   /**
    * Prepares a user operation with token paymaster configuration, including ERC20 token approval
    *
