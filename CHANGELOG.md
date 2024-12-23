@@ -1,5 +1,23 @@
 # @biconomy/sdk
 
+## 0.0.20
+
+### Patch Changes
+
+- Counterfactual address helper export
+
+## 0.0.18
+
+### Patch Changes
+
+- fix window.ethereum
+
+## 0.0.17
+
+### Patch Changes
+
+- Add mock attestor only for testnets
+
 ## 0.0.16
 
 ### Patch Changes

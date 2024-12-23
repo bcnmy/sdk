@@ -26,6 +26,8 @@ jobs:
         env:
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
           PIMLICO_API_KEY: ${{ secrets.PIMLICO_API_KEY }}
-          BUNDLER_URL: https://api.pimlico.io/v2/84532/rpc?apikey=pim_im13GpaqtMDSiJFhXMxcVn
+          PAYMASTER_URL: ${{ secrets.PAYMASTER_URL }}
+          BUNDLER_URL: ${{ secrets.BUNDLER_URL }}
+          VIRTUAL_BASE_SEPOLIA: ${{ secrets.VIRTUAL_BASE_SEPOLIA }}
           CHAIN_ID: 84532
           CI: true 

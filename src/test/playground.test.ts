@@ -9,7 +9,8 @@ import {
   type WalletClient,
   createPublicClient,
   createWalletClient,
-  encodeFunctionData
+  encodeFunctionData,
+  parseEther
 } from "viem"
 import { beforeAll, describe, expect, test } from "vitest"
 import { playgroundTrue } from "../sdk/account/utils/Utils"
@@ -18,7 +19,6 @@ import {
   type NexusClient,
   createNexusClient
 } from "../sdk/clients/createNexusClient"
-import { MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS } from "../sdk/constants"
 import type {
   CreateSessionDataParams,
   SessionData
@@ -37,8 +37,6 @@ import {
   getTestParamsForTestnet
 } from "./testUtils"
 
-export const index = 6n
-
 describe.skipIf(!playgroundTrue())("playground", () => {
   let network: NetworkConfig
   // Required for "PUBLIC_TESTNET" networks
@@ -47,22 +45,24 @@ describe.skipIf(!playgroundTrue())("playground", () => {
   let chain: Chain
   let bundlerUrl: string
   let walletClient: WalletClient
+  let paymasterUrl: string
+  let nexusAccountAddress: Address
 
   // Test utils
   let publicClient: PublicClient // testClient not available on public testnets
   let eoaAccount: PrivateKeyAccount
   let recipientAddress: Address
   let nexusClient: NexusClient
-  let nexusAccountAddress: Address
 
   beforeAll(async () => {
     network = await toNetwork("PUBLIC_TESTNET")
 
     chain = network.chain
     bundlerUrl = network.bundlerUrl
+    paymasterUrl = network.paymasterUrl || ""
     eoaAccount = network.account as PrivateKeyAccount
 
-    recipientAddress = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045" // vitalik.eth
+    recipientAddress = eoaAccount.address
 
     walletClient = createWalletClient({
       account: eoaAccount,
@@ -89,7 +89,6 @@ describe.skipIf(!playgroundTrue())("playground", () => {
             transport: http(network.paymasterUrl)
           })
         : undefined,
-      index,
       ...testParams
     })
   })
@@ -119,9 +118,19 @@ describe.skipIf(!playgroundTrue())("playground", () => {
         chain,
         account: eoaAccount,
         to: nexusAccountAddress,
-        value: 100000000000000000n
+        value: parseEther("0.01")
       })
       const receipt = await publicClient.waitForTransactionReceipt({ hash })
+      expect(receipt.status).toBe("success")
+      const [ownerBalanceTwo, smartAccountBalanceTwo] = await Promise.all([
+        publicClient.getBalance({
+          address: eoaAccount.address
+        }),
+        publicClient.getBalance({
+          address: nexusAccountAddress
+        })
+      ])
+      console.log({ ownerBalanceTwo, smartAccountBalanceTwo })
     }
     expect(balancesAreOfCorrectType).toBeTruthy()
   })
@@ -232,7 +241,6 @@ describe.skipIf(!playgroundTrue())("playground", () => {
       signer: eoaAccount,
       transport: http(),
       bundlerTransport: http(bundlerUrl),
-      index,
       ...testParams
     })
 
