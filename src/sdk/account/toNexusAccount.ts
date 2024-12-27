@@ -6,8 +6,6 @@ import {
   type Chain,
   type ClientConfig,
   type Hex,
-  type LocalAccount,
-  type OneOf,
   type Prettify,
   type PublicClient,
   type RpcSchema,
@@ -67,8 +65,8 @@ import {
 // Utils
 import type { Call } from "./utils/Types"
 import {
-  type EthersWallet,
   type TypedDataWith712,
+  type ValidSigner,
   addressEquals,
   eip712WrapHash,
   getAccountDomainStructFields,
@@ -76,7 +74,7 @@ import {
   isNullOrUndefined,
   typeToString
 } from "./utils/Utils"
-import { type EthereumProvider, type Signer, toSigner } from "./utils/toSigner"
+import { type Signer, toSigner } from "./utils/toSigner"
 
 /**
  * Parameters for creating a Nexus Smart Account
@@ -87,12 +85,7 @@ export type ToNexusSmartAccountParameters = {
   /** The transport configuration */
   transport: ClientConfig["transport"]
   /** The signer account or address */
-  signer: OneOf<
-    | EthereumProvider
-    | WalletClient<Transport, Chain | undefined, Account>
-    | LocalAccount
-    | EthersWallet
-  >
+  signer: ValidSigner
   /** Optional index for the account */
   index?: bigint | undefined
   /** Optional active validation module */

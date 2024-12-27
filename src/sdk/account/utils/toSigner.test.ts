@@ -1,10 +1,10 @@
-import { JsonRpcProvider, JsonRpcSigner, ethers } from "ethers"
+import { JsonRpcProvider, ethers } from "ethers"
 import { http, type Address, type Hex, createWalletClient } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { afterAll, beforeAll, describe, expect, it } from "vitest"
 import { toNetwork } from "../../../test/testSetup"
 import { type NetworkConfig, killNetwork, pKey } from "../../../test/testUtils"
-import { type EthersWallet, addressEquals } from "./Utils"
+import { addressEquals } from "./Utils"
 import { toSigner } from "./toSigner"
 
 const TEST_TYPED_DATA = {
@@ -72,8 +72,15 @@ describe("utils.toSigner", () => {
   })
 
   it("should work with ethers Wallet", async () => {
-    const wallet = new ethers.Wallet(pKey) as EthersWallet
+    const wallet = new ethers.Wallet(pKey)
     const signer = await toSigner({ signer: wallet })
     expect(signer.address).toBe(wallet.address)
+  })
+
+  it("should work with ethers JsonRpcSigner", async () => {
+    const provider = new JsonRpcProvider(network.rpcUrl)
+    const signer = await provider.getSigner()
+    const nexusSigner = await toSigner({ signer })
+    expect(nexusSigner.address).toBe(await signer.getAddress())
   })
 })

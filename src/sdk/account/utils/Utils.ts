@@ -1,12 +1,17 @@
 import {
+  type Account,
   type Address,
+  type Chain,
   type Client,
   type Hash,
   type Hex,
+  type LocalAccount,
   type PublicClient,
+  type Transport,
   type TypedData,
   type TypedDataDomain,
   type TypedDataParameter,
+  type WalletClient,
   concat,
   decodeFunctionResult,
   encodeAbiParameters,
@@ -276,7 +281,7 @@ export const getAccountMeta = async (
         chainId: decoded?.[3]
       }
     }
-  } catch (error) {}
+  } catch (error) { }
   return {
     name: NEXUS_DOMAIN_NAME,
     version: NEXUS_DOMAIN_VERSION,
@@ -385,15 +390,6 @@ export const isTesting = () => {
 export const safeMultiplier = (bI: bigint, multiplier: number): bigint =>
   BigInt(Math.round(Number(bI) * multiplier))
 
-export type EthersWallet = {
-  signTransaction: (...args: AnyData[]) => Promise<AnyData>
-  signMessage: (...args: AnyData[]) => Promise<AnyData>
-  signTypedData: (...args: AnyData[]) => Promise<AnyData>
-  getAddress: () => Promise<AnyData>
-  address: Address | string
-  provider: AnyData
-}
-
 export const getAllowance = async (
   client: PublicClient,
   accountAddress: Address,
@@ -408,3 +404,28 @@ export const getAllowance = async (
 
   return approval as bigint
 }
+
+type EthersWalletSigner = {
+  signTransaction: (...args: AnyData) => AnyData
+  signMessage: (...args: AnyData) => AnyData
+  signTypedData: (...args: AnyData) => AnyData
+  getAddress: () => Promise<AnyData>
+  address: Address | string
+  provider: unknown
+}
+
+type LocalAccountSigner = {
+  type: "local"
+} & LocalAccount
+
+type WalletClientSigner = WalletClient<Transport, Chain | undefined, Account>
+
+type ProviderSigner = {
+  request(...args: AnyData): Promise<AnyData>
+}
+
+export type ValidSigner =
+  | EthersWalletSigner
+  | LocalAccountSigner
+  | WalletClientSigner
+  | ProviderSigner

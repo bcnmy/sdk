@@ -4,7 +4,6 @@ import {
   type Chain,
   type Hex,
   type LocalAccount,
-  type OneOf,
   type Transport,
   type WalletClient,
   createWalletClient,
@@ -17,7 +16,7 @@ import { toAccount } from "viem/accounts"
 import { signTypedData } from "viem/actions"
 import { getAction } from "viem/utils"
 import type { AnyData } from "../../modules/utils/Types"
-import type { EthersWallet } from "./Utils"
+import type { ValidSigner } from "./Utils"
 
 export type EthereumProvider = { request(...args: AnyData): Promise<AnyData> }
 
@@ -36,103 +35,106 @@ export type Signer = LocalAccount
  * @throws {Error} When signTransaction is called (not supported)
  * @throws {Error} When address is required but not provided
  */
-export async function toSigner<
-  provider extends EthereumProvider,
-  wallet extends EthersWallet
->({
+export async function toSigner({
   signer,
   address
 }: {
-  signer: OneOf<
-    | provider
-    | wallet
-    | WalletClient<Transport, Chain | undefined, Account>
-    | LocalAccount
-  >
+  signer: ValidSigner
   address?: Address
 }): Promise<LocalAccount> {
-  if ("provider" in signer) {
-    const wallet = signer as EthersWallet
-    const address = await wallet.getAddress()
+  if (typeof signer === "object") {
+    if ("provider" in signer) {
+      const wallet = signer
+      const address = await wallet.getAddress()
+      return toAccount({
+        address: getAddress(address),
+        async signMessage({ message }): Promise<Hex> {
+          if (typeof message === "string") {
+            return await wallet.signMessage(message)
+          }
+          if (typeof message?.raw === "string") {
+            return await wallet.signMessage(hexToBytes(message.raw))
+          }
+          return await wallet.signMessage(message.raw)
+        },
+        async signTransaction(_) {
+          throw new Error("Not supported")
+        },
+        async signTypedData(typedData) {
+          return wallet.signTypedData(
+            typedData.domain,
+            typedData.types,
+            typedData.message
+          )
+        }
+      })
+    }
+
+    if ("type" in signer && signer.type === "local") {
+      return signer as LocalAccount
+    }
+
+    let walletClient:
+      | WalletClient<Transport, Chain | undefined, Account>
+      | undefined = undefined
+
+    if ("request" in signer) {
+      if (!address) {
+        try {
+          ;[address] = await (signer as EthereumProvider).request({
+            method: "eth_requestAccounts"
+          })
+        } catch {
+          ;[address] = await (signer as EthereumProvider).request({
+            method: "eth_accounts"
+          })
+        }
+      }
+      if (!address) {
+        // For TS to be happy
+        throw new Error("address is required")
+      }
+      walletClient = createWalletClient({
+        account: address,
+        transport: custom(signer as EthereumProvider)
+      })
+    }
+
+    if (!walletClient) {
+      walletClient = signer as WalletClient<
+        Transport,
+        Chain | undefined,
+        Account
+      >
+    }
+
+    const addressFromWalletClient =
+      walletClient?.account?.address ??
+      (await walletClient?.getAddresses())?.[0]
+
+    if (!addressFromWalletClient) {
+      throw new Error("address not found in wallet client")
+    }
+
     return toAccount({
-      address: getAddress(address),
-      async signMessage({ message }): Promise<Hex> {
-        if (typeof message === "string") {
-          return await wallet.signMessage(message)
-        }
-        if (typeof message?.raw === "string") {
-          return await wallet.signMessage(hexToBytes(message.raw))
-        }
-        return await wallet.signMessage(message.raw)
-      },
-      async signTransaction(_) {
-        throw new Error("Not supported")
+      address: addressFromWalletClient,
+      async signMessage({ message }) {
+        return walletClient.signMessage({ message })
       },
       async signTypedData(typedData) {
-        return wallet.signTypedData(
-          typedData.domain,
-          typedData.types,
-          typedData.message
+        return getAction(
+          walletClient,
+          signTypedData,
+          "signTypedData"
+        )(typedData as AnyData)
+      },
+      async signTransaction(_) {
+        throw new Error(
+          "Smart account signer doesn't need to sign transactions"
         )
       }
     })
   }
 
-  if ("type" in signer && signer.type === "local") {
-    return signer as LocalAccount
-  }
-
-  let walletClient:
-    | WalletClient<Transport, Chain | undefined, Account>
-    | undefined = undefined
-
-  if ("request" in signer) {
-    if (!address) {
-      try {
-        ;[address] = await (signer as EthereumProvider).request({
-          method: "eth_requestAccounts"
-        })
-      } catch {
-        ;[address] = await (signer as EthereumProvider).request({
-          method: "eth_accounts"
-        })
-      }
-    }
-    if (!address) {
-      // For TS to be happy
-      throw new Error("address is required")
-    }
-    walletClient = createWalletClient({
-      account: address,
-      transport: custom(signer as EthereumProvider)
-    })
-  }
-
-  if (!walletClient) {
-    walletClient = signer as WalletClient<Transport, Chain | undefined, Account>
-  }
-
-  const addressFromWalletClient =
-    walletClient?.account?.address ?? (await walletClient?.getAddresses())?.[0]
-
-  if (!addressFromWalletClient) {
-    throw new Error("address not found in wallet client")
-  }
-
-  return toAccount({
-    address: addressFromWalletClient,
-    async signMessage({ message }) {
-      return walletClient.signMessage({ message })
-    },
-    async signTypedData(typedData) {
-      return getAction(
-        walletClient,
-        signTypedData,
-        "signTypedData"
-      )(typedData as AnyData)
-    },
-    async signTransaction(_) {
-      throw new Error("Smart account signer doesn't need to sign transactions")
-    }
-  })
+  throw new Error("Signer must be an non empty object")
 }

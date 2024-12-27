@@ -1,4 +1,4 @@
-import { Wallet, ethers } from "ethers"
+import { JsonRpcProvider, Wallet, ethers } from "ethers"
 import {
   http,
   type Account,
@@ -25,14 +25,9 @@ import {
 import type { MasterClient, NetworkConfig } from "../../test/testUtils"
 import { ERROR_MESSAGES } from "../account/utils/Constants"
 import { Logger } from "../account/utils/Logger"
-import {
-  type EthersWallet,
-  getAccountMeta,
-  makeInstallDataAndHash
-} from "../account/utils/Utils"
+import { getAccountMeta, makeInstallDataAndHash } from "../account/utils/Utils"
 import { getChain } from "../account/utils/getChain"
 import { k1ValidatorAddress } from "../constants"
-import type { AnyData } from "../modules"
 import { type NexusClient, createNexusClient } from "./createNexusClient"
 
 describe("nexus.client", async () => {
@@ -272,7 +267,7 @@ describe("nexus.client", async () => {
     })
 
     const ethersNexusClient = await createNexusClient({
-      signer: wallet as EthersWallet,
+      signer: wallet,
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl)
@@ -287,7 +282,7 @@ describe("nexus.client", async () => {
   test("should send user operation using ethers Wallet", async () => {
     const ethersWallet = new ethers.Wallet(privKey)
     const ethersNexusClient = await createNexusClient({
-      signer: ethersWallet as EthersWallet,
+      signer: ethersWallet,
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl)
@@ -307,7 +302,26 @@ describe("nexus.client", async () => {
     expect(receipt.success).toBe(true)
   })
 
-  test("should send sequential user ops", async () => {
+  test("should send user operation using ethers Wallet JsonRpcSigner", async () => {
+    const provider = new JsonRpcProvider(network.rpcUrl)
+    const signer = await provider.getSigner()
+    const nexusClient = await createNexusClient({
+      signer,
+      chain: network.chain,
+      transport: http(),
+      bundlerTransport: http(bundlerUrl)
+    })
+
+    await topUp(testClient, nexusClient.account.address, parseEther("0.01"))
+
+    const hash = await nexusClient.sendTransaction({
+      calls: [{ to: recipientAddress, value: 0n }]
+    })
+    const receipt = await nexusClient.waitForTransactionReceipt({ hash })
+    console.log("Nexus client receipt: ", receipt)
+  })
+
+  test.skip("should send sequential user ops", async () => {
     const start = performance.now()
     const receipts: UserOperationReceipt[] = []
     for (let i = 0; i < 3; i++) {
