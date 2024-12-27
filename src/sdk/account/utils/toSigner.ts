@@ -61,6 +61,13 @@ export async function toSigner({
           throw new Error("Not supported")
         },
         async signTypedData(typedData) {
+          if ("_signTypedData" in wallet) {
+            return wallet._signTypedData(
+              typedData.domain,
+              typedData.types,
+              typedData.message
+            )
+          }
           return wallet.signTypedData(
             typedData.domain,
             typedData.types,

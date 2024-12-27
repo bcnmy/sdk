@@ -410,7 +410,14 @@ type EthersWalletSigner = {
   signMessage: (...args: AnyData) => AnyData
   signTypedData: (...args: AnyData) => AnyData
   getAddress: () => Promise<AnyData>
-  address: Address | string
+  provider: unknown
+}
+
+type JsonRpcSigner = {
+  signTransaction: (...args: AnyData) => AnyData
+  signMessage: (...args: AnyData) => AnyData
+  _signTypedData: (...args: AnyData) => AnyData
+  getAddress: () => Promise<AnyData>
   provider: unknown
 }
 
@@ -429,3 +436,4 @@ export type ValidSigner =
   | LocalAccountSigner
   | WalletClientSigner
   | ProviderSigner
+  | JsonRpcSigner
