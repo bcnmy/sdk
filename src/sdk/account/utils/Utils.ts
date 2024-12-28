@@ -12,6 +12,7 @@ import {
   encodeAbiParameters,
   encodeFunctionData,
   encodePacked,
+  erc20Abi,
   hexToBytes,
   keccak256,
   parseAbi,
@@ -22,6 +23,7 @@ import {
   toHex
 } from "viem"
 import {
+  BICONOMY_TOKEN_PAYMASTER,
   MOCK_MULTI_MODULE_ADDRESS,
   MODULE_ENABLE_MODE_TYPE_HASH,
   NEXUS_DOMAIN_NAME,
@@ -415,4 +417,19 @@ export type EthersWallet = {
   getAddress: () => Promise<AnyData>
   address: Address | string
   provider: AnyData
+}
+
+export const getAllowance = async (
+  client: PublicClient,
+  accountAddress: Address,
+  tokenAddress: Address
+): Promise<bigint> => {
+  const approval = await client.readContract({
+    address: tokenAddress,
+    abi: erc20Abi,
+    functionName: "allowance",
+    args: [accountAddress, BICONOMY_TOKEN_PAYMASTER]
+  })
+
+  return approval as bigint
 }

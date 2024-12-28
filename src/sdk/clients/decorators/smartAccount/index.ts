@@ -5,20 +5,27 @@ import type {
   ContractFunctionArgs,
   ContractFunctionName,
   Hash,
-  SendTransactionParameters,
   Transport,
   TypedData,
   WaitForTransactionReceiptParameters,
   WaitForTransactionReceiptReturnType,
   WriteContractParameters
 } from "viem"
-import type { SmartAccount } from "viem/account-abstraction"
+import type { SmartAccount, UserOperation } from "viem/account-abstraction"
 import type { AnyData } from "../../../modules/utils/Types"
+import {
+  type PrepareTokenPaymasterUserOpParameters,
+  prepareTokenPaymasterUserOp
+} from "./prepareTokenPaymasterUserOp"
 import {
   type SendDebugUserOperationReturnType,
   sendDebugUserOperation
 } from "./sendDebugUserOperation"
 import type { SendDebugUserOperationParameters } from "./sendDebugUserOperation"
+import {
+  type SendTokenPaymasterUserOpParameters,
+  sendTokenPaymasterUserOp
+} from "./sendTokenPaymasterUserOp"
 import { sendTransaction } from "./sendTransaction"
 import { signMessage } from "./signMessage"
 import { signTypedData } from "./signTypedData"
@@ -30,47 +37,82 @@ export type SmartAccountActions<
   TSmartAccount extends SmartAccount | undefined = SmartAccount | undefined
 > = {
   /**
-   * Creates, signs, and sends a new transaction to the network.
-   * This function also allows you to sponsor this transaction if sender is a smartAccount
+   * Prepares and sends a user operation with token paymaster
    *
-   * - Docs: https://viem.sh/nexus-client/methods#sendtransaction.html
-   * - Examples: https://stackblitz.com/github/wagmi-dev/viem/tree/main/examples/transactions/sending-transactions
-   * - JSON-RPC Methods:
-   *   - JSON-RPC Accounts: [`eth_sendTransaction`](https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_sendtransaction)
-   *   - Local Accounts: [`eth_sendRawTransaction`](https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_sendrawtransaction)
-   *
-   * @param args - {@link SendTransactionParameters}
-   * @returns The [Transaction](https://viem.sh/docs/glossary/terms.html#transaction) hash. {@link SendTransactionReturnType}
+   * @param client - The Nexus client instance
+   * @param args - The parameters for the token paymaster user operation
+   * @param args.calls - Array of transactions to be executed
+   * @param args.feeTokenAddress - Address of the token to be used for paying gas fees
+   * @param args.customApprovalAmount - Optional custom amount to approve for the paymaster (defaults to unlimited)
    *
    * @example
-   * import { createWalletClient, custom } from 'viem'
-   * import { mainnet } from 'viem/chains'
+   * ```ts
+   * const hash = await sendTokenPaymasterUserOp(client, {
+   *   calls: [{
+   *     to: "0x...", // Contract address
+   *     data: "0x...", // Encoded function data
+   *     value: BigInt(0)
+   *   }],
+   *   feeTokenAddress: "0x...", // USDC/USDT/etc address
+   *   customApprovalAmount: BigInt(1000) // Optional: specific approval amount
+   * })
+   * ```
    *
-   * const client = createWalletClient({
-   *   chain: mainnet,
-   *   transport: custom(window.ethereum),
-   * })
-   * const hash = await client.sendTransaction({
-   *   account: '0xA0Cf798816D4b9b9866b5330EEa46a18382f251e',
-   *   to: '0x70997970c51812dc3a010c7d01b50e0d17dc79c8',
-   *   value: 1000000000000000000n,
-   * })
+   * @returns A promise that resolves to the user operation hash {@link Hash}
+   */
+  sendTokenPaymasterUserOp: (
+    args: SendTokenPaymasterUserOpParameters
+  ) => Promise<Hash>
+  /**
+   * Prepares a user operation with token paymaster configuration, including ERC20 token approval
+   *
+   * This function handles:
+   * 1. Checking current token allowance of Smart Account
+   * 2. Creating an approval transaction for the token paymaster if needed
+   * 3. Preparing the user operation with the approval and user transactions
+   *
+   * @param client - The NexusClient instance
+   * @param args.txs - Array of transactions to be executed
+   * @param args.feeTokenAddress - Token used for paying for the gas
+   * @param args.customApprovalAmount - Optional custom approval amount
+   *
+   * @returns A prepared user operation without signature (will be signed by the Smart Account when sent)
    *
    * @example
-   * // Account Hoisting
-   * import { createWalletClient, http } from 'viem'
-   * import { privateKeyToAccount } from 'viem/accounts'
-   * import { mainnet } from 'viem/chains'
+   * ```typescript
+   * const userOp = await prepareTokenPaymasterUserOp(nexusClient, {
+   *    txs: [
+   *      {
+   *        to: recipientAddress,
+   *        value: 1n,
+   *        data: "0x"
+   *      }
+   *    ],
+   *    feeTokenAddress: baseSepoliaUSDCAddress,
+   *    customApprovalAmount: usdcFeeAmount
+   *  })
+   * ```
    *
-   * const client = createWalletClient({
-   *   account: privateKeyToAccount('0x…'),
-   *   chain: mainnet,
-   *   transport: http(),
-   * })
-   * const hash = await client.sendTransaction({
-   *   to: '0x70997970c51812dc3a010c7d01b50e0d17dc79c8',
-   *   value: 1000000000000000000n,
-   * })
+   * @throws Will throw an error if client account or paymaster context is not properly configured
+   */
+  prepareTokenPaymasterUserOp: (
+    args: PrepareTokenPaymasterUserOpParameters
+  ) => Promise<Omit<UserOperation, "signature">>
+  /**
+   * Creates, signs, and sends a new transaction to the network using a smart account.
+   * This function also allows you to sponsor this transaction if the sender is a smart account.
+   *
+   * @param client - The client instance.
+   * @param args - Parameters for sending the transaction or user operation.
+   * @param customApprovalAmount - The amount to approve for the Biconomy Token Paymaster to be spent on gas.
+   * @returns The transaction hash as a hexadecimal string.
+   * @throws {AccountNotFoundError} If the account is not found.
+   *
+   * @example
+   * import { sendTransaction } from '@biconomy/sdk'
+   *
+   * const hash = await nexusClient.sendTransaction({calls: [{to: '0x...', value: parseEther('0.1'), data: '0x...'}]})
+   * console.log(hash) // '0x...'
    */
   sendTransaction: <
     TChainOverride extends Chain | undefined = undefined,
@@ -337,6 +379,9 @@ export function smartAccountActions() {
   >(
     client: Client<Transport, TChain, TSmartAccount>
   ): SmartAccountActions<TChain, TSmartAccount> => ({
+    sendTokenPaymasterUserOp: (args) => sendTokenPaymasterUserOp(client, args),
+    prepareTokenPaymasterUserOp: (args) =>
+      prepareTokenPaymasterUserOp(client, args),
     sendTransaction: (args) => sendTransaction(client, args as AnyData),
     signMessage: (args) => signMessage(client, args),
     signTypedData: (args) => signTypedData(client, args),

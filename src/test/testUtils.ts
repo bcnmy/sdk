@@ -216,7 +216,7 @@ export const toConfiguredAnvil = async ({
     port: rpcPort,
     codeSizeLimit: 1000000000000,
     forkUrl: shouldForkBaseSepolia
-      ? "https://virtual.base-sepolia.rpc.tenderly.co/7617b288-32ed-4f89-8a23-7195083f8bc9"
+      ? process.env.VIRTUAL_BASE_SEPOLIA
       : undefined
   }
   const instance = anvil(config)

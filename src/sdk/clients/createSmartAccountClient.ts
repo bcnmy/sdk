@@ -37,6 +37,7 @@ import type {
   Module
 } from "../modules/utils/Types"
 import { createBicoBundlerClient } from "./createBicoBundlerClient"
+import type { PaymasterContext } from "./createBicoPaymasterClient"
 import { type Erc7579Actions, erc7579Actions } from "./decorators/erc7579"
 import {
   type SmartAccountActions,
@@ -91,7 +92,7 @@ export type NexusClient<
     /**
      * Optional paymaster context
      */
-    paymasterContext?: BundlerClientConfig["paymasterContext"] | undefined
+    paymasterContext?: PaymasterContext | undefined
     /**
      * Optional user operation configuration
      */
@@ -136,7 +137,7 @@ export type SmartAccountClientConfig<
         }
       | undefined
     /** Paymaster context to pass to `getPaymasterData` and `getPaymasterStubData` calls. */
-    paymasterContext?: unknown
+    paymasterContext?: PaymasterContext
     /** User Operation configuration. */
     userOperation?:
       | {
@@ -209,6 +210,7 @@ export async function createSmartAccountClient(
     bundlerTransport,
     transport,
     accountAddress,
+    paymasterContext,
     attesters,
     attesterThreshold,
     ...bundlerConfig
@@ -236,6 +238,7 @@ export async function createSmartAccountClient(
     chain,
     key,
     name,
+    paymasterContext,
     account: nexusAccount,
     transport: bundlerTransport
   })

@@ -45,19 +45,21 @@ describe.skipIf(!playgroundTrue())("playground", () => {
   let chain: Chain
   let bundlerUrl: string
   let walletClient: WalletClient
+  let paymasterUrl: string
+  let nexusAccountAddress: Address
 
   // Test utils
   let publicClient: PublicClient // testClient not available on public testnets
   let eoaAccount: PrivateKeyAccount
   let recipientAddress: Address
   let nexusClient: NexusClient
-  let nexusAccountAddress: Address
 
   beforeAll(async () => {
     network = await toNetwork("TESTNET_FROM_ENV_VARS")
 
     chain = network.chain
     bundlerUrl = network.bundlerUrl
+    paymasterUrl = network.paymasterUrl || ""
     eoaAccount = network.account as PrivateKeyAccount
 
     recipientAddress = eoaAccount.address

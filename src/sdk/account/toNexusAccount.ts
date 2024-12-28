@@ -289,7 +289,7 @@ export const toNexusAccount = async (
         }
       ],
       functionName: "computeAccountAddress",
-      args: [signerAddress, index, [], 0]
+      args: [signerAddress, index, attesters_, attesterThreshold]
     })) as Address
 
     if (!addressEquals(addressFromFactory, zeroAddress)) {
