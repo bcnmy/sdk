@@ -1,5 +1,5 @@
 import type { BicoPaymasterClient } from "../../createBicoPaymasterClient"
-import type { NexusClient } from "../../createNexusClient"
+import type { NexusClient } from "../../createSmartAccountClient"
 import type { FeeQuote } from "./getTokenPaymasterQuotes"
 
 /**

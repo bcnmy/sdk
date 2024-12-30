@@ -1,13 +1,5 @@
 import {
-  type ActionData,
-  MOCK_ATTESTER_ADDRESS,
-  type PolicyData,
-  SMART_SESSIONS_ADDRESS,
-  type Session,
-  findTrustedAttesters,
   getSpendingLimitsPolicy,
-  getSudoPolicy,
-  getTrustAttestersAction,
   getUsageLimitPolicy,
   getValueLimitPolicy
 } from "@rhinestone/module-sdk"
@@ -15,7 +7,15 @@ import type { Chain, Client, Hex, PublicClient, Transport } from "viem"
 import { encodeFunctionData, parseAccount } from "viem/utils"
 import { type Call, ERROR_MESSAGES } from "../../../account"
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
-import { SIMPLE_SESSION_VALIDATOR_ADDRESS } from "../../../constants"
+import {
+  type ActionData,
+  OWNABLE_VALIDATOR_ADDRESS,
+  type PolicyData,
+  SMART_SESSIONS_ADDRESS,
+  type Session,
+  encodeValidationData,
+  getSudoPolicy
+} from "../../../constants"
 import { SmartSessionAbi } from "../../../constants/abi/SmartSessionAbi"
 import type { ModularSmartAccount } from "../../utils/Types"
 import {
@@ -31,7 +31,7 @@ import {
 import type {
   CreateSessionDataParams,
   FullCreateSessionDataParams,
-  GrantPermissionActionReturnParams,
+  GrantPermissionAdvancedActionReturnParams,
   ResolvedActionPolicyInfo
 } from "../Types"
 
@@ -55,13 +55,11 @@ export type PreparePermissionParameters<
   publicClient?: PublicClient
   /** The modular smart account to create sessions for. If not provided, the client's account will be used. */
   account?: TModularSmartAccount
-  /** Optional attesters to trust. */
-  attesters?: Hex[]
 }
 
 export type PreparePermissionResponse = {
   calls: Call[]
-} & GrantPermissionActionReturnParams
+} & GrantPermissionAdvancedActionReturnParams
 
 /**
  * Generates the action data for creating sessions in the SmartSessionValidator.
@@ -78,7 +76,7 @@ export const getPermissionAction = async ({
   chainId: number
   sessionRequestedInfo: FullCreateSessionDataParams[]
   client: PublicClient
-}): Promise<GrantPermissionActionReturnParams | Error> => {
+}): Promise<GrantPermissionAdvancedActionReturnParams | Error> => {
   const sessions: Session[] = []
   const permissionIds: Hex[] = []
 
@@ -168,9 +166,11 @@ export const getPermissionAction = async ({
 
     const session: Session = {
       chainId: BigInt(chainId),
-      sessionValidator:
-        sessionInfo.sessionValidatorAddress ?? SIMPLE_SESSION_VALIDATOR_ADDRESS,
-      sessionValidatorInitData: sessionInfo.sessionKeyData, // sessionValidatorInitData: abi.encodePacked(sessionSigner.addr),
+      sessionValidator: OWNABLE_VALIDATOR_ADDRESS,
+      sessionValidatorInitData: encodeValidationData({
+        threshold: 1,
+        owners: [sessionInfo.sessionKeyData]
+      }),
       salt: sessionInfo.salt ?? generateSalt(),
       userOpPolicies: [userOpTimeFramePolicyData],
       actions: actionPolicies,
@@ -178,6 +178,7 @@ export const getPermissionAction = async ({
         allowedERC7739Content: [],
         erc1271Policies: []
       }
+      // permitERC4337Paymaster: true
     }
 
     const permissionId = await getPermissionId({
@@ -260,8 +261,7 @@ export async function preparePermission<
   const {
     publicClient: publicClient_ = client.account?.client as PublicClient,
     account: account_ = client.account,
-    sessionRequestedInfo,
-    attesters
+    sessionRequestedInfo
   } = parameters
 
   if (!account_) {
@@ -284,24 +284,11 @@ export async function preparePermission<
   const defaultedSessionRequestedInfo: FullCreateSessionDataParams[] =
     sessionRequestedInfo.map(applyDefaults)
 
-  const attestersToTrust = attesters ?? [MOCK_ATTESTER_ADDRESS]
   const actionResponse = await getPermissionAction({
     chainId,
     client: publicClient_,
     sessionRequestedInfo: defaultedSessionRequestedInfo
   })
-
-  const trustAttestersAction = getTrustAttestersAction({
-    attesters: attestersToTrust,
-    threshold: attestersToTrust.length
-  })
-
-  const trustedAttesters = await findTrustedAttesters({
-    client: publicClient_,
-    accountAddress: account.address
-  })
-
-  const needToAddTrustAttesters = trustedAttesters.length === 0
 
   if (!("action" in actionResponse)) {
     throw new Error("Error getting enable sessions action")
@@ -313,19 +300,7 @@ export async function preparePermission<
     throw new Error("Error getting enable sessions action")
   }
 
-  if (!("callData" in trustAttestersAction)) {
-    throw new Error("Error getting trust attesters action")
-  }
-
   const calls: Call[] = []
-
-  if (needToAddTrustAttesters) {
-    calls.push({
-      to: trustAttestersAction.target,
-      value: trustAttestersAction.value.valueOf(),
-      data: trustAttestersAction.callData
-    })
-  }
 
   calls.push({
     to: action.target,

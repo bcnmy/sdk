@@ -1,9 +1,9 @@
+import { type Address, type Hex, encodePacked } from "viem"
 import {
   SMART_SESSIONS_ADDRESS,
   SmartSessionMode,
   encodeSmartSessionSignature
-} from "@rhinestone/module-sdk"
-import { type Address, type Hex, encodePacked } from "viem"
+} from "../../constants"
 import type { ModuleMeta } from "../../modules/utils/Types"
 import type { ModularSmartAccount } from "../utils/Types"
 import type { Module, ModuleParameters } from "../utils/Types"

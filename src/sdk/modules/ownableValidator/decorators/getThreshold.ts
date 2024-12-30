@@ -1,11 +1,8 @@
-import {
-  getAccount,
-  getOwnableValidatorThreshold
-} from "@rhinestone/module-sdk"
 import type { Chain, Client, PublicClient, Transport } from "viem"
 import type { GetSmartAccountParameter } from "viem/account-abstraction"
 import { parseAccount } from "viem/utils"
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
+import { getAccount, getOwnableValidatorThreshold } from "../../../constants"
 import type { ModularSmartAccount } from "../../utils/Types"
 
 /**

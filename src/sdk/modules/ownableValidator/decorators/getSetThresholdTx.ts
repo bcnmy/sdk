@@ -1,9 +1,9 @@
-import { getSetOwnableValidatorThresholdAction } from "@rhinestone/module-sdk"
 import type { Chain, Client, Transport } from "viem"
 import type { SmartAccount } from "viem/account-abstraction"
 import { parseAccount } from "viem/utils"
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
 import type { Call } from "../../../account/utils/Types"
+import { getSetOwnableValidatorThresholdAction } from "../../../constants"
 
 /**
  * Parameters for generating a transaction to set the threshold for a smart account.

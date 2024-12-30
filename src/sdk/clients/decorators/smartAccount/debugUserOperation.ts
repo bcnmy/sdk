@@ -29,8 +29,7 @@ import {
   type OneOf,
   type Transport,
   createPublicClient,
-  parseEther,
-  zeroAddress
+  parseEther
 } from "viem"
 import { type Address, parseAccount } from "viem/accounts"
 import { type RequestErrorType, getAction } from "viem/utils"
@@ -40,7 +39,7 @@ import { deepHexlify } from "../../../account/utils/deepHexlify"
 import { getAAError } from "../../../account/utils/getAAError"
 import { getChain } from "../../../account/utils/getChain"
 import { ENTRY_POINT_ADDRESS, EntrypointAbi } from "../../../constants"
-export type SendDebugUserOperationParameters<
+export type DebugUserOperationParameters<
   account extends SmartAccount | undefined = SmartAccount | undefined,
   accountOverride extends SmartAccount | undefined = SmartAccount | undefined,
   calls extends readonly unknown[] = readonly unknown[],
@@ -84,9 +83,9 @@ export type SendDebugUserOperationParameters<
     { entryPointAddress?: Address },
     _derivedAccount extends undefined ? true : false
   >
-export type SendDebugUserOperationReturnType = Hex
+export type DebugUserOperationReturnType = Hex
 
-export type SendDebugUserOperationErrorType =
+export type DebugUserOperationErrorType =
   | FormatUserOperationRequestErrorType
   | PrepareUserOperationErrorType
   | RequestErrorType
@@ -94,17 +93,17 @@ export type SendDebugUserOperationErrorType =
 /**
  * Broadcasts a User Operation to the Bundler.
  *
- * - Docs: https://viem.sh/actions/bundler/sendDebugUserOperation
+ * - Docs: https://viem.sh/actions/bundler/debugUserOperation
  *
  * @param client - Client to use
- * @param parameters - {@link SendDebugUserOperationParameters}
- * @returns The User Operation hash. {@link SendDebugUserOperationReturnType}
+ * @param parameters - {@link DebugUserOperationParameters}
+ * @returns The User Operation hash. {@link DebugUserOperationReturnType}
  *
  * @example
  * import { createBundlerClient, http, parseEther } from 'viem'
  * import { mainnet } from 'viem/chains'
  * import { toSmartAccount } from 'viem/accounts'
- * import { sendDebugUserOperation } from 'viem/actions'
+ * import { debugUserOperation } from 'viem/actions'
  *
  * const account = await toSmartAccount({ ... })
  *
@@ -113,18 +112,18 @@ export type SendDebugUserOperationErrorType =
  *   transport: http(),
  * })
  *
- * const values = await sendDebugUserOperation(bundlerClient, {
+ * const values = await debugUserOperation(bundlerClient, {
  *   account,
  *   calls: [{ to: '0x...', value: parseEther('1') }],
  * })
  */
-export async function sendDebugUserOperation<
+export async function debugUserOperation<
   const calls extends readonly unknown[],
   account extends SmartAccount | undefined,
   accountOverride extends SmartAccount | undefined = undefined
 >(
   client: Client<Transport, Chain | undefined, account>,
-  parameters: SendDebugUserOperationParameters<account, accountOverride, calls>
+  parameters: DebugUserOperationParameters<account, accountOverride, calls>
 ) {
   const tenderlyDetails = getTenderlyDetails()
 
@@ -236,11 +235,10 @@ export async function sendDebugUserOperation<
     )
     console.log("User Operation Hash:", hash)
     return hash
-  } catch (error) {
-    // console.error("User Operation Failed:", error)
-
+    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+  } catch (error: any) {
     if (error?.details) {
-      const aaError = await getAAError(error.details)
+      const aaError = await getAAError(error?.details)
       console.log({ aaError })
     }
 

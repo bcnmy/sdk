@@ -1,4 +1,3 @@
-import { SmartSessionMode } from "@rhinestone/module-sdk"
 import {
   http,
   type Abi,
@@ -29,7 +28,7 @@ import {
   type NexusClient,
   createSmartAccountClient
 } from "../../clients/createSmartAccountClient"
-import { SMART_SESSIONS_ADDRESS } from "../../constants"
+import { SMART_SESSIONS_ADDRESS, SmartSessionMode } from "../../constants"
 import type { Module } from "../utils/Types"
 import { isPermissionEnabled, parse, stringify } from "./Helpers"
 import type { CreateSessionDataParams, Rule, SessionData } from "./Types"
@@ -150,16 +149,6 @@ describe("modules.smartSessions.uni.policy", async () => {
       smartSessionCreateActions(sessionsModule)
     )
 
-    const trustAttestersHash = await smartSessionNexusClient.trustAttesters()
-    const userOpReceipt =
-      await smartSessionNexusClient.waitForUserOperationReceipt({
-        hash: trustAttestersHash
-      })
-    const { status } = await testClient.waitForTransactionReceipt({
-      hash: userOpReceipt.receipt.transactionHash
-    })
-    expect(status).toBe("success")
-
     const functionSelector = "addBalance(address,uint256,bytes32)"
 
     const unparsedFunctionSelector = functionSelector as AbiFunction | string
@@ -221,7 +210,9 @@ describe("modules.smartSessions.uni.policy", async () => {
     ]
 
     const createSessionsResponse =
-      await smartSessionNexusClient.grantPermission({ sessionRequestedInfo })
+      await smartSessionNexusClient.grantPermissionAdvanced({
+        sessionRequestedInfo
+      })
 
     expect(createSessionsResponse.userOpHash).toBeDefined()
     expect(createSessionsResponse.permissionIds).toBeDefined()

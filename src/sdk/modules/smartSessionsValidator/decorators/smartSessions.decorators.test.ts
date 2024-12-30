@@ -101,7 +101,7 @@ describe("modules.smartSessions.decorators", async () => {
     )
 
     expect(nexusSessionClient).toBeDefined()
-    expect(nexusSessionClient.grantPermission).toBeTypeOf("function")
+    expect(nexusSessionClient.grantPermissionAdvanced).toBeTypeOf("function")
     expect(nexusSessionClient.trustAttesters).toBeTypeOf("function")
   })
 
@@ -147,8 +147,6 @@ describe("modules.smartSessions.decorators", async () => {
         }
       ]
     })
-
-    console.log({ preparePermissionResponse })
 
     sessionsModule = toSmartSessionsValidator({
       account: nexusClient.account,

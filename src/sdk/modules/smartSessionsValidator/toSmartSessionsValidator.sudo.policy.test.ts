@@ -1,4 +1,3 @@
-import { SmartSessionMode } from "@rhinestone/module-sdk/module"
 import {
   http,
   type AbiFunction,
@@ -11,7 +10,6 @@ import {
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { CounterAbi } from "../../../test/__contracts/abi/CounterAbi"
-import { MockCalleeAbi } from "../../../test/__contracts/abi/MockCalleeAbi"
 import { testAddresses } from "../../../test/callDatas"
 import { toNetwork } from "../../../test/testSetup"
 import {
@@ -25,6 +23,7 @@ import {
   type NexusClient,
   createSmartAccountClient
 } from "../../clients/createSmartAccountClient"
+import { SmartSessionMode } from "../../constants"
 import type { Module } from "../utils/Types"
 import { parse, stringify } from "./Helpers"
 import type { SessionData } from "./Types"
@@ -100,23 +99,24 @@ describe("modules.smartSessions.sudo.policy", async () => {
       smartSessionCreateActions(sessionsModule)
     )
 
-    const createSessionsResponse = await usersNexusClient.grantPermission({
-      sessionRequestedInfo: [
-        {
-          sessionPublicKey,
-          // sessionValidUntil: number
-          // sessionValidAfter: number
-          // chainIds: bigint[]
-          actionPoliciesInfo: [
-            {
-              abi: CounterAbi,
-              contractAddress: testAddresses.Counter,
-              sudo: true
-            }
-          ]
-        }
-      ]
-    })
+    const createSessionsResponse =
+      await usersNexusClient.grantPermissionAdvanced({
+        sessionRequestedInfo: [
+          {
+            sessionPublicKey,
+            // sessionValidUntil: number
+            // sessionValidAfter: number
+            // chainIds: bigint[]
+            actionPoliciesInfo: [
+              {
+                abi: CounterAbi,
+                contractAddress: testAddresses.Counter,
+                sudo: true
+              }
+            ]
+          }
+        ]
+      })
 
     // Wait for the session creation transaction to be mined and check its success
     const { success: sessionCreateSuccess } =

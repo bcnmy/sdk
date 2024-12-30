@@ -50,7 +50,31 @@ export {
   OWNABLE_EXECUTOR_ADDRESS,
   MOCK_ATTESTER_ADDRESS,
   RHINESTONE_ATTESTER_ADDRESS,
-  REGISTRY_ADDRESS
+  REGISTRY_ADDRESS,
+  type EnableSessionData,
+  type ActionData,
+  type PolicyData,
+  type Session,
+  SmartSessionMode,
+  encodeSmartSessionSignature,
+  getAddOwnableExecutorOwnerAction,
+  getExecuteOnOwnedAccountAction,
+  getAccount,
+  getOwnableValidatorMockSignature,
+  getOwnableValidatorThreshold,
+  isModuleInstalled as isRhinestoneModuleInstalled,
+  findTrustedAttesters,
+  getTrustAttestersAction,
+  getOwnableValidatorSignature,
+  getAddOwnableValidatorOwnerAction,
+  getOwnableValidatorOwners,
+  getRemoveOwnableValidatorOwnerAction,
+  getSetOwnableValidatorThresholdAction,
+  decodeSmartSessionSignature,
+  encodeValidationData,
+  getEnableSessionDetails,
+  getSmartSessionsValidator,
+  getSudoPolicy
 } from "@rhinestone/module-sdk"
 
 // Rhinestone doesn't export the universal action policy address, so we need to get it from the policies

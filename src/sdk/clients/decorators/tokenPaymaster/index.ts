@@ -1,5 +1,5 @@
 import type { PaymasterClient } from "viem/account-abstraction"
-import type { NexusClient } from "../../createNexusClient"
+import type { NexusClient } from "../../createSmartAccountClient"
 import { getSupportedTokens } from "./getSupportedTokens"
 import {
   type FeeQuote,

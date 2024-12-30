@@ -1,4 +1,3 @@
-import { BaseError } from "viem"
 export type KnownError = {
   name: string
   regex: string
@@ -37,21 +36,6 @@ const buildErrorStrings = (error: KnownError, status: string): string[] => {
   }
 
   return strings
-}
-
-type AccountAbstractionErrorParams = {
-  docsSlug?: string
-  metaMessages?: string[]
-  details?: string
-}
-
-class AccountAbstractionError extends BaseError {
-  override name = "AccountAbstractionError"
-  override version = "@biconomy/sdk"
-
-  constructor(title: string, params: AccountAbstractionErrorParams = {}) {
-    super(title, params)
-  }
 }
 
 export const getAAError = async (message: string, httpStatus?: number) => {

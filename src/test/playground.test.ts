@@ -1,4 +1,3 @@
-import { SmartSessionMode } from "@rhinestone/module-sdk"
 import {
   http,
   type Address,
@@ -19,6 +18,7 @@ import {
   type NexusClient,
   createSmartAccountClient
 } from "../sdk/clients/createSmartAccountClient"
+import { SmartSessionMode } from "../sdk/constants"
 import type {
   CreateSessionDataParams,
   SessionData
@@ -214,9 +214,10 @@ describe.skipIf(!playgroundTrue())("playground", () => {
       smartSessionCreateActions(sessionsModule)
     )
 
-    const createSessionsResponse = await nexusSessionClient.grantPermission({
-      sessionRequestedInfo
-    })
+    const createSessionsResponse =
+      await nexusSessionClient.grantPermissionAdvanced({
+        sessionRequestedInfo
+      })
 
     expect(createSessionsResponse.userOpHash).toBeDefined()
     expect(createSessionsResponse.permissionIds).toBeDefined()

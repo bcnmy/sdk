@@ -1,10 +1,10 @@
-import { getRemoveOwnableValidatorOwnerAction } from "@rhinestone/module-sdk"
 import type { Chain, Client, Hex, PublicClient, Transport } from "viem"
 import type { ModularSmartAccount } from "../../utils/Types"
 
 import { parseAccount } from "viem/utils"
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
 import type { Call } from "../../../account/utils/Types"
+import { getRemoveOwnableValidatorOwnerAction } from "../../../constants"
 
 /**
  * Parameters for getting the transaction to remove an owner from a smart account.

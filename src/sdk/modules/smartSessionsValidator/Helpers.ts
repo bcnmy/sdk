@@ -1,4 +1,3 @@
-import type { ActionData, PolicyData, Session } from "@rhinestone/module-sdk"
 import {
   type Abi,
   type AbiFunction,
@@ -13,9 +12,12 @@ import {
   toHex
 } from "viem"
 import {
+  type ActionData,
+  type PolicyData,
   REGISTRY_ADDRESS,
   SIMPLE_SESSION_VALIDATOR_ADDRESS,
   SMART_SESSIONS_ADDRESS,
+  type Session,
   TIMEFRAME_POLICY_ADDRESS,
   UNIVERSAL_ACTION_POLICY_ADDRESS
 } from "../../constants"

@@ -1,8 +1,4 @@
 import {
-  getAddOwnableExecutorOwnerAction,
-  getExecuteOnOwnedAccountAction
-} from "@rhinestone/module-sdk"
-import {
   http,
   type Account,
   type Address,
@@ -31,6 +27,10 @@ import {
   createSmartAccountClient
 } from "../../clients/createSmartAccountClient"
 import { moduleActivator } from "../../clients/decorators/erc7579/moduleActivator"
+import {
+  getAddOwnableExecutorOwnerAction,
+  getExecuteOnOwnedAccountAction
+} from "../../constants"
 import { toK1Validator } from "../k1Validator/toK1Validator"
 import type { Module } from "../utils/Types"
 

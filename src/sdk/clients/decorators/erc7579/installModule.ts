@@ -2,6 +2,7 @@ import {
   type Chain,
   type Client,
   type Hex,
+  type PublicClient,
   type Transport,
   encodeFunctionData,
   getAddress
@@ -15,7 +16,11 @@ import { getAction, parseAccount } from "viem/utils"
 import type { NexusAccount } from "../../../account/toNexusAccount"
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
 import { addressEquals } from "../../../account/utils/Utils"
-import { SMART_SESSIONS_ADDRESS } from "../../../constants"
+import {
+  SMART_SESSIONS_ADDRESS,
+  findTrustedAttesters,
+  getTrustAttestersAction
+} from "../../../constants"
 import type { ModuleMeta } from "../../../modules/utils/Types"
 import { parseModuleTypeId } from "./supportsModule"
 
@@ -105,6 +110,7 @@ export async function installModule<
 
   if (addressEquals(address, SMART_SESSIONS_ADDRESS)) {
     const nexusAccount = account as NexusAccount
+
     if (nexusAccount?.k1ValidatorAddress) {
       calls.push({
         to: nexusAccount.k1ValidatorAddress,
@@ -127,6 +133,28 @@ export async function installModule<
           functionName: "addSafeSender",
           args: [address]
         })
+      })
+    }
+
+    const publicClient = account?.client as PublicClient
+
+    const trustedAttesters = await findTrustedAttesters({
+      client: publicClient,
+      accountAddress: account.address
+    })
+
+    const needToAddTrustAttesters = trustedAttesters.length === 0
+
+    if (needToAddTrustAttesters && nexusAccount?.attesters?.length) {
+      const trustAttestersAction = getTrustAttestersAction({
+        attesters: nexusAccount.attesters,
+        threshold: 1
+      })
+
+      calls.push({
+        to: trustAttestersAction.target,
+        value: trustAttestersAction.value.valueOf(),
+        data: trustAttestersAction.callData
       })
     }
   }

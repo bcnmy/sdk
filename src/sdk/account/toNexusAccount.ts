@@ -145,6 +145,7 @@ export type NexusSmartAccountImplementation = SmartAccountImplementation<
     factoryData: Hex
     factoryAddress: Address
     k1ValidatorAddress: Address
+    attesters: Address[]
     signer: Signer
     publicClient: PublicClient
     walletClient: WalletClient
@@ -603,7 +604,8 @@ export const toNexusAccount = async (
       k1ValidatorAddress,
       signer,
       walletClient,
-      publicClient
+      publicClient,
+      attesters: attesters_
     }
   })
 }

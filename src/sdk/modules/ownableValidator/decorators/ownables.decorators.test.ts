@@ -1,4 +1,3 @@
-import { OWNABLE_VALIDATOR_ADDRESS } from "@rhinestone/module-sdk/module"
 import {
   http,
   type Account,
@@ -21,6 +20,7 @@ import {
   type NexusClient,
   createSmartAccountClient
 } from "../../../clients/createSmartAccountClient"
+import { OWNABLE_VALIDATOR_ADDRESS } from "../../../constants"
 import { toOwnableValidator } from "../toOwnableValidator"
 
 describe("modules.ownables.decorators", async () => {

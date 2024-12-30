@@ -14,14 +14,14 @@ import type {
 import type { SmartAccount, UserOperation } from "viem/account-abstraction"
 import type { AnyData } from "../../../modules/utils/Types"
 import {
+  type DebugUserOperationReturnType,
+  debugUserOperation
+} from "./debugUserOperation"
+import type { DebugUserOperationParameters } from "./debugUserOperation"
+import {
   type PrepareTokenPaymasterUserOpParameters,
   prepareTokenPaymasterUserOp
 } from "./prepareTokenPaymasterUserOp"
-import {
-  type SendDebugUserOperationReturnType,
-  sendDebugUserOperation
-} from "./sendDebugUserOperation"
-import type { SendDebugUserOperationParameters } from "./sendDebugUserOperation"
 import {
   type SendTokenPaymasterUserOpParameters,
   sendTokenPaymasterUserOp
@@ -364,12 +364,12 @@ export type SmartAccountActions<
   ) => Promise<WaitForTransactionReceiptReturnType>
   /**
    * Sends a user operation to the network and waits for the receipt.
-   * @param params - {@link SendDebugUserOperationParameters}
-   * @returns The user operation receipt. {@link SendDebugUserOperationReturnType}
+   * @param params - {@link DebugUserOperationParameters}
+   * @returns The user operation receipt. {@link DebugUserOperationReturnType}
    */
-  sendDebugUserOperation: (
-    params: SendDebugUserOperationParameters
-  ) => Promise<SendDebugUserOperationReturnType>
+  debugUserOperation: (
+    params: DebugUserOperationParameters
+  ) => Promise<DebugUserOperationReturnType>
 }
 
 export function smartAccountActions() {
@@ -388,6 +388,6 @@ export function smartAccountActions() {
     writeContract: (args) => writeContract(client, args),
     waitForTransactionReceipt: (args) =>
       waitForTransactionReceipt(client, args),
-    sendDebugUserOperation: (args) => sendDebugUserOperation(client, args)
+    debugUserOperation: (args) => debugUserOperation(client, args)
   })
 }

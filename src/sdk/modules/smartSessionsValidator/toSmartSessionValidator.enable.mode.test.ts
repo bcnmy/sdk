@@ -1,16 +1,3 @@
-import { getAccount } from "@rhinestone/module-sdk/account"
-import {
-  OWNABLE_VALIDATOR_ADDRESS,
-  type Session,
-  SmartSessionMode,
-  decodeSmartSessionSignature,
-  encodeSmartSessionSignature,
-  encodeValidationData,
-  getEnableSessionDetails,
-  getOwnableValidatorMockSignature,
-  getSmartSessionsValidator,
-  getSudoPolicy
-} from "@rhinestone/module-sdk/module"
 import {
   http,
   type Address,
@@ -45,11 +32,19 @@ import {
 } from "../../clients/createSmartAccountClient"
 import {
   MAINNET_ADDRESS_K1_VALIDATOR_ADDRESS,
-  SIMPLE_SESSION_VALIDATOR_ADDRESS,
-  SMART_SESSIONS_ADDRESS
+  OWNABLE_VALIDATOR_ADDRESS,
+  SMART_SESSIONS_ADDRESS,
+  type Session,
+  SmartSessionMode,
+  encodeSmartSessionSignature,
+  encodeValidationData,
+  getAccount,
+  getEnableSessionDetails,
+  getOwnableValidatorMockSignature,
+  getSmartSessionsValidator,
+  getSudoPolicy
 } from "../../constants"
 import { generateSalt } from "./Helpers"
-import { DUMMY_ECDSA_SIG } from "./toSmartSessionsValidator"
 
 describe("modules.smartSessions.enable.mode.dx", async () => {
   let network: NetworkConfig
@@ -118,6 +113,7 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
       ...testParams
     })
   })
+
   test.skip("should send a sponsored transaction", async () => {
     // Get initial balance
     const initialBalance = await publicClient.getBalance({
@@ -169,8 +165,11 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
     }
 
     const session: Session = {
-      sessionValidator: SIMPLE_SESSION_VALIDATOR_ADDRESS,
-      sessionValidatorInitData: sessionPublicKey,
+      sessionValidator: OWNABLE_VALIDATOR_ADDRESS,
+      sessionValidatorInitData: encodeValidationData({
+        threshold: 1,
+        owners: [sessionPublicKey]
+      }),
       salt: generateSalt(),
       userOpPolicies: [],
       erc7739Policies: {
@@ -225,20 +224,20 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
     )
 
     // Here we are setting the signature to the mock signature
-
-    // sessionDetails.signature = getOwnableValidatorMockSignature({
-    //   threshold: 1
-    // })
-    sessionDetails.signature = "0x"
+    sessionDetails.signature = getOwnableValidatorMockSignature({
+      threshold: 1
+    })
 
     const userOperation = await nexusClient.prepareUserOperation({
       verificationGasLimit: 10000000n,
-      paymasterVerificationGasLimit: 10000000n,
       callGasLimit: 10000000n,
-      paymasterPostOpGasLimit: 10000000n,
       preVerificationGas: 10000000n,
       calls,
-      signature: encodeSmartSessionSignature(sessionDetails)
+      signature: encodeSmartSessionSignature(sessionDetails),
+      nonce: await nexusClient.account.getNonce({
+        // @ts-ignore
+        moduleAddress: SMART_SESSIONS_ADDRESS
+      })
     })
 
     const userOpHashToSign = nexusClient.account.getUserOpHash(userOperation)
@@ -250,19 +249,15 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
     console.log(3, { sessionDetails })
 
     userOperation.signature = encodeSmartSessionSignature(sessionDetails)
-    userOperation.nonce = await nexusClient.account.getNonce({
-      // @ts-ignore
-      moduleAddress: SMART_SESSIONS_ADDRESS,
-      key: BigInt(Date.now()),
-      validationMode: "0x00"
-    })
 
-    const userOpHash = await nexusClient.sendDebugUserOperation(userOperation)
+    const userOpHash = await nexusClient.sendUserOperation(userOperation)
 
     const receipt = await nexusClient.waitForUserOperationReceipt({
       hash: userOpHash
     })
 
     console.log({ receipt })
+
+    expect(receipt.success).toBe("true")
   })
 })

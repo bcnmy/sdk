@@ -1,4 +1,3 @@
-import { SmartSessionMode } from "@rhinestone/module-sdk"
 import { http, type Address, type Chain, type Hex } from "viem"
 import type { LocalAccount, PublicClient } from "viem"
 import { encodeFunctionData } from "viem"
@@ -13,7 +12,7 @@ import {
   toTestClient
 } from "../../test/testUtils"
 import type { MasterClient, NetworkConfig } from "../../test/testUtils"
-import { SMART_SESSIONS_ADDRESS } from "../constants"
+import { SMART_SESSIONS_ADDRESS, SmartSessionMode } from "../constants"
 import {
   isPermissionEnabled,
   parse,
@@ -115,15 +114,6 @@ describe("nexus.session.client", async () => {
       smartSessionCreateActions(sessionsModule)
     )
 
-    const trustAttestersHash = await nexusSessionClient.trustAttesters()
-    const userOpReceipt = await nexusSessionClient.waitForUserOperationReceipt({
-      hash: trustAttestersHash
-    })
-    const { status } = await testClient.waitForTransactionReceipt({
-      hash: userOpReceipt.receipt.transactionHash
-    })
-    expect(status).toBe("success")
-
     // session key signer address is declared here
     const sessionRequestedInfo: CreateSessionDataParams[] = [
       {
@@ -139,9 +129,10 @@ describe("nexus.session.client", async () => {
 
     nexusClient.account.getCounterFactualAddress()
 
-    const createSessionsResponse = await nexusSessionClient.grantPermission({
-      sessionRequestedInfo
-    })
+    const createSessionsResponse =
+      await nexusSessionClient.grantPermissionAdvanced({
+        sessionRequestedInfo
+      })
 
     expect(createSessionsResponse.userOpHash).toBeDefined()
     expect(createSessionsResponse.permissionIds).toBeDefined()

@@ -1,4 +1,3 @@
-import { getOwnableValidatorSignature } from "@rhinestone/module-sdk"
 import {
   http,
   type Account,
@@ -27,7 +26,10 @@ import {
   createSmartAccountClient
 } from "../../clients/createSmartAccountClient"
 import { parseModuleTypeId } from "../../clients/decorators/erc7579/supportsModule"
-import { k1ValidatorAddress } from "../../constants"
+import {
+  getOwnableValidatorSignature,
+  k1ValidatorAddress
+} from "../../constants"
 import type { Module } from "../utils/Types"
 import { type OwnableActions, ownableActions } from "./decorators"
 import { toOwnableValidator } from "./toOwnableValidator"

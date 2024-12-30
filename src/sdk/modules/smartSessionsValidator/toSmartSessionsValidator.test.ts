@@ -1,4 +1,3 @@
-import { SmartSessionMode } from "@rhinestone/module-sdk"
 import {
   http,
   type Address,
@@ -25,6 +24,7 @@ import {
   type NexusClient,
   createSmartAccountClient
 } from "../../clients/createSmartAccountClient"
+import { SmartSessionMode } from "../../constants"
 import { parseReferenceValue } from "../utils/Helpers"
 import type { Module } from "../utils/Types"
 import {
@@ -195,29 +195,26 @@ describe("modules.smartSessions", async () => {
     }
   )
 
-  test.concurrent(
-    "should install sessions module with no init data",
-    async () => {
-      const isInstalledBefore = await nexusClient.isModuleInstalled({
+  test("should install sessions module with no init data", async () => {
+    const isInstalledBefore = await nexusClient.isModuleInstalled({
+      module: sessionsModule.moduleInitData
+    })
+
+    if (!isInstalledBefore) {
+      const hash = await nexusClient.installModule({
         module: sessionsModule.moduleInitData
       })
 
-      if (!isInstalledBefore) {
-        const hash = await nexusClient.installModule({
-          module: sessionsModule.moduleInitData
-        })
-
-        const { success: installSuccess } =
-          await nexusClient.waitForUserOperationReceipt({ hash })
-        expect(installSuccess).toBe(true)
-      }
-
-      const isInstalledAfter = await nexusClient.isModuleInstalled({
-        module: sessionsModule
-      })
-      expect(isInstalledAfter).toBe(true)
+      const { success: installSuccess } =
+        await nexusClient.waitForUserOperationReceipt({ hash })
+      expect(installSuccess).toBe(true)
     }
-  )
+
+    const isInstalledAfter = await nexusClient.isModuleInstalled({
+      module: sessionsModule
+    })
+    expect(isInstalledAfter).toBe(true)
+  })
 
   test("should create Counter increment session (USE mode) on installed smart session validator", async () => {
     const isInstalledBefore = await nexusClient.isModuleInstalled({
@@ -242,10 +239,14 @@ describe("modules.smartSessions", async () => {
     const nexusSessionClient = nexusClient.extend(
       smartSessionCreateActions(sessionsModule)
     )
+    console.log({ sessionRequestedInfo })
 
-    const createSessionsResponse = await nexusSessionClient.grantPermission({
-      sessionRequestedInfo
-    })
+    const createSessionsResponse =
+      await nexusSessionClient.grantPermissionAdvanced({
+        sessionRequestedInfo
+      })
+
+    console.log({ createSessionsResponse })
 
     expect(createSessionsResponse.userOpHash).toBeDefined()
     expect(createSessionsResponse.permissionIds).toBeDefined()
@@ -271,11 +272,17 @@ describe("modules.smartSessions", async () => {
   }, 200000)
 
   test("should make use of already enabled session (USE mode) to increment a counter using a session key", async () => {
+    if (!cachedSessionData) {
+      throw new Error("Session data not found")
+    }
+
     const counterBefore = await testClient.readContract({
       address: testAddresses.Counter,
       abi: CounterAbi,
       functionName: "getNumber"
     })
+
+    console.log({ cachedSessionData })
 
     const parsedSessionData = parse(cachedSessionData) as SessionData
 
