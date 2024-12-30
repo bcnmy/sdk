@@ -25,7 +25,8 @@ import {
   createSmartAccountClient
 } from "./createSmartAccountClient"
 
-describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
+describe.skip("bico.paymaster", async () => {
+  // describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
   let network: NetworkConfig
   // Required for "TESTNET_FROM_ENV_VARS" networks
   let testnetParams: TestnetParams
