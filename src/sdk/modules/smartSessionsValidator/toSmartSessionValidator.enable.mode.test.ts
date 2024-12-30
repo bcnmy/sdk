@@ -9,14 +9,8 @@ import {
   createPublicClient,
   createWalletClient,
   encodeFunctionData,
-  encodePacked,
   getAddress
 } from "viem"
-import {
-  entryPoint07Address,
-  getUserOperationHash,
-  toPackedUserOperation
-} from "viem/account-abstraction"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { beforeAll, describe, expect, test } from "vitest"
 import { CounterAbi } from "../../../test/__contracts/abi/CounterAbi"
@@ -25,7 +19,6 @@ import { toNetwork } from "../../../test/testSetup"
 import { getTestParamsForTestnet } from "../../../test/testUtils"
 import type { NetworkConfig, TestnetParams } from "../../../test/testUtils"
 import { type NexusAccount, toNexusAccount } from "../../account/toNexusAccount"
-import { deepHexlify } from "../../account/utils/deepHexlify"
 import {
   type NexusClient,
   createSmartAccountClient
@@ -44,12 +37,15 @@ import {
   getSmartSessionsValidator,
   getSudoPolicy
 } from "../../constants"
-import { generateSalt } from "./Helpers"
+import { generateSalt, parse, stringify } from "./Helpers"
+import type { SessionData } from "./Types"
+import { smartSessionCreateActions, smartSessionUseActions } from "./decorators"
+import { toSmartSessionsValidator } from "./toSmartSessionsValidator"
 
 describe("modules.smartSessions.enable.mode.dx", async () => {
   let network: NetworkConfig
   // Required for "TESTNET_FROM_ENV_VARS" networks
-  let testParams: TestnetParams
+  let testnetParams: TestnetParams
 
   let chain: Chain
   let bundlerUrl: string
@@ -66,6 +62,8 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
 
   let sessionKeyAccount: LocalAccount
   let sessionPublicKey: Address
+
+  let stringifiedSessionDatum: string
 
   beforeAll(async () => {
     network = await toNetwork("TESTNET_FROM_ENV_VARS")
@@ -91,14 +89,14 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
       transport: http()
     })
 
-    testParams = getTestParamsForTestnet(publicClient)
+    testnetParams = getTestParamsForTestnet(publicClient)
 
     nexusAccount = await toNexusAccount({
       index: 1n,
       signer: eoaAccount,
       chain,
       transport: http(),
-      ...testParams
+      ...testnetParams
     })
 
     nexusAccountAddress = await nexusAccount.getCounterFactualAddress()
@@ -110,44 +108,115 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl),
-      ...testParams
+      ...testnetParams
     })
   })
 
-  test.skip("should send a sponsored transaction", async () => {
-    // Get initial balance
-    const initialBalance = await publicClient.getBalance({
-      address: nexusAccountAddress
+  test("should support enable mode by default", async () => {
+    const sessionsModule = toSmartSessionsValidator({
+      account: nexusClient.account,
+      signer: eoaAccount
     })
 
-    if (initialBalance === 0n) {
-      console.log("Fund account", nexusAccountAddress)
+    const isInstalled = await nexusClient.isModuleInstalled({
+      module: sessionsModule.moduleInitData
+    })
+
+    if (!isInstalled) {
+      const opHash = await nexusClient.installModule({
+        module: sessionsModule.moduleInitData
+      })
+      const installReceipt = await nexusClient.waitForUserOperationReceipt({
+        hash: opHash
+      })
+      expect(installReceipt.success).toBe("true")
     }
 
-    // Send user operation
-    const hash = await nexusClient.sendTransaction({
-      calls: [
+    // Extend the Nexus client with smart session creation actions
+    const nexusSessionClient = nexusClient.extend(
+      smartSessionCreateActions(sessionsModule)
+    )
+
+    const moduleData = await nexusSessionClient.grantPermission({
+      sessionRequestedInfo: [
         {
-          to: recipientAddress,
-          value: 1n
+          sessionPublicKey, // Public key of the session
+          // sessionValidUntil: number
+          // sessionValidAfter: number
+          // chainIds: bigint[]
+          actionPoliciesInfo: [
+            {
+              abi: CounterAbi,
+              contractAddress: testAddresses.Counter
+              // validUntil?: number
+              // validAfter?: number
+              // valueLimit?: bigint
+            }
+          ]
         }
       ]
     })
 
-    // Wait for the transaction to be mined
-    const { status } = await publicClient.waitForTransactionReceipt({ hash })
-    expect(status).toBe("success")
-    // Get final balance
-    const finalBalance = await publicClient.getBalance({
-      address: nexusAccountAddress
-    })
+    const sessionData: SessionData = {
+      granter: nexusClient.account.address,
+      sessionPublicKey,
+      description: `Permission to increment a counter for ${testAddresses.Counter}`,
+      moduleData
+    }
 
-    // Check that the balance hasn't changed
-    // No gas fees were paid, so the balance should have decreased only by 1n
-    expect(finalBalance).toBeLessThan(initialBalance)
+    stringifiedSessionDatum = stringify(sessionData)
   })
 
-  test("should support smart sessions enable mode", async () => {
+  test("should be able to use the session data to create a new smart session client", async () => {
+    const usersSessionData = parse(stringifiedSessionDatum) as SessionData
+
+    // Create a new Nexus client for the session
+    // This client will be used to interact with the smart contract account using the session key
+    const smartSessionNexusClient = await createSmartAccountClient({
+      index: 1n,
+      accountAddress: usersSessionData.granter,
+      signer: eoaAccount,
+      chain,
+      transport: http(),
+      bundlerTransport: http(bundlerUrl),
+      ...testnetParams
+    })
+
+    // Create a new smart sessions module with the session key
+    const usePermissionsModule = toSmartSessionsValidator({
+      account: smartSessionNexusClient.account,
+      signer: sessionKeyAccount,
+      moduleData: usersSessionData.moduleData
+    })
+
+    // Extend the session client with smart session use actions
+    const useSmartSessionNexusClient = smartSessionNexusClient.extend(
+      smartSessionUseActions(usePermissionsModule)
+    )
+
+    const userOpHash = await useSmartSessionNexusClient.usePermission({
+      calls: [
+        {
+          to: testAddresses.Counter,
+          data: encodeFunctionData({
+            abi: CounterAbi,
+            functionName: "decrementNumber"
+          })
+        }
+      ]
+    })
+
+    expect(userOpHash).toBeDefined()
+
+    const receipt =
+      await useSmartSessionNexusClient.waitForUserOperationReceipt({
+        hash: userOpHash
+      })
+
+    expect(receipt.success).toBe("true")
+  })
+
+  test.skip("should support smart sessions enable mode", async () => {
     const uninitializedSmartSessions = getSmartSessionsValidator({})
 
     const isInstalled = await nexusClient.isModuleInstalled({
@@ -246,8 +315,6 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
       message: { raw: userOpHashToSign }
     })
 
-    console.log(3, { sessionDetails })
-
     userOperation.signature = encodeSmartSessionSignature(sessionDetails)
 
     const userOpHash = await nexusClient.sendUserOperation(userOperation)
@@ -255,8 +322,6 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
     const receipt = await nexusClient.waitForUserOperationReceipt({
       hash: userOpHash
     })
-
-    console.log({ receipt })
 
     expect(receipt.success).toBe("true")
   })

@@ -1,18 +1,20 @@
 import type { Chain, Client, Hash, Transport } from "viem"
 import type { ModularSmartAccount, Module } from "../../utils/Types"
-import type { GrantPermissionAdvancedResponse } from "../Types"
+import type {
+  GrantPermissionInAdvanceResponse,
+  PreparePermissionResponse
+} from "../Types"
 import type { SmartSessionModule } from "../toSmartSessionsValidator"
 import {
   type GrantPermissionParameters,
   grantPermission
 } from "./grantPermission.js"
 import {
-  type GrantPermissionAdvancedParameters,
-  grantPermissionAdvanced
-} from "./grantPermissionAdvanced.js"
+  type GrantPermissionInAdvanceParameters,
+  grantPermissionInAdvance
+} from "./grantPermissionInAdvance.js"
 import {
   type PreparePermissionParameters,
-  type PreparePermissionResponse,
   preparePermission
 } from "./preparePermission.js"
 import { type TrustAttestersParameters, trustAttesters } from "./trustAttesters"
@@ -27,7 +29,7 @@ export type SmartSessionCreateActions<
 > = {
   /**
    * Creates multiple sessions for a modular smart account.
-   * This differs from grantPermissionAdvanced in that it defers the moment that the permission is granted
+   * This differs from grantPermissionInAdvance in that it defers the moment that the permission is granted
    * on chain to the moment that the redemption user operation is sent/redeemed. It is also known as "ENABLE_MODE".
    * It is the default mode for the grantPermission function.
    *
@@ -45,9 +47,9 @@ export type SmartSessionCreateActions<
    * @param args - Parameters for creating sessions.
    * @returns A promise that resolves to the creation response.
    */
-  grantPermissionAdvanced: (
-    args: GrantPermissionAdvancedParameters<TModularSmartAccount>
-  ) => Promise<GrantPermissionAdvancedResponse>
+  grantPermissionInAdvance: (
+    args: GrantPermissionInAdvanceParameters<TModularSmartAccount>
+  ) => Promise<GrantPermissionInAdvanceResponse>
 
   /**
    * Trusts attesters for a modular smart account.
@@ -100,7 +102,8 @@ export function smartSessionCreateActions(_: Module) {
   ): SmartSessionCreateActions<TModularSmartAccount> => {
     return {
       grantPermission: (args) => grantPermission(client, args),
-      grantPermissionAdvanced: (args) => grantPermissionAdvanced(client, args),
+      grantPermissionInAdvance: (args) =>
+        grantPermissionInAdvance(client, args),
       trustAttesters: (args) => trustAttesters(client, args),
       preparePermission: (args) => preparePermission(client, args)
     }
@@ -129,4 +132,4 @@ export function smartSessionUseActions(
 export * from "./grantPermission"
 export * from "./trustAttesters"
 export * from "./usePermission"
-export * from "./grantPermissionAdvanced"
+export * from "./grantPermissionInAdvance.js"

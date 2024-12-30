@@ -2,7 +2,9 @@ import { type Address, type Hex, encodePacked } from "viem"
 import {
   SMART_SESSIONS_ADDRESS,
   SmartSessionMode,
-  encodeSmartSessionSignature
+  encodeSmartSessionSignature,
+  getOwnableValidatorMockSignature,
+  getSmartSessionsValidator
 } from "../../constants"
 import type { ModuleMeta } from "../../modules/utils/Types"
 import type { ModularSmartAccount } from "../utils/Types"
@@ -96,7 +98,6 @@ export const toSmartSessionsValidator = (
     moduleInitData: moduleInitData_,
     deInitData = "0x",
     initData: initData_,
-    moduleInitArgs: moduleInitArgs_ = { signerAddress: signer.address },
     initArgs: initArgs_ = { signerAddress: signer.address },
     moduleData: {
       permissionIdIndex = 0,
@@ -107,8 +108,7 @@ export const toSmartSessionsValidator = (
   } = parameters
 
   const initData = initData_ ?? getUsePermissionInitData(initArgs_)
-  const moduleInitData =
-    moduleInitData_ ?? getUsePermissionModuleInitData(moduleInitArgs_)
+  const moduleInitData = moduleInitData_ ?? getSmartSessionsValidator({})
 
   return toModule({
     ...parameters,
@@ -123,10 +123,12 @@ export const toSmartSessionsValidator = (
         mode,
         permissionId: permissionIds[permissionIdIndex],
         enableSessionData,
-        signature: DUMMY_ECDSA_SIG
+        signature: getOwnableValidatorMockSignature({
+          threshold: 1
+        })
       }),
-    signUserOpHash: async (userOpHash: Hex) =>
-      encodeSmartSessionSignature({
+    signUserOpHash: async (userOpHash: Hex) => {
+      return encodeSmartSessionSignature({
         mode,
         permissionId: permissionIds[permissionIdIndex],
         enableSessionData,
@@ -134,5 +136,6 @@ export const toSmartSessionsValidator = (
           message: { raw: userOpHash as Hex }
         })
       })
+    }
   }) as SmartSessionModule
 }

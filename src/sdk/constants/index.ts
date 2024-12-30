@@ -74,7 +74,11 @@ export {
   encodeValidationData,
   getEnableSessionDetails,
   getSmartSessionsValidator,
-  getSudoPolicy
+  getSudoPolicy,
+  getSpendingLimitsPolicy,
+  getUsageLimitPolicy,
+  getValueLimitPolicy,
+  getOwnableValidator
 } from "@rhinestone/module-sdk"
 
 // Rhinestone doesn't export the universal action policy address, so we need to get it from the policies

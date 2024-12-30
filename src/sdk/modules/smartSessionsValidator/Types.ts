@@ -1,5 +1,9 @@
 import type { Abi, AbiFunction, Address, Hex, OneOf } from "viem"
-import type { EnableSessionData, SmartSessionMode } from "../../constants"
+import type {
+  EnableSessionData,
+  Session,
+  SmartSessionMode
+} from "../../constants"
 import type { AnyReferenceValue } from "../utils/Helpers"
 import type { Execution } from "../utils/Types"
 
@@ -26,20 +30,22 @@ export type SessionData = {
   description?: string
 }
 
-export type GrantPermissionAdvancedActionReturnParams = {
+export type PreparePermissionResponse = {
   /** Array of permission IDs for the created sessions. */
   permissionIds: Hex[]
   /** The execution object for the action. */
   action: Execution
+  /** The sessions that were created. */
+  sessions: Session[]
 }
 
 /**
  * Represents the response for creating sessions.
  */
-export type GrantPermissionAdvancedResponse = {
+export type GrantPermissionInAdvanceResponse = {
   /** The hash of the user operation. */
   userOpHash: Hex
-} & GrantPermissionAdvancedActionReturnParams
+} & PreparePermissionResponse
 
 /**
  * Represents the possible modes for a smart session.
@@ -57,7 +63,7 @@ export type UsePermissionModuleData = {
   enableSessionData?: EnableSessionData
   /** The index of the permission ID to use for the session. Defaults to 0. */
   permissionIdIndex?: number
-} & GrantPermissionAdvancedActionReturnParams
+} & PreparePermissionResponse
 
 type OptionalSessionKeyData = OneOf<
   | {

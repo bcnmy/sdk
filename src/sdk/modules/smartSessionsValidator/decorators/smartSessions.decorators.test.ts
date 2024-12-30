@@ -101,8 +101,9 @@ describe("modules.smartSessions.decorators", async () => {
     )
 
     expect(nexusSessionClient).toBeDefined()
-    expect(nexusSessionClient.grantPermissionAdvanced).toBeTypeOf("function")
+    expect(nexusSessionClient.grantPermissionInAdvance).toBeTypeOf("function")
     expect(nexusSessionClient.trustAttesters).toBeTypeOf("function")
+    expect(nexusSessionClient.grantPermissionInAdvance).toBeTypeOf("function")
   })
 
   test("should test use smart session decorators", async () => {
@@ -125,33 +126,5 @@ describe("modules.smartSessions.decorators", async () => {
 
     expect(nexusSessionClient).toBeDefined()
     expect(nexusSessionClient.usePermission).toBeTypeOf("function")
-  })
-
-  test("should test prepare permission", async () => {
-    const preparePermissionResponse = await preparePermission(nexusClient, {
-      sessionRequestedInfo: [
-        {
-          sessionPublicKey, // Public key of the session
-          // sessionValidUntil: number
-          // sessionValidAfter: number
-          // chainIds: bigint[]
-          actionPoliciesInfo: [
-            {
-              abi: CounterAbi,
-              contractAddress: testAddresses.Counter
-              // validUntil?: number
-              // validAfter?: number
-              // valueLimit?: bigint
-            }
-          ]
-        }
-      ]
-    })
-
-    sessionsModule = toSmartSessionsValidator({
-      account: nexusClient.account,
-      signer: eoaAccount,
-      initData: "0x"
-    })
   })
 })

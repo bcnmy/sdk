@@ -114,7 +114,7 @@ describe("modules.smartSessions.policies", async () => {
     // Define the session parameters
     // This includes the session key, validator, and action policies
     const createSessionsResponse =
-      await nexusSessionClient.grantPermissionAdvanced({
+      await nexusSessionClient.grantPermissionInAdvance({
         sessionRequestedInfo: [
           {
             sessionPublicKey, // Public key of the session

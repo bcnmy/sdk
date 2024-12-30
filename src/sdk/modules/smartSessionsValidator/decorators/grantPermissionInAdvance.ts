@@ -2,10 +2,11 @@ import type { Chain, Client, Hex, PublicClient, Transport } from "viem"
 import { sendUserOperation } from "viem/account-abstraction"
 import { getAction, parseAccount } from "viem/utils"
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
+import type { Call } from "../../../account/utils/Types"
 import type { ModularSmartAccount } from "../../utils/Types"
 import type {
   CreateSessionDataParams,
-  GrantPermissionAdvancedResponse
+  GrantPermissionInAdvanceResponse
 } from "../Types"
 import { preparePermission } from "./preparePermission"
 
@@ -14,7 +15,7 @@ import { preparePermission } from "./preparePermission"
  *
  * @template TModularSmartAccount - Type of the modular smart account, extending ModularSmartAccount or undefined.
  */
-export type GrantPermissionAdvancedParameters<
+export type GrantPermissionInAdvanceParameters<
   TModularSmartAccount extends ModularSmartAccount | undefined
 > = {
   /** Array of session data parameters for creating multiple sessions. */
@@ -31,6 +32,8 @@ export type GrantPermissionAdvancedParameters<
   account?: TModularSmartAccount
   /** Optional attesters to trust. */
   attesters?: Hex[]
+  /** Additional calls to be included in the user operation. */
+  calls?: Call[]
 }
 
 /**
@@ -50,9 +53,9 @@ export type GrantPermissionAdvancedParameters<
  *
  * @example
  * ```typescript
- * import { grantPermissionAdvanced } from '@biconomy/sdk'
+ * import { grantPermissionInAdvance } from '@biconomy/sdk'
  *
- * const result = await grantPermissionAdvanced(nexusClient, {
+ * const result = await grantPermissionInAdvance(nexusClient, {
  *   sessionRequestedInfo: [
  *     {
  *       sessionKeyData: '0x...',
@@ -77,17 +80,18 @@ export type GrantPermissionAdvancedParameters<
  * - The number of sessions created is determined by the length of the `sessionRequestedInfo` array.
  * - Each session's policies and permissions are determined by the `actionPoliciesInfo` provided.
  */
-export async function grantPermissionAdvanced<
+export async function grantPermissionInAdvance<
   TModularSmartAccount extends ModularSmartAccount | undefined
 >(
   client: Client<Transport, Chain | undefined, TModularSmartAccount>,
-  parameters: GrantPermissionAdvancedParameters<TModularSmartAccount>
-): Promise<GrantPermissionAdvancedResponse> {
+  parameters: GrantPermissionInAdvanceParameters<TModularSmartAccount>
+): Promise<GrantPermissionInAdvanceResponse> {
   const {
     account: account_ = client.account,
     maxFeePerGas,
     maxPriorityFeePerGas,
-    nonce
+    nonce,
+    calls: calls_
   } = parameters
 
   if (!account_) {
@@ -112,7 +116,13 @@ export async function grantPermissionAdvanced<
     sendUserOperation,
     "sendUserOperation"
   )({
-    calls: preparedPermission.calls,
+    calls: [
+      {
+        to: preparedPermission.action.target,
+        data: preparedPermission.action.callData
+      },
+      ...(calls_ || [])
+    ],
     maxFeePerGas,
     maxPriorityFeePerGas,
     nonce,

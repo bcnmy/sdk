@@ -210,7 +210,7 @@ describe("modules.smartSessions.uni.policy", async () => {
     ]
 
     const createSessionsResponse =
-      await smartSessionNexusClient.grantPermissionAdvanced({
+      await smartSessionNexusClient.grantPermissionInAdvance({
         sessionRequestedInfo
       })
 
@@ -224,7 +224,8 @@ describe("modules.smartSessions.uni.policy", async () => {
       moduleData: {
         permissionIds: createSessionsResponse.permissionIds,
         action: createSessionsResponse.action,
-        mode: SmartSessionMode.USE
+        mode: SmartSessionMode.USE,
+        sessions: createSessionsResponse.sessions
       }
     }
 

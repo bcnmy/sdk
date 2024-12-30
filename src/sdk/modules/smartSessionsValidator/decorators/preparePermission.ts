@@ -1,11 +1,6 @@
-import {
-  getSpendingLimitsPolicy,
-  getUsageLimitPolicy,
-  getValueLimitPolicy
-} from "@rhinestone/module-sdk"
 import type { Chain, Client, Hex, PublicClient, Transport } from "viem"
 import { encodeFunctionData, parseAccount } from "viem/utils"
-import { type Call, ERROR_MESSAGES } from "../../../account"
+import { ERROR_MESSAGES } from "../../../account"
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
 import {
   type ActionData,
@@ -14,7 +9,10 @@ import {
   SMART_SESSIONS_ADDRESS,
   type Session,
   encodeValidationData,
-  getSudoPolicy
+  getSpendingLimitsPolicy,
+  getSudoPolicy,
+  getUsageLimitPolicy,
+  getValueLimitPolicy
 } from "../../../constants"
 import { SmartSessionAbi } from "../../../constants/abi/SmartSessionAbi"
 import type { ModularSmartAccount } from "../../utils/Types"
@@ -31,7 +29,7 @@ import {
 import type {
   CreateSessionDataParams,
   FullCreateSessionDataParams,
-  GrantPermissionAdvancedActionReturnParams,
+  PreparePermissionResponse,
   ResolvedActionPolicyInfo
 } from "../Types"
 
@@ -57,10 +55,6 @@ export type PreparePermissionParameters<
   account?: TModularSmartAccount
 }
 
-export type PreparePermissionResponse = {
-  calls: Call[]
-} & GrantPermissionAdvancedActionReturnParams
-
 /**
  * Generates the action data for creating sessions in the SmartSessionValidator.
  *
@@ -76,7 +70,7 @@ export const getPermissionAction = async ({
   chainId: number
   sessionRequestedInfo: FullCreateSessionDataParams[]
   client: PublicClient
-}): Promise<GrantPermissionAdvancedActionReturnParams | Error> => {
+}): Promise<PreparePermissionResponse | Error> => {
   const sessions: Session[] = []
   const permissionIds: Hex[] = []
 
@@ -204,7 +198,8 @@ export const getPermissionAction = async ({
       value: BigInt(0),
       callData: preparePermissionData
     },
-    permissionIds: permissionIds
+    permissionIds: permissionIds,
+    sessions
   }
 }
 
@@ -290,23 +285,9 @@ export async function preparePermission<
     sessionRequestedInfo: defaultedSessionRequestedInfo
   })
 
-  if (!("action" in actionResponse)) {
-    throw new Error("Error getting enable sessions action")
+  if (actionResponse instanceof Error) {
+    throw actionResponse
   }
 
-  const { action } = actionResponse
-
-  if (!("callData" in action)) {
-    throw new Error("Error getting enable sessions action")
-  }
-
-  const calls: Call[] = []
-
-  calls.push({
-    to: action.target,
-    value: action.value,
-    data: action.callData
-  })
-
-  return { ...actionResponse, calls }
+  return actionResponse
 }

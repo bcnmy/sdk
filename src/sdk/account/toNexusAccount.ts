@@ -53,6 +53,7 @@ import {
 } from "../constants"
 // Constants
 import { EntrypointAbi } from "../constants/abi"
+import { getCounterFactualAddress as getCounterFactualAddress_ } from "./utils/getCounterFactualAddress"
 
 // Modules
 import { toK1Validator } from "../modules/k1Validator/toK1Validator"
@@ -251,47 +252,15 @@ export const toNexusAccount = async (
       }
     }
 
-    const addressFromFactory = (await publicClient.readContract({
-      address: factoryAddress,
-      abi: [
-        {
-          inputs: [
-            {
-              internalType: "address",
-              name: "eoaOwner",
-              type: "address"
-            },
-            {
-              internalType: "uint256",
-              name: "index",
-              type: "uint256"
-            },
-            {
-              internalType: "address[]",
-              name: "attesters",
-              type: "address[]"
-            },
-            {
-              internalType: "uint8",
-              name: "threshold",
-              type: "uint8"
-            }
-          ],
-          name: "computeAccountAddress",
-          outputs: [
-            {
-              internalType: "address payable",
-              name: "expectedAddress",
-              type: "address"
-            }
-          ],
-          stateMutability: "view",
-          type: "function"
-        }
-      ],
-      functionName: "computeAccountAddress",
-      args: [signerAddress, index, attesters_, attesterThreshold]
-    })) as Address
+    const addressFromFactory = await getCounterFactualAddress_(
+      publicClient,
+      signerAddress,
+      false,
+      index,
+      attesters_,
+      attesterThreshold,
+      factoryAddress
+    )
 
     if (!addressEquals(addressFromFactory, zeroAddress)) {
       _accountAddress = addressFromFactory

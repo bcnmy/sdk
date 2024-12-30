@@ -239,10 +239,9 @@ describe("modules.smartSessions", async () => {
     const nexusSessionClient = nexusClient.extend(
       smartSessionCreateActions(sessionsModule)
     )
-    console.log({ sessionRequestedInfo })
 
     const createSessionsResponse =
-      await nexusSessionClient.grantPermissionAdvanced({
+      await nexusSessionClient.grantPermissionInAdvance({
         sessionRequestedInfo
       })
 
@@ -258,7 +257,8 @@ describe("modules.smartSessions", async () => {
       moduleData: {
         permissionIds: createSessionsResponse.permissionIds,
         action: createSessionsResponse.action,
-        mode: SmartSessionMode.USE
+        mode: SmartSessionMode.USE,
+        sessions: createSessionsResponse.sessions
       }
     }
 

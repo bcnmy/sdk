@@ -8,6 +8,7 @@ import {
 import {
   OWNABLE_VALIDATOR_ADDRESS,
   getAccount,
+  getOwnableValidator,
   getOwnableValidatorMockSignature,
   getOwnableValidatorThreshold,
   isRhinestoneModuleInstalled
@@ -130,7 +131,10 @@ export const toOwnableValidator = (
     type: "nexus"
   })
 
-  const moduleInitData = getOwnablesModuleInitData(moduleInitArgs_)
+  const moduleInitData = getOwnableValidator({
+    threshold: moduleInitArgs_.threshold,
+    owners: moduleInitArgs_.owners
+  })
   const initData = initData_ ?? getOwnablesInitData(initArgs_)
 
   return toModule({

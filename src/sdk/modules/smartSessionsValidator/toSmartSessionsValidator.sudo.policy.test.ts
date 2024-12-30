@@ -100,7 +100,7 @@ describe("modules.smartSessions.sudo.policy", async () => {
     )
 
     const createSessionsResponse =
-      await usersNexusClient.grantPermissionAdvanced({
+      await usersNexusClient.grantPermissionInAdvance({
         sessionRequestedInfo: [
           {
             sessionPublicKey,
@@ -134,7 +134,8 @@ describe("modules.smartSessions.sudo.policy", async () => {
       moduleData: {
         permissionIds: createSessionsResponse.permissionIds,
         action: createSessionsResponse.action,
-        mode: SmartSessionMode.USE
+        mode: SmartSessionMode.USE,
+        sessions: createSessionsResponse.sessions
       }
     }
 

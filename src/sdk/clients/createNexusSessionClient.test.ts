@@ -130,7 +130,7 @@ describe("nexus.session.client", async () => {
     nexusClient.account.getCounterFactualAddress()
 
     const createSessionsResponse =
-      await nexusSessionClient.grantPermissionAdvanced({
+      await nexusSessionClient.grantPermissionInAdvance({
         sessionRequestedInfo
       })
 
@@ -145,7 +145,8 @@ describe("nexus.session.client", async () => {
       moduleData: {
         permissionIds: createSessionsResponse.permissionIds,
         action: createSessionsResponse.action,
-        mode: SmartSessionMode.USE
+        mode: SmartSessionMode.USE,
+        sessions: createSessionsResponse.sessions
       }
     }
 

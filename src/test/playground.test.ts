@@ -215,7 +215,7 @@ describe.skipIf(!playgroundTrue())("playground", () => {
     )
 
     const createSessionsResponse =
-      await nexusSessionClient.grantPermissionAdvanced({
+      await nexusSessionClient.grantPermissionInAdvance({
         sessionRequestedInfo
       })
 
@@ -234,7 +234,8 @@ describe.skipIf(!playgroundTrue())("playground", () => {
       moduleData: {
         permissionIds: createSessionsResponse.permissionIds,
         action: createSessionsResponse.action,
-        mode: SmartSessionMode.USE
+        mode: SmartSessionMode.USE,
+        sessions: createSessionsResponse.sessions
       }
     }
 
