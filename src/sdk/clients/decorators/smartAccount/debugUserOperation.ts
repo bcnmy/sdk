@@ -132,6 +132,8 @@ export async function debugUserOperation<
   if (!account_ && !parameters.sender) throw new AccountNotFoundError()
   const account = account_ ? parseAccount(account_) : undefined
 
+  console.log("Raw userOp:\n", JSON.stringify(parameters, null, 2))
+
   const request = account
     ? await getAction(
         client,
@@ -181,7 +183,7 @@ export async function debugUserOperation<
       contractAddress: ENTRY_POINT_ADDRESS,
       value: "0",
       network: chainId ?? "84532",
-      contractFunction: "0x765e827f",
+      contractFunction: "0x765e827f", // handleOps
       rawFunctionInput: packed.callData,
       functionInputs: JSON.stringify([formattedRpcParams]),
       stateOverrides: JSON.stringify([

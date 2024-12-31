@@ -11,6 +11,8 @@ import {
   encodeValidationData,
   getSpendingLimitsPolicy,
   getSudoPolicy,
+  getTimeFramePolicy,
+  getUniversalActionPolicy,
   getUsageLimitPolicy,
   getValueLimitPolicy
 } from "../../../constants"
@@ -23,8 +25,7 @@ import {
   createActionData,
   generateSalt,
   getPermissionId,
-  toTimeRangePolicy,
-  toUniversalActionPolicy
+  toActionConfig
 } from "../Helpers"
 import type {
   CreateSessionDataParams,
@@ -85,14 +86,16 @@ export const getPermissionAction = async ({
     const policyData: PolicyData[] = []
 
     // create uni action policy here..
-    const uniActionPolicyInfo = toUniversalActionPolicy(actionConfig)
+    const uniActionPolicyInfo = getUniversalActionPolicy(
+      toActionConfig(actionConfig)
+    )
     policyData.push(uniActionPolicyInfo)
 
     // create time frame policy here..
-    const timeFramePolicyData: PolicyData = toTimeRangePolicy(
-      actionPolicyInfo.validUntil ?? 0,
-      actionPolicyInfo.validAfter ?? 0
-    )
+    const timeFramePolicyData: PolicyData = getTimeFramePolicy({
+      validAfter: actionPolicyInfo.validAfter ?? 0,
+      validUntil: actionPolicyInfo.validUntil ?? Date.now() + 60 * 60 * 24 * 365 // valid for 1 year
+    })
     policyData.push(timeFramePolicyData)
 
     // create sudo policy here..
@@ -153,10 +156,11 @@ export const getPermissionAction = async ({
       }
     }
 
-    const userOpTimeFramePolicyData: PolicyData = toTimeRangePolicy(
-      sessionInfo.sessionValidUntil ?? 0,
-      sessionInfo.sessionValidAfter ?? 0
-    )
+    const userOpTimeFramePolicyData: PolicyData = getTimeFramePolicy({
+      validAfter: sessionInfo.sessionValidAfter ?? 0,
+      validUntil:
+        sessionInfo.sessionValidUntil ?? Date.now() + 60 * 60 * 24 * 365 // valid for 1 year
+    })
 
     const session: Session = {
       chainId: BigInt(chainId),
@@ -171,8 +175,8 @@ export const getPermissionAction = async ({
       erc7739Policies: {
         allowedERC7739Content: [],
         erc1271Policies: []
-      }
-      // permitERC4337Paymaster: true
+      },
+      permitERC4337Paymaster: false
     }
 
     const permissionId = await getPermissionId({

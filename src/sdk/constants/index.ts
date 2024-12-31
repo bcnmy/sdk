@@ -78,7 +78,9 @@ export {
   getSpendingLimitsPolicy,
   getUsageLimitPolicy,
   getValueLimitPolicy,
-  getOwnableValidator
+  getOwnableValidator,
+  getUniversalActionPolicy,
+  getTimeFramePolicy
 } from "@rhinestone/module-sdk"
 
 // Rhinestone doesn't export the universal action policy address, so we need to get it from the policies

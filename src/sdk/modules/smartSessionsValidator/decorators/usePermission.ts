@@ -26,6 +26,12 @@ export type UsePermissionParameters<
   account?: TModularSmartAccount
   /** The signer to use for the session. Defaults to the signer of the client. */
   signer?: Signer
+  /** The preVerificationGas for the transaction. */
+  preVerificationGas?: bigint
+  /** The verificationGasLimit for the transaction. */
+  verificationGasLimit?: bigint
+  /** The callGasLimit for the transaction. */
+  callGasLimit?: bigint
 }
 
 /**

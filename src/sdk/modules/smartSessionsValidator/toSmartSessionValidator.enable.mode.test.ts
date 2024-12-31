@@ -64,6 +64,7 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
   let sessionPublicKey: Address
 
   let stringifiedSessionDatum: string
+  const index = 2n
 
   beforeAll(async () => {
     network = await toNetwork("TESTNET_FROM_ENV_VARS")
@@ -92,7 +93,7 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
     testnetParams = getTestParamsForTestnet(publicClient)
 
     nexusAccount = await toNexusAccount({
-      index: 1n,
+      index,
       signer: eoaAccount,
       chain,
       transport: http(),
@@ -101,8 +102,10 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
 
     nexusAccountAddress = await nexusAccount.getCounterFactualAddress()
 
+    console.log({ nexusAccountAddress })
+
     nexusClient = await createSmartAccountClient({
-      index: 1n,
+      index,
       account: nexusAccount,
       signer: eoaAccount,
       chain,
@@ -173,7 +176,7 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
     // Create a new Nexus client for the session
     // This client will be used to interact with the smart contract account using the session key
     const smartSessionNexusClient = await createSmartAccountClient({
-      index: 1n,
+      index,
       accountAddress: usersSessionData.granter,
       signer: eoaAccount,
       chain,
@@ -200,7 +203,7 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
           to: testAddresses.Counter,
           data: encodeFunctionData({
             abi: CounterAbi,
-            functionName: "decrementNumber"
+            functionName: "incrementNumber"
           })
         }
       ]
@@ -252,7 +255,8 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
           actionPolicies: [getSudoPolicy()]
         }
       ],
-      chainId: BigInt(chain.id)
+      chainId: BigInt(chain.id),
+      permitERC4337Paymaster: false
     }
 
     const nexusAccount = getAccount({
