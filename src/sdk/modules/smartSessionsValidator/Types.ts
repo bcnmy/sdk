@@ -205,7 +205,7 @@ export type Rule = {
  */
 export type RawParamRule = {
   condition: ParamCondition
-  offset: number
+  offset: bigint
   isLimited: boolean
   ref: Hex
   usage: LimitUsage

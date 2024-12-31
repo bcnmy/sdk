@@ -9,6 +9,7 @@ import {
   SMART_SESSIONS_ADDRESS,
   type Session,
   encodeValidationData,
+  getPermissionId,
   getSpendingLimitsPolicy,
   getSudoPolicy,
   getTimeFramePolicy,
@@ -24,7 +25,6 @@ import {
   createActionConfig,
   createActionData,
   generateSalt,
-  getPermissionId,
   toActionConfig
 } from "../Helpers"
 import type {
@@ -33,6 +33,8 @@ import type {
   PreparePermissionResponse,
   ResolvedActionPolicyInfo
 } from "../Types"
+
+const ONE_YEAR_FROM_NOW_IN_SECONDS = Date.now() + 60 * 60 * 24 * 365
 
 /**
  * Parameters for creating sessions in a modular smart account.
@@ -92,9 +94,9 @@ export const getPermissionAction = async ({
     policyData.push(uniActionPolicyInfo)
 
     // create time frame policy here..
-    const timeFramePolicyData: PolicyData = getTimeFramePolicy({
+    const timeFramePolicyData = getTimeFramePolicy({
       validAfter: actionPolicyInfo.validAfter ?? 0,
-      validUntil: actionPolicyInfo.validUntil ?? Date.now() + 60 * 60 * 24 * 365 // valid for 1 year
+      validUntil: actionPolicyInfo.validUntil ?? 0
     })
     policyData.push(timeFramePolicyData)
 
@@ -156,10 +158,9 @@ export const getPermissionAction = async ({
       }
     }
 
-    const userOpTimeFramePolicyData: PolicyData = getTimeFramePolicy({
+    const userOpTimeFramePolicyData = getTimeFramePolicy({
       validAfter: sessionInfo.sessionValidAfter ?? 0,
-      validUntil:
-        sessionInfo.sessionValidUntil ?? Date.now() + 60 * 60 * 24 * 365 // valid for 1 year
+      validUntil: sessionInfo.sessionValidUntil ?? 0
     })
 
     const session: Session = {
@@ -175,14 +176,11 @@ export const getPermissionAction = async ({
       erc7739Policies: {
         allowedERC7739Content: [],
         erc1271Policies: []
-      },
-      permitERC4337Paymaster: false
+      }
+      // permitERC4337Paymaster: false
     }
 
-    const permissionId = await getPermissionId({
-      client,
-      session
-    })
+    const permissionId = getPermissionId({ session })
     // push permissionId to the array
     permissionIds.push(permissionId)
 

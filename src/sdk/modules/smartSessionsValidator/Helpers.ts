@@ -1,12 +1,10 @@
+import type { Account } from "@rhinestone/module-sdk/account"
 import {
   type Abi,
   type AbiFunction,
   type Address,
   type Hex,
   type PublicClient,
-  encodeAbiParameters,
-  encodePacked,
-  pad,
   toBytes,
   toFunctionSelector,
   toHex
@@ -18,11 +16,9 @@ import {
   SIMPLE_SESSION_VALIDATOR_ADDRESS,
   SMART_SESSIONS_ADDRESS,
   type Session,
-  TIMEFRAME_POLICY_ADDRESS,
-  UNIVERSAL_ACTION_POLICY_ADDRESS,
-  getUniversalActionPolicy
+  isSessionEnabled
 } from "../../constants"
-import { ERC7484RegistryAbi, UniActionPolicyAbi } from "../../constants/abi"
+import { ERC7484RegistryAbi } from "../../constants/abi"
 import { SmartSessionAbi } from "../../constants/abi/SmartSessionAbi"
 import { parseReferenceValue } from "../utils/Helpers"
 import type { AnyData } from "../utils/Types"
@@ -120,7 +116,7 @@ export const createActionData = (
  * @param config - The ActionConfig to convert.
  * @returns A RawActionConfig object.
  */
-export const toActionConfig = (config: ActionConfig): RawActionConfig => {
+export const toActionConfig = (config: ActionConfig) => {
   // Ensure we always have 16 rules, filling with default values if necessary
   const filledRules = [...config.paramRules.rules]
 
@@ -156,42 +152,20 @@ export const toActionConfig = (config: ActionConfig): RawActionConfig => {
   }
 }
 
-/**
- * Gets the permission ID for a given session.
- *
- * @param client - The PublicClient to use for the contract call.
- * @param session - The Session object.
- * @returns A promise that resolves to the permission ID as a Hex string.
- */
-export const getPermissionId = async ({
-  client,
-  session
-}: {
-  client: PublicClient
-  session: Session
-}) => {
-  return (await client.readContract({
-    address: SMART_SESSIONS_ADDRESS,
-    abi: SmartSessionAbi,
-    functionName: "getPermissionId",
-    args: [session]
-  })) as Hex
-}
-
 export const isPermissionEnabled = async ({
   client,
   accountAddress,
   permissionId
 }: {
-  client: PublicClient
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+  client: any
   accountAddress: Address
   permissionId: Hex
 }) => {
-  return client.readContract({
-    address: SMART_SESSIONS_ADDRESS,
-    abi: SmartSessionAbi,
-    functionName: "isPermissionEnabled",
-    args: [permissionId, accountAddress]
+  return isSessionEnabled({
+    client,
+    account: { address: accountAddress } as Account,
+    permissionId
   })
 }
 

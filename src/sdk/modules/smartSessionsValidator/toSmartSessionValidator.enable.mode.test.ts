@@ -255,8 +255,8 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
           actionPolicies: [getSudoPolicy()]
         }
       ],
-      chainId: BigInt(chain.id),
-      permitERC4337Paymaster: false
+      chainId: BigInt(chain.id)
+      // permitERC4337Paymaster: false
     }
 
     const nexusAccount = getAccount({

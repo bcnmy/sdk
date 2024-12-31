@@ -80,7 +80,9 @@ export {
   getValueLimitPolicy,
   getOwnableValidator,
   getUniversalActionPolicy,
-  getTimeFramePolicy
+  getTimeFramePolicy,
+  getPermissionId,
+  isSessionEnabled
 } from "@rhinestone/module-sdk"
 
 // Rhinestone doesn't export the universal action policy address, so we need to get it from the policies
