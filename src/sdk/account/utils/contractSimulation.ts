@@ -1,8 +1,8 @@
-import { createPublicClient, http, parseEther, type Address } from "viem"
+import { http, type Address, createPublicClient, parseEther } from "viem"
 import { ENTRY_POINT_ADDRESS, EntrypointAbi } from "../../constants"
+import { getChain } from "./getChain"
 import { getSimulationUserOp } from "./tenderlySimulation"
 import type { AnyUserOperation } from "./tenderlySimulation"
-import { getChain } from "./getChain"
 
 export async function contractSimulation(
   partialUserOp: AnyUserOperation,

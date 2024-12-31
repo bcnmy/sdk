@@ -1,10 +1,10 @@
-import {
-  toPackedUserOperation,
-  type UserOperation
-} from "viem/account-abstraction"
 import type { RpcUserOperation } from "viem"
-import { ENTRY_POINT_ADDRESS } from "../../constants"
+import {
+  type UserOperation,
+  toPackedUserOperation
+} from "viem/account-abstraction"
 import { getTenderlyDetails } from "."
+import { ENTRY_POINT_ADDRESS } from "../../constants"
 import { deepHexlify } from "./deepHexlify"
 
 export type AnyUserOperation = Partial<UserOperation<"0.7"> | RpcUserOperation>

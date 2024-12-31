@@ -172,8 +172,6 @@ describe("modules.smartSessions.advanced.dx", async () => {
       hash: createSessionsResponse.userOpHash
     })
 
-    console.log({ receipt })
-
     expect(receipt.success).toBe("true")
 
     // Prepare the session data to be stored by the dApp. This could be saved in a Database by the dApp, or client side in local storage.

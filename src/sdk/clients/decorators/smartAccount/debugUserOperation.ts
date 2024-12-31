@@ -17,28 +17,22 @@ import {
   toPackedUserOperation
 } from "viem/account-abstraction"
 
-import {
-  http,
-  type Assign,
-  type BaseError,
-  type Chain,
-  type Client,
-  type Hex,
-  type MaybeRequired,
-  type Narrow,
-  type OneOf,
-  type Transport,
-  createPublicClient,
-  parseEther
+import type {
+  Assign,
+  BaseError,
+  Chain,
+  Client,
+  Hex,
+  MaybeRequired,
+  Narrow,
+  OneOf,
+  Transport
 } from "viem"
 import { type Address, parseAccount } from "viem/accounts"
 import { type RequestErrorType, getAction } from "viem/utils"
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
-import { getTenderlyDetails } from "../../../account/utils/Utils"
 import { deepHexlify } from "../../../account/utils/deepHexlify"
 import { getAAError } from "../../../account/utils/getAAError"
-import { getChain } from "../../../account/utils/getChain"
-import { ENTRY_POINT_ADDRESS, EntrypointAbi } from "../../../constants"
 import { tenderlySimulation } from "../../../account/utils/tenderlySimulation"
 
 import { contractSimulation } from "../../../account/utils/contractSimulation"
@@ -205,11 +199,14 @@ export async function debugUserOperation<
         signature
       })
     }
-  } catch (error) {
+    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+  } catch (error: any) {
     if (error.metaMessages) {
-      const messageJson = parseRequestArguments(error.metaMessages)
-      const tenderlyUrl = tenderlySimulation(messageJson)
-      console.log({ tenderlyUrl })
+      try {
+        const messageJson = parseRequestArguments(error.metaMessages)
+        const tenderlyUrl = tenderlySimulation(messageJson)
+        console.log({ tenderlyUrl })
+      } catch (error) {}
     }
     throw error
   }
