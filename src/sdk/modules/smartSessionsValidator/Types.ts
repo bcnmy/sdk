@@ -42,7 +42,7 @@ export type PreparePermissionResponse = {
 /**
  * Represents the response for creating sessions.
  */
-export type GrantPermissionInAdvanceResponse = {
+export type GrantPermissionResponse = {
   /** The hash of the user operation. */
   userOpHash: Hex
 } & PreparePermissionResponse

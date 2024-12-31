@@ -114,26 +114,25 @@ describe("modules.smartSessions.dx", async () => {
 
     // Define the session parameters
     // This includes the session key, validator, and action policies
-    const createSessionsResponse =
-      await nexusSessionClient.grantPermissionInAdvance({
-        sessionRequestedInfo: [
-          {
-            sessionPublicKey, // Public key of the session
-            // sessionValidUntil: number
-            // sessionValidAfter: number
-            // chainIds: bigint[]
-            actionPoliciesInfo: [
-              {
-                abi: CounterAbi,
-                contractAddress: testAddresses.Counter
-                // validUntil?: number
-                // validAfter?: number
-                // valueLimit?: bigint
-              }
-            ]
-          }
-        ]
-      })
+    const createSessionsResponse = await nexusSessionClient.grantPermission({
+      sessionRequestedInfo: [
+        {
+          sessionPublicKey, // Public key of the session
+          // sessionValidUntil: number
+          // sessionValidAfter: number
+          // chainIds: bigint[]
+          actionPoliciesInfo: [
+            {
+              abi: CounterAbi,
+              contractAddress: testAddresses.Counter
+              // validUntil?: number
+              // validAfter?: number
+              // valueLimit?: bigint
+            }
+          ]
+        }
+      ]
+    })
 
     // Wait for the session creation transaction to be mined and check its success
     const { success: sessionCreateSuccess } =

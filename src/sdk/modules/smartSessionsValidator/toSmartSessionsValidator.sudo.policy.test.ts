@@ -99,24 +99,23 @@ describe("modules.smartSessions.sudo.policy", async () => {
       smartSessionCreateActions(sessionsModule)
     )
 
-    const createSessionsResponse =
-      await usersNexusClient.grantPermissionInAdvance({
-        sessionRequestedInfo: [
-          {
-            sessionPublicKey,
-            // sessionValidUntil: number
-            // sessionValidAfter: number
-            // chainIds: bigint[]
-            actionPoliciesInfo: [
-              {
-                abi: CounterAbi,
-                contractAddress: testAddresses.Counter,
-                sudo: true
-              }
-            ]
-          }
-        ]
-      })
+    const createSessionsResponse = await usersNexusClient.grantPermission({
+      sessionRequestedInfo: [
+        {
+          sessionPublicKey,
+          // sessionValidUntil: number
+          // sessionValidAfter: number
+          // chainIds: bigint[]
+          actionPoliciesInfo: [
+            {
+              abi: CounterAbi,
+              contractAddress: testAddresses.Counter,
+              sudo: true
+            }
+          ]
+        }
+      ]
+    })
 
     // Wait for the session creation transaction to be mined and check its success
     const { success: sessionCreateSuccess } =

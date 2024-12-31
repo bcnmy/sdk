@@ -210,7 +210,7 @@ describe("modules.smartSessions.uni.policy", async () => {
     ]
 
     const createSessionsResponse =
-      await smartSessionNexusClient.grantPermissionInAdvance({
+      await smartSessionNexusClient.grantPermission({
         sessionRequestedInfo
       })
 
@@ -262,11 +262,11 @@ describe("modules.smartSessions.uni.policy", async () => {
     })
 
     // Note: if you try to add more than maxUintDeposit then you would get this below error.
-    // Error: https://openchain.xyz/signatures?query=0x3b577361
+    // Error: https://openchain.grantPermission/signatures?query=0x3b577361
     const balToAddUint = 1234n
 
     // Note: if you try to add less than minBytes32Deposit then you would get this below error.
-    // Error: https://openchain.xyz/signatures?query=0x3b577361
+    // Error: https://openchain.grantPermission/signatures?query=0x3b577361
     const balToAddBytes32 = `0x${BigInt(1234567)
       .toString(16)
       .padStart(64, "0")}`

@@ -237,10 +237,9 @@ describe("modules.smartSessions", async () => {
       smartSessionCreateActions(sessionsModule)
     )
 
-    const createSessionsResponse =
-      await nexusSessionClient.grantPermissionInAdvance({
-        sessionRequestedInfo
-      })
+    const createSessionsResponse = await nexusSessionClient.grantPermission({
+      sessionRequestedInfo
+    })
 
     expect(createSessionsResponse.userOpHash).toBeDefined()
     expect(createSessionsResponse.permissionIds).toBeDefined()

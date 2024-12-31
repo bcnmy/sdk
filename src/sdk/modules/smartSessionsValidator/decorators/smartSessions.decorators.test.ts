@@ -101,9 +101,9 @@ describe("modules.smartSessions.decorators", async () => {
     )
 
     expect(nexusSessionClient).toBeDefined()
-    expect(nexusSessionClient.grantPermissionInAdvance).toBeTypeOf("function")
+    expect(nexusSessionClient.grantPermission).toBeTypeOf("function")
     expect(nexusSessionClient.trustAttesters).toBeTypeOf("function")
-    expect(nexusSessionClient.grantPermissionInAdvance).toBeTypeOf("function")
+    expect(nexusSessionClient.grantPermission).toBeTypeOf("function")
   })
 
   test("should test use smart session decorators", async () => {

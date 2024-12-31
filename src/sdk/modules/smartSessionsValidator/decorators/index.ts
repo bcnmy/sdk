@@ -1,22 +1,22 @@
 import type { Chain, Client, Hash, Transport } from "viem"
 import type { ModularSmartAccount, Module } from "../../utils/Types"
 import type {
-  GrantPermissionInAdvanceResponse,
+  GrantPermissionResponse,
   PreparePermissionResponse
 } from "../Types"
 import type { SmartSessionModule } from "../toSmartSessionsValidator"
 import {
+  type GrantDeferredPermissionParameters,
+  grantDeferredPermission
+} from "./grantDeferredPermission"
+import {
   type GrantPermissionParameters,
   grantPermission
-} from "./grantPermission.js"
-import {
-  type GrantPermissionInAdvanceParameters,
-  grantPermissionInAdvance
-} from "./grantPermissionInAdvance.js"
+} from "./grantPermission"
 import {
   type PreparePermissionParameters,
   preparePermission
-} from "./preparePermission.js"
+} from "./preparePermission"
 import { type TrustAttestersParameters, trustAttesters } from "./trustAttesters"
 import { type UsePermissionParameters, usePermission } from "./usePermission"
 /**
@@ -29,27 +29,27 @@ export type SmartSessionCreateActions<
 > = {
   /**
    * Creates multiple sessions for a modular smart account.
-   * This differs from grantPermissionInAdvance in that it defers the moment that the permission is granted
+   * This differs from grantPermission in that it defers the moment that the permission is granted
    * on chain to the moment that the redemption user operation is sent/redeemed. It is also known as "ENABLE_MODE".
-   * It is the default mode for the grantPermission function.
+   * It is the default mode for the grantDeferredPermission function.
    *
    * @param args - Parameters for creating sessions.
    * @returns A promise that resolves to the creation response.
    */
-  grantPermission: (
-    args: GrantPermissionParameters<TModularSmartAccount>
+  grantDeferredPermission: (
+    args: GrantDeferredPermissionParameters<TModularSmartAccount>
   ) => Promise<PreparePermissionResponse>
   /**
-   * Creates multiple sessions for a modular smart account. This differs from grantPermission in that it
+   * Creates multiple sessions for a modular smart account. This differs from grantDeferredPermission in that it
    * grants the permission on chain immediately. It is also known as "USE_MODE", and it means that the permission
    * is granted on chain immediately, and the permission is later redeemed when the user operation is sent.
    *
    * @param args - Parameters for creating sessions.
    * @returns A promise that resolves to the creation response.
    */
-  grantPermissionInAdvance: (
-    args: GrantPermissionInAdvanceParameters<TModularSmartAccount>
-  ) => Promise<GrantPermissionInAdvanceResponse>
+  grantPermission: (
+    args: GrantPermissionParameters<TModularSmartAccount>
+  ) => Promise<GrantPermissionResponse>
 
   /**
    * Trusts attesters for a modular smart account.
@@ -101,9 +101,8 @@ export function smartSessionCreateActions(_: Module) {
     client: Client<Transport, Chain | undefined, TModularSmartAccount>
   ): SmartSessionCreateActions<TModularSmartAccount> => {
     return {
+      grantDeferredPermission: (args) => grantDeferredPermission(client, args),
       grantPermission: (args) => grantPermission(client, args),
-      grantPermissionInAdvance: (args) =>
-        grantPermissionInAdvance(client, args),
       trustAttesters: (args) => trustAttesters(client, args),
       preparePermission: (args) => preparePermission(client, args)
     }
@@ -129,7 +128,7 @@ export function smartSessionUseActions(
   }
 }
 
-export * from "./grantPermission"
 export * from "./trustAttesters"
 export * from "./usePermission"
-export * from "./grantPermissionInAdvance.js"
+export * from "./grantDeferredPermission"
+export * from "./grantPermission"

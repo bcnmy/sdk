@@ -112,7 +112,7 @@ describe("modules.smartSessions.dx", async () => {
 
     expect(installSuccess).toBe(true)
 
-    const moduleData = await nexusSessionClient.grantPermission({
+    const moduleData = await nexusSessionClient.grantDeferredPermission({
       sessionRequestedInfo: [
         {
           sessionPublicKey, // Public key of the session
