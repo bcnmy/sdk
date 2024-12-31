@@ -174,11 +174,6 @@ describe("modules.smartSessions.dx", async () => {
     const byteCode = await testClient.getCode({
       address: testAddresses.Counter
     })
-    console.log(
-      "testAddresses.Counter",
-      testAddresses.Counter,
-      byteCode?.length
-    )
     const userOpHash = await useSmartSessionNexusClient.usePermission({
       calls: [
         {
