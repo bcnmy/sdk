@@ -39,6 +39,10 @@ import { deepHexlify } from "../../../account/utils/deepHexlify"
 import { getAAError } from "../../../account/utils/getAAError"
 import { getChain } from "../../../account/utils/getChain"
 import { ENTRY_POINT_ADDRESS, EntrypointAbi } from "../../../constants"
+import { tenderlySimulation } from "../../../account/utils/tenderlySimulation"
+
+import { contractSimulation } from "../../../account/utils/contractSimulation"
+
 export type DebugUserOperationParameters<
   account extends SmartAccount | undefined = SmartAccount | undefined,
   accountOverride extends SmartAccount | undefined = SmartAccount | undefined,
@@ -125,128 +129,129 @@ export async function debugUserOperation<
   client: Client<Transport, Chain | undefined, account>,
   parameters: DebugUserOperationParameters<account, accountOverride, calls>
 ) {
-  const tenderlyDetails = getTenderlyDetails()
-
-  const { account: account_ = client.account, entryPointAddress } = parameters
-
-  if (!account_ && !parameters.sender) throw new AccountNotFoundError()
-  const account = account_ ? parseAccount(account_) : undefined
-
-  const request = account
-    ? await getAction(
-        client,
-        prepareUserOperation,
-        "prepareUserOperation"
-      )(parameters as unknown as PrepareUserOperationParameters)
-    : parameters
-
-  // biome-ignore lint/style/noNonNullAssertion: <explanation>
-  const signature = (parameters.signature ||
-    (await account?.signUserOperation(request as UserOperation)))!
-
-  const userOpWithSignature = {
-    ...request,
-    signature
-  } as UserOperation
-
-  const packed = toPackedUserOperation(userOpWithSignature)
-  console.log(
-    "Packed userOp:\n",
-    JSON.stringify([deepHexlify(packed)], null, 2)
+  const chainId = Number(
+    client.account?.client?.chain?.id?.toString() ?? "84532"
   )
-  const rpcParameters = formatUserOperationRequest(userOpWithSignature)
-  console.log("Bundler userOp:", rpcParameters)
-
-  const chainId = client.account?.client?.chain?.id?.toString()
-
-  if (tenderlyDetails) {
-    const tenderlyUrl = new URL(
-      `https://dashboard.tenderly.co/${tenderlyDetails.accountSlug}/${tenderlyDetails.projectSlug}/simulator/new`
-    )
-
-    const formattedRpcParams = {
-      sender: rpcParameters.sender,
-      nonce: rpcParameters.nonce,
-      initCode: rpcParameters.initCode,
-      callData: rpcParameters.callData,
-      accountGasLimits: rpcParameters.callGasLimit,
-      preVerificationGas: rpcParameters.preVerificationGas,
-      gasFees: rpcParameters.maxFeePerGas,
-      maxPriorityFeePerGas: rpcParameters.maxPriorityFeePerGas,
-      paymasterAndData: rpcParameters.paymasterAndData,
-      signature: rpcParameters.signature
-    }
-
-    const params = new URLSearchParams({
-      contractAddress: ENTRY_POINT_ADDRESS,
-      value: "0",
-      network: chainId ?? "84532",
-      contractFunction: "0x765e827f",
-      rawFunctionInput: packed.callData,
-      functionInputs: JSON.stringify([formattedRpcParams]),
-      stateOverrides: JSON.stringify([
-        {
-          contractAddress: rpcParameters.sender,
-          balance: "100000000000000000000"
-        }
-      ])
-    })
-    tenderlyUrl.search = params.toString()
-  } else {
-    console.log(
-      "Tenderly details not found in environment variables. Please set TENDERLY_API_KEY, TENDERLY_ACCOUNT_SLUG, and TENDERLY_PROJECT_SLUG."
-    )
-  }
-
   try {
-    const simulation = await createPublicClient({
-      chain: client.account?.client?.chain ?? getChain(Number(chainId)),
-      transport: http()
-    }).simulateContract({
-      account: rpcParameters.sender,
-      address: ENTRY_POINT_ADDRESS,
-      abi: EntrypointAbi,
-      functionName: "handleOps",
-      args: [[packed], rpcParameters.sender],
-      stateOverride: [
-        {
-          address: rpcParameters.sender,
-          balance: parseEther("1000")
-        }
-      ]
-    })
+    const { account: account_ = client.account, entryPointAddress } = parameters
 
-    console.log("Simulation:", { simulation })
-  } catch (error) {
-    console.error("Simulation failed")
-  }
+    if (!account_ && !parameters.sender) throw new AccountNotFoundError()
+    const account = account_ ? parseAccount(account_) : undefined
 
-  try {
-    const hash = await client.request(
-      {
-        method: "eth_sendUserOperation",
-        params: [
-          rpcParameters,
-          // biome-ignore lint/style/noNonNullAssertion: <explanation>
-          (entryPointAddress ?? account?.entryPoint.address)!
-        ]
-      },
-      { retryCount: 0 }
-    )
-    console.log("User Operation Hash:", hash)
-    return hash
-    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-  } catch (error: any) {
-    if (error?.details) {
-      const aaError = await getAAError(error?.details)
-      console.log({ aaError })
-    }
+    console.log("Raw userOp:\n", JSON.stringify(parameters, null, 2))
 
-    const calls = (parameters as any).calls
-    throw getUserOperationError(error as BaseError, {
-      ...(request as UserOperation),
-      ...(calls ? { calls } : {}),
+    const request = account
+      ? await getAction(
+          client,
+          prepareUserOperation,
+          "prepareUserOperation"
+        )(parameters as unknown as PrepareUserOperationParameters)
+      : parameters
+
+    // biome-ignore lint/style/noNonNullAssertion: <explanation>
+    const signature = (parameters.signature ||
+      (await account?.signUserOperation(request as UserOperation)))!
+
+    const userOpWithSignature = {
+      ...request,
       signature
-    })
+    } as UserOperation
+
+    const packed = toPackedUserOperation(userOpWithSignature)
+    console.log(
+      "Packed userOp:\n",
+      JSON.stringify([deepHexlify(packed)], null, 2)
+    )
+    const rpcParameters = formatUserOperationRequest(userOpWithSignature)
+    console.log("Bundler userOp:", rpcParameters)
+
+    const tenderlyUrl = tenderlySimulation(rpcParameters)
+    console.log({ tenderlyUrl })
+
+    try {
+      const simulation = await contractSimulation(rpcParameters, chainId)
+      console.log("Simulation:", { simulation })
+    } catch (error) {
+      console.error("Simulation failed")
+    }
+
+    try {
+      const hash = await client.request(
+        {
+          method: "eth_sendUserOperation",
+          params: [
+            rpcParameters,
+            // biome-ignore lint/style/noNonNullAssertion: <explanation>
+            (entryPointAddress ?? account?.entryPoint.address)!
+          ]
+        },
+        { retryCount: 0 }
+      )
+      console.log("User Operation Hash:", hash)
+      return hash
+      // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+    } catch (error: any) {
+      console.log("Error from debugUserOperation", error)
+
+      if (error?.details) {
+        const aaError = await getAAError(error?.details)
+        console.log({ aaError })
+      }
+
+      const calls = (parameters as any).calls
+      throw getUserOperationError(error as BaseError, {
+        ...(request as UserOperation),
+        ...(calls ? { calls } : {}),
+        signature
+      })
+    }
+  } catch (error) {
+    if (error.metaMessages) {
+      const messageJson = parseRequestArguments(error.metaMessages)
+      const tenderlyUrl = tenderlySimulation(messageJson)
+      console.log({ tenderlyUrl })
+    }
+    throw error
   }
+}
+
+function parseRequestArguments(input: string[]) {
+  const fieldsToOmit = [
+    "callGasLimit",
+    "preVerificationGas",
+    "maxFeePerGas",
+    "maxPriorityFeePerGas",
+    "paymasterAndData",
+    "verificationGasLimit"
+  ]
+
+  // Skip the first element which is just "Request Arguments:"
+  const argsString = input.slice(1).join("")
+
+  // Split by newlines and filter out empty lines
+  const lines = argsString.split("\n").filter((line) => line.trim())
+
+  // Create an object from the key-value pairs
+  const result = lines.reduce(
+    (acc, line) => {
+      // Remove extra spaces and split by ':'
+      const [key, value] = line.split(":").map((s) => s.trim())
+
+      // Clean up the key (remove trailing spaces and colons)
+      const cleanKey = key.trim()
+
+      // Clean up the value (remove 'gwei' and other units)
+      const cleanValue: string | number = value.replace("gwei", "").trim()
+
+      if (fieldsToOmit.includes(cleanKey)) {
+        return acc
+      }
+
+      acc[cleanKey] = cleanValue
+      return acc
+    },
+    {} as Record<string, string | number>
+  )
+
+  return result
 }

@@ -22,7 +22,6 @@ import {
   type NexusClient,
   createSmartAccountClient
 } from "../../clients/createSmartAccountClient"
-import { SmartSessionMode } from "../../constants"
 import type { Module } from "../utils/Types"
 import { parse, stringify } from "./Helpers"
 import type { SessionData } from "./Types"
@@ -179,6 +178,7 @@ describe("modules.smartSessions.dx", async () => {
       testAddresses.Counter,
       byteCode?.length
     )
+
     const userOpHash = await useSmartSessionNexusClient.usePermission({
       calls: [
         {

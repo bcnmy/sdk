@@ -25,7 +25,10 @@ import {
   toBytes,
   toHex
 } from "viem"
-import type { UserOperation } from "viem/account-abstraction"
+import {
+  type UserOperation,
+  toPackedUserOperation
+} from "viem/account-abstraction"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { MockSignatureValidatorAbi } from "../../test/__contracts/abi/MockSignatureValidatorAbi"
 import { TokenWithPermitAbi } from "../../test/__contracts/abi/TokenWithPermitAbi"
@@ -44,6 +47,7 @@ import {
 } from "../clients/createSmartAccountClient"
 import {
   BICONOMY_ATTESTER_ADDRESS,
+  ENTRY_POINT_ADDRESS,
   MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS,
   k1ValidatorAddress,
   k1ValidatorFactoryAddress
@@ -52,7 +56,8 @@ import type { NexusAccount } from "./toNexusAccount"
 import {
   addressEquals,
   getAccountDomainStructFields,
-  getAccountMeta
+  getAccountMeta,
+  getTenderlyDetails
 } from "./utils"
 import {
   NEXUS_DOMAIN_TYPEHASH,
@@ -60,6 +65,8 @@ import {
   eip1271MagicValue
 } from "./utils/Constants"
 import type { BytesLike } from "./utils/Types"
+import { deepHexlify } from "./utils/deepHexlify"
+import { tenderlySimulation } from "./utils/tenderlySimulation"
 
 describe("nexus.account", async () => {
   let network: NetworkConfig
@@ -598,6 +605,26 @@ describe("nexus.account", async () => {
       })) as Address
 
       expect(BICONOMY_ATTESTER_ADDRESS).toBe(biconomyAttesterAddress)
+    }
+  )
+
+  testnetTest(
+    "should debug a user operation using tenderly",
+    async ({ config: { chain } }) => {
+      console.log({
+        tenderlyUrl: tenderlySimulation(
+          {
+            callData:
+              "0xe9ae5c530100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000001c000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000e000000000000000000000000014e4829e655f0b3a1793838ddd47273d5341d416000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000600000000000000000000000000000000000000000000000000000000000000004273ea3e30000000000000000000000000000000000000000000000000000000000000000000000000000000014e4829e655f0b3a1793838ddd47273d5341d416000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000600000000000000000000000000000000000000000000000000000000000000004871cc9d400000000000000000000000000000000000000000000000000000000",
+            nonce:
+              "0x58c93e0000000000002b0ecfbd0496ee71e01257da0e37de0000000000000000",
+            sender: "0x93B9282945dc1828999eD4012521845c6193FFA8",
+            signature:
+              "0x006357f36a3f755c167d765c98ab4bf032e9a03a33bb9d50d07b8311e56377a11de8b94748580ca0b4993c9a1b86b5be851bfc076ff5ce3a1ff65bf16392acfcb800f9b4f1aef1555c7fce5599fffb17e7c635502154a0333ba21f3ae491839af51c"
+          },
+          chain.id
+        )
+      })
     }
   )
 })

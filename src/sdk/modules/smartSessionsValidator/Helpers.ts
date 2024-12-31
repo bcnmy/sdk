@@ -19,7 +19,8 @@ import {
   SMART_SESSIONS_ADDRESS,
   type Session,
   TIMEFRAME_POLICY_ADDRESS,
-  UNIVERSAL_ACTION_POLICY_ADDRESS
+  UNIVERSAL_ACTION_POLICY_ADDRESS,
+  getUniversalActionPolicy
 } from "../../constants"
 import { ERC7484RegistryAbi, UniActionPolicyAbi } from "../../constants/abi"
 import { SmartSessionAbi } from "../../constants/abi/SmartSessionAbi"
@@ -145,7 +146,7 @@ export const toActionConfig = (config: ActionConfig): RawActionConfig => {
         const parsedRef = parseReferenceValue(rule.ref)
         return {
           condition: rule.condition,
-          offset: BigInt(rule.offsetIndex) * BigInt(32),
+          offset: rule.offsetIndex * 32,
           isLimited: rule.isLimited,
           ref: parsedRef,
           usage: rule.usage
@@ -192,52 +193,6 @@ export const isPermissionEnabled = async ({
     functionName: "isPermissionEnabled",
     args: [permissionId, accountAddress]
   })
-}
-
-/**
- * Converts an ActionConfig to a UniversalActionPolicy.
- *
- * @param actionConfig - The ActionConfig to convert.
- * @returns A PolicyData object representing the UniversalActionPolicy.
- */
-export const toUniversalActionPolicy = (
-  actionConfig: ActionConfig
-): PolicyData => ({
-  policy: UNIVERSAL_ACTION_POLICY_ADDRESS,
-  initData: encodeAbiParameters(UniActionPolicyAbi, [
-    toActionConfig(actionConfig)
-  ])
-})
-
-/**
- * Creates a TimeRangePolicy.
- *
- * @param validUntil - The timestamp until which the policy is valid.
- * @param validAfter - The timestamp after which the policy is valid.
- * @returns A PolicyData object representing the TimeRangePolicy.
- */
-export const toTimeRangePolicy = (
-  validUntil: number,
-  validAfter: number
-): PolicyData => {
-  const validUntilBytes = pad(toBytes(BigInt(validUntil), { size: 16 }), {
-    dir: "right",
-    size: 16
-  })
-  const validAfterBytes = pad(toBytes(BigInt(validAfter), { size: 16 }), {
-    dir: "right",
-    size: 16
-  })
-  const packedData = encodePacked(
-    ["bytes16", "bytes16"],
-    [toHex(validUntilBytes), toHex(validAfterBytes)]
-  )
-  const timeFramePolicyData: PolicyData = {
-    policy: TIMEFRAME_POLICY_ADDRESS,
-    // initData for TimeframePolicy
-    initData: packedData
-  }
-  return timeFramePolicyData
 }
 
 /**
