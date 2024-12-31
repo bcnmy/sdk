@@ -112,111 +112,7 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
     })
   })
 
-  test("should support enable mode by default", async () => {
-    const sessionsModule = toSmartSessionsValidator({
-      account: nexusClient.account,
-      signer: eoaAccount
-    })
-
-    const isInstalled = await nexusClient.isModuleInstalled({
-      module: sessionsModule.moduleInitData
-    })
-
-    if (!isInstalled) {
-      const opHash = await nexusClient.installModule({
-        module: sessionsModule.moduleInitData
-      })
-      const installReceipt = await nexusClient.waitForUserOperationReceipt({
-        hash: opHash
-      })
-      expect(installReceipt.success).toBe("true")
-    }
-
-    // Extend the Nexus client with smart session creation actions
-    const nexusSessionClient = nexusClient.extend(
-      smartSessionCreateActions(sessionsModule)
-    )
-
-    const moduleData = await nexusSessionClient.grantPermission({
-      sessionRequestedInfo: [
-        {
-          sessionPublicKey, // Public key of the session
-          // sessionValidUntil: number
-          // sessionValidAfter: number
-          // chainIds: bigint[]
-          actionPoliciesInfo: [
-            {
-              abi: CounterAbi,
-              contractAddress: testAddresses.Counter
-              // validUntil?: number
-              // validAfter?: number
-              // valueLimit?: bigint
-            }
-          ]
-        }
-      ]
-    })
-
-    const sessionData: SessionData = {
-      granter: nexusClient.account.address,
-      sessionPublicKey,
-      description: `Permission to increment a counter for ${testAddresses.Counter}`,
-      moduleData
-    }
-
-    stringifiedSessionDatum = stringify(sessionData)
-  })
-
-  test("should be able to use the session data to create a new smart session client", async () => {
-    const usersSessionData = parse(stringifiedSessionDatum) as SessionData
-
-    // Create a new Nexus client for the session
-    // This client will be used to interact with the smart contract account using the session key
-    const smartSessionNexusClient = await createSmartAccountClient({
-      index: 1n,
-      accountAddress: usersSessionData.granter,
-      signer: eoaAccount,
-      chain,
-      transport: http(),
-      bundlerTransport: http(bundlerUrl),
-      ...testnetParams
-    })
-
-    // Create a new smart sessions module with the session key
-    const usePermissionsModule = toSmartSessionsValidator({
-      account: smartSessionNexusClient.account,
-      signer: sessionKeyAccount,
-      moduleData: usersSessionData.moduleData
-    })
-
-    // Extend the session client with smart session use actions
-    const useSmartSessionNexusClient = smartSessionNexusClient.extend(
-      smartSessionUseActions(usePermissionsModule)
-    )
-
-    const userOpHash = await useSmartSessionNexusClient.usePermission({
-      calls: [
-        {
-          to: testAddresses.Counter,
-          data: encodeFunctionData({
-            abi: CounterAbi,
-            functionName: "decrementNumber"
-          })
-        }
-      ]
-    })
-
-    expect(userOpHash).toBeDefined()
-
-    const receipt =
-      await useSmartSessionNexusClient.waitForUserOperationReceipt({
-        hash: userOpHash
-      })
-
-    expect(receipt.success).toBe("true")
-  })
-
-  test.skip("should support smart sessions enable mode", async () => {
+  test("full smart sessions enable mode example", async () => {
     const uninitializedSmartSessions = getSmartSessionsValidator({})
 
     const isInstalled = await nexusClient.isModuleInstalled({
@@ -253,6 +149,7 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
         }
       ],
       chainId: BigInt(chain.id)
+      // permitERC4337Paymaster: true
     }
 
     const nexusAccount = getAccount({
@@ -322,6 +219,120 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
     const receipt = await nexusClient.waitForUserOperationReceipt({
       hash: userOpHash
     })
+
+    expect(receipt.success).toBe("true")
+  })
+
+  test("should all a user to grant permission using enable mode by default", async () => {
+    const sessionsModule = toSmartSessionsValidator({
+      account: nexusClient.account,
+      signer: eoaAccount
+    })
+
+    const isInstalled = await nexusClient.isModuleInstalled({
+      module: sessionsModule.moduleInitData
+    })
+
+    if (!isInstalled) {
+      const opHash = await nexusClient.installModule({
+        module: sessionsModule.moduleInitData
+      })
+      const installReceipt = await nexusClient.waitForUserOperationReceipt({
+        hash: opHash
+      })
+      expect(installReceipt.success).toBe("true")
+    }
+
+    // Extend the Nexus client with smart session creation actions
+    const nexusSessionClient = nexusClient.extend(
+      smartSessionCreateActions(sessionsModule)
+    )
+
+    const moduleData = await nexusSessionClient.grantPermission({
+      sessionRequestedInfo: [
+        {
+          sessionPublicKey, // Public key of the session
+          // sessionValidUntil: number
+          // sessionValidAfter: number
+          // chainIds: bigint[]
+          actionPoliciesInfo: [
+            {
+              abi: CounterAbi,
+              contractAddress: testAddresses.Counter
+              // validUntil?: number
+              // validAfter?: number
+              // valueLimit?: bigint
+            }
+          ]
+        }
+      ]
+    })
+
+    const sessionData: SessionData = {
+      granter: nexusClient.account.address,
+      sessionPublicKey,
+      description: `Permission to increment a counter for ${testAddresses.Counter}`,
+      moduleData
+    }
+
+    stringifiedSessionDatum = stringify(sessionData)
+  })
+
+  test("should allow the dapp to use the granted session data", async () => {
+    const usersSessionData = parse(stringifiedSessionDatum) as SessionData
+
+    // Create a new Nexus client for the session
+    // This client will be used to interact with the smart contract account using the session key
+    const smartSessionNexusClient = await createSmartAccountClient({
+      index: 1n,
+      accountAddress: usersSessionData.granter,
+      signer: eoaAccount,
+      chain,
+      transport: http(),
+      bundlerTransport: http(bundlerUrl),
+      ...testnetParams
+    })
+
+    // Create a new smart sessions module with the session key
+    const usePermissionsModule = toSmartSessionsValidator({
+      account: smartSessionNexusClient.account,
+      signer: sessionKeyAccount,
+      moduleData: usersSessionData.moduleData
+    })
+
+    // Extend the session client with smart session use actions
+    const useSmartSessionNexusClient = smartSessionNexusClient.extend(
+      smartSessionUseActions(usePermissionsModule)
+    )
+
+    const userOpHash = await useSmartSessionNexusClient.usePermission({
+      verificationGasLimit: 10000000n,
+      callGasLimit: 10000000n,
+      preVerificationGas: 10000000n,
+      calls: [
+        {
+          to: testAddresses.Counter,
+          data: encodeFunctionData({
+            abi: CounterAbi,
+            functionName: "incrementNumber"
+          })
+        },
+        {
+          to: testAddresses.Counter,
+          data: encodeFunctionData({
+            abi: CounterAbi,
+            functionName: "decrementNumber"
+          })
+        }
+      ]
+    })
+
+    expect(userOpHash).toBeDefined()
+
+    const receipt =
+      await useSmartSessionNexusClient.waitForUserOperationReceipt({
+        hash: userOpHash
+      })
 
     expect(receipt.success).toBe("true")
   })

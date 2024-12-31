@@ -4,24 +4,21 @@ import {
   type Address,
   type Hex,
   type PublicClient,
-  encodeAbiParameters,
-  encodePacked,
-  pad,
+  getAddress,
   toBytes,
   toFunctionSelector,
   toHex
 } from "viem"
 import {
   type ActionData,
+  OWNABLE_VALIDATOR_ADDRESS,
   type PolicyData,
   REGISTRY_ADDRESS,
-  SIMPLE_SESSION_VALIDATOR_ADDRESS,
   SMART_SESSIONS_ADDRESS,
   type Session,
-  TIMEFRAME_POLICY_ADDRESS,
-  UNIVERSAL_ACTION_POLICY_ADDRESS
+  encodeValidationData
 } from "../../constants"
-import { ERC7484RegistryAbi, UniActionPolicyAbi } from "../../constants/abi"
+import { ERC7484RegistryAbi } from "../../constants/abi"
 import { SmartSessionAbi } from "../../constants/abi/SmartSessionAbi"
 import { parseReferenceValue } from "../utils/Helpers"
 import type { AnyData } from "../utils/Types"
@@ -30,10 +27,10 @@ import type {
   ActionPolicyInfo,
   CreateSessionDataParams,
   FullCreateSessionDataParams,
-  RawActionConfig,
   ResolvedActionPolicyInfo,
   Rule
 } from "./Types"
+import { ONE_YEAR_FROM_NOW_IN_SECONDS } from "./decorators/preparePermission"
 
 export const MAX_RULES = 16
 
@@ -84,10 +81,16 @@ export const applyDefaults = (
     ...sessionInfo,
     sessionKeyData,
     sessionPublicKey,
-    sessionValidUntil: sessionInfo.sessionValidUntil ?? 0,
+    sessionValidUntil:
+      sessionInfo.sessionValidUntil ?? ONE_YEAR_FROM_NOW_IN_SECONDS,
     sessionValidAfter: sessionInfo.sessionValidAfter ?? 0,
-    sessionValidatorAddress:
-      sessionInfo.sessionValidatorAddress ?? SIMPLE_SESSION_VALIDATOR_ADDRESS
+    sessionValidator: sessionInfo.sessionValidator ?? OWNABLE_VALIDATOR_ADDRESS,
+    sessionValidatorInitData:
+      sessionInfo.sessionValidatorInitData ??
+      encodeValidationData({
+        threshold: 1,
+        owners: [getAddress(sessionPublicKey)]
+      })
   }
 }
 
@@ -119,7 +122,7 @@ export const createActionData = (
  * @param config - The ActionConfig to convert.
  * @returns A RawActionConfig object.
  */
-export const toActionConfig = (config: ActionConfig): RawActionConfig => {
+export const toActionConfig = (config: ActionConfig) => {
   // Ensure we always have 16 rules, filling with default values if necessary
   const filledRules = [...config.paramRules.rules]
 
@@ -145,7 +148,7 @@ export const toActionConfig = (config: ActionConfig): RawActionConfig => {
         const parsedRef = parseReferenceValue(rule.ref)
         return {
           condition: rule.condition,
-          offset: BigInt(rule.offsetIndex) * BigInt(32),
+          offset: rule.offsetIndex * 32,
           isLimited: rule.isLimited,
           ref: parsedRef,
           usage: rule.usage
@@ -192,52 +195,6 @@ export const isPermissionEnabled = async ({
     functionName: "isPermissionEnabled",
     args: [permissionId, accountAddress]
   })
-}
-
-/**
- * Converts an ActionConfig to a UniversalActionPolicy.
- *
- * @param actionConfig - The ActionConfig to convert.
- * @returns A PolicyData object representing the UniversalActionPolicy.
- */
-export const toUniversalActionPolicy = (
-  actionConfig: ActionConfig
-): PolicyData => ({
-  policy: UNIVERSAL_ACTION_POLICY_ADDRESS,
-  initData: encodeAbiParameters(UniActionPolicyAbi, [
-    toActionConfig(actionConfig)
-  ])
-})
-
-/**
- * Creates a TimeRangePolicy.
- *
- * @param validUntil - The timestamp until which the policy is valid.
- * @param validAfter - The timestamp after which the policy is valid.
- * @returns A PolicyData object representing the TimeRangePolicy.
- */
-export const toTimeRangePolicy = (
-  validUntil: number,
-  validAfter: number
-): PolicyData => {
-  const validUntilBytes = pad(toBytes(BigInt(validUntil), { size: 16 }), {
-    dir: "right",
-    size: 16
-  })
-  const validAfterBytes = pad(toBytes(BigInt(validAfter), { size: 16 }), {
-    dir: "right",
-    size: 16
-  })
-  const packedData = encodePacked(
-    ["bytes16", "bytes16"],
-    [toHex(validUntilBytes), toHex(validAfterBytes)]
-  )
-  const timeFramePolicyData: PolicyData = {
-    policy: TIMEFRAME_POLICY_ADDRESS,
-    // initData for TimeframePolicy
-    initData: packedData
-  }
-  return timeFramePolicyData
 }
 
 /**

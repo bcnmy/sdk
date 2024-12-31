@@ -24,15 +24,10 @@ import {
   type NexusClient,
   createSmartAccountClient
 } from "../../clients/createSmartAccountClient"
-import { SmartSessionMode } from "../../constants"
+import { SmartSessionMode, getUniversalActionPolicy } from "../../constants"
 import { parseReferenceValue } from "../utils/Helpers"
 import type { Module } from "../utils/Types"
-import {
-  abiToPoliciesInfo,
-  parse,
-  stringify,
-  toUniversalActionPolicy
-} from "./Helpers"
+import { abiToPoliciesInfo, parse, stringify, toActionConfig } from "./Helpers"
 import type { CreateSessionDataParams, SessionData } from "./Types"
 import { ParamCondition } from "./Types"
 import { smartSessionCreateActions, smartSessionUseActions } from "./decorators"
@@ -172,7 +167,9 @@ describe("modules.smartSessions", async () => {
         ]
       }
     }
-    const installUniversalPolicy = toUniversalActionPolicy(actionConfigData)
+    const installUniversalPolicy = getUniversalActionPolicy(
+      toActionConfig(actionConfigData)
+    )
 
     expect(installUniversalPolicy.policy).toEqual(testAddresses.UniActionPolicy)
     expect(installUniversalPolicy.initData).toBeDefined()
@@ -245,8 +242,6 @@ describe("modules.smartSessions", async () => {
         sessionRequestedInfo
       })
 
-    console.log({ createSessionsResponse })
-
     expect(createSessionsResponse.userOpHash).toBeDefined()
     expect(createSessionsResponse.permissionIds).toBeDefined()
 
@@ -281,8 +276,6 @@ describe("modules.smartSessions", async () => {
       abi: CounterAbi,
       functionName: "getNumber"
     })
-
-    console.log({ cachedSessionData })
 
     const parsedSessionData = parse(cachedSessionData) as SessionData
 

@@ -1,3 +1,7 @@
+import {
+  getTimeFramePolicy,
+  getUniversalActionPolicy
+} from "@rhinestone/module-sdk"
 import type { Chain, Client, Hex, PublicClient, Transport } from "viem"
 import { encodeFunctionData, parseAccount } from "viem/utils"
 import { ERROR_MESSAGES } from "../../../account"
@@ -23,8 +27,7 @@ import {
   createActionData,
   generateSalt,
   getPermissionId,
-  toTimeRangePolicy,
-  toUniversalActionPolicy
+  toActionConfig
 } from "../Helpers"
 import type {
   CreateSessionDataParams,
@@ -32,6 +35,8 @@ import type {
   PreparePermissionResponse,
   ResolvedActionPolicyInfo
 } from "../Types"
+
+export const ONE_YEAR_FROM_NOW_IN_SECONDS = Date.now() + 60 * 60 * 24 * 365
 
 /**
  * Parameters for creating sessions in a modular smart account.
@@ -76,7 +81,7 @@ export const getPermissionAction = async ({
 
   const resolvedPolicyInfo2ActionData = (
     actionPolicyInfo: ResolvedActionPolicyInfo
-  ): ActionData => {
+  ) => {
     const actionConfig = createActionConfig(
       actionPolicyInfo.rules ?? [],
       actionPolicyInfo.valueLimit
@@ -85,14 +90,16 @@ export const getPermissionAction = async ({
     const policyData: PolicyData[] = []
 
     // create uni action policy here..
-    const uniActionPolicyInfo = toUniversalActionPolicy(actionConfig)
+    const uniActionPolicyInfo = getUniversalActionPolicy(
+      toActionConfig(actionConfig)
+    )
     policyData.push(uniActionPolicyInfo)
 
     // create time frame policy here..
-    const timeFramePolicyData: PolicyData = toTimeRangePolicy(
-      actionPolicyInfo.validUntil ?? 0,
-      actionPolicyInfo.validAfter ?? 0
-    )
+    const timeFramePolicyData = getTimeFramePolicy({
+      validUntil: actionPolicyInfo.validUntil ?? ONE_YEAR_FROM_NOW_IN_SECONDS,
+      validAfter: actionPolicyInfo.validAfter ?? 0
+    })
     policyData.push(timeFramePolicyData)
 
     // create sudo policy here..
@@ -153,10 +160,10 @@ export const getPermissionAction = async ({
       }
     }
 
-    const userOpTimeFramePolicyData: PolicyData = toTimeRangePolicy(
-      sessionInfo.sessionValidUntil ?? 0,
-      sessionInfo.sessionValidAfter ?? 0
-    )
+    const userOpTimeFramePolicyData = getTimeFramePolicy({
+      validUntil: sessionInfo.sessionValidUntil ?? ONE_YEAR_FROM_NOW_IN_SECONDS,
+      validAfter: sessionInfo.sessionValidAfter ?? 0
+    })
 
     const session: Session = {
       chainId: BigInt(chainId),
@@ -276,8 +283,7 @@ export async function preparePermission<
     throw new Error(ERROR_MESSAGES.CHAIN_NOT_FOUND)
   }
 
-  const defaultedSessionRequestedInfo: FullCreateSessionDataParams[] =
-    sessionRequestedInfo.map(applyDefaults)
+  const defaultedSessionRequestedInfo = sessionRequestedInfo.map(applyDefaults)
 
   const actionResponse = await getPermissionAction({
     chainId,

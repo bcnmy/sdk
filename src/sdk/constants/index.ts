@@ -11,14 +11,10 @@ import { ParamCondition } from "../modules/smartSessionsValidator/Types"
 
 export * from "./abi"
 
-export const SIMPLE_SESSION_VALIDATOR_ADDRESS: Hex =
-  "0xE7A6F1a02151E50b600BC3d06FeEd70C6c4B19Bd"
 export const ENTRY_POINT_ADDRESS: Hex =
   "0x0000000071727De22E5E9d8BAf0edAc6f37da032"
 export const ENTRYPOINT_SIMULATIONS_ADDRESS: Hex =
   "0x74Cb5e4eE81b86e70f9045036a1C5477de69eE87"
-export const TIMEFRAME_POLICY_ADDRESS: Hex =
-  "0x0B7BB9bD65858593D97f12001FaDa94828307805"
 export const NEXUS_BOOTSTRAP_ADDRESS: Hex =
   "0x00000008c901d8871b6F6942De0B5D9cCf3873d3"
 
@@ -78,7 +74,8 @@ export {
   getSpendingLimitsPolicy,
   getUsageLimitPolicy,
   getValueLimitPolicy,
-  getOwnableValidator
+  getOwnableValidator,
+  getUniversalActionPolicy
 } from "@rhinestone/module-sdk"
 
 // Rhinestone doesn't export the universal action policy address, so we need to get it from the policies

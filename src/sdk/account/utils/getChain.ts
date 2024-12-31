@@ -41,6 +41,7 @@ export const getChain = (chainId: number): Chain => {
       return chain
     }
   }
+
   throw new Error(
     "Chain not found. Please add a customChain into your config using the getCustomChain(...) helper"
   )
