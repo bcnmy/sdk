@@ -13,6 +13,7 @@ import {
   createWalletClient,
   domainSeparator,
   encodeAbiParameters,
+  encodeFunctionData,
   encodePacked,
   getContract,
   hashMessage,
@@ -27,6 +28,7 @@ import {
 } from "viem"
 import type { UserOperation } from "viem/account-abstraction"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
+import { CounterAbi } from "../../test/__contracts/abi/CounterAbi"
 import { MockSignatureValidatorAbi } from "../../test/__contracts/abi/MockSignatureValidatorAbi"
 import { TokenWithPermitAbi } from "../../test/__contracts/abi/TokenWithPermitAbi"
 import { testAddresses } from "../../test/callDatas"
@@ -40,13 +42,12 @@ import {
 import type { MasterClient, NetworkConfig } from "../../test/testUtils"
 import {
   type NexusClient,
-  createNexusClient
-} from "../clients/createNexusClient"
+  createSmartAccountClient
+} from "../clients/createSmartAccountClient"
 import {
   BICONOMY_ATTESTER_ADDRESS,
   MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS,
-  k1ValidatorAddress,
-  k1ValidatorFactoryAddress
+  k1ValidatorAddress
 } from "../constants"
 import type { NexusAccount } from "./toNexusAccount"
 import {
@@ -90,7 +91,7 @@ describe("nexus.account", async () => {
       transport: http()
     })
 
-    nexusClient = await createNexusClient({
+    nexusClient = await createSmartAccountClient({
       signer: eoaAccount,
       chain,
       transport: http(),
@@ -106,7 +107,7 @@ describe("nexus.account", async () => {
   })
 
   test("should override account address", async () => {
-    const newNexusClient = await createNexusClient({
+    const newNexusClient = await createSmartAccountClient({
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl),
@@ -221,7 +222,7 @@ describe("nexus.account", async () => {
       calls: [{ to: userTwo.address, value: 1n }]
     })
 
-    const userOpHash = await nexusClient.account.getUserOpHash(userOperation)
+    const userOpHash = nexusClient.account.getUserOpHash(userOperation)
 
     const isValid = await mockSigVerifierContract.read.verify([
       userOpHash,
@@ -598,6 +599,23 @@ describe("nexus.account", async () => {
       })) as Address
 
       expect(BICONOMY_ATTESTER_ADDRESS).toBe(biconomyAttesterAddress)
+    }
+  )
+
+  testnetTest(
+    "should debug user operation and generate tenderly link",
+    async ({ config: { chain } }) => {
+      await nexusClient.debugUserOperation({
+        calls: [
+          {
+            to: testAddresses.Counter,
+            data: encodeFunctionData({
+              abi: CounterAbi,
+              functionName: "incrementNumber"
+            })
+          }
+        ]
+      })
     }
   )
 })

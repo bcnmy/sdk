@@ -1,4 +1,3 @@
-import { getOwnableValidatorSignature } from "@rhinestone/module-sdk"
 import {
   http,
   type Account,
@@ -24,10 +23,13 @@ import type { MasterClient, NetworkConfig } from "../../../test/testUtils"
 import type { NexusAccount } from "../../account"
 import {
   type NexusClient,
-  createNexusClient
-} from "../../clients/createNexusClient"
+  createSmartAccountClient
+} from "../../clients/createSmartAccountClient"
 import { parseModuleTypeId } from "../../clients/decorators/erc7579/supportsModule"
-import { k1ValidatorAddress } from "../../constants"
+import {
+  getOwnableValidatorSignature,
+  k1ValidatorAddress
+} from "../../constants"
 import type { Module } from "../utils/Types"
 import { type OwnableActions, ownableActions } from "./decorators"
 import { toOwnableValidator } from "./toOwnableValidator"
@@ -61,7 +63,7 @@ describe("modules.ownables", async () => {
     userThreeAddress = userThree.address
     testClient = toTestClient(chain, getTestAccount(5))
 
-    nexusClient = await createNexusClient({
+    nexusClient = await createSmartAccountClient({
       signer: eoaAccount,
       chain,
       transport: http(),

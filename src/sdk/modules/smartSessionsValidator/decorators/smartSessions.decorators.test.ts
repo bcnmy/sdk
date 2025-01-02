@@ -1,6 +1,8 @@
 import { http, type Address, type Chain, type LocalAccount } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
+import { CounterAbi } from "../../../../test/__contracts/abi/CounterAbi"
+import { testAddresses } from "../../../../test/callDatas"
 import { toNetwork } from "../../../../test/testSetup"
 import {
   type MasterClient,
@@ -12,11 +14,15 @@ import {
 } from "../../../../test/testUtils"
 import {
   type NexusClient,
-  createNexusClient
-} from "../../../clients/createNexusClient"
-import { createNexusSessionClient } from "../../../clients/createNexusSessionClient"
-import { toSmartSessionsValidator } from "../toSmartSessionsValidator"
+  createSmartAccountClient
+} from "../../../clients/createSmartAccountClient"
+import type { CreateSessionDataParams } from "../Types"
+import {
+  type SmartSessionModule,
+  toSmartSessionsValidator
+} from "../toSmartSessionsValidator"
 import { smartSessionCreateActions, smartSessionUseActions } from "./"
+import { preparePermission } from "./preparePermission"
 
 describe("modules.smartSessions.decorators", async () => {
   let network: NetworkConfig
@@ -30,6 +36,8 @@ describe("modules.smartSessions.decorators", async () => {
   let nexusClient: NexusClient
   let nexusAccountAddress: Address
   let sessionPublicKey: Address
+  let sessionRequestedInfo: CreateSessionDataParams[]
+  let sessionsModule: SmartSessionModule
 
   beforeAll(async () => {
     network = await toNetwork()
@@ -41,12 +49,30 @@ describe("modules.smartSessions.decorators", async () => {
     sessionPublicKey = sessionKeyAccount.address
     testClient = toTestClient(chain, getTestAccount(5))
 
-    nexusClient = await createNexusClient({
+    nexusClient = await createSmartAccountClient({
       signer: eoaAccount,
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl)
     })
+
+    sessionRequestedInfo = [
+      {
+        sessionPublicKey, // Public key of the session
+        // sessionValidUntil: number
+        // sessionValidAfter: number
+        // chainIds: bigint[]
+        actionPoliciesInfo: [
+          {
+            abi: CounterAbi,
+            contractAddress: testAddresses.Counter
+            // validUntil?: number
+            // validAfter?: number
+            // valueLimit?: bigint
+          }
+        ]
+      }
+    ]
 
     nexusAccountAddress = await nexusClient.account.getCounterFactualAddress()
     await fundAndDeployClients(testClient, [nexusClient])
@@ -77,6 +103,7 @@ describe("modules.smartSessions.decorators", async () => {
     expect(nexusSessionClient).toBeDefined()
     expect(nexusSessionClient.grantPermission).toBeTypeOf("function")
     expect(nexusSessionClient.trustAttesters).toBeTypeOf("function")
+    expect(nexusSessionClient.grantPermission).toBeTypeOf("function")
   })
 
   test("should test use smart session decorators", async () => {
@@ -85,7 +112,7 @@ describe("modules.smartSessions.decorators", async () => {
       signer: sessionKeyAccount
     })
 
-    const smartSessionNexusClient = await createNexusSessionClient({
+    const smartSessionNexusClient = await createSmartAccountClient({
       chain,
       accountAddress: nexusClient.account.address,
       signer: sessionKeyAccount,

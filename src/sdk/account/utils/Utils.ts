@@ -44,7 +44,7 @@ import type { AccountMetadata, EIP712DomainReturn } from "./Types"
  * @param value - The value to check
  * @returns True if the value is null or undefined
  */
-export const isNullOrUndefined = (value: any): value is undefined => {
+export const isNullOrUndefined = (value: AnyData): value is undefined => {
   return value === null || value === undefined
 }
 
@@ -375,6 +375,31 @@ export const isTesting = () => {
   }
 }
 
+type TenderlyDetails = {
+  accountSlug: string
+  projectSlug: string
+  apiKey: string
+}
+export const getTenderlyDetails = (): TenderlyDetails | null => {
+  try {
+    const accountSlug = process?.env?.TENDERLY_ACCOUNT_SLUG
+    const projectSlug = process?.env?.TENDERLY_PROJECT_SLUG
+    const apiKey = process?.env?.TENDERLY_API_KEY
+
+    if (!accountSlug || !projectSlug || !apiKey) {
+      return null
+    }
+
+    return {
+      accountSlug,
+      projectSlug,
+      apiKey
+    }
+  } catch (e) {
+    return null
+  }
+}
+
 /**
  * Safely multiplies a bigint by a number, rounding appropriately.
  *
@@ -407,4 +432,45 @@ export const getAllowance = async (
   })
 
   return approval as bigint
+}
+
+export function parseRequestArguments(input: string[]) {
+  const fieldsToOmit = [
+    "callGasLimit",
+    "preVerificationGas",
+    "maxFeePerGas",
+    "maxPriorityFeePerGas",
+    "paymasterAndData",
+    "verificationGasLimit"
+  ]
+
+  // Skip the first element which is just "Request Arguments:"
+  const argsString = input.slice(1).join("")
+
+  // Split by newlines and filter out empty lines
+  const lines = argsString.split("\n").filter((line) => line.trim())
+
+  // Create an object from the key-value pairs
+  const result = lines.reduce(
+    (acc, line) => {
+      // Remove extra spaces and split by ':'
+      const [key, value] = line.split(":").map((s) => s.trim())
+
+      // Clean up the key (remove trailing spaces and colons)
+      const cleanKey = key.trim()
+
+      // Clean up the value (remove 'gwei' and other units)
+      const cleanValue: string | number = value.replace("gwei", "").trim()
+
+      if (fieldsToOmit.includes(cleanKey)) {
+        return acc
+      }
+
+      acc[cleanKey] = cleanValue
+      return acc
+    },
+    {} as Record<string, string | number>
+  )
+
+  return result
 }

@@ -1,5 +1,11 @@
 # @biconomy/sdk
 
+## 0.0.22
+
+### Patch Changes
+
+- Smart sessions enable mode
+
 ## 0.0.21
 
 ### Patch Changes

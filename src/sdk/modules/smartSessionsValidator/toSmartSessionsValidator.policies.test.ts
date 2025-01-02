@@ -18,8 +18,8 @@ import {
 import type { MasterClient, NetworkConfig } from "../../../test/testUtils"
 import {
   type NexusClient,
-  createNexusClient
-} from "../../clients/createNexusClient"
+  createSmartAccountClient
+} from "../../clients/createSmartAccountClient"
 import type { Module } from "../utils/Types"
 import { smartSessionCreateActions } from "./decorators"
 import { toSmartSessionsValidator } from "./toSmartSessionsValidator"
@@ -40,7 +40,7 @@ describe("modules.smartSessions.policies", async () => {
   let sessionsModule: Module
 
   beforeAll(async () => {
-    network = await toNetwork("BASE_SEPOLIA_FORKED")
+    network = await toNetwork("BESPOKE_ANVIL_NETWORK_FORKING_BASE_SEPOLIA")
 
     chain = network.chain
     bundlerUrl = network.bundlerUrl
@@ -50,7 +50,7 @@ describe("modules.smartSessions.policies", async () => {
 
     testClient = toTestClient(chain, getTestAccount(5))
 
-    nexusClient = await createNexusClient({
+    nexusClient = await createSmartAccountClient({
       signer: eoaAccount,
       chain,
       transport: http(),
@@ -93,7 +93,7 @@ describe("modules.smartSessions.policies", async () => {
   })
 
   test("should grant permission with all available policies", async () => {
-    const usersNexusClient = await createNexusClient({
+    const usersNexusClient = await createSmartAccountClient({
       signer: eoaAccount,
       chain,
       transport: http(),

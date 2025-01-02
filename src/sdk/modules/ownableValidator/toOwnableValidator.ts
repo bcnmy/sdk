@@ -1,17 +1,18 @@
 import {
-  OWNABLE_VALIDATOR_ADDRESS,
-  getAccount,
-  getOwnableValidatorMockSignature,
-  getOwnableValidatorThreshold,
-  isModuleInstalled
-} from "@rhinestone/module-sdk"
-import {
   type Address,
   type Hex,
   type PublicClient,
   decodeAbiParameters,
   encodeAbiParameters
 } from "viem"
+import {
+  OWNABLE_VALIDATOR_ADDRESS,
+  getAccount,
+  getOwnableValidator,
+  getOwnableValidatorMockSignature,
+  getOwnableValidatorThreshold,
+  isRhinestoneModuleInstalled
+} from "../../constants"
 import type {
   ModularSmartAccount,
   Module,
@@ -130,7 +131,10 @@ export const toOwnableValidator = (
     type: "nexus"
   })
 
-  const moduleInitData = getOwnablesModuleInitData(moduleInitArgs_)
+  const moduleInitData = getOwnableValidator({
+    threshold: moduleInitArgs_.threshold,
+    owners: moduleInitArgs_.owners
+  })
   const initData = initData_ ?? getOwnablesInitData(initArgs_)
 
   return toModule({
@@ -141,7 +145,7 @@ export const toOwnableValidator = (
     deInitData,
     moduleInitData,
     getStubSignature: async (): Promise<Hex> => {
-      const isInstalled = await isModuleInstalled({
+      const isInstalled = await isRhinestoneModuleInstalled({
         account: nexusAccount,
         client: client as PublicClient,
         module: {

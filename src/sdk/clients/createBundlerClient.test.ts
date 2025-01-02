@@ -7,7 +7,7 @@ import { type NexusAccount, toNexusAccount } from "../account/toNexusAccount"
 import { safeMultiplier } from "../account/utils"
 import { MAINNET_ADDRESS_K1_VALIDATOR_ADDRESS } from "../constants"
 import { MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS } from "../constants"
-import type { NexusClient } from "./createNexusClient"
+import type { NexusClient } from "./createSmartAccountClient"
 import { erc7579Actions } from "./decorators/erc7579"
 import { smartAccountActions } from "./decorators/smartAccount"
 

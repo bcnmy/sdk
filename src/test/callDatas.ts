@@ -6,7 +6,6 @@ import {
   OWNABLE_VALIDATOR_ADDRESS,
   REGISTRY_ADDRESS,
   RHINESTONE_ATTESTER_ADDRESS,
-  SIMPLE_SESSION_VALIDATOR_ADDRESS,
   SMART_SESSIONS_ADDRESS,
   TIME_FRAME_POLICY_ADDRESS,
   UNIVERSAL_ACTION_POLICY_ADDRESS,
@@ -33,11 +32,6 @@ export const TEST_CONTRACTS: Record<
     chainId: baseSepolia.id,
     name: "SmartSession",
     address: SMART_SESSIONS_ADDRESS
-  },
-  SimpleSessionValidator: {
-    chainId: baseSepolia.id,
-    name: "SimpleSessionValidator",
-    address: SIMPLE_SESSION_VALIDATOR_ADDRESS
   },
   UniActionPolicy: {
     chainId: baseSepolia.id,

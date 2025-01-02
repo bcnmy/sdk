@@ -1,20 +1,21 @@
+import { type Address, type Hex, encodePacked } from "viem"
 import {
   SMART_SESSIONS_ADDRESS,
   SmartSessionMode,
-  encodeSmartSessionSignature
-} from "@rhinestone/module-sdk"
-import { type Address, type Hex, encodePacked } from "viem"
+  encodeSmartSessionSignature,
+  getOwnableValidatorMockSignature,
+  getSmartSessionsValidator
+} from "../../constants"
 import type { ModuleMeta } from "../../modules/utils/Types"
 import type { ModularSmartAccount } from "../utils/Types"
 import type { Module, ModuleParameters } from "../utils/Types"
 import { toModule } from "../utils/toModule"
 import type { UsePermissionModuleData } from "./Types"
 
-const DUMMY_ECDSA_SIG =
+export const DUMMY_ECDSA_SIG =
   "0xe8b94748580ca0b4993c9a1b86b5be851bfc076ff5ce3a1ff65bf16392acfcb800f9b4f1aef1555c7fce5599fffb17e7c635502154a0333ba21f3ae491839af51c"
 
 export type SmartSessionModule = Module & {
-  sigGen: (signature: Hex) => Hex
   moduleData?: UsePermissionModuleData
 }
 
@@ -97,7 +98,6 @@ export const toSmartSessionsValidator = (
     moduleInitData: moduleInitData_,
     deInitData = "0x",
     initData: initData_,
-    moduleInitArgs: moduleInitArgs_ = { signerAddress: signer.address },
     initArgs: initArgs_ = { signerAddress: signer.address },
     moduleData: {
       permissionIdIndex = 0,
@@ -108,8 +108,7 @@ export const toSmartSessionsValidator = (
   } = parameters
 
   const initData = initData_ ?? getUsePermissionInitData(initArgs_)
-  const moduleInitData =
-    moduleInitData_ ?? getUsePermissionModuleInitData(moduleInitArgs_)
+  const moduleInitData = moduleInitData_ ?? getSmartSessionsValidator({})
 
   return toModule({
     ...parameters,
@@ -124,10 +123,12 @@ export const toSmartSessionsValidator = (
         mode,
         permissionId: permissionIds[permissionIdIndex],
         enableSessionData,
-        signature: DUMMY_ECDSA_SIG
+        signature: getOwnableValidatorMockSignature({
+          threshold: 1
+        })
       }),
-    signUserOpHash: async (userOpHash: Hex) =>
-      encodeSmartSessionSignature({
+    signUserOpHash: async (userOpHash: Hex) => {
+      return encodeSmartSessionSignature({
         mode,
         permissionId: permissionIds[permissionIdIndex],
         enableSessionData,
@@ -135,5 +136,6 @@ export const toSmartSessionsValidator = (
           message: { raw: userOpHash as Hex }
         })
       })
+    }
   }) as SmartSessionModule
 }

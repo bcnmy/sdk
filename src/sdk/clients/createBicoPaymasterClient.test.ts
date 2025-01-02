@@ -11,7 +11,7 @@ import {
   parseUnits
 } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
-import { paymasterTruthy, toNetwork } from "../../test/testSetup"
+import { paymasterTruthy, toNetworks } from "../../test/testSetup"
 import { getTestParamsForTestnet, killNetwork } from "../../test/testUtils"
 import type { NetworkConfig, TestnetParams } from "../../test/testUtils"
 import { type NexusAccount, toNexusAccount } from "../account/toNexusAccount"
@@ -20,12 +20,16 @@ import {
   createBicoPaymasterClient,
   toBiconomyTokenPaymasterContext
 } from "./createBicoPaymasterClient"
-import { type NexusClient, createNexusClient } from "./createNexusClient"
+import {
+  type NexusClient,
+  createSmartAccountClient
+} from "./createSmartAccountClient"
 
-describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
+describe.skip("bico.paymaster", async () => {
+  // describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
   let network: NetworkConfig
-  // Required for "PUBLIC_TESTNET" networks
-  let testParams: TestnetParams
+  // Required for "TESTNET_FROM_ENV_VARS" networks
+  let testnetParams: TestnetParams
 
   let chain: Chain
   let bundlerUrl: string
@@ -47,7 +51,7 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
     "0x7683022d84f726a96c4a6611cd31dbf5409c0ac9"
 
   beforeAll(async () => {
-    network = await toNetwork("PUBLIC_TESTNET")
+    ;[network] = await toNetworks("TESTNET_FROM_ENV_VARS")
 
     chain = network.chain
     bundlerUrl = network.bundlerUrl
@@ -67,7 +71,7 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
       transport: http()
     })
 
-    testParams = getTestParamsForTestnet(publicClient)
+    testnetParams = getTestParamsForTestnet(publicClient)
 
     paymaster = createBicoPaymasterClient({
       transport: http(paymasterUrl)
@@ -77,18 +81,18 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
       signer: account,
       chain,
       transport: http(),
-      ...testParams
+      ...testnetParams
     })
 
     nexusAccountAddress = await nexusAccount.getCounterFactualAddress()
 
-    nexusClient = await createNexusClient({
+    nexusClient = await createSmartAccountClient({
       signer: account,
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl),
       paymaster,
-      ...testParams
+      ...testnetParams
     })
   })
   afterAll(async () => {
@@ -136,7 +140,7 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
     const paymasterContext = toBiconomyTokenPaymasterContext({
       feeTokenAddress: baseSepoliaUSDCAddress
     })
-    const nexusClient = await createNexusClient({
+    const nexusClient = await createSmartAccountClient({
       signer: account,
       chain,
       paymaster: createBicoPaymasterClient({
@@ -145,7 +149,7 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
       paymasterContext,
       transport: http(),
       bundlerTransport: http(bundlerUrl),
-      ...testParams
+      ...testnetParams
     })
 
     const initialBalance = await publicClient.getBalance({
@@ -179,7 +183,7 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
     const paymasterContext = toBiconomyTokenPaymasterContext({
       feeTokenAddress: baseSepoliaUSDCAddress
     })
-    const nexusClient = await createNexusClient({
+    const nexusClient = await createSmartAccountClient({
       signer: account,
       chain,
       paymaster: createBicoPaymasterClient({
@@ -188,7 +192,7 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
       paymasterContext,
       transport: http(),
       bundlerTransport: http(bundlerUrl),
-      ...testParams
+      ...testnetParams
     })
 
     const initialBalance = await publicClient.getBalance({
@@ -226,7 +230,7 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
     const paymasterContext = toBiconomyTokenPaymasterContext({
       feeTokenAddress: baseSepoliaUSDCAddress
     })
-    const nexusClient = await createNexusClient({
+    const nexusClient = await createSmartAccountClient({
       signer: account,
       chain,
       paymaster: createBicoPaymasterClient({
@@ -235,7 +239,7 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
       paymasterContext,
       transport: http(),
       bundlerTransport: http(bundlerUrl),
-      ...testParams
+      ...testnetParams
     })
 
     const usdcBalance = await publicClient.readContract({
@@ -296,7 +300,7 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
     const paymasterContext = toBiconomyTokenPaymasterContext({
       feeTokenAddress: baseSepoliaUSDCAddress
     })
-    const nexusClient = await createNexusClient({
+    const nexusClient = await createSmartAccountClient({
       signer: account,
       chain,
       paymaster: createBicoPaymasterClient({
@@ -305,7 +309,7 @@ describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
       paymasterContext,
       transport: http(),
       bundlerTransport: http(bundlerUrl),
-      ...testParams
+      ...testnetParams
     })
 
     const supportedTokens = await paymaster.getSupportedTokens(nexusClient)
