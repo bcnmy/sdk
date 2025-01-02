@@ -1,62 +1,90 @@
-import { http, type Account, type Address, type Chain } from "viem"
-import { afterAll, beforeAll, describe, expect, test } from "vitest"
-import { toNetwork } from "../../test/testSetup"
 import {
-  getTestAccount,
-  killNetwork,
-  toTestClient,
-  topUp
-} from "../../test/testUtils"
-import type { MasterClient, NetworkConfig } from "../../test/testUtils"
+  http,
+  type Account,
+  type Address,
+  type Chain,
+  type PrivateKeyAccount,
+  type PublicClient,
+  type WalletClient,
+  createPublicClient,
+  createWalletClient
+} from "viem"
+import { beforeAll, describe, expect, test } from "vitest"
+import { toNetwork } from "../../test/testSetup"
+import { getTestParamsForTestnet } from "../../test/testUtils"
+import type { NetworkConfig, TestnetParams } from "../../test/testUtils"
 import { type NexusAccount, toNexusAccount } from "../account/toNexusAccount"
 import { ENTRY_POINT_ADDRESS } from "../constants"
 import {
-  type BicoBundlerClient,
-  createBicoBundlerClient
-} from "./createBicoBundlerClient"
+  type NexusClient,
+  createSmartAccountClient
+} from "./createSmartAccountClient"
 
 describe("bico.bundler", async () => {
   let network: NetworkConfig
+  // Required for "TESTNET_FROM_ENV_VARS" networks
+  let testnetParams: TestnetParams
+
   let chain: Chain
   let bundlerUrl: string
+  let paymasterUrl: undefined | string
+  let walletClient: WalletClient
 
   // Test utils
-  let testClient: MasterClient
-  let eoaAccount: Account
+  let publicClient: PublicClient // testClient not available on public testnets
+  let account: PrivateKeyAccount
+  let recipientAddress: Address
   let nexusAccountAddress: Address
-  let bicoBundler: BicoBundlerClient
   let nexusAccount: NexusAccount
+  let nexusClient: NexusClient
 
   beforeAll(async () => {
-    network = await toNetwork()
+    network = await toNetwork("TESTNET_FROM_ENV_VARS")
 
     chain = network.chain
     bundlerUrl = network.bundlerUrl
-    eoaAccount = getTestAccount(0)
-    testClient = toTestClient(chain, getTestAccount(5))
+    account = network.account as PrivateKeyAccount
 
-    nexusAccount = await toNexusAccount({
-      signer: eoaAccount,
+    recipientAddress = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045" // vitalik.eth
+
+    walletClient = createWalletClient({
+      account,
       chain,
       transport: http()
     })
 
-    bicoBundler = createBicoBundlerClient({ bundlerUrl, account: nexusAccount })
-    nexusAccountAddress = await nexusAccount.getCounterFactualAddress()
-    await topUp(testClient, nexusAccountAddress)
-  })
+    publicClient = createPublicClient({
+      chain,
+      transport: http()
+    })
 
-  afterAll(async () => {
-    await killNetwork([network?.rpcPort, network?.bundlerPort])
+    testnetParams = getTestParamsForTestnet(publicClient)
+
+    nexusAccount = await toNexusAccount({
+      signer: account,
+      chain,
+      transport: http(),
+      ...testnetParams
+    })
+
+    nexusAccountAddress = await nexusAccount.getCounterFactualAddress()
+
+    nexusClient = await createSmartAccountClient({
+      signer: account,
+      chain,
+      transport: http(),
+      bundlerTransport: http(bundlerUrl),
+      ...testnetParams
+    })
   })
 
   test.concurrent("should have 4337 bundler actions", async () => {
     const [chainId, supportedEntrypoints, preparedUserOp] = await Promise.all([
-      bicoBundler.getChainId(),
-      bicoBundler.getSupportedEntryPoints(),
-      bicoBundler.prepareUserOperation({
+      nexusClient.getChainId(),
+      nexusClient.getSupportedEntryPoints(),
+      nexusClient.prepareUserOperation({
         account: nexusAccount,
-        calls: [{ to: eoaAccount.address, data: "0x" }]
+        calls: [{ to: account.address, data: "0x" }]
       })
     ])
     expect(chainId).toEqual(chain.id)
@@ -67,7 +95,7 @@ describe("bico.bundler", async () => {
   test.concurrent(
     "should have been extended by biconomy specific actions",
     async () => {
-      const gasFees = await bicoBundler.getGasFeeValues()
+      const gasFees = await nexusClient.getGasFeeValues()
       expect(gasFees).toHaveProperty("fast")
       expect(gasFees).toHaveProperty("standard")
       expect(gasFees).toHaveProperty("slow")
@@ -76,15 +104,15 @@ describe("bico.bundler", async () => {
   )
 
   test("should send a user operation and get the receipt", async () => {
-    const calls = [{ to: eoaAccount.address, value: 1n }]
+    const calls = [{ to: account.address, value: 1n }]
     // Must find gas fees before sending the user operation
-    const gas = await testClient.estimateFeesPerGas()
-    const hash = await bicoBundler.sendUserOperation({
+    const gas = await nexusClient.getGasFeeValues()
+    const hash = await nexusClient.sendUserOperation({
       ...gas,
       calls,
       account: nexusAccount
     })
-    const receipt = await bicoBundler.waitForUserOperationReceipt({ hash })
+    const receipt = await nexusClient.waitForUserOperationReceipt({ hash })
     expect(receipt.success).toBeTruthy()
   })
 })

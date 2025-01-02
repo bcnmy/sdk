@@ -1,15 +1,8 @@
 import type { Account, Chain, Client, Hex, Transport } from "viem"
+import type { BicoRpcSchema } from "."
 import { isTesting } from "../../../account/utils/Utils"
 
-export type BicoRpcSchema = [
-  {
-    Method: "biconomy_getGasFeeValues" | "pimlico_getUserOperationGasPrice"
-    Parameters: []
-    ReturnType: BicoUserOperationGasPriceWithBigIntAsHex
-  }
-]
-
-type BicoUserOperationGasPriceWithBigIntAsHex = {
+export type BicoUserOperationGasPriceWithBigIntAsHex = {
   slow: {
     maxFeePerGas: Hex
     maxPriorityFeePerGas: Hex

@@ -1,8 +1,26 @@
-import type { Chain, Client, Prettify, Transport } from "viem"
+import type { Chain, Client, Hex, Prettify, Transport } from "viem"
 import {
+  type BicoUserOperationGasPriceWithBigIntAsHex,
   type GetGasFeeValuesReturnType,
   getGasFeeValues
 } from "./getGasFeeValues"
+import {
+  type BicoUserOperationStatus,
+  getUserOperationStatus
+} from "./getUserOperationStatus"
+
+export type BicoRpcSchema = [
+  {
+    Method: "biconomy_getGasFeeValues" | "pimlico_getUserOperationGasPrice"
+    Parameters: []
+    ReturnType: BicoUserOperationGasPriceWithBigIntAsHex
+  },
+  {
+    Method: "biconomy_getUserOperationStatus"
+    Parameters: [Hex]
+    ReturnType: BicoUserOperationStatus
+  }
+]
 
 export type BicoActions = {
   /**
@@ -23,6 +41,14 @@ export type BicoActions = {
    * await bundlerClient.getGasFeeValues()
    */
   getGasFeeValues: () => Promise<Prettify<GetGasFeeValuesReturnType>>
+  /**
+   * Returns the status of a user operation.
+   *
+   * @returns the status of a user operation {@link BicoUserOperationStatus}
+   */
+  getUserOperationStatus: (
+    userOpHash: Hex
+  ) => Promise<Prettify<BicoUserOperationStatus>>
 }
 
 export const bicoBundlerActions =
@@ -33,5 +59,7 @@ export const bicoBundlerActions =
   >(
     client: Client<TTransport, TChain>
   ): BicoActions => ({
-    getGasFeeValues: async () => getGasFeeValues(client)
+    getGasFeeValues: async () => getGasFeeValues(client),
+    getUserOperationStatus: async (userOpHash: Hex) =>
+      getUserOperationStatus(client, userOpHash)
   })
