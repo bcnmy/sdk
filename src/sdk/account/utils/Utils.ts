@@ -367,14 +367,6 @@ export const playgroundTrue = () => {
   }
 }
 
-export const isTesting = () => {
-  try {
-    return process?.env?.TEST === "true"
-  } catch (e) {
-    return false
-  }
-}
-
 type TenderlyDetails = {
   accountSlug: string
   projectSlug: string

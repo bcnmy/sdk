@@ -20,6 +20,11 @@ import {
   type NexusClient,
   createSmartAccountClient
 } from "../clients/createSmartAccountClient"
+import {
+  RHINESTONE_ATTESTER_ADDRESS,
+  TEST_ADDRESS_K1_VALIDATOR_ADDRESS,
+  TEST_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
+} from "../constants"
 import type { NexusAccount } from "./toNexusAccount"
 import { getCounterFactualAddress } from "./utils"
 
@@ -56,7 +61,9 @@ describe("nexus.account.addresses", async () => {
       signer: eoaAccount,
       chain,
       transport: http(),
-      bundlerTransport: http(bundlerUrl)
+      bundlerTransport: http(bundlerUrl),
+      k1ValidatorAddress: TEST_ADDRESS_K1_VALIDATOR_ADDRESS,
+      factoryAddress: TEST_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
     })
 
     nexusAccount = nexusClient.account
@@ -70,7 +77,11 @@ describe("nexus.account.addresses", async () => {
     const counterfactualAddressFromHelper = await getCounterFactualAddress(
       testClient as unknown as PublicClient,
       eoaAccount.address,
-      true
+      true,
+      0n,
+      [RHINESTONE_ATTESTER_ADDRESS],
+      1,
+      TEST_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
     )
     const gottenAddress = await nexusClient.account.getAddress()
     expect(counterfactualAddressFromHelper).toBe(nexusAccountAddress)
@@ -84,7 +95,11 @@ describe("nexus.account.addresses", async () => {
     const counterfactualAddressFromHelper = await getCounterFactualAddress(
       testClient as unknown as PublicClient,
       eoaAccount.address,
-      true
+      true,
+      0n,
+      [RHINESTONE_ATTESTER_ADDRESS],
+      1,
+      TEST_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
     )
     const gottenAddress = await nexusClient.account.getAddress()
     expect(counterfactualAddressFromHelper).toBe(nexusAccountAddress)

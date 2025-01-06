@@ -31,7 +31,10 @@ import {
   makeInstallDataAndHash
 } from "../account/utils/Utils"
 import { getChain } from "../account/utils/getChain"
-import { k1ValidatorAddress } from "../constants"
+import {
+  TEST_ADDRESS_K1_VALIDATOR_ADDRESS,
+  TEST_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
+} from "../constants"
 import {
   type NexusClient,
   createSmartAccountClient
@@ -69,7 +72,9 @@ describe("nexus.client", async () => {
       signer: account,
       chain,
       transport: http(),
-      bundlerTransport: http(bundlerUrl)
+      bundlerTransport: http(bundlerUrl),
+      k1ValidatorAddress: TEST_ADDRESS_K1_VALIDATOR_ADDRESS,
+      factoryAddress: TEST_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
     })
     nexusAccountAddress = await nexusClient.account.getCounterFactualAddress()
   })
@@ -234,7 +239,7 @@ describe("nexus.client", async () => {
       nexusClient.isModuleInstalled({
         module: {
           type: "validator",
-          address: k1ValidatorAddress,
+          address: TEST_ADDRESS_K1_VALIDATOR_ADDRESS,
           initData: "0x"
         }
       }),
@@ -270,14 +275,18 @@ describe("nexus.client", async () => {
       signer: viemSigner,
       chain,
       transport: http(),
-      bundlerTransport: http(bundlerUrl)
+      bundlerTransport: http(bundlerUrl),
+      k1ValidatorAddress: TEST_ADDRESS_K1_VALIDATOR_ADDRESS,
+      factoryAddress: TEST_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
     })
 
     const ethersNexusClient = await createSmartAccountClient({
       signer: wallet as EthersWallet,
       chain,
       transport: http(),
-      bundlerTransport: http(bundlerUrl)
+      bundlerTransport: http(bundlerUrl),
+      k1ValidatorAddress: TEST_ADDRESS_K1_VALIDATOR_ADDRESS,
+      factoryAddress: TEST_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
     })
 
     const sig1 = await viemNexusClient.signMessage({ message: "123" })
@@ -292,7 +301,9 @@ describe("nexus.client", async () => {
       signer: ethersWallet as EthersWallet,
       chain,
       transport: http(),
-      bundlerTransport: http(bundlerUrl)
+      bundlerTransport: http(bundlerUrl),
+      k1ValidatorAddress: TEST_ADDRESS_K1_VALIDATOR_ADDRESS,
+      factoryAddress: TEST_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
     })
 
     const hash = await ethersNexusClient.sendUserOperation({

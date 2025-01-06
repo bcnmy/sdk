@@ -47,7 +47,8 @@ import {
 import {
   BICONOMY_ATTESTER_ADDRESS,
   MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS,
-  k1ValidatorAddress
+  TEST_ADDRESS_K1_VALIDATOR_ADDRESS,
+  TEST_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
 } from "../constants"
 import type { NexusAccount } from "./toNexusAccount"
 import {
@@ -95,7 +96,9 @@ describe("nexus.account", async () => {
       signer: eoaAccount,
       chain,
       transport: http(),
-      bundlerTransport: http(bundlerUrl)
+      bundlerTransport: http(bundlerUrl),
+      k1ValidatorAddress: TEST_ADDRESS_K1_VALIDATOR_ADDRESS,
+      factoryAddress: TEST_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
     })
 
     nexusAccount = nexusClient.account
@@ -345,7 +348,7 @@ describe("nexus.account", async () => {
 
     const finalSignature = encodePacked(
       ["address", "bytes"],
-      [k1ValidatorAddress, signatureData]
+      [TEST_ADDRESS_K1_VALIDATOR_ADDRESS, signatureData]
     )
 
     const contractResponse = await testClient.readContract({

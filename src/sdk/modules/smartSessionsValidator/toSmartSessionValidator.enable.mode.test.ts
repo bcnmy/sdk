@@ -44,8 +44,6 @@ import { toSmartSessionsValidator } from "./toSmartSessionsValidator"
 
 describe("modules.smartSessions.enable.mode.dx", async () => {
   let network: NetworkConfig
-  // Required for "TESTNET_FROM_ENV_VARS" networks
-  let testnetParams: TestnetParams
 
   let chain: Chain
   let bundlerUrl: string
@@ -89,14 +87,11 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
       transport: http()
     })
 
-    testnetParams = getTestParamsForTestnet(publicClient)
-
     nexusAccount = await toNexusAccount({
       index: 1n,
       signer: eoaAccount,
       chain,
-      transport: http(),
-      ...testnetParams
+      transport: http()
     })
 
     nexusAccountAddress = await nexusAccount.getCounterFactualAddress()
@@ -107,8 +102,7 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
       signer: eoaAccount,
       chain,
       transport: http(),
-      bundlerTransport: http(bundlerUrl),
-      ...testnetParams
+      bundlerTransport: http(bundlerUrl)
     })
   })
 
@@ -289,8 +283,7 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
       signer: eoaAccount,
       chain,
       transport: http(),
-      bundlerTransport: http(bundlerUrl),
-      ...testnetParams
+      bundlerTransport: http(bundlerUrl)
     })
 
     // Create a new smart sessions module with the session key

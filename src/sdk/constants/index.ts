@@ -6,7 +6,6 @@ import {
   getValueLimitPolicy
 } from "@rhinestone/module-sdk"
 import { type Hex, toBytes, toHex } from "viem"
-import { isTesting } from "../account"
 import { ParamCondition } from "../modules/smartSessionsValidator/Types"
 
 export * from "./abi"
@@ -22,20 +21,10 @@ export const TEST_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS: Hex =
   "0x704C800D313c6B184228B5b733bBd6BC3EA9832c"
 export const TEST_ADDRESS_K1_VALIDATOR_ADDRESS: Hex =
   "0xCfa6175DDC2eF918e527b2972D9AB8B149f151b7"
-
 export const MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS: Hex =
   "0x00000024115AA990F0bAE0B6b0D5B8F68b684cd6"
 export const MAINNET_ADDRESS_K1_VALIDATOR_ADDRESS: Hex =
   "0x0000002D6DB27c52E3C11c1Cf24072004AC75cBa"
-
-export const k1ValidatorFactoryAddress: Hex = isTesting()
-  ? TEST_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
-  : MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
-
-export const k1ValidatorAddress: Hex = isTesting()
-  ? TEST_ADDRESS_K1_VALIDATOR_ADDRESS
-  : MAINNET_ADDRESS_K1_VALIDATOR_ADDRESS
-
 export const BICONOMY_ATTESTER_ADDRESS: Hex =
   "0xDE8FD2dBcC0CA847d11599AF5964fe2AEa153699"
 

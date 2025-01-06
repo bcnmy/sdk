@@ -27,8 +27,9 @@ import {
 } from "../../clients/createSmartAccountClient"
 import { parseModuleTypeId } from "../../clients/decorators/erc7579/supportsModule"
 import {
-  getOwnableValidatorSignature,
-  k1ValidatorAddress
+  TEST_ADDRESS_K1_VALIDATOR_ADDRESS,
+  TEST_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS,
+  getOwnableValidatorSignature
 } from "../../constants"
 import type { Module } from "../utils/Types"
 import { type OwnableActions, ownableActions } from "./decorators"
@@ -67,7 +68,9 @@ describe("modules.ownables", async () => {
       signer: eoaAccount,
       chain,
       transport: http(),
-      bundlerTransport: http(bundlerUrl)
+      bundlerTransport: http(bundlerUrl),
+      k1ValidatorAddress: TEST_ADDRESS_K1_VALIDATOR_ADDRESS,
+      factoryAddress: TEST_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
     })
 
     await fundAndDeployClients(testClient, [nexusClient])
@@ -301,6 +304,8 @@ describe("modules.ownables", async () => {
     expect(userOpSuccess).toBe(true)
     const [installedValidatorsAfter] =
       await nexusClient.getInstalledValidators()
-    expect(installedValidatorsAfter).toEqual([k1ValidatorAddress])
+    expect(installedValidatorsAfter).toEqual([
+      TEST_ADDRESS_K1_VALIDATOR_ADDRESS
+    ])
   })
 })

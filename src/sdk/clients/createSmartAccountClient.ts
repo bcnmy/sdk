@@ -28,8 +28,8 @@ import {
 import type { EthersWallet } from "../account/utils/Utils"
 import type { EthereumProvider } from "../account/utils/toSigner"
 import {
-  k1ValidatorAddress as k1ValidatorAddress_,
-  k1ValidatorFactoryAddress
+  MAINNET_ADDRESS_K1_VALIDATOR_ADDRESS,
+  MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
 } from "../constants"
 import type {
   AnyData,
@@ -205,8 +205,8 @@ export async function createSmartAccountClient(
     key = "nexus client",
     name = "Nexus Client",
     module,
-    factoryAddress = k1ValidatorFactoryAddress,
-    k1ValidatorAddress = k1ValidatorAddress_,
+    factoryAddress = MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS,
+    k1ValidatorAddress = MAINNET_ADDRESS_K1_VALIDATOR_ADDRESS,
     bundlerTransport,
     transport,
     accountAddress,
