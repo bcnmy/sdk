@@ -16,13 +16,16 @@ import {
   type NexusClient,
   createSmartAccountClient
 } from "../../../clients/createSmartAccountClient"
+import {
+  TEST_ADDRESS_K1_VALIDATOR_ADDRESS,
+  TEST_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
+} from "../../../constants"
 import type { CreateSessionDataParams } from "../Types"
 import {
   type SmartSessionModule,
   toSmartSessionsValidator
 } from "../toSmartSessionsValidator"
 import { smartSessionCreateActions, smartSessionUseActions } from "./"
-import { preparePermission } from "./preparePermission"
 
 describe("modules.smartSessions.decorators", async () => {
   let network: NetworkConfig
@@ -53,7 +56,9 @@ describe("modules.smartSessions.decorators", async () => {
       signer: eoaAccount,
       chain,
       transport: http(),
-      bundlerTransport: http(bundlerUrl)
+      bundlerTransport: http(bundlerUrl),
+      k1ValidatorAddress: TEST_ADDRESS_K1_VALIDATOR_ADDRESS,
+      factoryAddress: TEST_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
     })
 
     sessionRequestedInfo = [

@@ -1,5 +1,4 @@
 import type { Account, Chain, Client, Hex, Transport } from "viem"
-import { isTesting } from "../../../account/utils/Utils"
 
 export type BicoRpcSchema = [
   {
@@ -66,10 +65,14 @@ export const getGasFeeValues = async (
     BicoRpcSchema
   >
 ): Promise<GetGasFeeValuesReturnType> => {
+  const isABiconomyBundler = client.transport.url
+    .toLowerCase()
+    .includes("biconomy")
+
   const gasPrice = await client.request({
-    method: isTesting()
-      ? "pimlico_getUserOperationGasPrice"
-      : "biconomy_getGasFeeValues",
+    method: isABiconomyBundler
+      ? "biconomy_getGasFeeValues"
+      : "pimlico_getUserOperationGasPrice",
     params: []
   })
 

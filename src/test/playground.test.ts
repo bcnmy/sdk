@@ -39,8 +39,6 @@ import {
 
 describe.skipIf(!playgroundTrue())("playground", () => {
   let network: NetworkConfig
-  // Required for "TESTNET_FROM_ENV_VARS" networks
-  let testParams: TestnetParams
   // Nexus Config
   let chain: Chain
   let bundlerUrl: string
@@ -74,8 +72,6 @@ describe.skipIf(!playgroundTrue())("playground", () => {
       chain,
       transport: http()
     })
-
-    testParams = getTestParamsForTestnet(publicClient)
   })
 
   test("should init the smart account", async () => {
@@ -88,8 +84,7 @@ describe.skipIf(!playgroundTrue())("playground", () => {
         ? createBicoPaymasterClient({
             transport: http(network.paymasterUrl)
           })
-        : undefined,
-      ...testParams
+        : undefined
     })
   })
 
@@ -243,8 +238,7 @@ describe.skipIf(!playgroundTrue())("playground", () => {
       accountAddress: nexusClient.account.address,
       signer: eoaAccount,
       transport: http(),
-      bundlerTransport: http(bundlerUrl),
-      ...testParams
+      bundlerTransport: http(bundlerUrl)
     })
 
     const usePermissionsModule = toSmartSessionsValidator({

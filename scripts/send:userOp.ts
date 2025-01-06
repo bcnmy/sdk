@@ -5,7 +5,7 @@ import { privateKeyToAccount } from "viem/accounts"
 import { toNexusAccount } from "../src/sdk/account/toNexusAccount"
 import { getChain } from "../src/sdk/account/utils/getChain"
 import { createBicoBundlerClient } from "../src/sdk/clients/createBicoBundlerClient"
-import { biconomyPaymasterContext } from "../src/sdk/clients/createBicoPaymasterClient"
+import { biconomySponsoredPaymasterContext } from "../src/sdk/clients/createBicoPaymasterClient"
 
 config()
 
@@ -60,7 +60,7 @@ const main = async () => {
           paymaster: createPaymasterClient({
             transport: http(paymasterUrl)
           }),
-          paymasterContext: biconomyPaymasterContext
+          paymasterContext: biconomySponsoredPaymasterContext
         }
       : undefined),
     userOperation: {

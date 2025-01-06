@@ -1,5 +1,11 @@
 # @biconomy/sdk
 
+## 0.0.23
+
+### Patch Changes
+
+- Remove isTesting helper from testing framework
+
 ## 0.0.22
 
 ### Patch Changes

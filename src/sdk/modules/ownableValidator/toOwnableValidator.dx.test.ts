@@ -9,6 +9,8 @@ import {
 } from "../../../test/testUtils"
 import type { MasterClient, NetworkConfig } from "../../../test/testUtils"
 import { createSmartAccountClient } from "../../clients/createSmartAccountClient"
+import { TEST_ADDRESS_K1_VALIDATOR_ADDRESS } from "../../constants"
+import { TEST_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS } from "../../constants"
 import { ownableActions } from "./decorators"
 import { toOwnableValidator } from "./toOwnableValidator"
 
@@ -63,7 +65,9 @@ describe("modules.ownableValidator.dx", async () => {
       signer: eoaAccount,
       chain,
       transport: http(),
-      bundlerTransport: http(bundlerUrl)
+      bundlerTransport: http(bundlerUrl),
+      k1ValidatorAddress: TEST_ADDRESS_K1_VALIDATOR_ADDRESS,
+      factoryAddress: TEST_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
     })
 
     // Fund the account and deploy the smart contract wallet
