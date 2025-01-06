@@ -11,7 +11,7 @@ import {
   parseUnits
 } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
-import { toNetworks } from "../../test/testSetup"
+import { paymasterTruthy, toNetworks } from "../../test/testSetup"
 import { killNetwork } from "../../test/testUtils"
 import type { NetworkConfig } from "../../test/testUtils"
 import { type NexusAccount, toNexusAccount } from "../account/toNexusAccount"
@@ -25,8 +25,7 @@ import {
   createSmartAccountClient
 } from "./createSmartAccountClient"
 
-describe.skip("bico.paymaster", async () => {
-  // describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
+describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
   let network: NetworkConfig
 
   let chain: Chain
@@ -47,6 +46,8 @@ describe.skip("bico.paymaster", async () => {
     "0x036cbd53842c5426634e7929541ec2318f3dcf7e"
   const baseSepoliaDAIAddress: Address =
     "0x7683022d84f726a96c4a6611cd31dbf5409c0ac9"
+
+  const index = 5n
 
   beforeAll(async () => {
     ;[network] = await toNetworks("TESTNET_FROM_ENV_VARS")
@@ -76,17 +77,21 @@ describe.skip("bico.paymaster", async () => {
     nexusAccount = await toNexusAccount({
       signer: account,
       chain,
-      transport: http()
+      transport: http(),
+      index
     })
 
     nexusAccountAddress = await nexusAccount.getCounterFactualAddress()
+
+    console.log("nexusAccountAddress", nexusAccountAddress)
 
     nexusClient = await createSmartAccountClient({
       signer: account,
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl),
-      paymaster
+      paymaster,
+      index
     })
   })
   afterAll(async () => {
@@ -142,7 +147,8 @@ describe.skip("bico.paymaster", async () => {
       }),
       paymasterContext,
       transport: http(),
-      bundlerTransport: http(bundlerUrl)
+      bundlerTransport: http(bundlerUrl),
+      index
     })
 
     const initialBalance = await publicClient.getBalance({
@@ -184,7 +190,8 @@ describe.skip("bico.paymaster", async () => {
       }),
       paymasterContext,
       transport: http(),
-      bundlerTransport: http(bundlerUrl)
+      bundlerTransport: http(bundlerUrl),
+      index
     })
 
     const initialBalance = await publicClient.getBalance({
@@ -230,7 +237,8 @@ describe.skip("bico.paymaster", async () => {
       }),
       paymasterContext,
       transport: http(),
-      bundlerTransport: http(bundlerUrl)
+      bundlerTransport: http(bundlerUrl),
+      index
     })
 
     const usdcBalance = await publicClient.readContract({
@@ -299,7 +307,8 @@ describe.skip("bico.paymaster", async () => {
       }),
       paymasterContext,
       transport: http(),
-      bundlerTransport: http(bundlerUrl)
+      bundlerTransport: http(bundlerUrl),
+      index
     })
 
     const supportedTokens = await paymaster.getSupportedTokens(nexusClient)
