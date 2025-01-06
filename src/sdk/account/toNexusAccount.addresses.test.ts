@@ -16,9 +16,12 @@ import {
   toTestClient
 } from "../../test/testUtils"
 import type { MasterClient, NetworkConfig } from "../../test/testUtils"
+import {
+  type NexusClient,
+  createSmartAccountClient
+} from "../clients/createSmartAccountClient"
 import type { NexusAccount } from "./toNexusAccount"
 import { getCounterFactualAddress } from "./utils"
-import { createSmartAccountClient } from "../clients/createSmartAccountClient"
 
 describe("nexus.account.addresses", async () => {
   let network: NetworkConfig
