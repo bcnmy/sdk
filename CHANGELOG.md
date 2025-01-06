@@ -1,5 +1,11 @@
 # @biconomy/sdk
 
+## 0.0.24
+
+### Patch Changes
+
+- Remove tenderlyUrl from env vars
+
 ## 0.0.23
 
 ### Patch Changes

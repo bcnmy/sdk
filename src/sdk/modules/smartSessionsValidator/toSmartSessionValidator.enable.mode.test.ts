@@ -16,9 +16,9 @@ import { beforeAll, describe, expect, test } from "vitest"
 import { CounterAbi } from "../../../test/__contracts/abi/CounterAbi"
 import { testAddresses } from "../../../test/callDatas"
 import { toNetwork } from "../../../test/testSetup"
-import { getTestParamsForTestnet } from "../../../test/testUtils"
-import type { NetworkConfig, TestnetParams } from "../../../test/testUtils"
+import type { NetworkConfig } from "../../../test/testUtils"
 import { type NexusAccount, toNexusAccount } from "../../account/toNexusAccount"
+import { safeMultiplier } from "../../account/utils/Utils"
 import {
   type NexusClient,
   createSmartAccountClient
@@ -63,6 +63,8 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
 
   let stringifiedSessionDatum: string
 
+  const index = 2n
+
   beforeAll(async () => {
     network = await toNetwork("TESTNET_FROM_ENV_VARS")
 
@@ -88,7 +90,7 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
     })
 
     nexusAccount = await toNexusAccount({
-      index: 1n,
+      index,
       signer: eoaAccount,
       chain,
       transport: http()
@@ -97,7 +99,7 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
     nexusAccountAddress = await nexusAccount.getCounterFactualAddress()
 
     nexusClient = await createSmartAccountClient({
-      index: 1n,
+      index,
       account: nexusAccount,
       signer: eoaAccount,
       chain,
@@ -191,7 +193,7 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
     const userOperation = await nexusClient.prepareUserOperation({
       verificationGasLimit: 10000000n,
       callGasLimit: 10000000n,
-      preVerificationGas: 10000000n,
+      preVerificationGas: 100000000n,
       calls,
       signature: encodeSmartSessionSignature(sessionDetails),
       nonce: await nexusClient.account.getNonce({
@@ -278,7 +280,7 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
     // Create a new Nexus client for the session
     // This client will be used to interact with the smart contract account using the session key
     const smartSessionNexusClient = await createSmartAccountClient({
-      index: 1n,
+      index,
       accountAddress: usersSessionData.granter,
       signer: eoaAccount,
       chain,
@@ -301,7 +303,7 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
     const userOpHash = await useSmartSessionNexusClient.usePermission({
       verificationGasLimit: 10000000n,
       callGasLimit: 10000000n,
-      preVerificationGas: 10000000n,
+      preVerificationGas: 100000000n,
       calls: [
         {
           to: testAddresses.Counter,
