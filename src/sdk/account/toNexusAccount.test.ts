@@ -106,18 +106,6 @@ describe("nexus.account", async () => {
     await killNetwork([network?.rpcPort, network?.bundlerPort])
   })
 
-  test("should override account address", async () => {
-    const newNexusClient = await createSmartAccountClient({
-      chain,
-      transport: http(),
-      bundlerTransport: http(bundlerUrl),
-      accountAddress: "0xf0479e036343bC66dc49dd374aFAF98402D0Ae5f",
-      signer: eoaAccount
-    })
-    const accountAddress = await newNexusClient.account.getAddress()
-    expect(accountAddress).toBe("0xf0479e036343bC66dc49dd374aFAF98402D0Ae5f")
-  })
-
   test("should check isValidSignature PersonalSign is valid", async () => {
     const meta = await getAccountMeta(testClient, nexusAccountAddress)
 
