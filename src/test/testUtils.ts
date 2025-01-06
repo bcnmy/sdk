@@ -42,6 +42,9 @@ import type { TestFileNetworkType } from "./testSetup"
 
 config()
 
+const BASE_SEPOLIA_RPC_URL =
+  "https://virtual.base-sepolia.rpc.tenderly.co/6ccdd33d-d8f4-4476-8d37-63ba0ed0ea8f"
+
 type AnvilInstance = ReturnType<typeof anvil>
 type BundlerInstance = ReturnType<typeof alto>
 type BundlerDto = {
@@ -215,17 +218,18 @@ export const toConfiguredAnvil = async ({
     chainId: rpcPort,
     port: rpcPort,
     codeSizeLimit: 1000000000000,
-    forkUrl: shouldForkBaseSepolia
-      ? process.env.VIRTUAL_BASE_SEPOLIA
-      : undefined
+    forkUrl: shouldForkBaseSepolia ? BASE_SEPOLIA_RPC_URL : undefined
   }
   const instance = anvil(config)
   await instance.start()
-  await initDeployments(rpcPort)
+  await initDeployments(rpcPort, shouldForkBaseSepolia)
   return instance
 }
 
-export const initDeployments = async (rpcPort: number) => {
+export const initDeployments = async (
+  rpcPort: number,
+  shouldForkBaseSepolia = false
+) => {
   // Hardhat deployment of nexus repo:
   console.log(
     `using hardhat to deploy nexus contracts to http://localhost:${rpcPort}`
@@ -234,19 +238,21 @@ export const initDeployments = async (rpcPort: number) => {
   await hardhatExec.deploy(rpcPort)
   console.log("hardhat deployment complete.")
 
-  // Hardcoded bytecode deployment of contracts using setCode:
-  console.log("setting bytecode with hardcoded calldata.")
-  const chain = getTestChainFromPort(rpcPort)
-  const account = getTestAccount()
-  const testClient = toTestClient(chain, account)
-
   // Dynamic bytecode deployment of contracts using setCode:
-  console.log("setting bytecode with dynamic calldata from a testnet")
-  await setByteCodeHardcoded(testClient)
-  await setByteCodeDynamic(testClient, TEST_CONTRACTS)
+  if (!shouldForkBaseSepolia) {
+    // Hardcoded bytecode deployment of contracts using setCode:
+    console.log("setting bytecode with hardcoded calldata.")
+    const chain = getTestChainFromPort(rpcPort)
+    const account = getTestAccount()
+    const testClient = toTestClient(chain, account)
 
-  console.log("bytecode deployment complete.")
-  console.log("")
+    console.log("setting bytecode with dynamic calldata from a testnet")
+    await setByteCodeHardcoded(testClient)
+    await setByteCodeDynamic(testClient, TEST_CONTRACTS)
+
+    console.log("bytecode deployment complete.")
+    console.log("")
+  }
 }
 
 const portOptions = { exclude: [] as number[] }
