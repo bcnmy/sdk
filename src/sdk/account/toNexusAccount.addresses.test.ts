@@ -7,6 +7,7 @@ import {
   type WalletClient,
   createWalletClient
 } from "viem"
+import { base, baseSepolia } from "viem/chains"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { toNetwork } from "../../test/testSetup"
 import {
@@ -125,5 +126,26 @@ describe("nexus.account.addresses", async () => {
       someoneElseCounterfactualAddress
     )
     expect(accountAddress).toBe(someoneElsesNexusAddress)
+  })
+
+  test("should check that mainnet and testnet addresses are different", async () => {
+    const mainnetClient = await createSmartAccountClient({
+      signer: eoaAccount,
+      chain: base,
+      transport: http(),
+      bundlerTransport: http(bundlerUrl)
+    })
+
+    const testnetClient = await createSmartAccountClient({
+      signer: eoaAccount,
+      chain: baseSepolia,
+      transport: http(),
+      bundlerTransport: http(bundlerUrl)
+    })
+
+    const testnetAddress = await testnetClient.account.getAddress()
+    const mainnetAddress = await mainnetClient.account.getAddress()
+
+    expect(testnetAddress).not.toBe(mainnetAddress)
   })
 })
