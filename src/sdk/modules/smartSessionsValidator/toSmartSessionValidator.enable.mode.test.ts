@@ -1,5 +1,6 @@
 import {
   http,
+  type Account,
   type Address,
   type Chain,
   type LocalAccount,
@@ -16,7 +17,13 @@ import { beforeAll, describe, expect, test } from "vitest"
 import { CounterAbi } from "../../../test/__contracts/abi/CounterAbi"
 import { testAddresses } from "../../../test/callDatas"
 import { toNetwork } from "../../../test/testSetup"
-import type { NetworkConfig } from "../../../test/testUtils"
+import {
+  type NetworkConfig,
+  fundAndDeployClients,
+  getTestAccount,
+  toTestClient
+} from "../../../test/testUtils"
+import type { Signer } from "../../account"
 import { type NexusAccount, toNexusAccount } from "../../account/toNexusAccount"
 import { safeMultiplier } from "../../account/utils/Utils"
 import {
@@ -47,12 +54,11 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
 
   let chain: Chain
   let bundlerUrl: string
-  let paymasterUrl: undefined | string
   let walletClient: WalletClient
 
   // Test utils
   let publicClient: PublicClient // testClient not available on public testnets
-  let eoaAccount: PrivateKeyAccount
+  let eoaAccount: Account
   let recipientAddress: Address
   let nexusAccountAddress: Address
   let nexusAccount: NexusAccount
@@ -66,17 +72,18 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
   const index = 2n
 
   beforeAll(async () => {
-    network = await toNetwork("TESTNET_FROM_ENV_VARS")
+    network = await toNetwork("BESPOKE_ANVIL_NETWORK_FORKING_BASE_SEPOLIA")
 
     chain = network.chain
     bundlerUrl = network.bundlerUrl
-    paymasterUrl = network.paymasterUrl
-    eoaAccount = network.account as PrivateKeyAccount
+    eoaAccount = getTestAccount(0)
 
     sessionKeyAccount = privateKeyToAccount(generatePrivateKey()) // Generally belongs to the dapp
     sessionPublicKey = getAddress(sessionKeyAccount.address)
 
     recipientAddress = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045" // vitalik.eth
+
+    const testClient = toTestClient(chain, getTestAccount(5))
 
     walletClient = createWalletClient({
       account: eoaAccount,
@@ -106,6 +113,8 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
       transport: http(),
       bundlerTransport: http(bundlerUrl)
     })
+
+    await fundAndDeployClients(testClient, [nexusClient])
   })
 
   test("full smart sessions enable mode example", async () => {
@@ -122,7 +131,8 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
       const installReceipt = await nexusClient.waitForUserOperationReceipt({
         hash: opHash
       })
-      expect(installReceipt.success).toBe("true")
+      console.log(installReceipt)
+      expect(installReceipt.success).toBe(true)
     }
 
     const session: Session = {
@@ -216,13 +226,13 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
       hash: userOpHash
     })
 
-    expect(receipt.success).toBe("true")
+    expect(receipt.success).toBe(true)
   })
 
   test("should all a user to grant permission using enable mode by default", async () => {
     const sessionsModule = toSmartSessionsValidator({
       account: nexusClient.account,
-      signer: eoaAccount
+      signer: eoaAccount as Signer
     })
 
     const isInstalled = await nexusClient.isModuleInstalled({
@@ -236,7 +246,7 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
       const installReceipt = await nexusClient.waitForUserOperationReceipt({
         hash: opHash
       })
-      expect(installReceipt.success).toBe("true")
+      expect(installReceipt.success).toBe(true)
     }
 
     // Extend the Nexus client with smart session creation actions
@@ -282,7 +292,7 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
     const smartSessionNexusClient = await createSmartAccountClient({
       index,
       accountAddress: usersSessionData.granter,
-      signer: eoaAccount,
+      signer: eoaAccount as Signer,
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl)
@@ -329,6 +339,6 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
         hash: userOpHash
       })
 
-    expect(receipt.success).toBe("true")
+    expect(receipt.success).toBe(true)
   })
 })
