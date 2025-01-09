@@ -25,7 +25,7 @@ import {
   createSmartAccountClient
 } from "./createSmartAccountClient"
 
-describe.skip("bico.paymaster", async () => {
+describe("bico.paymaster", async () => {
   // describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
   let network: NetworkConfig
 
