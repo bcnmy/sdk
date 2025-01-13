@@ -67,8 +67,8 @@ bun install --frozen-lockfile
 # Run all tests
 bun run test
 
-# Run tests for a specific module
-bun run test -t=smartSessions
+# Run tests for a specific subset of tests (by test description)
+bun run test -t=mee
 ```
 
 For detailed information about the testing framework, network configurations, and debugging guidelines, please refer to our [Testing Documentation](./src/test/README.md).

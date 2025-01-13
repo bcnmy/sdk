@@ -1,0 +1,31 @@
+name: paid-tests
+on:
+  workflow_dispatch:
+  pull_request_review:
+    types: [submitted]
+jobs:
+  paid-tests:
+    name: paid-tests
+    permissions: write-all
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}-paid-tests
+      cancel-in-progress: true
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        uses: ./.github/actions/install-dependencies
+
+      - name: Run the tests
+        run: bun run test
+        env:
+          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+          CHAIN_ID: ${{ secrets.CHAIN_ID }}
+          CI: true 
+          RUN_PAID_TESTS: true
+

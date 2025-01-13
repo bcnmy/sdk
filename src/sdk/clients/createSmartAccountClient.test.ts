@@ -73,7 +73,7 @@ describe("nexus.client", async () => {
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl),
-      k1ValidatorAddress: TEST_ADDRESS_K1_VALIDATOR_ADDRESS,
+      validatorAddress: TEST_ADDRESS_K1_VALIDATOR_ADDRESS,
       factoryAddress: TEST_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
     })
     nexusAccountAddress = await nexusClient.account.getCounterFactualAddress()
@@ -276,7 +276,7 @@ describe("nexus.client", async () => {
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl),
-      k1ValidatorAddress: TEST_ADDRESS_K1_VALIDATOR_ADDRESS,
+      validatorAddress: TEST_ADDRESS_K1_VALIDATOR_ADDRESS,
       factoryAddress: TEST_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
     })
 
@@ -285,7 +285,7 @@ describe("nexus.client", async () => {
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl),
-      k1ValidatorAddress: TEST_ADDRESS_K1_VALIDATOR_ADDRESS,
+      validatorAddress: TEST_ADDRESS_K1_VALIDATOR_ADDRESS,
       factoryAddress: TEST_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
     })
 
@@ -302,7 +302,7 @@ describe("nexus.client", async () => {
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl),
-      k1ValidatorAddress: TEST_ADDRESS_K1_VALIDATOR_ADDRESS,
+      validatorAddress: TEST_ADDRESS_K1_VALIDATOR_ADDRESS,
       factoryAddress: TEST_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
     })
 

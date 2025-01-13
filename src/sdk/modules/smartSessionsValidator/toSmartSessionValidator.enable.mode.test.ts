@@ -4,7 +4,6 @@ import {
   type Address,
   type Chain,
   type LocalAccount,
-  type PrivateKeyAccount,
   type PublicClient,
   type WalletClient,
   createPublicClient,
@@ -175,7 +174,11 @@ describe("modules.smartSessions.enable.mode.dx", async () => {
     const { permissionEnableHash, ...sessionDetails } =
       sessionDetailsWithPermissionEnableHash
 
+    if (!sessionDetails.enableSessionData?.enableSession.permissionEnableSig) {
+      throw new Error("enableSessionData is undefined")
+    }
     sessionDetails.enableSessionData.enableSession.permissionEnableSig =
+      // @ts-ignore
       await eoaAccount.signMessage({
         message: {
           raw: permissionEnableHash

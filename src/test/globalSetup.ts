@@ -1,15 +1,19 @@
+import { config } from "dotenv"
 import {
   type NetworkConfig,
   type NetworkConfigWithBundler,
-  initLocalhostNetwork
+  initAnvilNetwork
 } from "./testUtils"
+
+config()
 
 let globalConfig: NetworkConfigWithBundler
 // @ts-ignore
 export const setup = async ({ provide }) => {
-  globalConfig = await initLocalhostNetwork()
+  globalConfig = await initAnvilNetwork()
+  const runPaidTests = process.env.RUN_PAID_TESTS?.toString() === "true"
   const { bundlerInstance, instance, ...serializeableConfig } = globalConfig
-  provide("globalNetwork", serializeableConfig)
+  provide("settings", { ...serializeableConfig, runPaidTests })
 }
 
 export const teardown = async () => {
@@ -21,6 +25,6 @@ export const teardown = async () => {
 
 declare module "vitest" {
   export interface ProvidedContext {
-    globalNetwork: NetworkConfig
+    settings: NetworkConfig & { runPaidTests: boolean }
   }
 }

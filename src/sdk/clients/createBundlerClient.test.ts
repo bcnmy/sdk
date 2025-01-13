@@ -39,7 +39,7 @@ describe.each(COMPETITORS)(
         chain,
         transport: http(),
         // You can omit this outside of a testing context
-        k1ValidatorAddress: MAINNET_ADDRESS_K1_VALIDATOR_ADDRESS,
+        validatorAddress: MAINNET_ADDRESS_K1_VALIDATOR_ADDRESS,
         factoryAddress: MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
       })
 

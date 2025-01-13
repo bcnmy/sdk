@@ -359,6 +359,14 @@ export const getAccountDomainStructFields = async (
   ])
 }
 
+export const inProduction = () => {
+  try {
+    return process?.env?.environment === "production"
+  } catch (e) {
+    return true
+  }
+}
+
 export const playgroundTrue = () => {
   try {
     return process?.env?.RUN_PLAYGROUND === "true"

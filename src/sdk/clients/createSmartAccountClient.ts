@@ -165,13 +165,17 @@ export type SmartAccountClientConfig<
     /** Factory address of the account. */
     factoryAddress?: Address
     /** Owner module */
-    k1ValidatorAddress?: Address
+    validatorAddress?: Address
     /** Account address */
     accountAddress?: Address
     /** Attesters */
     attesters?: ToNexusSmartAccountParameters["attesters"]
     /** Threshold */
     attesterThreshold?: ToNexusSmartAccountParameters["attesterThreshold"]
+    /** Boot strap address */
+    bootStrapAddress?: Address
+    /** Registry address */
+    registryAddress?: Address
   }
 >
 
@@ -206,7 +210,7 @@ export async function createSmartAccountClient(
     name = "Nexus Client",
     module,
     factoryAddress = MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS,
-    k1ValidatorAddress = MAINNET_ADDRESS_K1_VALIDATOR_ADDRESS,
+    validatorAddress = MAINNET_ADDRESS_K1_VALIDATOR_ADDRESS,
     bundlerTransport,
     transport,
     accountAddress,
@@ -228,7 +232,7 @@ export async function createSmartAccountClient(
       index,
       module,
       factoryAddress,
-      k1ValidatorAddress,
+      validatorAddress,
       attesters,
       attesterThreshold
     }))

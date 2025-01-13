@@ -3,8 +3,8 @@ import {
   type FundedTestClients,
   type NetworkConfig,
   type NetworkConfigWithBundler,
-  initLocalhostNetwork,
-  initTestnetNetwork,
+  initAnvilNetwork,
+  initNetwork,
   toFundedTestClients
 } from "./testUtils"
 
@@ -17,7 +17,7 @@ export const localhostTest = test.extend<{
 }>({
   // biome-ignore lint/correctness/noEmptyPattern: Needed in vitest :/
   config: async ({}, use) => {
-    const testNetwork = await initLocalhostNetwork()
+    const testNetwork = await initAnvilNetwork()
     const fundedTestClients = await toFundedTestClients({
       chain: testNetwork.chain,
       bundlerUrl: testNetwork.bundlerUrl
@@ -44,7 +44,7 @@ export type TestFileNetworkType =
   | "BESPOKE_ANVIL_NETWORK"
   | "BESPOKE_ANVIL_NETWORK_FORKING_BASE_SEPOLIA"
   | "TESTNET_FROM_ENV_VARS"
-  | "TESTNET_FROM_ALT_ENV_VARS"
+  | "MAINNET_FROM_ENV_VARS"
   | "COMMUNAL_ANVIL_NETWORK"
 
 export const toNetworks = async (
@@ -65,17 +65,16 @@ export const toNetwork = async (
   const forkBaseSepolia =
     networkType === "BESPOKE_ANVIL_NETWORK_FORKING_BASE_SEPOLIA"
   const communalAnvil = networkType === "COMMUNAL_ANVIL_NETWORK"
-  const testNet = [
-    "TESTNET_FROM_ENV_VARS",
-    "TESTNET_FROM_ALT_ENV_VARS"
-  ].includes(networkType)
+  const network = ["TESTNET_FROM_ENV_VARS", "MAINNET_FROM_ENV_VARS"].includes(
+    networkType
+  )
 
   return await (communalAnvil
     ? // @ts-ignore
-      inject("globalNetwork")
-    : testNet
-      ? initTestnetNetwork(networkType)
-      : initLocalhostNetwork(forkBaseSepolia))
+      inject("settings")
+    : network
+      ? initNetwork(networkType)
+      : initAnvilNetwork(forkBaseSepolia))
 }
 
 export const paymasterTruthy = () => {

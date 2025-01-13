@@ -97,7 +97,7 @@ describe("nexus.account", async () => {
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl),
-      k1ValidatorAddress: TEST_ADDRESS_K1_VALIDATOR_ADDRESS,
+      validatorAddress: TEST_ADDRESS_K1_VALIDATOR_ADDRESS,
       factoryAddress: TEST_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
     })
 
@@ -275,9 +275,7 @@ describe("nexus.account", async () => {
       expect(factoryArgs.factory).toBe(undefined)
       expect(factoryArgs.factoryData).toBe(undefined)
     } else {
-      // biome-ignore lint/style/noNonNullAssertion: <explanation>
       expect(isAddress(factoryArgs.factory!)).toBe(true)
-      // biome-ignore lint/style/noNonNullAssertion: <explanation>
       expect(isHex(factoryArgs.factoryData!)).toBe(true)
     }
 
