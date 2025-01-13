@@ -25,7 +25,11 @@ jobs:
         run: bun run test
         env:
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
-          CHAIN_ID: ${{ secrets.CHAIN_ID }}
-          CI: true 
+          PIMLICO_API_KEY: ${{ secrets.PIMLICO_API_KEY }}
+          PAYMASTER_URL: ${{ secrets.PAYMASTER_URL }}
+          BUNDLER_URL: ${{ secrets.BUNDLER_URL }}
+          CHAIN_ID: 84532
+          MAINNET_CHAIN_ID: 10
           RUN_PAID_TESTS: true
+          CI: true 
 
