@@ -1,5 +1,11 @@
 # @biconomy/sdk
 
+## 0.0.25
+
+### Patch Changes
+
+- Added Mee Client
+
 ## 0.0.24
 
 ### Patch Changes
