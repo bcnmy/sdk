@@ -11,12 +11,26 @@ import {
 } from "viem"
 import { NexusBootstrapAbi } from "../../constants/abi/NexusBootstrapAbi"
 
+/**
+ * Parameters for generating K1 factory initialization data
+ * @interface GetK1FactoryDataParams
+ * @property {Address} signerAddress - The address of the EOA signer
+ * @property {bigint} index - The account index
+ * @property {Address[]} attesters - Array of attester addresses
+ * @property {number} attesterThreshold - Minimum number of attesters required
+ */
 export type GetK1FactoryDataParams = {
   signerAddress: Address
   index: bigint
   attesters: Address[]
   attesterThreshold: number
 }
+
+/**
+ * Generates encoded factory data for K1 account creation
+ * @param {GetK1FactoryDataParams} params - Parameters for K1 account creation
+ * @returns {Promise<Hex>} Encoded function data for account creation
+ */
 export const getK1FactoryData = async ({
   signerAddress,
   index,
@@ -31,6 +45,16 @@ export const getK1FactoryData = async ({
     args: [signerAddress, index, attesters, attesterThreshold]
   })
 
+/**
+ * Parameters for generating MEE factory initialization data
+ * @interface GetMeeFactoryDataParams
+ * @extends {GetK1FactoryDataParams}
+ * @property {Address} validatorAddress - The address of the validator
+ * @property {Address} registryAddress - The address of the registry contract
+ * @property {PublicClient} publicClient - Viem public client instance
+ * @property {WalletClient} walletClient - Viem wallet client instance
+ * @property {Address} bootStrapAddress - The address of the bootstrap contract
+ */
 export type GetMeeFactoryDataParams = GetK1FactoryDataParams & {
   validatorAddress: Address
   registryAddress: Address
@@ -38,6 +62,12 @@ export type GetMeeFactoryDataParams = GetK1FactoryDataParams & {
   walletClient: WalletClient
   bootStrapAddress: Address
 }
+
+/**
+ * Generates encoded factory data for MEE account creation
+ * @param {GetMeeFactoryDataParams} params - Parameters for MEE account creation
+ * @returns {Promise<Hex>} Encoded function data for account creation
+ */
 export const getMeeFactoryData = async ({
   validatorAddress,
   attesters,
