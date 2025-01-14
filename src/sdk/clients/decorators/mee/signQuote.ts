@@ -1,5 +1,5 @@
 import { type Hex, concatHex } from "viem"
-import type { MultichainSmartAccount } from "../../../account/utils/toMultiChainNexusAccount"
+import type { MultichainSmartAccount } from "../../../account/toMultiChainNexusAccount"
 import type { BaseMeeClient } from "../../createMeeClient"
 
 import type { GetQuotePayload } from "./getQuote"

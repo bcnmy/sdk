@@ -19,7 +19,7 @@ import type {
   AbstractCall,
   Instruction
 } from "../../clients/decorators/mee/getQuote"
-import type { MultichainSmartAccount } from "./toMultiChainNexusAccount"
+import type { MultichainSmartAccount } from "../toMultiChainNexusAccount"
 /**
  * Contract instance capable of encoding transactions across multiple chains
  * @template TAbi - The contract ABI type
@@ -183,6 +183,9 @@ export function getMultichainContract<TAbi extends Abi>(config: {
           }
 
           const deployment = params.account.deploymentOn(chain.id)
+          if (!deployment) {
+            throw new Error(`No deployment found for chain ${chain.id}`)
+          }
           const client = deployment.client as PublicClient<Transport, Chain>
 
           const result = await client.readContract({

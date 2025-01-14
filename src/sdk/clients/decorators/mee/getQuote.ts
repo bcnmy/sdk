@@ -1,6 +1,5 @@
 import type { Address, Hex, OneOf } from "viem"
-import type { MultichainSmartAccount } from "../../../account/utils/toMultiChainNexusAccount"
-import type { AnyData } from "../../../modules/utils/Types"
+import type { MultichainSmartAccount } from "../../../account/toMultiChainNexusAccount"
 import type { BaseMeeClient } from "../../createMeeClient"
 
 /**
@@ -31,24 +30,12 @@ export type FeeTokenInfo = {
  * Information about the instructions to be executed in the transaction
  * @internal
  */
-export type InstructionResolved = {
+export type Instruction = {
   /** Array of abstract calls to be executed in the transaction */
   calls: AbstractCall[]
   /** Chain ID where the transaction will be executed */
   chainId: number
 }
-
-/**
- * Represents an instruction to be executed in the transaction
- * @type Instruction
- */
-export type Instruction =
-  | InstructionResolved
-  | InstructionResolved[]
-  | ((x?: AnyData) => InstructionResolved)
-  | ((x?: AnyData) => InstructionResolved[])
-  | Promise<InstructionResolved>
-  | Promise<InstructionResolved[]>
 
 /**
  * Represents a supertransaction, which is a collection of instructions to be executed in a single transaction
@@ -212,13 +199,7 @@ export const getQuote = async (
 ): Promise<GetQuotePayload> => {
   const { account: account_ = client.account, instructions, feeToken } = params
 
-  const resolvedInstructions = (await Promise.all(
-    instructions.flatMap((userOp) =>
-      typeof userOp === "function" ? userOp(client) : userOp
-    )
-  )) as InstructionResolved[]
-
-  const validUserOps = resolvedInstructions.every((userOp) =>
+  const validUserOps = instructions.every((userOp) =>
     account_.deploymentOn(userOp.chainId)
   )
   const validPaymentAccount = account_.deploymentOn(feeToken.chainId)
@@ -227,24 +208,37 @@ export const getQuote = async (
   }
 
   const userOpResults = await Promise.all(
-    resolvedInstructions.map((userOp) => {
+    instructions.map((userOp) => {
       const deployment = account_.deploymentOn(userOp.chainId)
-      return Promise.all([
-        deployment.encodeExecuteBatch(userOp.calls),
-        deployment.getNonce(),
-        deployment.isDeployed(),
-        deployment.getInitCode(),
-        deployment.address,
-        userOp.calls
-          .map((tx) => tx.gasLimit)
-          .reduce((curr, acc) => curr + acc)
-          .toString(),
-        userOp.chainId.toString()
-      ])
+      if (deployment) {
+        return Promise.all([
+          deployment.encodeExecuteBatch(userOp.calls),
+          deployment.getNonce(),
+          deployment.isDeployed(),
+          deployment.getInitCode(),
+          deployment.address,
+          userOp.calls
+            .map((tx) => tx.gasLimit)
+            .reduce((curr, acc) => curr + acc)
+            .toString(),
+          userOp.chainId.toString()
+        ])
+      }
+      return null
     })
   )
 
-  const userOps = userOpResults.map(
+  const validUserOpResults = userOpResults.filter(Boolean) as [
+    Hex,
+    bigint,
+    boolean,
+    Hex,
+    Address,
+    string,
+    string
+  ][]
+
+  const userOps = validUserOpResults.map(
     ([
       callData,
       nonce_,

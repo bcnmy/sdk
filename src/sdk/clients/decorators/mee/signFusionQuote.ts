@@ -8,8 +8,8 @@ import {
   encodeAbiParameters,
   publicActions
 } from "viem"
+import type { MultichainSmartAccount } from "../../../account/toMultiChainNexusAccount"
 import type { Call } from "../../../account/utils/Types"
-import type { MultichainSmartAccount } from "../../../account/utils/toMultiChainNexusAccount"
 import type { BaseMeeClient } from "../../createMeeClient"
 import type { GetQuotePayload } from "./getQuote"
 import { type ExecutionMode, PREFIX } from "./signQuote"

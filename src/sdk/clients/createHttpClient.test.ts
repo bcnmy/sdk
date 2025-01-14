@@ -6,16 +6,16 @@ import type { NetworkConfig } from "../../test/testUtils"
 import {
   type MultichainSmartAccount,
   toMultichainNexusAccount
-} from "../account/utils/toMultiChainNexusAccount"
+} from "../account/toMultiChainNexusAccount"
 import createHttpClient from "./createHttpClient"
 import { type MeeClient, createMeeClient } from "./createMeeClient"
 
-describe("mee:createHttp    Client", async () => {
+describe("mee.createHttp    Client", async () => {
   let network: NetworkConfig
   let eoaAccount: LocalAccount
   let paymentChain: Chain
   let paymentToken: Address
-  let mcNexusMainnet: MultichainSmartAccount
+  let mcNexus: MultichainSmartAccount
   let meeClient: MeeClient
 
   beforeAll(async () => {
@@ -25,12 +25,12 @@ describe("mee:createHttp    Client", async () => {
     paymentToken = network.paymentToken!
     eoaAccount = network.account!
 
-    mcNexusMainnet = await toMultichainNexusAccount({
+    mcNexus = await toMultichainNexusAccount({
       chains: [base, paymentChain],
       signer: eoaAccount
     })
 
-    meeClient = createMeeClient({ account: mcNexusMainnet })
+    meeClient = createMeeClient({ account: mcNexus })
   })
 
   test("should instantiate a client", async () => {

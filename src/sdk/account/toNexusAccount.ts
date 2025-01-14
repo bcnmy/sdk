@@ -55,14 +55,16 @@ import {
 // Constants
 import { EntrypointAbi } from "../constants/abi"
 import {
-  getK1CounterFactualAddress,
-  getMeeCounterFactualAddress
-} from "./utils/getCounterFactualAddress"
+  getK1NexusAddress,
+  getMeeNexusAddress
+} from "./decorators/getNexusAddress"
 
 // Modules
 import { toK1Validator } from "../modules/k1Validator/toK1Validator"
 import type { Module } from "../modules/utils/Types"
 
+import { getK1FactoryData } from "./decorators/getFactoryData"
+import { getMeeFactoryData } from "./decorators/getFactoryData"
 import {
   EXECUTE_BATCH,
   EXECUTE_SINGLE,
@@ -81,8 +83,6 @@ import {
   isNullOrUndefined,
   typeToString
 } from "./utils/Utils"
-import { getK1FactoryData } from "./utils/getFactoryData"
-import { getMeeFactoryData } from "./utils/getFactoryData"
 import { type EthereumProvider, type Signer, toSigner } from "./utils/toSigner"
 
 /**
@@ -227,10 +227,6 @@ export const toNexusAccount = async (
     }
   })
 
-  // Review:
-  // Todo: attesters can be added here to do one time setup upon deployment.
-  // chain?.testnet && attesters_.push(MOCK_ATTESTER_ADDRESS)
-
   const factoryData = useMeeAccount
     ? await getMeeFactoryData({
         signerAddress,
@@ -278,16 +274,14 @@ export const toNexusAccount = async (
     }
 
     const addressFromFactory = useMeeAccount
-      ? await getMeeCounterFactualAddress({
+      ? await getMeeNexusAddress({
           publicClient,
           signerAddress,
-          index,
-          factoryAddress
+          index
         })
-      : await getK1CounterFactualAddress({
+      : await getK1NexusAddress({
           publicClient,
           signerAddress,
-          isTestnet: chain.testnet,
           index,
           attesters: attesters_,
           threshold: attesterThreshold,

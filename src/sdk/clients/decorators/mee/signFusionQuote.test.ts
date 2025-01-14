@@ -6,7 +6,7 @@ import type { NetworkConfig } from "../../../../test/testUtils"
 import {
   type MultichainSmartAccount,
   toMultichainNexusAccount
-} from "../../../account/utils/toMultiChainNexusAccount"
+} from "../../../account/toMultiChainNexusAccount"
 import { type MeeClient, createMeeClient } from "../../createMeeClient"
 import executeSignedFusionQuote, {
   type ExecuteSignedFusionQuotePayload
@@ -16,12 +16,12 @@ import { signFusionQuote } from "./signFusionQuote"
 
 const { runPaidTests } = inject("settings")
 
-describe.runIf(runPaidTests).skip("mee:signFusionQuote", () => {
+describe.runIf(runPaidTests).skip("mee.signFusionQuote", () => {
   let network: NetworkConfig
   let eoaAccount: LocalAccount
   let paymentChain: Chain
   let paymentToken: Address
-  let mcNexusMainnet: MultichainSmartAccount
+  let mcNexus: MultichainSmartAccount
   let meeClient: MeeClient
 
   beforeAll(async () => {
@@ -31,12 +31,12 @@ describe.runIf(runPaidTests).skip("mee:signFusionQuote", () => {
     paymentToken = network.paymentToken!
     eoaAccount = network.account!
 
-    mcNexusMainnet = await toMultichainNexusAccount({
+    mcNexus = await toMultichainNexusAccount({
       chains: [base, paymentChain],
       signer: eoaAccount
     })
 
-    meeClient = createMeeClient({ account: mcNexusMainnet })
+    meeClient = createMeeClient({ account: mcNexus })
   })
 
   test("should execute a quote using executeSignedFusionQuote", async () => {

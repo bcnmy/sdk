@@ -3,7 +3,7 @@ import {
   getExplorerTxLink,
   getJiffyScanLink,
   getMeeScanLink
-} from "../../../account/utils/explorer/explorer"
+} from "../../../account/utils/explorer"
 import type { Url } from "../../createHttpClient"
 import type { BaseMeeClient } from "../../createMeeClient"
 import type { GetQuotePayload, MeeFilledUserOpDetails } from "./getQuote"

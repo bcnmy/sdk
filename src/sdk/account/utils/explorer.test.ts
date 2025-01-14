@@ -1,24 +1,21 @@
 import type { Address, Chain, LocalAccount } from "viem"
 import { base, baseSepolia } from "viem/chains"
-import { afterAll, beforeAll, describe, expect, test } from "vitest"
-import { toNetwork } from "../../../../test/testSetup"
-import type { NetworkConfig } from "../../../../test/testUtils"
-import {
-  type MeeClient,
-  createMeeClient
-} from "../../../clients/createMeeClient"
+import { beforeAll, describe, expect, test } from "vitest"
+import { toNetwork } from "../../../test/testSetup"
+import type { NetworkConfig } from "../../../test/testUtils"
+import { type MeeClient, createMeeClient } from "../../clients/createMeeClient"
 import {
   type MultichainSmartAccount,
   toMultichainNexusAccount
 } from "../toMultiChainNexusAccount"
 import { getExplorerTxLink, getJiffyScanLink, getMeeScanLink } from "./explorer"
 
-describe("explorer", () => {
+describe("mee.explorer", () => {
   let network: NetworkConfig
   let eoaAccount: LocalAccount
   let paymentChain: Chain
   let paymentToken: Address
-  let mcNexusMainnet: MultichainSmartAccount
+  let mcNexus: MultichainSmartAccount
   let meeClient: MeeClient
 
   beforeAll(async () => {
@@ -28,12 +25,12 @@ describe("explorer", () => {
     paymentToken = network.paymentToken!
     eoaAccount = network.account!
 
-    mcNexusMainnet = await toMultichainNexusAccount({
+    mcNexus = await toMultichainNexusAccount({
       chains: [base, paymentChain],
       signer: eoaAccount
     })
 
-    meeClient = createMeeClient({ account: mcNexusMainnet })
+    meeClient = createMeeClient({ account: mcNexus })
   })
 
   test("should get a meescan url", () => {

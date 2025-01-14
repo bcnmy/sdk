@@ -16,6 +16,8 @@ type RequestParams = {
   method?: "GET" | "POST"
   /** Optional request body */
   body?: object
+  /** Optional request params */
+  params?: Record<string, string>
 }
 
 /**
@@ -50,9 +52,10 @@ type Extended = Prettify<
  * @returns A base Http client instance that can be extended with additional functionality
  */
 export const createHttpClient = (url: Url): HttpClient => {
-  const request = async <T>(params: RequestParams) => {
-    const { path, method = "POST", body } = params
-    const result = await fetch(`${url}/${path}`, {
+  const request = async <T>(requesParams: RequestParams) => {
+    const { path, method = "POST", body, params } = requesParams
+    const urlParams = params ? `?${new URLSearchParams(params)}` : ""
+    const result = await fetch(`${url}/${path}${urlParams}`, {
       method,
       headers: {
         "Content-Type": "application/json"

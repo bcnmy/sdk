@@ -1,10 +1,4 @@
-import {
-  type Address,
-  type Chain,
-  type LocalAccount,
-  erc20Abi,
-  isHex
-} from "viem"
+import { type Address, type Chain, type LocalAccount, isHex } from "viem"
 import { base } from "viem/chains"
 import { beforeAll, describe, expect, inject, test } from "vitest"
 import { toNetwork } from "../../test/testSetup"
@@ -12,18 +6,19 @@ import type { NetworkConfig } from "../../test/testUtils"
 import {
   type MultichainSmartAccount,
   toMultichainNexusAccount
-} from "../account/utils/toMultiChainNexusAccount"
+} from "../account/toMultiChainNexusAccount"
 import { type MeeClient, createMeeClient } from "./createMeeClient"
 import type { Instruction } from "./decorators/mee"
 
+// @ts-ignore
 const { runPaidTests } = inject("settings")
 
-describe("mee:createMeeClient", async () => {
+describe("mee.createMeeClient", async () => {
   let network: NetworkConfig
   let eoaAccount: LocalAccount
   let paymentChain: Chain
   let paymentToken: Address
-  let mcNexusMainnet: MultichainSmartAccount
+  let mcNexus: MultichainSmartAccount
   let meeClient: MeeClient
 
   beforeAll(async () => {
@@ -33,35 +28,16 @@ describe("mee:createMeeClient", async () => {
     paymentToken = network.paymentToken!
     eoaAccount = network.account!
 
-    mcNexusMainnet = await toMultichainNexusAccount({
+    mcNexus = await toMultichainNexusAccount({
       chains: [base, paymentChain],
       signer: eoaAccount
     })
 
-    meeClient = createMeeClient({ account: mcNexusMainnet })
-  })
-
-  test("should instantiate a client", async () => {
-    const meeClient = createMeeClient({ account: mcNexusMainnet })
-    expect(meeClient).toBeDefined()
-    expect(meeClient.request).toBeDefined()
-    expect(Object.keys(meeClient)).toContain("request")
-    expect(Object.keys(meeClient)).toContain("account")
-    expect(Object.keys(meeClient)).toContain("getQuote")
-  })
-
-  test("should extend meeClient with decorators", () => {
-    expect(meeClient).toBeDefined()
-    expect(meeClient.getQuote).toBeDefined()
-    expect(meeClient.request).toBeDefined()
-    expect(meeClient.account).toBeDefined()
-    expect(meeClient.getQuote).toBeDefined()
-    expect(meeClient.signQuote).toBeDefined()
-    expect(meeClient.executeSignedQuote).toBeDefined()
+    meeClient = createMeeClient({ account: mcNexus })
   })
 
   test("should get a quote", async () => {
-    const meeClient = createMeeClient({ account: mcNexusMainnet })
+    const meeClient = createMeeClient({ account: mcNexus })
 
     const quote = await meeClient.getQuote({
       instructions: [],
@@ -73,7 +49,7 @@ describe("mee:createMeeClient", async () => {
 
     expect(quote).toBeDefined()
     expect(quote.paymentInfo.sender).toEqual(
-      mcNexusMainnet.deploymentOn(paymentChain.id).address
+      mcNexus.deploymentOn(paymentChain.id)?.address
     )
     expect(quote.paymentInfo.token).toEqual(paymentToken)
     expect(+quote.paymentInfo.chainId).toEqual(paymentChain.id)
@@ -136,8 +112,8 @@ describe("mee:createMeeClient", async () => {
     })
 
   test("should demo the devEx of preparing instructions", async () => {
-    // These can be any 'Instruction', or any helper method that resolves to a 'ResolvedInstruction',
-    // including 'requireErc20Balance'. They all are resolved in the 'getQuote' method under the hood.
+    // These can be any 'Instruction', or any helper method that resolves to a 'Instruction',
+    // including 'buildBalanceInstruction'. They all are resolved in the 'getQuote' method under the hood.
     const preparedInstructions: Instruction[] = [
       {
         calls: [
@@ -149,7 +125,7 @@ describe("mee:createMeeClient", async () => {
         ],
         chainId: 8453
       },
-      () => ({
+      {
         calls: [
           {
             to: "0x0000000000000000000000000000000000000000",
@@ -158,39 +134,7 @@ describe("mee:createMeeClient", async () => {
           }
         ],
         chainId: 8453
-      }),
-      Promise.resolve({
-        calls: [
-          {
-            to: "0x0000000000000000000000000000000000000000",
-            gasLimit: 50000n,
-            value: 0n
-          }
-        ],
-        chainId: 8453
-      }),
-      () => [
-        {
-          calls: [
-            {
-              to: "0x0000000000000000000000000000000000000000",
-              gasLimit: 50000n,
-              value: 0n
-            }
-          ],
-          chainId: 8453
-        },
-        {
-          calls: [
-            {
-              to: "0x0000000000000000000000000000000000000000",
-              gasLimit: 50000n,
-              value: 0n
-            }
-          ],
-          chainId: 8453
-        }
-      ]
+      }
     ]
 
     expect(preparedInstructions).toBeDefined()
@@ -203,10 +147,10 @@ describe("mee:createMeeClient", async () => {
       }
     })
 
-    expect(quote.userOps.length).toEqual(6)
+    expect(quote.userOps.length).toEqual(3)
     expect(quote).toBeDefined()
     expect(quote.paymentInfo.sender).toEqual(
-      mcNexusMainnet.deploymentOn(paymentChain.id).address
+      mcNexus.deploymentOn(paymentChain.id)?.address
     )
     expect(quote.paymentInfo.token).toEqual(paymentToken)
     expect(+quote.paymentInfo.chainId).toEqual(paymentChain.id)

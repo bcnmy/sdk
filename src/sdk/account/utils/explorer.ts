@@ -1,6 +1,6 @@
 import type { Chain, Hex } from "viem"
-import type { Url } from "../../../clients/createHttpClient"
-import { getChain } from "../getChain"
+import type { Url } from "../../clients/createHttpClient"
+import { getChain } from "./getChain"
 
 /**
  * Get the explorer tx link

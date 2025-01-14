@@ -1,6 +1,6 @@
 import type { Prettify } from "viem"
+import type { MultichainSmartAccount } from "../account/toMultiChainNexusAccount"
 import { inProduction } from "../account/utils/Utils"
-import type { MultichainSmartAccount } from "../account/utils/toMultiChainNexusAccount"
 import createHttpClient, { type HttpClient, type Url } from "./createHttpClient"
 import { meeActions } from "./decorators/mee"
 

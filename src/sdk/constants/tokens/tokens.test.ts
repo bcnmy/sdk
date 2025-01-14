@@ -5,18 +5,18 @@ import { beforeAll, describe, expect, test } from "vitest"
 import * as tokens from "."
 import { toNetwork } from "../../../test/testSetup"
 import type { NetworkConfig } from "../../../test/testUtils"
-import { addressEquals } from "../../account/utils/Utils"
 import {
   type MultichainSmartAccount,
   toMultichainNexusAccount
-} from "../../account/utils/toMultiChainNexusAccount"
+} from "../../account/toMultiChainNexusAccount"
+import { addressEquals } from "../../account/utils/Utils"
 
-describe("mee:tokens", async () => {
+describe("mee.tokens", async () => {
   let network: NetworkConfig
   let eoaAccount: LocalAccount
   let paymentChain: Chain
   let paymentToken: Address
-  let mcNexusMainnet: MultichainSmartAccount
+  let mcNexus: MultichainSmartAccount
 
   beforeAll(async () => {
     network = await toNetwork("MAINNET_FROM_ENV_VARS")
@@ -25,7 +25,7 @@ describe("mee:tokens", async () => {
     paymentToken = network.paymentToken!
     eoaAccount = network.account!
 
-    mcNexusMainnet = await toMultichainNexusAccount({
+    mcNexus = await toMultichainNexusAccount({
       chains: [base, paymentChain],
       signer: eoaAccount
     })
@@ -43,13 +43,13 @@ describe("mee:tokens", async () => {
   test("should instantiate a client", async () => {
     const token = tokens.mcUSDC
     const tokenWithChain = token.addressOn(10)
-    const mcNexusAddress = mcNexusMainnet.deploymentOn(base.id).address
+    const mcNexusAddress = mcNexus.deploymentOn(base.id).address
 
     const balances = await token.read({
       onChains: [base, optimism],
       functionName: "balanceOf",
       args: [mcNexusAddress],
-      account: mcNexusMainnet
+      account: mcNexus
     })
 
     expect(balances.length).toBe(2)

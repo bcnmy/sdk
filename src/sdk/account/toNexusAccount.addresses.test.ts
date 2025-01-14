@@ -35,7 +35,7 @@ import {
   TEST_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
 } from "../constants"
 import { type NexusAccount, toNexusAccount } from "./toNexusAccount"
-import { getK1CounterFactualAddress } from "./utils"
+import { getK1NexusAddress } from "./utils"
 
 describe("nexus.account.addresses", async () => {
   let network: NetworkConfig
@@ -83,10 +83,9 @@ describe("nexus.account.addresses", async () => {
 
   test("should check account address", async () => {
     nexusAccountAddress = await nexusClient.account.getCounterFactualAddress()
-    const counterfactualAddressFromHelper = await getK1CounterFactualAddress({
+    const counterfactualAddressFromHelper = await getK1NexusAddress({
       publicClient: testClient as unknown as PublicClient,
       signerAddress: eoaAccount.address,
-      isTestnet: true,
       index: 0n,
       attesters: [RHINESTONE_ATTESTER_ADDRESS],
       threshold: 1,
@@ -101,10 +100,9 @@ describe("nexus.account.addresses", async () => {
 
   test("should check addresses after fund and deploy", async () => {
     await fundAndDeployClients(testClient, [nexusClient])
-    const counterfactualAddressFromHelper = await getK1CounterFactualAddress({
+    const counterfactualAddressFromHelper = await getK1NexusAddress({
       publicClient: testClient as unknown as PublicClient,
       signerAddress: eoaAccount.address,
-      isTestnet: true,
       index: 0n,
       attesters: [RHINESTONE_ATTESTER_ADDRESS],
       threshold: 1,

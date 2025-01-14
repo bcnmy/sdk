@@ -3,20 +3,20 @@ import { base } from "viem/chains"
 import { afterAll, beforeAll, describe, expect, test, vi } from "vitest"
 import { toNetwork } from "../../../../test/testSetup"
 import type { NetworkConfig } from "../../../../test/testUtils"
-import type { MultichainSmartAccount } from "../../../account/utils/toMultiChainNexusAccount"
-import { toMultichainNexusAccount } from "../../../account/utils/toMultiChainNexusAccount"
+import type { MultichainSmartAccount } from "../../../account/toMultiChainNexusAccount"
+import { toMultichainNexusAccount } from "../../../account/toMultiChainNexusAccount"
 import { type MeeClient, createMeeClient } from "../../createMeeClient"
 import { executeSignedQuote } from "./executeSignedQuote"
 import type { Instruction } from "./getQuote"
 import { signQuote } from "./signQuote"
 vi.mock("./executeSignedQuote")
 
-describe("mee:executeSignedQuote", () => {
+describe("mee.executeSignedQuote", () => {
   let network: NetworkConfig
   let eoaAccount: LocalAccount
   let paymentChain: Chain
   let paymentToken: Address
-  let mcNexusMainnet: MultichainSmartAccount
+  let mcNexus: MultichainSmartAccount
   let meeClient: MeeClient
 
   beforeAll(async () => {
@@ -26,12 +26,12 @@ describe("mee:executeSignedQuote", () => {
     paymentToken = network.paymentToken!
     eoaAccount = network.account!
 
-    mcNexusMainnet = await toMultichainNexusAccount({
+    mcNexus = await toMultichainNexusAccount({
       chains: [base, paymentChain],
       signer: eoaAccount
     })
 
-    meeClient = createMeeClient({ account: mcNexusMainnet })
+    meeClient = createMeeClient({ account: mcNexus })
   })
 
   test("should execute a quote using executeSignedQuote", async () => {

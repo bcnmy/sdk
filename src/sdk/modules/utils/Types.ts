@@ -119,7 +119,7 @@ export type Modularity = {
 export type ModularSmartAccount =
   SmartAccount<NexusSmartAccountImplementation> & Modularity
 
-export type MinimalMEESmartAccount = Pick<
+export type MeeSmartAccount = Pick<
   SmartAccount<ModularSmartAccount>,
   | "address"
   | "getCounterFactualAddress"

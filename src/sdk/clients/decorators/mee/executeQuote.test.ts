@@ -6,7 +6,7 @@ import type { NetworkConfig } from "../../../../test/testUtils"
 import {
   type MultichainSmartAccount,
   toMultichainNexusAccount
-} from "../../../account/utils/toMultiChainNexusAccount"
+} from "../../../account/toMultiChainNexusAccount"
 import { type MeeClient, createMeeClient } from "../../createMeeClient"
 import executeQuote from "./executeQuote"
 import type { ExecuteSignedQuotePayload } from "./executeSignedQuote"
@@ -14,12 +14,12 @@ import { type Instruction, getQuote } from "./getQuote"
 
 vi.mock("./executeQuote")
 
-describe("mee:executeQuote", () => {
+describe("mee.executeQuote", () => {
   let network: NetworkConfig
   let eoaAccount: LocalAccount
   let paymentChain: Chain
   let paymentToken: Address
-  let mcNexusMainnet: MultichainSmartAccount
+  let mcNexus: MultichainSmartAccount
   let meeClient: MeeClient
 
   beforeAll(async () => {
@@ -29,12 +29,12 @@ describe("mee:executeQuote", () => {
     paymentToken = network.paymentToken!
     eoaAccount = network.account!
 
-    mcNexusMainnet = await toMultichainNexusAccount({
+    mcNexus = await toMultichainNexusAccount({
       chains: [base, paymentChain],
       signer: eoaAccount
     })
 
-    meeClient = createMeeClient({ account: mcNexusMainnet })
+    meeClient = createMeeClient({ account: mcNexus })
   })
 
   test("should execute a quote using", async () => {

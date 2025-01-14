@@ -6,17 +6,17 @@ import type { NetworkConfig } from "../../../../test/testUtils"
 import {
   type MultichainSmartAccount,
   toMultichainNexusAccount
-} from "../../../account/utils/toMultiChainNexusAccount"
+} from "../../../account/toMultiChainNexusAccount"
 import { type MeeClient, createMeeClient } from "../../createMeeClient"
 import type { Instruction } from "./getQuote"
 import { signQuote } from "./signQuote"
 
-describe("mee:signQuote", () => {
+describe("mee.signQuote", () => {
   let network: NetworkConfig
   let eoaAccount: LocalAccount
   let paymentChain: Chain
   let paymentToken: Address
-  let mcNexusMainnet: MultichainSmartAccount
+  let mcNexus: MultichainSmartAccount
   let meeClient: MeeClient
 
   beforeAll(async () => {
@@ -26,12 +26,12 @@ describe("mee:signQuote", () => {
     paymentToken = network.paymentToken!
     eoaAccount = network.account!
 
-    mcNexusMainnet = await toMultichainNexusAccount({
+    mcNexus = await toMultichainNexusAccount({
       chains: [base, paymentChain],
       signer: eoaAccount
     })
 
-    meeClient = createMeeClient({ account: mcNexusMainnet })
+    meeClient = createMeeClient({ account: mcNexus })
   })
 
   test("should sign a quote", async () => {

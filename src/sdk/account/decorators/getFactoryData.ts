@@ -9,6 +9,11 @@ import {
   parseAbi,
   toHex
 } from "viem"
+import {
+  MEE_VALIDATOR_ADDRESS,
+  NEXUS_BOOTSTRAP_ADDRESS,
+  REGISTRY_ADDRESS
+} from "../../constants"
 import { NexusBootstrapAbi } from "../../constants/abi/NexusBootstrapAbi"
 
 /**
@@ -56,11 +61,11 @@ export const getK1FactoryData = async ({
  * @property {Address} bootStrapAddress - The address of the bootstrap contract
  */
 export type GetMeeFactoryDataParams = GetK1FactoryDataParams & {
-  validatorAddress: Address
-  registryAddress: Address
+  validatorAddress?: Address
+  registryAddress?: Address
   publicClient: PublicClient
   walletClient: WalletClient
-  bootStrapAddress: Address
+  bootStrapAddress?: Address
 }
 
 /**
@@ -69,13 +74,13 @@ export type GetMeeFactoryDataParams = GetK1FactoryDataParams & {
  * @returns {Promise<Hex>} Encoded function data for account creation
  */
 export const getMeeFactoryData = async ({
-  validatorAddress,
+  validatorAddress = MEE_VALIDATOR_ADDRESS,
   attesters,
-  registryAddress,
+  registryAddress = REGISTRY_ADDRESS,
   attesterThreshold,
   publicClient,
   walletClient,
-  bootStrapAddress,
+  bootStrapAddress = NEXUS_BOOTSTRAP_ADDRESS,
   signerAddress,
   index
 }: GetMeeFactoryDataParams): Promise<Hex> => {
