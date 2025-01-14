@@ -3,7 +3,7 @@ import type { Chain, Client, Hex, Transport } from "viem"
 import { sendUserOperation } from "viem/account-abstraction"
 import { getAction, parseAccount } from "viem/utils"
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
-import { MOCK_ATTESTER_ADDRESS, REGISTRY_ADDRESS } from "../../../constants"
+import { REGISTRY_ADDRESS } from "../../../constants"
 import type { ModularSmartAccount } from "../../utils/Types"
 /**
  * Parameters for trusting attesters in a smart session validator.
@@ -67,7 +67,7 @@ export async function trustAttesters<
     maxFeePerGas,
     maxPriorityFeePerGas,
     nonce,
-    attesters = [MOCK_ATTESTER_ADDRESS],
+    attesters = [],
     registryAddress = REGISTRY_ADDRESS,
     threshold = attesters.length
   } = parameters ?? {}

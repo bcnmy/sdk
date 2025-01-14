@@ -1,7 +1,5 @@
-import {
-  getTimeFramePolicy,
-  getUniversalActionPolicy
-} from "@rhinestone/module-sdk"
+import { getUniversalActionPolicy } from "@rhinestone/module-sdk"
+import { getPermissionId } from "@rhinestone/module-sdk"
 import type { Chain, Client, Hex, PublicClient, Transport } from "viem"
 import { encodeFunctionData, parseAccount } from "viem/utils"
 import { ERROR_MESSAGES } from "../../../account"
@@ -26,7 +24,6 @@ import {
   createActionConfig,
   createActionData,
   generateSalt,
-  getPermissionId,
   toActionConfig
 } from "../Helpers"
 import type {
@@ -35,6 +32,8 @@ import type {
   PreparePermissionResponse,
   ResolvedActionPolicyInfo
 } from "../Types"
+
+// import { getPermissionId } from "@rhinestone/module-sdk"
 
 export const ONE_YEAR_FROM_NOW_IN_SECONDS = Date.now() + 60 * 60 * 24 * 365
 
@@ -69,12 +68,10 @@ export type PreparePermissionParameters<
  */
 export const getPermissionAction = async ({
   chainId,
-  sessionRequestedInfo,
-  client
+  sessionRequestedInfo
 }: {
   chainId: number
   sessionRequestedInfo: FullCreateSessionDataParams[]
-  client: PublicClient
 }): Promise<PreparePermissionResponse | Error> => {
   const sessions: Session[] = []
   const permissionIds: Hex[] = []
@@ -82,25 +79,27 @@ export const getPermissionAction = async ({
   const resolvedPolicyInfo2ActionData = (
     actionPolicyInfo: ResolvedActionPolicyInfo
   ) => {
-    const actionConfig = createActionConfig(
-      actionPolicyInfo.rules ?? [],
-      actionPolicyInfo.valueLimit
-    )
-
     const policyData: PolicyData[] = []
 
-    // create uni action policy here..
-    const uniActionPolicyInfo = getUniversalActionPolicy(
-      toActionConfig(actionConfig)
-    )
-    policyData.push(uniActionPolicyInfo)
-
     // create time frame policy here..
-    const timeFramePolicyData = getTimeFramePolicy({
-      validUntil: actionPolicyInfo.validUntil ?? ONE_YEAR_FROM_NOW_IN_SECONDS,
-      validAfter: actionPolicyInfo.validAfter ?? 0
-    })
-    policyData.push(timeFramePolicyData)
+    // const timeFramePolicyData = getTimeFramePolicy({
+    //   validUntil: actionPolicyInfo.validUntil ?? ONE_YEAR_FROM_NOW_IN_SECONDS,
+    //   validAfter: actionPolicyInfo.validAfter ?? 0
+    // })
+    // policyData.push(timeFramePolicyData)
+
+    if (actionPolicyInfo.rules && actionPolicyInfo.rules.length > 0) {
+      const actionConfig = createActionConfig(
+        actionPolicyInfo.rules ?? [],
+        actionPolicyInfo.valueLimit
+      )
+
+      // create uni action policy here..
+      const uniActionPolicyInfo = getUniversalActionPolicy(
+        toActionConfig(actionConfig)
+      )
+      policyData.push(uniActionPolicyInfo)
+    }
 
     // create sudo policy here..
     if (actionPolicyInfo.sudo) {
@@ -160,32 +159,28 @@ export const getPermissionAction = async ({
       }
     }
 
-    const userOpTimeFramePolicyData = getTimeFramePolicy({
-      validUntil: sessionInfo.sessionValidUntil ?? ONE_YEAR_FROM_NOW_IN_SECONDS,
-      validAfter: sessionInfo.sessionValidAfter ?? 0
-    })
-
     const session: Session = {
       chainId: BigInt(chainId),
+      permitERC4337Paymaster: true,
       sessionValidator: OWNABLE_VALIDATOR_ADDRESS,
       sessionValidatorInitData: encodeValidationData({
         threshold: 1,
         owners: [sessionInfo.sessionKeyData]
       }),
       salt: sessionInfo.salt ?? generateSalt(),
-      userOpPolicies: [userOpTimeFramePolicyData],
+      userOpPolicies: [],
       actions: actionPolicies,
       erc7739Policies: {
         allowedERC7739Content: [],
         erc1271Policies: []
       }
-      // permitERC4337Paymaster: true
     }
 
-    const permissionId = await getPermissionId({
-      client,
+    const permissionId = getPermissionId({
       session
     })
+
+    console.log("permissionId", permissionId)
     // push permissionId to the array
     permissionIds.push(permissionId)
 
@@ -287,7 +282,6 @@ export async function preparePermission<
 
   const actionResponse = await getPermissionAction({
     chainId,
-    client: publicClient_,
     sessionRequestedInfo: defaultedSessionRequestedInfo
   })
 

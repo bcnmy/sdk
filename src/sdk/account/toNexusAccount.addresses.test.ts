@@ -146,6 +146,6 @@ describe("nexus.account.addresses", async () => {
     const testnetAddress = await testnetClient.account.getAddress()
     const mainnetAddress = await mainnetClient.account.getAddress()
 
-    expect(testnetAddress).not.toBe(mainnetAddress)
+    expect(testnetAddress).toBe(mainnetAddress)
   })
 })

@@ -1,7 +1,7 @@
 import type { Address, Hex } from "viem"
 import { baseSepolia } from "viem/chains"
 import {
-  MOCK_ATTESTER_ADDRESS,
+  // MOCK_ATTESTER_ADDRESS,
   OWNABLE_EXECUTOR_ADDRESS,
   OWNABLE_VALIDATOR_ADDRESS,
   REGISTRY_ADDRESS,
@@ -58,11 +58,11 @@ export const TEST_CONTRACTS: Record<
     name: "TokenWithPermit",
     address: "0x51fdb803fD49f0f5bd03de0400a8F17dA2Aa6999"
   },
-  MockAttester: {
-    chainId: baseSepolia.id,
-    name: "MockAttester",
-    address: MOCK_ATTESTER_ADDRESS
-  },
+  // MockAttester: {
+  //   chainId: baseSepolia.id,
+  //   name: "MockAttester",
+  //   address: MOCK_ATTESTER_ADDRESS
+  // },
   RhinestoneAttester: {
     chainId: baseSepolia.id,
     name: "RhinestoneAttester",

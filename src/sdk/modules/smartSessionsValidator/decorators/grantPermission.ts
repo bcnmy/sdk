@@ -1,8 +1,8 @@
 import type { Chain, Client, Hex, PublicClient, Transport } from "viem"
-import { sendUserOperation } from "viem/account-abstraction"
 import { getAction, parseAccount } from "viem/utils"
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
 import type { Call } from "../../../account/utils/Types"
+import { debugUserOperation } from "../../../clients/decorators/smartAccount/debugUserOperation"
 import type { ModularSmartAccount } from "../../utils/Types"
 import type { CreateSessionDataParams, GrantPermissionResponse } from "../Types"
 import { preparePermission } from "./preparePermission"
@@ -110,8 +110,8 @@ export async function grantPermission<
 
   const userOpHash = await getAction(
     client,
-    sendUserOperation,
-    "sendUserOperation"
+    debugUserOperation,
+    "debugUserOperation"
   )({
     calls: [
       {

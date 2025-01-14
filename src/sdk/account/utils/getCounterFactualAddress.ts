@@ -2,7 +2,7 @@ import type { Address } from "viem"
 import type { PublicClient } from "viem"
 import {
   MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS,
-  MOCK_ATTESTER_ADDRESS,
+  // MOCK_ATTESTER_ADDRESS,
   RHINESTONE_ATTESTER_ADDRESS
 } from "../../constants"
 
@@ -33,7 +33,7 @@ export const getCounterFactualAddress = async (
   factoryAddress = MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
 ) => {
   if (isTestnet) {
-    attesters.push(MOCK_ATTESTER_ADDRESS)
+    // attesters.push(MOCK_ATTESTER_ADDRESS)
   }
 
   return await publicClient.readContract({
