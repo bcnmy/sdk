@@ -39,12 +39,17 @@ export type Instruction = {
 
 /**
  * Represents a supertransaction, which is a collection of instructions to be executed in a single transaction
- * @type SuperTransaction
+ * @type Supertransaction
  */
-export type SuperTransaction = {
+export type Supertransaction = {
   /** Array of instructions to be executed in the transaction */
   instructions: Instruction[]
   /** Token to be used for paying transaction fees */
+  feeToken: FeeTokenInfo
+}
+
+export type SupertransactionLike = {
+  instructions: (Promise<Instruction[]> | Instruction[])[] | Instruction[]
   feeToken: FeeTokenInfo
 }
 
@@ -52,7 +57,7 @@ export type SuperTransaction = {
  * Parameters required for requesting a quote from the MEE service
  * @type GetQuoteParams
  */
-export type GetQuoteParams = SuperTransaction & {
+export type GetQuoteParams = SupertransactionLike & {
   /** Optional smart account to execute the transaction. If not provided, uses the client's default account */
   account?: MultichainSmartAccount
 }
@@ -199,16 +204,27 @@ export const getQuote = async (
 ): Promise<GetQuotePayload> => {
   const { account: account_ = client.account, instructions, feeToken } = params
 
-  const validUserOps = instructions.every((userOp) =>
+  const resolvedInstructions: Instruction[] = (
+    await Promise.all(
+      instructions.flatMap((instructions_) =>
+        typeof instructions_ === "function"
+          ? (instructions_ as () => Promise<Instruction[]>)()
+          : instructions_
+      )
+    )
+  ).flat()
+
+  const validUserOps = resolvedInstructions.every((userOp) =>
     account_.deploymentOn(userOp.chainId)
   )
   const validPaymentAccount = account_.deploymentOn(feeToken.chainId)
   if (!validPaymentAccount || !validUserOps) {
+    console.log(resolvedInstructions.map((x) => x.chainId))
     throw Error("Account is not deployed on necessary chain(s)")
   }
 
   const userOpResults = await Promise.all(
-    instructions.map((userOp) => {
+    resolvedInstructions.map((userOp) => {
       const deployment = account_.deploymentOn(userOp.chainId)
       if (deployment) {
         return Promise.all([

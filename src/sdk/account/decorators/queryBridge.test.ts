@@ -9,7 +9,7 @@ import {
   type MultichainSmartAccount,
   toMultichainNexusAccount
 } from "../toMultiChainNexusAccount"
-import { AcrossPlugin } from "../utils/acrossPlugin"
+import { toAcrossPlugin } from "../utils/toAcrossPlugin"
 import type { MultichainAddressMapping } from "./buildBridgeInstructions"
 import { queryBridge } from "./queryBridge"
 
@@ -41,9 +41,9 @@ describe("mee:queryBridge", () => {
 
     const tokenMapping: MultichainAddressMapping = {
       on: (chainId: number) =>
-        unifiedBalance.token.deployments.get(chainId) || "0x",
+        unifiedBalance.mcToken.deployments.get(chainId) || "0x",
       deployments: Array.from(
-        unifiedBalance.token.deployments.entries(),
+        unifiedBalance.mcToken.deployments.entries(),
         ([chainId, address]) => ({ chainId, address })
       )
     }
@@ -58,6 +58,6 @@ describe("mee:queryBridge", () => {
 
     expect(payload?.amount).toBeGreaterThan(0n)
     expect(payload?.receivedAtDestination).toBeGreaterThan(0n)
-    expect(payload?.plugin).toBe(AcrossPlugin)
+    expect(payload?.plugin).toBe(toAcrossPlugin())
   })
 })

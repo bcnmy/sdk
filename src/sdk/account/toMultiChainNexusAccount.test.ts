@@ -106,9 +106,16 @@ describe("mee.toMultiChainNexusAccount", async () => {
 
   test("mcNexus to have decorators successfully applied", async () => {
     expect(mcNexus.getUnifiedERC20Balance).toBeInstanceOf(Function)
-    expect(mcNexus.buildBalanceInstructions).toBeInstanceOf(Function)
+    expect(mcNexus.buildInstructions).toBeInstanceOf(Function)
     expect(mcNexus.buildBridgeInstructions).toBeInstanceOf(Function)
     expect(mcNexus.queryBridge).toBeDefined()
+  })
+
+  test("should check unified balance", async () => {
+    const unifiedBalance = await mcNexus.getUnifiedERC20Balance(mcUSDC)
+    expect(unifiedBalance).toHaveProperty("mcToken")
+    expect(unifiedBalance).toHaveProperty("breakdown")
+    expect(unifiedBalance.mcToken).toHaveProperty("deployments")
   })
 
   test("should query bridge", async () => {
@@ -116,9 +123,9 @@ describe("mee.toMultiChainNexusAccount", async () => {
 
     const tokenMapping = {
       on: (chainId: number) =>
-        unifiedBalance.token.deployments.get(chainId) || "0x",
+        unifiedBalance.mcToken.deployments.get(chainId) || "0x",
       deployments: Array.from(
-        unifiedBalance.token.deployments.entries(),
+        unifiedBalance.mcToken.deployments.entries(),
         ([chainId, address]) => ({ chainId, address })
       )
     }

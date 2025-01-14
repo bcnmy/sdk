@@ -1,7 +1,7 @@
 import type { Address, Chain } from "viem"
 import type { Instruction } from "../../clients/decorators/mee/getQuote"
 import type { BaseMultichainSmartAccount } from "../toMultiChainNexusAccount"
-import { AcrossPlugin } from "../utils/acrossPlugin"
+import { toAcrossPlugin } from "../utils/toAcrossPlugin"
 import type { UnifiedERC20Balance } from "./getUnifiedERC20Balance"
 import type { BridgeQueryResult } from "./queryBridge"
 import { queryBridge } from "./queryBridge"
@@ -124,7 +124,7 @@ export type BridgingInstructions = {
  * @example
  * const instructions = await buildBridgeInstruction(client, {
  *   amount: BigInt(1000),
- *   token: mcUSDC,
+ *   mcToken: mcUSDC,
  *   chain: base
  * })
  */
@@ -137,16 +137,16 @@ export const buildBridgeInstructions = async (
     amount: targetAmount,
     toChain,
     unifiedBalance,
-    bridgingPlugins = [AcrossPlugin],
+    bridgingPlugins = [toAcrossPlugin()],
     feeData
   } = params
 
   // Create token address mapping
   const tokenMapping: MultichainAddressMapping = {
     on: (chainId: number) =>
-      unifiedBalance.token.deployments.get(chainId) || "0x",
+      unifiedBalance.mcToken.deployments.get(chainId) || "0x",
     deployments: Array.from(
-      unifiedBalance.token.deployments.entries(),
+      unifiedBalance.mcToken.deployments.entries(),
       ([chainId, address]) => ({
         chainId,
         address

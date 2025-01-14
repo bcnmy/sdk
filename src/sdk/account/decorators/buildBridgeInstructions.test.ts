@@ -9,7 +9,7 @@ import {
   type MultichainSmartAccount,
   toMultichainNexusAccount
 } from "../toMultiChainNexusAccount"
-import { AcrossPlugin } from "../utils/acrossPlugin"
+import { toAcrossPlugin } from "../utils/toAcrossPlugin"
 import buildBridgeInstructions from "./buildBridgeInstructions"
 import { getUnifiedERC20Balance } from "./getUnifiedERC20Balance"
 
@@ -41,7 +41,7 @@ describe("mee:buildBridgeInstructions", () => {
     const payload = await buildBridgeInstructions({
       account: mcNexus,
       amount: 1n,
-      bridgingPlugins: [AcrossPlugin],
+      bridgingPlugins: [toAcrossPlugin()],
       toChain: base,
       unifiedBalance
     })

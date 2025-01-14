@@ -10,7 +10,7 @@ import {
 import createHttpClient from "./createHttpClient"
 import { type MeeClient, createMeeClient } from "./createMeeClient"
 
-describe("mee.createHttp    Client", async () => {
+describe("mee.createHttpClient", async () => {
   let network: NetworkConfig
   let eoaAccount: LocalAccount
   let paymentChain: Chain

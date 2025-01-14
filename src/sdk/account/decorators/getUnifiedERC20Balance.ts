@@ -19,7 +19,7 @@ export type RelevantBalance = UnifiedBalanceItem & { chainId: number }
  */
 export type UnifiedERC20Balance = {
   /** The multichain ERC20 token contract */
-  token: MultichainContract<typeof erc20Abi>
+  mcToken: MultichainContract<typeof erc20Abi>
   /** Individual balance breakdown per chain */
   breakdown: RelevantBalance[]
 } & UnifiedBalanceItem
@@ -105,6 +105,6 @@ export async function getUnifiedERC20Balance(
         }
       }),
     breakdown: balances,
-    token: mcToken
+    mcToken
   }
 }

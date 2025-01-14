@@ -1,7 +1,7 @@
 import type { Chain } from "viem"
 import type { Instruction } from "../../clients/decorators/mee/getQuote"
 import type { BaseMultichainSmartAccount } from "../toMultiChainNexusAccount"
-import { AcrossPlugin } from "../utils/acrossPlugin"
+import { toAcrossPlugin } from "../utils/toAcrossPlugin"
 import type {
   BridgingPlugin,
   MultichainAddressMapping
@@ -67,7 +67,7 @@ export const queryBridge = async (
     account,
     fromChain,
     toChain,
-    plugin = AcrossPlugin,
+    plugin = toAcrossPlugin(),
     amount,
     tokenMapping
   } = params

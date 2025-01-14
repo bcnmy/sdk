@@ -5,6 +5,7 @@ import { toNetwork } from "../../../../test/testSetup"
 import type { NetworkConfig } from "../../../../test/testUtils"
 import type { MultichainSmartAccount } from "../../../account/toMultiChainNexusAccount"
 import { toMultichainNexusAccount } from "../../../account/toMultiChainNexusAccount"
+import { mcUSDC } from "../../../constants/tokens"
 import { type MeeClient, createMeeClient } from "../../createMeeClient"
 import { type Instruction, getQuote } from "./getQuote"
 
@@ -67,5 +68,45 @@ describe("mee.getQuote", () => {
     })
 
     expect(quote).toBeDefined()
+  })
+
+  test("should resolve unresolved instructions", async () => {
+    const quote = await getQuote(meeClient, {
+      instructions: [
+        mcNexus.buildInstructions({
+          action: {
+            type: "BRIDGE",
+            parameters: {
+              amount: BigInt(1000),
+              mcToken: mcUSDC,
+              chain: base
+            }
+          }
+        }),
+        mcNexus.buildInstructions({
+          action: {
+            type: "DEFAULT",
+            parameters: [
+              {
+                calls: [
+                  {
+                    to: "0x0000000000000000000000000000000000000000",
+                    gasLimit: 50000n,
+                    value: 0n
+                  }
+                ],
+                chainId: base.id
+              }
+            ]
+          }
+        })
+      ],
+      feeToken: {
+        address: paymentToken,
+        chainId: paymentChain.id
+      }
+    })
+
+    expect(quote.userOps.length).toEqual(3)
   })
 })

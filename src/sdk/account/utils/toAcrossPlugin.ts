@@ -143,8 +143,8 @@ export const acrossEncodeBridgingUserOp = async (
   }
 }
 
-export const AcrossPlugin: BridgingPlugin = {
+export const toAcrossPlugin = (): BridgingPlugin => ({
   encodeBridgeUserOp: async (params) => {
     return await acrossEncodeBridgingUserOp(params)
   }
-}
+})

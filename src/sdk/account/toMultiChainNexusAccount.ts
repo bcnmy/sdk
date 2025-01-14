@@ -11,14 +11,14 @@ import type { MultichainContract } from "./utils/getMultichainContract"
 import type { Signer } from "./utils/toSigner"
 
 import {
-  type BuildBalanceInstructionParams,
-  buildBalanceInstructions as buildBalanceInstructionsDecorator
-} from "./decorators/buildBalanceInstructions"
-import {
   type BridgingInstructions,
   type BuildBridgeInstructionParams,
   buildBridgeInstructions as buildBridgeInstructionsDecorator
 } from "./decorators/buildBridgeInstructions"
+import {
+  type BuildInstructionsParams,
+  buildInstructions as buildInstructionsDecorator
+} from "./decorators/buildInstructions"
 import {
   type UnifiedERC20Balance,
   getUnifiedERC20Balance as getUnifiedERC20BalanceDecorator
@@ -71,14 +71,14 @@ export type MultichainSmartAccount = BaseMultichainSmartAccount & {
    * @param params - The parameters for the balance requirement
    * @returns Instructions for any required bridging operations
    * @example
-   * const instructions = await mcAccount.buildBalanceInstructions({
+   * const instructions = await mcAccount.buildInstructions({
    *   amount: BigInt(1000),
-   *   token: mcUSDC,
+   *   mcToken: mcUSDC,
    *   chain: base
    * })
    */
-  buildBalanceInstructions: (
-    params: Omit<BuildBalanceInstructionParams, "account">
+  buildInstructions: (
+    params: Omit<BuildInstructionsParams, "account">
   ) => Promise<Instruction[]>
   /**
    * Function to build instructions for bridging a token across all deployments
@@ -87,7 +87,7 @@ export type MultichainSmartAccount = BaseMultichainSmartAccount & {
    * @example
    * const instructions = await mcAccount.buildBridgeInstructions({
    *   amount: BigInt(1000),
-   *   token: mcUSDC,
+   *   mcToken: mcUSDC,
    *   chain: base
    * })
    */
@@ -101,7 +101,7 @@ export type MultichainSmartAccount = BaseMultichainSmartAccount & {
    * @example
    * const result = await mcAccount.queryBridge({
    *   amount: BigInt(1000),
-   *   token: mcUSDC,
+   *   mcToken: mcUSDC,
    *   chain: base
    * })
    */
@@ -150,9 +150,9 @@ export async function toMultichainNexusAccount(
     return getUnifiedERC20BalanceDecorator({ mcToken, account: baseAccount })
   }
 
-  const buildBalanceInstructions = (
-    params: Omit<BuildBalanceInstructionParams, "account">
-  ) => buildBalanceInstructionsDecorator({ ...params, account: baseAccount })
+  const buildInstructions = (
+    params: Omit<BuildInstructionsParams, "account">
+  ) => buildInstructionsDecorator({ ...params, account: baseAccount })
 
   const buildBridgeInstructions = (
     params: Omit<BuildBridgeInstructionParams, "account">
@@ -164,7 +164,7 @@ export async function toMultichainNexusAccount(
   return {
     ...baseAccount,
     getUnifiedERC20Balance,
-    buildBalanceInstructions,
+    buildInstructions,
     buildBridgeInstructions,
     queryBridge
   }

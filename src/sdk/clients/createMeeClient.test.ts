@@ -7,6 +7,7 @@ import {
   type MultichainSmartAccount,
   toMultichainNexusAccount
 } from "../account/toMultiChainNexusAccount"
+import { mcUSDC } from "../constants/tokens"
 import { type MeeClient, createMeeClient } from "./createMeeClient"
 import type { Instruction } from "./decorators/mee"
 
@@ -113,29 +114,36 @@ describe("mee.createMeeClient", async () => {
 
   test("should demo the devEx of preparing instructions", async () => {
     // These can be any 'Instruction', or any helper method that resolves to a 'Instruction',
-    // including 'buildBalanceInstruction'. They all are resolved in the 'getQuote' method under the hood.
-    const preparedInstructions: Instruction[] = [
-      {
-        calls: [
+    // including 'buildInstructions'. They all are resolved in the 'getQuote' method under the hood.
+    const currentInstructions = await meeClient.account.buildInstructions({
+      action: {
+        type: "DEFAULT",
+        parameters: [
           {
-            to: "0x0000000000000000000000000000000000000000",
-            gasLimit: 50000n,
-            value: 0n
+            calls: [
+              {
+                to: "0x0000000000000000000000000000000000000000",
+                gasLimit: 50000n,
+                value: 0n
+              }
+            ],
+            chainId: 8453
           }
-        ],
-        chainId: 8453
-      },
-      {
-        calls: [
-          {
-            to: "0x0000000000000000000000000000000000000000",
-            gasLimit: 50000n,
-            value: 0n
-          }
-        ],
-        chainId: 8453
+        ]
       }
-    ]
+    })
+
+    const preparedInstructions = await meeClient.account.buildInstructions({
+      currentInstructions,
+      action: {
+        type: "BRIDGE",
+        parameters: {
+          amount: BigInt(1000),
+          mcToken: mcUSDC,
+          chain: base
+        }
+      }
+    })
 
     expect(preparedInstructions).toBeDefined()
 
@@ -161,19 +169,39 @@ describe("mee.createMeeClient", async () => {
     async () => {
       console.time("execute:hashTimer")
       console.time("execute:receiptTimer")
-      const { hash } = await meeClient.execute({
-        instructions: [
-          {
-            calls: [
-              {
-                to: "0x0000000000000000000000000000000000000000",
-                gasLimit: 50000n,
-                value: 0n
-              }
-            ],
-            chainId: 8453
+
+      const instructions = [
+        mcNexus.buildInstructions({
+          action: {
+            type: "BRIDGE",
+            parameters: {
+              amount: BigInt(1000),
+              mcToken: mcUSDC,
+              chain: base
+            }
           }
-        ],
+        }),
+        mcNexus.buildInstructions({
+          action: {
+            type: "DEFAULT",
+            parameters: [
+              {
+                calls: [
+                  {
+                    to: "0x0000000000000000000000000000000000000000",
+                    gasLimit: 50000n,
+                    value: 0n
+                  }
+                ],
+                chainId: base.id
+              }
+            ]
+          }
+        })
+      ]
+
+      const { hash } = await meeClient.execute({
+        instructions,
         feeToken: {
           address: paymentToken,
           chainId: paymentChain.id
