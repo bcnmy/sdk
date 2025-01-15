@@ -25,7 +25,7 @@ import {
   createSmartAccountClient
 } from "./createSmartAccountClient"
 
-describe.skip("bico.paymaster", async () => {
+describe("bico.paymaster", async () => {
   // describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
   let network: NetworkConfig
 
@@ -145,26 +145,11 @@ describe.skip("bico.paymaster", async () => {
       bundlerTransport: http(bundlerUrl)
     })
 
+    console.log(nexusClient.account.address, "nexusClient.account.address")
+
     const initialBalance = await publicClient.getBalance({
       address: nexusAccountAddress
     })
-
-    const op = await nexusClient.prepareUserOperation({
-      calls: [
-        {
-          to: recipientAddress,
-          value: 1n,
-          data: "0x"
-        }
-      ]
-    })
-
-    const quote = await paymaster.getTokenPaymasterQuotes({
-      userOp: op,
-      tokenList: []
-    })
-
-    console.log("quote", quote)
 
     const hash = await nexusClient.sendTokenPaymasterUserOp({
       calls: [
@@ -178,7 +163,6 @@ describe.skip("bico.paymaster", async () => {
     })
     const receipt = await nexusClient.waitForUserOperationReceipt({ hash })
 
-    console.log("receipt", receipt)
     expect(receipt.success).toBe("true")
 
     // Get final balance
