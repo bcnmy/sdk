@@ -167,7 +167,6 @@ export const getPermissionAction = async ({
 
     const session: Session = {
       chainId: BigInt(chainId),
-      permitERC4337Paymaster: true,
       sessionValidator: OWNABLE_VALIDATOR_ADDRESS,
       sessionValidatorInitData: encodeValidationData({
         threshold: 1,
