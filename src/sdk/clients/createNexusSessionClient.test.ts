@@ -1,3 +1,4 @@
+import { isSessionEnabled } from "@rhinestone/module-sdk"
 import { http, type Address, type Chain, type Hex } from "viem"
 import type { LocalAccount, PublicClient } from "viem"
 import { encodeFunctionData } from "viem"
@@ -13,11 +14,7 @@ import {
 } from "../../test/testUtils"
 import type { MasterClient, NetworkConfig } from "../../test/testUtils"
 import { SMART_SESSIONS_ADDRESS, SmartSessionMode } from "../constants"
-import {
-  isPermissionEnabled,
-  parse,
-  stringify
-} from "../modules/smartSessionsValidator/Helpers"
+import { parse, stringify } from "../modules/smartSessionsValidator/Helpers"
 import type {
   CreateSessionDataParams,
   SessionData
@@ -121,7 +118,8 @@ describe("nexus.session.client", async () => {
         actionPoliciesInfo: [
           {
             contractAddress: testAddresses.Counter, // counter address
-            functionSelector: "0x273ea3e3" as Hex // function selector for increment count
+            functionSelector: "0x273ea3e3" as Hex, // function selector for increment count,
+            sudo: true
           }
         ]
       }
@@ -157,9 +155,13 @@ describe("nexus.session.client", async () => {
 
     expect(receipt.success).toBe(true)
 
-    const isEnabled = await isPermissionEnabled({
+    const isEnabled = await isSessionEnabled({
       client: nexusClient.account.client as PublicClient,
-      accountAddress: nexusClient.account.address,
+      account: {
+        type: "nexus",
+        address: nexusClient.account.address,
+        deployedOnChains: [chain.id]
+      },
       permissionId: createSessionsResponse.permissionIds[0]
     })
     expect(isEnabled).toBe(true)
@@ -243,9 +245,13 @@ describe("nexus.session.client", async () => {
       smartSessionUseActions(usePermissionsModule)
     )
 
-    const isEnabled = await isPermissionEnabled({
+    const isEnabled = await isSessionEnabled({
       client: testClient as unknown as PublicClient,
-      accountAddress: nexusClient.account.address,
+      account: {
+        type: "nexus",
+        address: nexusClient.account.address,
+        deployedOnChains: [chain.id]
+      },
       permissionId: sessionData.moduleData.permissionIds[0]
     })
     expect(isEnabled).toBe(true)

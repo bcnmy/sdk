@@ -165,22 +165,27 @@ describe("mee.createMeeClient", async () => {
   })
 
   test.runIf(runPaidTests)(
-    "should execute a quote with a single call, and wait for the receipt",
+    "should demo the devEx for getting a quote with preconfigured instructions, then signing and executing it",
     async () => {
+      console.time("execute:hashTimer")
+      // Start performance timing for tracking how long the transaction hash and receipt take
       console.time("execute:hashTimer")
       console.time("execute:receiptTimer")
 
+      // Create an array of instructions that will be executed as a single transaction
       const instructions = [
+        // First instruction: Bridge USDC tokens
         mcNexus.buildInstructions({
           action: {
             type: "BRIDGE",
             parameters: {
-              amount: BigInt(1000),
-              mcToken: mcUSDC,
-              chain: base
+              amount: BigInt(1000), // Amount of tokens to bridge (in smallest unit, e.g., wei)
+              mcToken: mcUSDC, // The multichain USDC token being bridged
+              chain: base // Destination chain (Base network)
             }
           }
         }),
+        // Second instruction: Execute a simple call on the Base network
         mcNexus.buildInstructions({
           action: {
             type: "DEFAULT",
@@ -188,26 +193,31 @@ describe("mee.createMeeClient", async () => {
               {
                 calls: [
                   {
-                    to: "0x0000000000000000000000000000000000000000",
-                    gasLimit: 50000n,
-                    value: 0n
+                    to: "0x0000000000000000000000000000000000000000", // Target contract (zero address in this test)
+                    gasLimit: 50000n, // Maximum gas allowed for this call
+                    value: 0n // No ETH being sent with the call
                   }
                 ],
-                chainId: base.id
+                chainId: base.id // Execute this call on the Base network
               }
             ]
           }
         })
       ]
 
-      const { hash } = await meeClient.execute({
+      // Get a quote for executing all instructions
+      // This will calculate the total cost in the specified payment token
+      const quote = await meeClient.getQuote({
         instructions,
         feeToken: {
-          address: paymentToken,
-          chainId: paymentChain.id
+          address: paymentToken, // Token used to pay for the transaction
+          chainId: paymentChain.id // Chain where the payment will be processed
         }
       })
 
+      // Execute the quote and get back a transaction hash
+      // This sends the transaction to the network
+      const { hash } = await meeClient.executeQuote({ quote })
       expect(hash).toBeDefined()
       console.timeEnd("execute:hashTimer")
       const receipt = await meeClient.waitForSupertransactionReceipt({ hash })

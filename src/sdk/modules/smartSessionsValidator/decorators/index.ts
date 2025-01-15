@@ -17,7 +17,6 @@ import {
   type PreparePermissionParameters,
   preparePermission
 } from "./preparePermission"
-import { type TrustAttestersParameters, trustAttesters } from "./trustAttesters"
 import { type UsePermissionParameters, usePermission } from "./usePermission"
 /**
  * Defines the shape of actions available for creating smart sessions.
@@ -50,16 +49,6 @@ export type SmartSessionCreateActions<
   grantPermission: (
     args: GrantPermissionParameters<TModularSmartAccount>
   ) => Promise<GrantPermissionResponse>
-
-  /**
-   * Trusts attesters for a modular smart account.
-   *
-   * @param args - Parameters for trusting attesters.
-   * @returns A promise that resolves to the transaction hash.
-   */
-  trustAttesters: (
-    args?: TrustAttestersParameters<TModularSmartAccount>
-  ) => Promise<Hash>
   /**
    * Prepares permission for a modular smart account.
    *
@@ -103,7 +92,6 @@ export function smartSessionCreateActions(_: Module) {
     return {
       grantDeferredPermission: (args) => grantDeferredPermission(client, args),
       grantPermission: (args) => grantPermission(client, args),
-      trustAttesters: (args) => trustAttesters(client, args),
       preparePermission: (args) => preparePermission(client, args)
     }
   }
@@ -128,7 +116,6 @@ export function smartSessionUseActions(
   }
 }
 
-export * from "./trustAttesters"
 export * from "./usePermission"
 export * from "./grantDeferredPermission"
 export * from "./grantPermission"

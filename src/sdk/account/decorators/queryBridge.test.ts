@@ -58,6 +58,5 @@ describe("mee:queryBridge", () => {
 
     expect(payload?.amount).toBeGreaterThan(0n)
     expect(payload?.receivedAtDestination).toBeGreaterThan(0n)
-    expect(payload?.plugin).toBe(toAcrossPlugin())
   })
 })

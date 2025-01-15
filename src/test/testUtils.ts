@@ -410,7 +410,7 @@ export const safeTopUp = async (
 export const topUp = async (
   testClient: MasterClient,
   recipient: Hex,
-  amount = 100000000000000000000n,
+  amount = 10000000000000000n,
   token?: Hex
 ) => {
   const balanceOfRecipient = await getBalance(testClient, recipient, token)

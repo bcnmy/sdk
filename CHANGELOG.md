@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- Added Mee Client
+- Upgrade smart session and rhinestone sdk version
 
 ## 0.0.24
 

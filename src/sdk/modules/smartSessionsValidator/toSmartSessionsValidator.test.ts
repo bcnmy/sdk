@@ -227,7 +227,8 @@ describe("modules.smartSessions", async () => {
         actionPoliciesInfo: [
           {
             contractAddress: testAddresses.Counter, // counter address
-            functionSelector: "0x273ea3e3" as Hex // function selector for increment count
+            functionSelector: "0x273ea3e3" as Hex, // function selector for increment count
+            sudo: true
           }
         ]
       }
