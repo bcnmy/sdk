@@ -62,28 +62,6 @@ export const createActionConfig = (
   valueLimitPerUse: valueLimit
 })
 
-// /**
-//  * Gets the permission ID for a given session.
-//  *
-//  * @param client - The PublicClient to use for the contract call.
-//  * @param session - The Session object.
-//  * @returns A promise that resolves to the permission ID as a Hex string.
-//  */
-// export const getPermissionId = async ({
-//   client,
-//   session
-// }: {
-//   client: PublicClient
-//   session: Session
-// }) => {
-//   return (await client.readContract({
-//     address: SMART_SESSIONS_ADDRESS,
-//     abi: SmartSessionAbi,
-//     functionName: "getPermissionId",
-//     args: [session]
-//   })) as Hex
-// }
-
 /**
  * Applies default values to a CreateSessionDataParams object.
  *

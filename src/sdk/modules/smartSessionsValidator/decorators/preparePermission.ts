@@ -33,8 +33,6 @@ import type {
   ResolvedActionPolicyInfo
 } from "../Types"
 
-// import { getPermissionId } from "@rhinestone/module-sdk"
-
 export const ONE_YEAR_FROM_NOW_IN_SECONDS = Date.now() + 60 * 60 * 24 * 365
 
 /**
