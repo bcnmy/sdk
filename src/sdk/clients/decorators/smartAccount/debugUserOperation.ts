@@ -13,9 +13,9 @@ import {
   type UserOperationRequest,
   formatUserOperationRequest,
   getUserOperationError,
-  prepareUserOperation,
   toPackedUserOperation
 } from "viem/account-abstraction"
+import { prepareUserOperationWithoutSignature } from "./prepareUserOperationWithoutSignature"
 
 import type {
   Assign,
@@ -132,7 +132,7 @@ export async function debugUserOperation<
     const request = account
       ? await getAction(
           client,
-          prepareUserOperation,
+          prepareUserOperationWithoutSignature,
           "prepareUserOperation"
         )(parameters as unknown as PrepareUserOperationParameters)
       : parameters

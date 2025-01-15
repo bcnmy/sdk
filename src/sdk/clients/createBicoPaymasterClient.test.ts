@@ -145,6 +145,8 @@ describe("bico.paymaster", async () => {
       bundlerTransport: http(bundlerUrl)
     })
 
+    console.log(nexusClient.account.address, "nexusClient.account.address")
+
     const initialBalance = await publicClient.getBalance({
       address: nexusAccountAddress
     })
@@ -160,6 +162,7 @@ describe("bico.paymaster", async () => {
       feeTokenAddress: baseSepoliaUSDCAddress
     })
     const receipt = await nexusClient.waitForUserOperationReceipt({ hash })
+
     expect(receipt.success).toBe("true")
 
     // Get final balance
