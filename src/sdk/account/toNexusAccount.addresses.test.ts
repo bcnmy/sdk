@@ -78,7 +78,6 @@ describe("nexus.account.addresses", async () => {
     const counterfactualAddressFromHelper = await getCounterFactualAddress(
       testClient as unknown as PublicClient,
       eoaAccount.address,
-      true,
       0n,
       [RHINESTONE_ATTESTER_ADDRESS],
       1,
@@ -96,7 +95,6 @@ describe("nexus.account.addresses", async () => {
     const counterfactualAddressFromHelper = await getCounterFactualAddress(
       testClient as unknown as PublicClient,
       eoaAccount.address,
-      true,
       0n,
       [RHINESTONE_ATTESTER_ADDRESS],
       1,
@@ -146,6 +144,6 @@ describe("nexus.account.addresses", async () => {
     const testnetAddress = await testnetClient.account.getAddress()
     const mainnetAddress = await mainnetClient.account.getAddress()
 
-    expect(testnetAddress).not.toBe(mainnetAddress)
+    expect(testnetAddress).toBe(mainnetAddress)
   })
 })

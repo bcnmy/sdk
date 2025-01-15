@@ -1,5 +1,11 @@
 # @biconomy/sdk
 
+## 0.0.25
+
+### Patch Changes
+
+- Upgrade smart session and rhinestone sdk version
+
 ## 0.0.24
 
 ### Patch Changes

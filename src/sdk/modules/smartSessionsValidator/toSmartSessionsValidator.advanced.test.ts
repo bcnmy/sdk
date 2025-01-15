@@ -124,7 +124,8 @@ describe("modules.smartSessions.dx", async () => {
           actionPoliciesInfo: [
             {
               abi: CounterAbi,
-              contractAddress: testAddresses.Counter
+              contractAddress: testAddresses.Counter,
+              sudo: true
               // validUntil?: number
               // validAfter?: number
               // valueLimit?: bigint

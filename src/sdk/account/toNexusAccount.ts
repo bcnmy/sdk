@@ -48,7 +48,6 @@ import {
   ENTRY_POINT_ADDRESS,
   MAINNET_ADDRESS_K1_VALIDATOR_ADDRESS,
   MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS,
-  MOCK_ATTESTER_ADDRESS,
   RHINESTONE_ATTESTER_ADDRESS
 } from "../constants"
 // Constants
@@ -216,7 +215,6 @@ export const toNexusAccount = async (
 
   // Review:
   // Todo: attesters can be added here to do one time setup upon deployment.
-  chain?.testnet && attesters_.push(MOCK_ATTESTER_ADDRESS)
   const factoryData = encodeFunctionData({
     abi: parseAbi([
       "function createAccount(address eoaOwner, uint256 index, address[] attesters, uint8 threshold) external returns (address)"
@@ -255,7 +253,6 @@ export const toNexusAccount = async (
     const addressFromFactory = await getCounterFactualAddress_(
       publicClient,
       signerAddress,
-      false,
       index,
       attesters_,
       attesterThreshold,
