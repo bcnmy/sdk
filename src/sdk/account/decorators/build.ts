@@ -4,9 +4,10 @@ import type { BaseMultichainSmartAccount } from "../toMultiChainNexusAccount"
 import type { MultichainContract } from "../utils/getMultichainContract"
 import {
   type BuildBaseInstructionsParams,
-  buildBaseInstructions
-} from "./instructions/buildBaseInstructions"
-import { type BuildIntentParams, buildIntent } from "./instructions/buildIntent"
+  type BuildIntentParams,
+  buildBaseInstructions,
+  buildIntent
+} from "./instructions"
 
 /**
  * Base parameters for building instructions
@@ -21,26 +22,11 @@ export type BaseInstructionsParams = {
 }
 
 /**
- * Configuration for bridging tokens between chains
- * @property amount - The amount of tokens to bridge
- * @property mcToken - The multichain token contract to bridge
- * @property chain - The destination chain for the bridge operation
- */
-export type BridgeInstructionsForBridgeAction = {
-  /** The amount of tokens to require */
-  amount: bigint
-  /** The token to require */
-  mcToken: MultichainContract<typeof erc20Abi>
-  /** The chain to require the token on */
-  chain: Chain
-}
-
-/**
  * Default build action which is used to build instructions for a chain
  */
 export type BuildBaseInstruction = {
   /** The type of action */
-  type: "default"
+  type: "base"
   /** The parameters for the action */
   data: BuildBaseInstructionsParams
 }
@@ -67,7 +53,7 @@ export type BuildInstructionTypes =
  * @param params - The build instructions configuration
  * @param params.account - {@link BaseMultichainSmartAccount} The multichain smart account to check balances for
  * @param params.currentInstructions - {@link Instruction[]} Optional array of existing instructions to append to
- * @param params.type - The type of build action ("default" | "intent")
+ * @param params.type - The type of build action ("base" | "intent")
  * @param params.parameters - {@link BuildBaseInstruction} | {@link BuildIntentInstruction}
  *
  * @returns Promise resolving to an array of {@link Instruction}
@@ -87,7 +73,7 @@ export type BuildInstructionTypes =
  * @example
  * // Default action example
  * const defaultInstructions = await build({
- *   type: "default",
+ *   type: "base",
  *   parameters: myExistingInstruction,
  *   account: myMultichainAccount
  * })
@@ -96,15 +82,13 @@ export const build = async (
   baseParams: BaseInstructionsParams,
   parameters: BuildInstructionTypes
 ): Promise<Instruction[]> => {
-  console.log({ baseParams, parameters })
-
   const { type, data } = parameters
 
   switch (type) {
     case "intent": {
       return buildIntent(baseParams, data)
     }
-    case "default": {
+    case "base": {
       return buildBaseInstructions(baseParams, data)
     }
     default: {
