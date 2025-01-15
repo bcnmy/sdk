@@ -106,7 +106,7 @@ describe("mee.toMultiChainNexusAccount", async () => {
 
   test("mcNexus to have decorators successfully applied", async () => {
     expect(mcNexus.getUnifiedERC20Balance).toBeInstanceOf(Function)
-    expect(mcNexus.buildInstructions).toBeInstanceOf(Function)
+    expect(mcNexus.build).toBeInstanceOf(Function)
     expect(mcNexus.buildBridgeInstructions).toBeInstanceOf(Function)
     expect(mcNexus.queryBridge).toBeDefined()
   })

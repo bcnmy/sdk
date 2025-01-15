@@ -11,14 +11,14 @@ import type { MultichainContract } from "./utils/getMultichainContract"
 import type { Signer } from "./utils/toSigner"
 
 import {
+  type BuildInstructionTypes,
+  build as buildDecorator
+} from "./decorators/build"
+import {
   type BridgingInstructions,
   type BuildBridgeInstructionParams,
   buildBridgeInstructions as buildBridgeInstructionsDecorator
 } from "./decorators/buildBridgeInstructions"
-import {
-  type BuildInstructionsParams,
-  buildInstructions as buildInstructionsDecorator
-} from "./decorators/buildInstructions"
 import {
   type UnifiedERC20Balance,
   getUnifiedERC20Balance as getUnifiedERC20BalanceDecorator
@@ -71,14 +71,15 @@ export type MultichainSmartAccount = BaseMultichainSmartAccount & {
    * @param params - The parameters for the balance requirement
    * @returns Instructions for any required bridging operations
    * @example
-   * const instructions = await mcAccount.buildInstructions({
+   * const instructions = await mcAccount.build({
    *   amount: BigInt(1000),
    *   mcToken: mcUSDC,
    *   chain: base
    * })
    */
-  buildInstructions: (
-    params: Omit<BuildInstructionsParams, "account">
+  build: (
+    params: BuildInstructionTypes,
+    currentInstructions?: Instruction[]
   ) => Promise<Instruction[]>
   /**
    * Function to build instructions for bridging a token across all deployments
@@ -150,9 +151,11 @@ export async function toMultichainNexusAccount(
     return getUnifiedERC20BalanceDecorator({ mcToken, account: baseAccount })
   }
 
-  const buildInstructions = (
-    params: Omit<BuildInstructionsParams, "account">
-  ) => buildInstructionsDecorator({ ...params, account: baseAccount })
+  const build = (
+    params: BuildInstructionTypes,
+    currentInstructions?: Instruction[]
+  ): Promise<Instruction[]> =>
+    buildDecorator({ currentInstructions, account: baseAccount }, params)
 
   const buildBridgeInstructions = (
     params: Omit<BuildBridgeInstructionParams, "account">
@@ -164,7 +167,7 @@ export async function toMultichainNexusAccount(
   return {
     ...baseAccount,
     getUnifiedERC20Balance,
-    buildInstructions,
+    build,
     buildBridgeInstructions,
     queryBridge
   }

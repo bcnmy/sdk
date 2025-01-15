@@ -114,11 +114,11 @@ describe("mee.createMeeClient", async () => {
 
   test("should demo the devEx of preparing instructions", async () => {
     // These can be any 'Instruction', or any helper method that resolves to a 'Instruction',
-    // including 'buildInstructions'. They all are resolved in the 'getQuote' method under the hood.
-    const currentInstructions = await meeClient.account.buildInstructions({
-      action: {
-        type: "DEFAULT",
-        parameters: [
+    // including 'build'. They all are resolved in the 'getQuote' method under the hood.
+    const currentInstructions = await meeClient.account.build({
+      type: "default",
+      data: {
+        instructions: [
           {
             calls: [
               {
@@ -133,17 +133,17 @@ describe("mee.createMeeClient", async () => {
       }
     })
 
-    const preparedInstructions = await meeClient.account.buildInstructions({
-      currentInstructions,
-      action: {
-        type: "BRIDGE",
-        parameters: {
+    const preparedInstructions = await meeClient.account.build(
+      {
+        type: "intent",
+        data: {
           amount: BigInt(1000),
           mcToken: mcUSDC,
           chain: base
         }
-      }
-    })
+      },
+      currentInstructions
+    )
 
     expect(preparedInstructions).toBeDefined()
 
@@ -154,6 +154,8 @@ describe("mee.createMeeClient", async () => {
         chainId: paymentChain.id
       }
     })
+
+    console.log(quote.userOps)
 
     expect(quote.userOps.length).toEqual(3)
     expect(quote).toBeDefined()
@@ -175,21 +177,19 @@ describe("mee.createMeeClient", async () => {
       // Create an array of instructions that will be executed as a single transaction
       const instructions = [
         // First instruction: Bridge USDC tokens
-        mcNexus.buildInstructions({
-          action: {
-            type: "BRIDGE",
-            parameters: {
-              amount: BigInt(1000), // Amount of tokens to bridge (in smallest unit, e.g., wei)
-              mcToken: mcUSDC, // The multichain USDC token being bridged
-              chain: base // Destination chain (Base network)
-            }
+        mcNexus.build({
+          type: "intent",
+          data: {
+            amount: BigInt(1000), // Amount of tokens to bridge (in smallest unit, e.g., wei)
+            mcToken: mcUSDC, // The multichain USDC token being bridged
+            chain: base // Destination chain (Base network)
           }
         }),
         // Second instruction: Execute a simple call on the Base network
-        mcNexus.buildInstructions({
-          action: {
-            type: "DEFAULT",
-            parameters: [
+        mcNexus.build({
+          type: "default",
+          data: {
+            instructions: [
               {
                 calls: [
                   {

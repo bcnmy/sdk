@@ -73,20 +73,18 @@ describe("mee.getQuote", () => {
   test("should resolve unresolved instructions", async () => {
     const quote = await getQuote(meeClient, {
       instructions: [
-        mcNexus.buildInstructions({
-          action: {
-            type: "BRIDGE",
-            parameters: {
-              amount: BigInt(1000),
-              mcToken: mcUSDC,
-              chain: base
-            }
+        mcNexus.build({
+          type: "intent",
+          data: {
+            amount: BigInt(1000),
+            mcToken: mcUSDC,
+            chain: base
           }
         }),
-        mcNexus.buildInstructions({
-          action: {
-            type: "DEFAULT",
-            parameters: [
+        mcNexus.build({
+          type: "default",
+          data: {
+            instructions: [
               {
                 calls: [
                   {
