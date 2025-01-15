@@ -1,6 +1,6 @@
 {
   "name": "@biconomy/sdk",
-  "version": "0.0.25",
+  "version": "0.0.26",
   "author": "Biconomy",
   "repository": "github:bcnmy/sdk",
   "main": "./dist/_cjs/index.js",

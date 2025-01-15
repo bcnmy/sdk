@@ -7,13 +7,10 @@ import {
   maxUint256
 } from "viem"
 import { encodeFunctionData } from "viem"
-import {
-  type SmartAccount,
-  type UserOperation,
-  prepareUserOperation
-} from "viem/account-abstraction"
+import type { SmartAccount, UserOperation } from "viem/account-abstraction"
 import { getAction } from "viem/utils"
 import { BICONOMY_TOKEN_PAYMASTER } from "../../../account/utils/Constants"
+import { prepareUserOperationWithoutSignature } from "./prepareUserOperationWithoutSignature"
 
 export type Transaction = {
   to: Address
@@ -75,7 +72,7 @@ export async function prepareTokenPaymasterUserOp<
 
   const userOp = await getAction(
     client,
-    prepareUserOperation,
+    prepareUserOperationWithoutSignature,
     "prepareUserOperation"
   )({
     calls: [
