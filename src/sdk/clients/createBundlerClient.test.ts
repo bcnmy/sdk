@@ -16,6 +16,11 @@ const COMPETITORS = [
     name: "Pimlico",
     chain: baseSepolia,
     bundlerUrl: `https://api.pimlico.io/v2/${baseSepolia.id}/rpc?apikey=${process.env.PIMLICO_API_KEY}`
+  },
+  {
+    name: "Biconomy",
+    bundlerUrl: `https://bundler.biconomy.io/api/v3/${baseSepolia.id}/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44`,
+    chain: baseSepolia
   }
 ]
 
@@ -93,7 +98,7 @@ describe.each(COMPETITORS)(
       })
 
       // Send user operation
-      const hash = await bundlerClient.sendTransaction({
+      const userOp = await bundlerClient.prepareUserOperation({
         calls: [
           {
             to: recipientAddress,
@@ -102,8 +107,16 @@ describe.each(COMPETITORS)(
         ]
       })
 
+      const userOpHash = await bundlerClient.sendUserOperation(userOp)
+
+      const userOpReceipt = await bundlerClient.waitForUserOperationReceipt({
+        hash: userOpHash
+      })
+
       // Wait for the transaction to be mined
-      const receipt = await publicClient.waitForTransactionReceipt({ hash })
+      const receipt = await publicClient.waitForTransactionReceipt({
+        hash: userOpReceipt.receipt.transactionHash
+      })
       expect(receipt.status).toBe("success")
 
       // Get final balance

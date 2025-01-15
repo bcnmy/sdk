@@ -11,7 +11,12 @@ import type {
   WaitForTransactionReceiptReturnType,
   WriteContractParameters
 } from "viem"
-import type { SmartAccount, UserOperation } from "viem/account-abstraction"
+import type {
+  PrepareUserOperationParameters,
+  PrepareUserOperationReturnType,
+  SmartAccount,
+  UserOperation
+} from "viem/account-abstraction"
 import type { AnyData } from "../../../modules/utils/Types"
 import {
   type DebugUserOperationReturnType,
@@ -22,6 +27,7 @@ import {
   type PrepareTokenPaymasterUserOpParameters,
   prepareTokenPaymasterUserOp
 } from "./prepareTokenPaymasterUserOp"
+import { prepareUserOperationWithoutSignature } from "./prepareUserOperationWithoutSignature"
 import {
   type SendTokenPaymasterUserOpParameters,
   sendTokenPaymasterUserOp
@@ -370,6 +376,18 @@ export type SmartAccountActions<
   debugUserOperation: (
     params: DebugUserOperationParameters
   ) => Promise<DebugUserOperationReturnType>
+  /**
+   * Prepares a user operation
+   * @param params - {@link PrepareUserOperationParameters}
+   * @returns The user operation. {@link PrepareUserOperationReturnType}
+   * @example
+   * const userOp = await prepareUserOperation({
+   *   calls: [{to: '0x...', value: 1n, data: '0x...'}]
+   * })
+   */
+  prepareUserOperation: (
+    params: PrepareUserOperationParameters
+  ) => Promise<ReturnType<typeof prepareUserOperationWithoutSignature>>
 }
 
 export function smartAccountActions() {
@@ -388,6 +406,8 @@ export function smartAccountActions() {
     writeContract: (args) => writeContract(client, args),
     waitForTransactionReceipt: (args) =>
       waitForTransactionReceipt(client, args),
-    debugUserOperation: (args) => debugUserOperation(client, args)
+    debugUserOperation: (args) => debugUserOperation(client, args),
+    prepareUserOperation: (args) =>
+      prepareUserOperationWithoutSignature(client, args)
   })
 }

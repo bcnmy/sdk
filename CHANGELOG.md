@@ -1,5 +1,11 @@
 # @biconomy/sdk
 
+## 0.0.26
+
+### Patch Changes
+
+- Remove signature from prepareUserOperation flow
+
 ## 0.0.25
 
 ### Patch Changes
