@@ -180,7 +180,6 @@ export const getPermissionAction = async ({
       session
     })
 
-    console.log("permissionId", permissionId)
     // push permissionId to the array
     permissionIds.push(permissionId)
 

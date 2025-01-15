@@ -107,7 +107,6 @@ describe("modules.smartSessions.decorators", async () => {
 
     expect(nexusSessionClient).toBeDefined()
     expect(nexusSessionClient.grantPermission).toBeTypeOf("function")
-    expect(nexusSessionClient.trustAttesters).toBeTypeOf("function")
     expect(nexusSessionClient.grantPermission).toBeTypeOf("function")
   })
 
