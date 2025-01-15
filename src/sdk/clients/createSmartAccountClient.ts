@@ -54,14 +54,14 @@ export type NexusClient<
   Client<
     transport,
     chain extends Chain
-    ? chain
-    : client extends Client<AnyData, infer chain>
-    ? chain
-    : undefined,
+      ? chain
+      : client extends Client<AnyData, infer chain>
+        ? chain
+        : undefined,
     account,
     rpcSchema extends RpcSchema
-    ? [...BundlerRpcSchema, ...rpcSchema]
-    : BundlerRpcSchema,
+      ? [...BundlerRpcSchema, ...rpcSchema]
+      : BundlerRpcSchema,
     BundlerActions<account>
   >
 > &
@@ -121,31 +121,31 @@ export type SmartAccountClientConfig<
     client?: client | Client | undefined
     /** Paymaster configuration. */
     paymaster?:
-    | true
-    | {
-      /** Retrieves paymaster-related User Operation properties to be used for sending the User Operation. */
-      getPaymasterData?: PaymasterActions["getPaymasterData"] | undefined
-      /** Retrieves paymaster-related User Operation properties to be used for gas estimation. */
-      getPaymasterStubData?:
-      | PaymasterActions["getPaymasterStubData"]
+      | true
+      | {
+          /** Retrieves paymaster-related User Operation properties to be used for sending the User Operation. */
+          getPaymasterData?: PaymasterActions["getPaymasterData"] | undefined
+          /** Retrieves paymaster-related User Operation properties to be used for gas estimation. */
+          getPaymasterStubData?:
+            | PaymasterActions["getPaymasterStubData"]
+            | undefined
+        }
       | undefined
-    }
-    | undefined
     /** Paymaster context to pass to `getPaymasterData` and `getPaymasterStubData` calls. */
     paymasterContext?: PaymasterContext
     /** User Operation configuration. */
     userOperation?:
-    | {
-      /** Prepares fee properties for the User Operation request. */
-      estimateFeesPerGas?:
-      | ((parameters: {
-        account: SmartAccount | undefined
-        bundlerClient: Client
-        userOperation: UserOperationRequest
-      }) => Promise<EstimateFeesPerGasReturnType<"eip1559">>)
+      | {
+          /** Prepares fee properties for the User Operation request. */
+          estimateFeesPerGas?:
+            | ((parameters: {
+                account: SmartAccount | undefined
+                bundlerClient: Client
+                userOperation: UserOperationRequest
+              }) => Promise<EstimateFeesPerGasReturnType<"eip1559">>)
+            | undefined
+        }
       | undefined
-    }
-    | undefined
     /** Owner of the account. */
     signer: ValidSigner
     /** Index of the account. */

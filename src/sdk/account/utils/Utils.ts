@@ -281,7 +281,7 @@ export const getAccountMeta = async (
         chainId: decoded?.[3]
       }
     }
-  } catch (error) { }
+  } catch (error) {}
   return {
     name: NEXUS_DOMAIN_NAME,
     version: NEXUS_DOMAIN_VERSION,
