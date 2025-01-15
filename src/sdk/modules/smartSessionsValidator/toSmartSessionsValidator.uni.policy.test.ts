@@ -1,4 +1,3 @@
-import { SmartSessionMode } from "@rhinestone/module-sdk"
 import {
   http,
   type Abi,
@@ -27,10 +26,9 @@ import {
 import type { MasterClient, NetworkConfig } from "../../../test/testUtils"
 import {
   type NexusClient,
-  createNexusClient
-} from "../../clients/createNexusClient"
-import { createNexusSessionClient } from "../../clients/createNexusSessionClient"
-import { SMART_SESSIONS_ADDRESS } from "../../constants"
+  createSmartAccountClient
+} from "../../clients/createSmartAccountClient"
+import { SMART_SESSIONS_ADDRESS, SmartSessionMode } from "../../constants"
 import type { Module } from "../utils/Types"
 import { isPermissionEnabled, parse, stringify } from "./Helpers"
 import type { CreateSessionDataParams, Rule, SessionData } from "./Types"
@@ -55,7 +53,7 @@ describe("modules.smartSessions.uni.policy", async () => {
   let sessionsModule: Module
 
   beforeAll(async () => {
-    network = await toNetwork("BASE_SEPOLIA_FORKED")
+    network = await toNetwork("BESPOKE_ANVIL_NETWORK_FORKING_BASE_SEPOLIA")
 
     chain = network.chain
     bundlerUrl = network.bundlerUrl
@@ -65,7 +63,7 @@ describe("modules.smartSessions.uni.policy", async () => {
 
     testClient = toTestClient(chain, getTestAccount(5))
 
-    nexusClient = await createNexusClient({
+    nexusClient = await createSmartAccountClient({
       signer: eoaAccount,
       chain,
       transport: http(),
@@ -151,16 +149,6 @@ describe("modules.smartSessions.uni.policy", async () => {
       smartSessionCreateActions(sessionsModule)
     )
 
-    const trustAttestersHash = await smartSessionNexusClient.trustAttesters()
-    const userOpReceipt =
-      await smartSessionNexusClient.waitForUserOperationReceipt({
-        hash: trustAttestersHash
-      })
-    const { status } = await testClient.waitForTransactionReceipt({
-      hash: userOpReceipt.receipt.transactionHash
-    })
-    expect(status).toBe("success")
-
     const functionSelector = "addBalance(address,uint256,bytes32)"
 
     const unparsedFunctionSelector = functionSelector as AbiFunction | string
@@ -222,7 +210,9 @@ describe("modules.smartSessions.uni.policy", async () => {
     ]
 
     const createSessionsResponse =
-      await smartSessionNexusClient.grantPermission({ sessionRequestedInfo })
+      await smartSessionNexusClient.grantPermission({
+        sessionRequestedInfo
+      })
 
     expect(createSessionsResponse.userOpHash).toBeDefined()
     expect(createSessionsResponse.permissionIds).toBeDefined()
@@ -234,7 +224,8 @@ describe("modules.smartSessions.uni.policy", async () => {
       moduleData: {
         permissionIds: createSessionsResponse.permissionIds,
         action: createSessionsResponse.action,
-        mode: SmartSessionMode.USE
+        mode: SmartSessionMode.USE,
+        sessions: createSessionsResponse.sessions
       }
     }
 
@@ -271,11 +262,11 @@ describe("modules.smartSessions.uni.policy", async () => {
     })
 
     // Note: if you try to add more than maxUintDeposit then you would get this below error.
-    // Error: https://openchain.xyz/signatures?query=0x3b577361
+    // Error: https://openchain.grantPermission/signatures?query=0x3b577361
     const balToAddUint = 1234n
 
     // Note: if you try to add less than minBytes32Deposit then you would get this below error.
-    // Error: https://openchain.xyz/signatures?query=0x3b577361
+    // Error: https://openchain.grantPermission/signatures?query=0x3b577361
     const balToAddBytes32 = `0x${BigInt(1234567)
       .toString(16)
       .padStart(64, "0")}`
@@ -287,7 +278,7 @@ describe("modules.smartSessions.uni.policy", async () => {
     //   timestamp: 9727001666n
     // })
 
-    const smartSessionNexusClient = await createNexusSessionClient({
+    const smartSessionNexusClient = await createSmartAccountClient({
       chain,
       accountAddress: nexusClient.account.address,
       signer: sessionKeyAccount,

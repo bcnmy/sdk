@@ -1,10 +1,14 @@
-import type { Chain, Client, Hex, PublicClient, Transport } from "viem"
-import { sendUserOperation } from "viem/account-abstraction"
+import type { Chain, Client, PublicClient, Transport } from "viem"
 import { getAction, parseAccount } from "viem/utils"
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
-import type { Call } from "../../../account/utils/Types"
+import {
+  MAINNET_ADDRESS_K1_VALIDATOR_ADDRESS,
+  SmartSessionMode,
+  getAccount,
+  getEnableSessionDetails
+} from "../../../constants"
 import type { ModularSmartAccount } from "../../utils/Types"
-import type { CreateSessionDataParams, GrantPermissionResponse } from "../Types"
+import type { CreateSessionDataParams, SessionData } from "../Types"
 import { preparePermission } from "./preparePermission"
 
 /**
@@ -12,27 +16,18 @@ import { preparePermission } from "./preparePermission"
  *
  * @template TModularSmartAccount - Type of the modular smart account, extending ModularSmartAccount or undefined.
  */
-export type GrantPermissionParameters<
+export type GrantDeferredPermissionParameters<
   TModularSmartAccount extends ModularSmartAccount | undefined
 > = {
   /** Array of session data parameters for creating multiple sessions. */
   sessionRequestedInfo: CreateSessionDataParams[]
-  /** The maximum fee per gas unit the transaction is willing to pay. */
-  maxFeePerGas?: bigint
-  /** The maximum priority fee per gas unit the transaction is willing to pay. */
-  maxPriorityFeePerGas?: bigint
-  /** The nonce of the transaction. If not provided, it will be determined automatically. */
-  nonce?: bigint
   /** Optional public client for blockchain interactions. */
   publicClient?: PublicClient
   /** The modular smart account to create sessions for. If not provided, the client's account will be used. */
   account?: TModularSmartAccount
-  /** Optional attesters to trust. */
-  attesters?: Hex[]
-  /** Additional calls to be included in the user operation. */
-  calls?: Call[]
 }
 
+export type GrantDeferredPermissionResponse = SessionData["moduleData"]
 /**
  * Adds multiple sessions to the SmartSessionValidator module of a given smart account.
  *
@@ -50,9 +45,9 @@ export type GrantPermissionParameters<
  *
  * @example
  * ```typescript
- * import { grantPermission } from '@biconomy/sdk'
+ * import { grantDeferredPermission } from '@biconomy/sdk'
  *
- * const result = await grantPermission(nexusClient, {
+ * const result = await grantDeferredPermission(nexusClient, {
  *   sessionRequestedInfo: [
  *     {
  *       sessionKeyData: '0x...',
@@ -77,19 +72,13 @@ export type GrantPermissionParameters<
  * - The number of sessions created is determined by the length of the `sessionRequestedInfo` array.
  * - Each session's policies and permissions are determined by the `actionPoliciesInfo` provided.
  */
-export async function grantPermission<
+export async function grantDeferredPermission<
   TModularSmartAccount extends ModularSmartAccount | undefined
 >(
   client: Client<Transport, Chain | undefined, TModularSmartAccount>,
-  parameters: GrantPermissionParameters<TModularSmartAccount>
-): Promise<GrantPermissionResponse> {
-  const {
-    account: account_ = client.account,
-    maxFeePerGas,
-    maxPriorityFeePerGas,
-    nonce,
-    calls: calls_
-  } = parameters
+  parameters: GrantDeferredPermissionParameters<TModularSmartAccount>
+): Promise<GrantDeferredPermissionResponse> {
+  const { account: account_ = client.account } = parameters
 
   if (!account_) {
     throw new AccountNotFoundError({
@@ -98,6 +87,8 @@ export async function grantPermission<
   }
 
   const account = parseAccount(account_) as ModularSmartAccount
+  const publicClient = account?.client as PublicClient
+
   if (!account || !account.address) {
     throw new Error("Account not found")
   }
@@ -108,26 +99,30 @@ export async function grantPermission<
     "preparePermission"
   )(parameters)
 
-  const userOpHash = await getAction(
-    client,
-    sendUserOperation,
-    "sendUserOperation"
-  )({
-    calls: [
-      {
-        to: preparedPermission.action.target,
-        data: preparedPermission.action.callData
-      },
-      ...(calls_ || [])
-    ],
-    maxFeePerGas,
-    maxPriorityFeePerGas,
-    nonce,
-    account
+  const nexusAccount = getAccount({
+    address: account.address,
+    type: "nexus"
   })
 
+  const sessionDetailsWithPermissionEnableHash = await getEnableSessionDetails({
+    enableMode: SmartSessionMode.UNSAFE_ENABLE,
+    sessions: preparedPermission.sessions,
+    account: nexusAccount,
+    clients: [publicClient],
+    enableValidatorAddress: MAINNET_ADDRESS_K1_VALIDATOR_ADDRESS
+  })
+
+  const { permissionEnableHash, ...sessionDetails } =
+    sessionDetailsWithPermissionEnableHash
+
+  sessionDetails.enableSessionData.enableSession.permissionEnableSig =
+    await account.signer.signMessage({ message: { raw: permissionEnableHash } })
+
   return {
-    userOpHash,
-    ...preparedPermission
+    permissionIds: preparedPermission.permissionIds,
+    action: preparedPermission.action,
+    mode: SmartSessionMode.UNSAFE_ENABLE,
+    sessions: preparedPermission.sessions,
+    enableSessionData: sessionDetails.enableSessionData
   }
 }

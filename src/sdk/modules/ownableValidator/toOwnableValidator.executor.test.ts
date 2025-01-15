@@ -1,8 +1,4 @@
 import {
-  getAddOwnableExecutorOwnerAction,
-  getExecuteOnOwnedAccountAction
-} from "@rhinestone/module-sdk"
-import {
   http,
   type Account,
   type Address,
@@ -28,9 +24,15 @@ import {
 import type { MasterClient, NetworkConfig } from "../../../test/testUtils"
 import {
   type NexusClient,
-  createNexusClient
-} from "../../clients/createNexusClient"
+  createSmartAccountClient
+} from "../../clients/createSmartAccountClient"
 import { moduleActivator } from "../../clients/decorators/erc7579/moduleActivator"
+import {
+  TEST_ADDRESS_K1_VALIDATOR_ADDRESS,
+  TEST_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS,
+  getAddOwnableExecutorOwnerAction,
+  getExecuteOnOwnedAccountAction
+} from "../../constants"
 import { toK1Validator } from "../k1Validator/toK1Validator"
 import type { Module } from "../utils/Types"
 
@@ -58,11 +60,13 @@ describe("modules.ownableExecutor", async () => {
 
     testClient = toTestClient(chain, getTestAccount(5))
 
-    nexusClient = await createNexusClient({
+    nexusClient = await createSmartAccountClient({
       signer: eoaAccount,
       chain,
       transport: http(),
-      bundlerTransport: http(bundlerUrl)
+      bundlerTransport: http(bundlerUrl),
+      k1ValidatorAddress: TEST_ADDRESS_K1_VALIDATOR_ADDRESS,
+      factoryAddress: TEST_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
     })
 
     nexusAccountAddress = await nexusClient.account.getCounterFactualAddress()
@@ -70,7 +74,8 @@ describe("modules.ownableExecutor", async () => {
 
     const k1Module = toK1Validator({
       signer: eoaAccount,
-      accountAddress: nexusClient.account.address
+      accountAddress: nexusClient.account.address,
+      address: TEST_ADDRESS_K1_VALIDATOR_ADDRESS
     })
 
     nexusClient.extend(moduleActivator(k1Module))

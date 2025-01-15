@@ -1,8 +1,8 @@
-import { getSetOwnableValidatorThresholdAction } from "@rhinestone/module-sdk"
 import type { Chain, Client, Hex, Transport } from "viem"
 import { sendUserOperation } from "viem/account-abstraction"
 import { getAction, parseAccount } from "viem/utils"
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
+import { getSetOwnableValidatorThresholdAction } from "../../../constants"
 import type { ModularSmartAccount } from "../../utils/Types"
 
 /**
@@ -40,7 +40,7 @@ export type SetThresholdParameters<
  *
  * @example
  * ```typescript
- * const nexusClient = createNexusClient({ ... });
+ * const nexusClient = createSmartAccountClient({ ... });
  * const hash = await setThreshold(nexusClient, {
  *   threshold: 2,
  *   maxFeePerGas: 1000000000n

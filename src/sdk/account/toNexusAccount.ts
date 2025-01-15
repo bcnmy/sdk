@@ -44,13 +44,14 @@ import {
 
 import {
   ENTRY_POINT_ADDRESS,
+  MAINNET_ADDRESS_K1_VALIDATOR_ADDRESS,
+  MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS,
   MOCK_ATTESTER_ADDRESS,
-  RHINESTONE_ATTESTER_ADDRESS,
-  k1ValidatorAddress as k1ValidatorAddress_,
-  k1ValidatorFactoryAddress
+  RHINESTONE_ATTESTER_ADDRESS
 } from "../constants"
 // Constants
 import { EntrypointAbi } from "../constants/abi"
+import { getCounterFactualAddress as getCounterFactualAddress_ } from "./utils/getCounterFactualAddress"
 
 // Modules
 import { toK1Validator } from "../modules/k1Validator/toK1Validator"
@@ -137,6 +138,8 @@ export type NexusSmartAccountImplementation = SmartAccountImplementation<
     getModule: () => Module
     factoryData: Hex
     factoryAddress: Address
+    k1ValidatorAddress: Address
+    attesters: Address[]
     signer: Signer
     publicClient: PublicClient
     walletClient: WalletClient
@@ -169,8 +172,8 @@ export const toNexusAccount = async (
     signer: _signer,
     index = 0n,
     module: module_,
-    factoryAddress = k1ValidatorFactoryAddress,
-    k1ValidatorAddress = k1ValidatorAddress_,
+    factoryAddress = MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS,
+    k1ValidatorAddress = MAINNET_ADDRESS_K1_VALIDATOR_ADDRESS,
     key = "nexus account",
     name = "Nexus Account",
     attesters: attesters_ = [RHINESTONE_ATTESTER_ADDRESS],
@@ -242,47 +245,15 @@ export const toNexusAccount = async (
       }
     }
 
-    const addressFromFactory = (await publicClient.readContract({
-      address: factoryAddress,
-      abi: [
-        {
-          inputs: [
-            {
-              internalType: "address",
-              name: "eoaOwner",
-              type: "address"
-            },
-            {
-              internalType: "uint256",
-              name: "index",
-              type: "uint256"
-            },
-            {
-              internalType: "address[]",
-              name: "attesters",
-              type: "address[]"
-            },
-            {
-              internalType: "uint8",
-              name: "threshold",
-              type: "uint8"
-            }
-          ],
-          name: "computeAccountAddress",
-          outputs: [
-            {
-              internalType: "address payable",
-              name: "expectedAddress",
-              type: "address"
-            }
-          ],
-          stateMutability: "view",
-          type: "function"
-        }
-      ],
-      functionName: "computeAccountAddress",
-      args: [signerAddress, index, attesters_, attesterThreshold]
-    })) as Address
+    const addressFromFactory = await getCounterFactualAddress_(
+      publicClient,
+      signerAddress,
+      false,
+      index,
+      attesters_,
+      attesterThreshold,
+      factoryAddress
+    )
 
     if (!addressEquals(addressFromFactory, zeroAddress)) {
       _accountAddress = addressFromFactory
@@ -317,14 +288,13 @@ export const toNexusAccount = async (
    * @param userOp - The user operation
    * @returns The hash of the user operation
    */
-  const getUserOpHash = (userOp: UserOperation): Hex => {
-    return getUserOperationHash({
+  const getUserOpHash = (userOp: UserOperation): Hex =>
+    getUserOperationHash({
       chainId: chain.id,
       entryPointAddress: entryPoint07Address,
       entryPointVersion: "0.7",
       userOperation: userOp
     })
-  }
 
   /**
    * @description Encodes a batch of calls for execution
@@ -390,12 +360,13 @@ export const toNexusAccount = async (
 
   /**
    * @description Gets the nonce for the account
-   * @param args - Optional arguments for getting the nonce
+   * @param parameters - Optional parameters for getting the nonce
    * @returns The nonce
    */
   const getNonce = async (parameters?: {
     key?: bigint
     validationMode?: "0x00" | "0x01"
+    moduleAddress?: Address
   }): Promise<bigint> => {
     try {
       const TIMESTAMP_ADJUSTMENT = 16777215n
@@ -404,7 +375,7 @@ export const toNexusAccount = async (
       const key: string = concat([
         toHex(defaultedKey, { size: 3 }),
         defaultedValidationMode,
-        module.address as Hex
+        parameters?.moduleAddress ?? (module.address as Hex)
       ])
 
       const accountAddress = await getCounterFactualAddress()
@@ -592,9 +563,11 @@ export const toNexusAccount = async (
       getModule: () => module,
       factoryData,
       factoryAddress,
+      k1ValidatorAddress,
       signer,
       walletClient,
-      publicClient
+      publicClient,
+      attesters: attesters_
     }
   })
 }

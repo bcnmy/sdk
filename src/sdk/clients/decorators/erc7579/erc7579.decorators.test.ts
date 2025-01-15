@@ -17,8 +17,14 @@ import {
   killNetwork,
   toTestClient
 } from "../../../../test/testUtils"
-import { k1ValidatorAddress } from "../../../constants"
-import { type NexusClient, createNexusClient } from "../../createNexusClient"
+import {
+  TEST_ADDRESS_K1_VALIDATOR_ADDRESS,
+  TEST_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
+} from "../../../constants"
+import {
+  type NexusClient,
+  createSmartAccountClient
+} from "../../createSmartAccountClient"
 
 describe("erc7579.decorators", async () => {
   let network: NetworkConfig
@@ -43,11 +49,13 @@ describe("erc7579.decorators", async () => {
     recipientAddress = recipient.address
     testClient = toTestClient(chain, getTestAccount(5))
 
-    nexusClient = await createNexusClient({
+    nexusClient = await createSmartAccountClient({
       signer: eoaAccount,
       chain,
       transport: http(),
-      bundlerTransport: http(bundlerUrl)
+      bundlerTransport: http(bundlerUrl),
+      k1ValidatorAddress: TEST_ADDRESS_K1_VALIDATOR_ADDRESS,
+      factoryAddress: TEST_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
     })
 
     nexusAccountAddress = await nexusClient.account.getCounterFactualAddress()
@@ -77,14 +85,14 @@ describe("erc7579.decorators", async () => {
       nexusClient.isModuleInstalled({
         module: {
           type: "validator",
-          address: k1ValidatorAddress,
+          address: TEST_ADDRESS_K1_VALIDATOR_ADDRESS,
           initData: "0x"
         }
       })
     ])
 
     expect(installedExecutors[0].length).toBeTypeOf("number")
-    expect(installedValidators[0]).toEqual([k1ValidatorAddress])
+    expect(installedValidators[0]).toEqual([TEST_ADDRESS_K1_VALIDATOR_ADDRESS])
     expect(isHex(activeHook)).toBe(true)
     expect(fallbackSelector.length).toBeTypeOf("number")
     expect(supportsValidator).toBe(true)

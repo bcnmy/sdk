@@ -41,6 +41,7 @@ export const getChain = (chainId: number): Chain => {
       return chain
     }
   }
+
   throw new Error(
     "Chain not found. Please add a customChain into your config using the getCustomChain(...) helper"
   )
@@ -61,10 +62,11 @@ type StringOrStrings = string | string[]
  * @param rpcUrl The RPC URL for the chain - may also be an array of URLs
  * @param blockExplorer The block explorer URL for the chain - may also be an array of URLs
  * @param nativeCurrency The native currency for the chain, ETH by default
+ * @param testnet Whether the chain is a testnet or not, true by default
  *
  * @example
  *
- * import { getCustomChain, createNexusClient } from "@biconomy/sdk"
+ * import { getCustomChain, createSmartAccountClient } from "@biconomy/sdk"
  *
  * const customChain = getCustomChain(
  *   "My Custom Chain",
@@ -80,7 +82,7 @@ type StringOrStrings = string | string[]
  *   transport: http()
  * })
  *
- * const smartAccountCustomChain = await createNexusClient({
+ * const smartAccountCustomChain = await createSmartAccountClient({
  *   signer: walletClientWithCustomChain,
  *   bundlerUrl,
  *   customChain
@@ -101,9 +103,11 @@ export const getCustomChain = (
   rpcUrl: StringOrStrings,
   blockExplorer?: StringOrStrings,
   nativeCurrency?: Chain["nativeCurrency"],
-  contracts?: Chain["contracts"]
+  contracts?: Chain["contracts"],
+  testnet = true
 ): Chain => {
   const chain: Chain = {
+    testnet,
     id,
     name,
     nativeCurrency: nativeCurrency ?? {

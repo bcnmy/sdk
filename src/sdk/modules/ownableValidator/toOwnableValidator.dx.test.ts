@@ -8,7 +8,9 @@ import {
   toTestClient
 } from "../../../test/testUtils"
 import type { MasterClient, NetworkConfig } from "../../../test/testUtils"
-import { createNexusClient } from "../../clients/createNexusClient"
+import { createSmartAccountClient } from "../../clients/createSmartAccountClient"
+import { TEST_ADDRESS_K1_VALIDATOR_ADDRESS } from "../../constants"
+import { TEST_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS } from "../../constants"
 import { ownableActions } from "./decorators"
 import { toOwnableValidator } from "./toOwnableValidator"
 
@@ -59,11 +61,13 @@ describe("modules.ownableValidator.dx", async () => {
 
     // Create a Nexus client for the main account (eoaAccount)
     // This client will be used to interact with the smart contract account
-    const nexusClient = await createNexusClient({
+    const nexusClient = await createSmartAccountClient({
       signer: eoaAccount,
       chain,
       transport: http(),
-      bundlerTransport: http(bundlerUrl)
+      bundlerTransport: http(bundlerUrl),
+      k1ValidatorAddress: TEST_ADDRESS_K1_VALIDATOR_ADDRESS,
+      factoryAddress: TEST_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
     })
 
     // Fund the account and deploy the smart contract wallet

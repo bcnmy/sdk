@@ -12,7 +12,14 @@ import {
   killNetwork,
   toTestClient
 } from "../../../../test/testUtils"
-import { type NexusClient, createNexusClient } from "../../createNexusClient"
+import {
+  TEST_ADDRESS_K1_VALIDATOR_ADDRESS,
+  TEST_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
+} from "../../../constants"
+import {
+  type NexusClient,
+  createSmartAccountClient
+} from "../../createSmartAccountClient"
 
 describe("account.decorators", async () => {
   let network: NetworkConfig
@@ -37,11 +44,13 @@ describe("account.decorators", async () => {
     recipientAddress = recipient.address
     testClient = toTestClient(chain, getTestAccount(5))
 
-    nexusClient = await createNexusClient({
+    nexusClient = await createSmartAccountClient({
       signer: eoaAccount,
       chain,
       transport: http(),
-      bundlerTransport: http(bundlerUrl)
+      bundlerTransport: http(bundlerUrl),
+      k1ValidatorAddress: TEST_ADDRESS_K1_VALIDATOR_ADDRESS,
+      factoryAddress: TEST_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
     })
     nexusAccountAddress = await nexusClient.account.getCounterFactualAddress()
     await fundAndDeployClients(testClient, [nexusClient])

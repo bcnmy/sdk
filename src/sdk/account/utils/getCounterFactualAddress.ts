@@ -1,9 +1,9 @@
 import type { Address } from "viem"
 import type { PublicClient } from "viem"
 import {
+  MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS,
   MOCK_ATTESTER_ADDRESS,
-  RHINESTONE_ATTESTER_ADDRESS,
-  k1ValidatorFactoryAddress
+  RHINESTONE_ATTESTER_ADDRESS
 } from "../../constants"
 
 /**
@@ -30,7 +30,7 @@ export const getCounterFactualAddress = async (
   index = 0n,
   attesters = [RHINESTONE_ATTESTER_ADDRESS],
   threshold = 1,
-  factoryAddress = k1ValidatorFactoryAddress
+  factoryAddress = MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
 ) => {
   if (isTestnet) {
     attesters.push(MOCK_ATTESTER_ADDRESS)

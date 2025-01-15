@@ -13,6 +13,7 @@ import {
   createWalletClient,
   domainSeparator,
   encodeAbiParameters,
+  encodeFunctionData,
   encodePacked,
   getContract,
   hashMessage,
@@ -27,6 +28,7 @@ import {
 } from "viem"
 import type { UserOperation } from "viem/account-abstraction"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
+import { CounterAbi } from "../../test/__contracts/abi/CounterAbi"
 import { MockSignatureValidatorAbi } from "../../test/__contracts/abi/MockSignatureValidatorAbi"
 import { TokenWithPermitAbi } from "../../test/__contracts/abi/TokenWithPermitAbi"
 import { testAddresses } from "../../test/callDatas"
@@ -40,13 +42,13 @@ import {
 import type { MasterClient, NetworkConfig } from "../../test/testUtils"
 import {
   type NexusClient,
-  createNexusClient
-} from "../clients/createNexusClient"
+  createSmartAccountClient
+} from "../clients/createSmartAccountClient"
 import {
   BICONOMY_ATTESTER_ADDRESS,
   MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS,
-  k1ValidatorAddress,
-  k1ValidatorFactoryAddress
+  TEST_ADDRESS_K1_VALIDATOR_ADDRESS,
+  TEST_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
 } from "../constants"
 import type { NexusAccount } from "./toNexusAccount"
 import {
@@ -90,11 +92,13 @@ describe("nexus.account", async () => {
       transport: http()
     })
 
-    nexusClient = await createNexusClient({
+    nexusClient = await createSmartAccountClient({
       signer: eoaAccount,
       chain,
       transport: http(),
-      bundlerTransport: http(bundlerUrl)
+      bundlerTransport: http(bundlerUrl),
+      k1ValidatorAddress: TEST_ADDRESS_K1_VALIDATOR_ADDRESS,
+      factoryAddress: TEST_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
     })
 
     nexusAccount = nexusClient.account
@@ -103,18 +107,6 @@ describe("nexus.account", async () => {
   })
   afterAll(async () => {
     await killNetwork([network?.rpcPort, network?.bundlerPort])
-  })
-
-  test("should override account address", async () => {
-    const newNexusClient = await createNexusClient({
-      chain,
-      transport: http(),
-      bundlerTransport: http(bundlerUrl),
-      accountAddress: "0xf0479e036343bC66dc49dd374aFAF98402D0Ae5f",
-      signer: eoaAccount
-    })
-    const accountAddress = await newNexusClient.account.getAddress()
-    expect(accountAddress).toBe("0xf0479e036343bC66dc49dd374aFAF98402D0Ae5f")
   })
 
   test("should check isValidSignature PersonalSign is valid", async () => {
@@ -221,7 +213,7 @@ describe("nexus.account", async () => {
       calls: [{ to: userTwo.address, value: 1n }]
     })
 
-    const userOpHash = await nexusClient.account.getUserOpHash(userOperation)
+    const userOpHash = nexusClient.account.getUserOpHash(userOperation)
 
     const isValid = await mockSigVerifierContract.read.verify([
       userOpHash,
@@ -356,7 +348,7 @@ describe("nexus.account", async () => {
 
     const finalSignature = encodePacked(
       ["address", "bytes"],
-      [k1ValidatorAddress, signatureData]
+      [TEST_ADDRESS_K1_VALIDATOR_ADDRESS, signatureData]
     )
 
     const contractResponse = await testClient.readContract({
@@ -598,6 +590,23 @@ describe("nexus.account", async () => {
       })) as Address
 
       expect(BICONOMY_ATTESTER_ADDRESS).toBe(biconomyAttesterAddress)
+    }
+  )
+
+  testnetTest(
+    "should debug user operation and generate tenderly link",
+    async ({ config: { chain } }) => {
+      await nexusClient.debugUserOperation({
+        calls: [
+          {
+            to: testAddresses.Counter,
+            data: encodeFunctionData({
+              abi: CounterAbi,
+              functionName: "incrementNumber"
+            })
+          }
+        ]
+      })
     }
   )
 })

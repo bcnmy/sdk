@@ -1,4 +1,3 @@
-import { SmartSessionMode } from "@rhinestone/module-sdk/module"
 import {
   http,
   type AbiFunction,
@@ -11,7 +10,6 @@ import {
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { CounterAbi } from "../../../test/__contracts/abi/CounterAbi"
-import { MockCalleeAbi } from "../../../test/__contracts/abi/MockCalleeAbi"
 import { testAddresses } from "../../../test/callDatas"
 import { toNetwork } from "../../../test/testSetup"
 import {
@@ -23,8 +21,9 @@ import {
 import type { MasterClient, NetworkConfig } from "../../../test/testUtils"
 import {
   type NexusClient,
-  createNexusClient
-} from "../../clients/createNexusClient"
+  createSmartAccountClient
+} from "../../clients/createSmartAccountClient"
+import { SmartSessionMode } from "../../constants"
 import type { Module } from "../utils/Types"
 import { parse, stringify } from "./Helpers"
 import type { SessionData } from "./Types"
@@ -49,7 +48,7 @@ describe("modules.smartSessions.sudo.policy", async () => {
   let sessionsModule: Module
 
   beforeAll(async () => {
-    network = await toNetwork("BASE_SEPOLIA_FORKED")
+    network = await toNetwork("BESPOKE_ANVIL_NETWORK_FORKING_BASE_SEPOLIA")
 
     chain = network.chain
     bundlerUrl = network.bundlerUrl
@@ -59,7 +58,7 @@ describe("modules.smartSessions.sudo.policy", async () => {
 
     testClient = toTestClient(chain, getTestAccount(5))
 
-    nexusClient = await createNexusClient({
+    nexusClient = await createSmartAccountClient({
       signer: eoaAccount,
       chain,
       transport: http(),
@@ -134,7 +133,8 @@ describe("modules.smartSessions.sudo.policy", async () => {
       moduleData: {
         permissionIds: createSessionsResponse.permissionIds,
         action: createSessionsResponse.action,
-        mode: SmartSessionMode.USE
+        mode: SmartSessionMode.USE,
+        sessions: createSessionsResponse.sessions
       }
     }
 
@@ -151,7 +151,7 @@ describe("modules.smartSessions.sudo.policy", async () => {
 
     // Create a new Nexus client for the session
     // This client will be used to interact with the smart contract account using the session key
-    const smartSessionNexusClient = await createNexusClient({
+    const smartSessionNexusClient = await createSmartAccountClient({
       chain,
       accountAddress: usersSessionData.granter,
       signer: sessionKeyAccount,

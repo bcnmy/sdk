@@ -1,6 +1,5 @@
 import { config } from "dotenv"
 import getPort from "get-port"
-// @ts-ignore
 import { type AnvilParameters, alto, anvil } from "prool/instances"
 import {
   http,
@@ -23,10 +22,6 @@ import { mnemonicToAccount, privateKeyToAccount } from "viem/accounts"
 import { getChain, getCustomChain, safeMultiplier } from "../sdk/account/utils"
 import { Logger } from "../sdk/account/utils/Logger"
 import {
-  type NexusClient,
-  createNexusClient
-} from "../sdk/clients/createNexusClient"
-import {
   ENTRYPOINT_SIMULATIONS_ADDRESS,
   ENTRY_POINT_ADDRESS,
   MAINNET_ADDRESS_K1_VALIDATOR_ADDRESS,
@@ -38,9 +33,17 @@ import {
   TEST_CONTRACTS
 } from "./callDatas"
 
+import {
+  type NexusClient,
+  createSmartAccountClient
+} from "../sdk/clients/createSmartAccountClient"
 import * as hardhatExec from "./executables"
+import type { TestFileNetworkType } from "./testSetup"
 
 config()
+
+const BASE_SEPOLIA_RPC_URL =
+  "https://virtual.base-sepolia.rpc.tenderly.co/6ccdd33d-d8f4-4476-8d37-63ba0ed0ea8f"
 
 type AnvilInstance = ReturnType<typeof anvil>
 type BundlerInstance = ReturnType<typeof alto>
@@ -62,6 +65,7 @@ export type NetworkConfig = Omit<
 > & {
   account?: PrivateKeyAccount
   paymasterUrl?: string
+  meeNodeUrl?: string
 }
 export const pKey =
   "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80" // This is a publicly available private key meant only for testing only
@@ -93,12 +97,17 @@ export const killNetwork = (ids: number[]) =>
     })
   )
 
-export const initTestnetNetwork = async (): Promise<NetworkConfig> => {
+export const initTestnetNetwork = async (
+  type: TestFileNetworkType = "TESTNET_FROM_ENV_VARS"
+): Promise<NetworkConfig> => {
   const privateKey = process.env.PRIVATE_KEY
-  const chainId = process.env.CHAIN_ID
+  const chainId_ = process.env.CHAIN_ID
+  const altChainId = process.env.ALT_CHAIN_ID
   const rpcUrl = process.env.RPC_URL //Optional, taken from chain (using chainId) if not provided
   const _bundlerUrl = process.env.BUNDLER_URL // Optional, taken from chain (using chainId) if not provided
   const paymasterUrl = process.env.PAYMASTER_URL // Optional
+
+  const chainId = type === "TESTNET_FROM_ALT_ENV_VARS" ? altChainId : chainId_
 
   let chain: Chain
 
@@ -209,17 +218,18 @@ export const toConfiguredAnvil = async ({
     chainId: rpcPort,
     port: rpcPort,
     codeSizeLimit: 1000000000000,
-    forkUrl: shouldForkBaseSepolia
-      ? process.env.VIRTUAL_BASE_SEPOLIA
-      : undefined
+    forkUrl: shouldForkBaseSepolia ? BASE_SEPOLIA_RPC_URL : undefined
   }
   const instance = anvil(config)
   await instance.start()
-  await initDeployments(rpcPort)
+  await initDeployments(rpcPort, shouldForkBaseSepolia)
   return instance
 }
 
-export const initDeployments = async (rpcPort: number) => {
+export const initDeployments = async (
+  rpcPort: number,
+  shouldForkBaseSepolia = false
+) => {
   // Hardhat deployment of nexus repo:
   console.log(
     `using hardhat to deploy nexus contracts to http://localhost:${rpcPort}`
@@ -228,19 +238,21 @@ export const initDeployments = async (rpcPort: number) => {
   await hardhatExec.deploy(rpcPort)
   console.log("hardhat deployment complete.")
 
-  // Hardcoded bytecode deployment of contracts using setCode:
-  console.log("setting bytecode with hardcoded calldata.")
-  const chain = getTestChainFromPort(rpcPort)
-  const account = getTestAccount()
-  const testClient = toTestClient(chain, account)
-
   // Dynamic bytecode deployment of contracts using setCode:
-  console.log("setting bytecode with dynamic calldata from a testnet")
-  await setByteCodeHardcoded(testClient)
-  await setByteCodeDynamic(testClient, TEST_CONTRACTS)
+  if (!shouldForkBaseSepolia) {
+    // Hardcoded bytecode deployment of contracts using setCode:
+    console.log("setting bytecode with hardcoded calldata.")
+    const chain = getTestChainFromPort(rpcPort)
+    const account = getTestAccount()
+    const testClient = toTestClient(chain, account)
 
-  console.log("bytecode deployment complete.")
-  console.log("")
+    console.log("setting bytecode with dynamic calldata from a testnet")
+    await setByteCodeHardcoded(testClient)
+    await setByteCodeDynamic(testClient, TEST_CONTRACTS)
+
+    console.log("bytecode deployment complete.")
+    console.log("")
+  }
 }
 
 const portOptions = { exclude: [] as number[] }
@@ -318,7 +330,7 @@ export const toFundedTestClients = async ({
 
   const testClient = toTestClient(chain, getTestAccount())
 
-  const nexus = await createNexusClient({
+  const nexus = await createSmartAccountClient({
     signer: account,
     transport: http(),
     bundlerTransport: http(bundlerUrl),

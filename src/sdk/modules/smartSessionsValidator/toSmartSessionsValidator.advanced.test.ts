@@ -112,7 +112,9 @@ describe("modules.smartSessions.dx", async () => {
 
     expect(installSuccess).toBe(true)
 
-    const moduleData = await nexusSessionClient.grantDeferredPermission({
+    // Define the session parameters
+    // This includes the session key, validator, and action policies
+    const createSessionsResponse = await nexusSessionClient.grantPermission({
       sessionRequestedInfo: [
         {
           sessionPublicKey, // Public key of the session
@@ -132,18 +134,32 @@ describe("modules.smartSessions.dx", async () => {
       ]
     })
 
+    // Wait for the session creation transaction to be mined and check its success
+    const { success: sessionCreateSuccess } =
+      await usersNexusClient.waitForUserOperationReceipt({
+        hash: createSessionsResponse.userOpHash
+      })
+
+    expect(sessionCreateSuccess).toBe(true)
+
+    // Prepare the session data to be stored by the dApp. This could be saved in a Database by the dApp, or client side in local storage.
     const sessionData: SessionData = {
       granter: usersNexusClient.account.address,
       sessionPublicKey,
-      description: `Permission to increment a counter for ${testAddresses.Counter}`,
-      moduleData
+      description: `Session to increment a counter for ${testAddresses.Counter}`,
+      moduleData: {
+        permissionIds: createSessionsResponse.permissionIds,
+        action: createSessionsResponse.action,
+        mode: SmartSessionMode.USE,
+        sessions: createSessionsResponse.sessions
+      }
     }
 
     // Zip the session data, and store it for later use by a dapp
     stringifiedSessionDatum = stringify(sessionData)
   }, 200000)
 
-  test.skip("should demonstrate using a smart session from dapp's perspective", async () => {
+  test("should demonstrate using a smart session from dapp's perspective", async () => {
     // Now assume the user has left the dapp and the usersNexusClient signer is no longer available
     // The following code demonstrates how a dapp can use the session to act on behalf of the user
 
@@ -171,11 +187,17 @@ describe("modules.smartSessions.dx", async () => {
     const useSmartSessionNexusClient = smartSessionNexusClient.extend(
       smartSessionUseActions(usePermissionsModule)
     )
-    const byteCode = await testClient.getCode({
-      address: testAddresses.Counter
-    })
+
+    // Use the session to perform an action (increment and decrement the counter using the same permissionId)
     const userOpHash = await useSmartSessionNexusClient.usePermission({
       calls: [
+        {
+          to: testAddresses.Counter,
+          data: encodeFunctionData({
+            abi: CounterAbi,
+            functionName: "incrementNumber"
+          })
+        },
         {
           to: testAddresses.Counter,
           data: encodeFunctionData({
@@ -186,13 +208,12 @@ describe("modules.smartSessions.dx", async () => {
       ]
     })
 
-    expect(userOpHash).toBeDefined()
-
-    const receipt =
+    // Wait for the action to be mined and check its success
+    const { success: sessionUseSuccess } =
       await useSmartSessionNexusClient.waitForUserOperationReceipt({
         hash: userOpHash
       })
 
-    expect(receipt.success).toBe(true)
+    expect(sessionUseSuccess).toBe(true)
   }, 200000) // Test timeout set to 60 seconds
 })

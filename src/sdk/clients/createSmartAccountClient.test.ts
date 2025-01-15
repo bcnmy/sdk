@@ -27,8 +27,14 @@ import { ERROR_MESSAGES } from "../account/utils/Constants"
 import { Logger } from "../account/utils/Logger"
 import { getAccountMeta, makeInstallDataAndHash } from "../account/utils/Utils"
 import { getChain } from "../account/utils/getChain"
-import { k1ValidatorAddress } from "../constants"
-import { type NexusClient, createNexusClient } from "./createNexusClient"
+import {
+  TEST_ADDRESS_K1_VALIDATOR_ADDRESS,
+  TEST_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
+} from "../constants"
+import {
+  type NexusClient,
+  createSmartAccountClient
+} from "./createSmartAccountClient"
 
 describe("nexus.client", async () => {
   let network: NetworkConfig
@@ -58,11 +64,13 @@ describe("nexus.client", async () => {
     privKey = generatePrivateKey()
     const account = privateKeyToAccount(privKey)
 
-    nexusClient = await createNexusClient({
+    nexusClient = await createSmartAccountClient({
       signer: account,
       chain,
       transport: http(),
-      bundlerTransport: http(bundlerUrl)
+      bundlerTransport: http(bundlerUrl),
+      k1ValidatorAddress: TEST_ADDRESS_K1_VALIDATOR_ADDRESS,
+      factoryAddress: TEST_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
     })
     nexusAccountAddress = await nexusClient.account.getCounterFactualAddress()
   })
@@ -196,19 +204,19 @@ describe("nexus.client", async () => {
   test("should have correct fields", async () => {
     const chainId = 1
     const chain = getChain(chainId)
-    ;[
-      "blockExplorers",
-      "contracts",
-      "fees",
-      "formatters",
-      "id",
-      "name",
-      "nativeCurrency",
-      "rpcUrls",
-      "serializers"
-    ].every((field) => {
-      expect(chain).toHaveProperty(field)
-    })
+      ;[
+        "blockExplorers",
+        "contracts",
+        "fees",
+        "formatters",
+        "id",
+        "name",
+        "nativeCurrency",
+        "rpcUrls",
+        "serializers"
+      ].every((field) => {
+        expect(chain).toHaveProperty(field)
+      })
   })
 
   test("should throw an error, chain id not found", async () => {
@@ -227,7 +235,7 @@ describe("nexus.client", async () => {
       nexusClient.isModuleInstalled({
         module: {
           type: "validator",
-          address: k1ValidatorAddress,
+          address: TEST_ADDRESS_K1_VALIDATOR_ADDRESS,
           initData: "0x"
         }
       }),
@@ -259,18 +267,22 @@ describe("nexus.client", async () => {
 
     const wallet = new Wallet(privKey)
 
-    const viemNexusClient = await createNexusClient({
+    const viemNexusClient = await createSmartAccountClient({
       signer: viemSigner,
       chain,
       transport: http(),
-      bundlerTransport: http(bundlerUrl)
+      bundlerTransport: http(bundlerUrl),
+      k1ValidatorAddress: TEST_ADDRESS_K1_VALIDATOR_ADDRESS,
+      factoryAddress: TEST_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
     })
 
-    const ethersNexusClient = await createNexusClient({
+    const ethersNexusClient = await createSmartAccountClient({
       signer: wallet,
       chain,
       transport: http(),
-      bundlerTransport: http(bundlerUrl)
+      bundlerTransport: http(bundlerUrl),
+      k1ValidatorAddress: TEST_ADDRESS_K1_VALIDATOR_ADDRESS,
+      factoryAddress: TEST_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
     })
 
     const sig1 = await viemNexusClient.signMessage({ message: "123" })
@@ -281,11 +293,13 @@ describe("nexus.client", async () => {
 
   test("should send user operation using ethers Wallet", async () => {
     const ethersWallet = new ethers.Wallet(privKey)
-    const ethersNexusClient = await createNexusClient({
+    const ethersNexusClient = await createSmartAccountClient({
       signer: ethersWallet,
       chain,
       transport: http(),
-      bundlerTransport: http(bundlerUrl)
+      bundlerTransport: http(bundlerUrl),
+      k1ValidatorAddress: TEST_ADDRESS_K1_VALIDATOR_ADDRESS,
+      factoryAddress: TEST_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
     })
 
     const hash = await ethersNexusClient.sendUserOperation({
@@ -305,7 +319,7 @@ describe("nexus.client", async () => {
   test("should send user operation using ethers Wallet JsonRpcSigner", async () => {
     const provider = new JsonRpcProvider(network.rpcUrl)
     const signer = await provider.getSigner()
-    const nexusClient = await createNexusClient({
+    const nexusClient = await createSmartAccountClient({
       signer,
       chain: network.chain,
       transport: http(),

@@ -1,5 +1,29 @@
 # @biconomy/sdk
 
+## 0.0.24
+
+### Patch Changes
+
+- Remove tenderlyUrl from env vars
+
+## 0.0.23
+
+### Patch Changes
+
+- Remove isTesting helper from testing framework
+
+## 0.0.22
+
+### Patch Changes
+
+- Smart sessions enable mode
+
+## 0.0.21
+
+### Patch Changes
+
+- Add support for token paymaster with helper functions
+
 ## 0.0.20
 
 ### Patch Changes

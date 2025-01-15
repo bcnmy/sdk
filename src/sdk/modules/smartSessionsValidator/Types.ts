@@ -1,8 +1,9 @@
+import type { Abi, AbiFunction, Address, Hex, OneOf } from "viem"
 import type {
   EnableSessionData,
+  Session,
   SmartSessionMode
-} from "@rhinestone/module-sdk"
-import type { Abi, AbiFunction, Address, Hex, OneOf } from "viem"
+} from "../../constants"
 import type { AnyReferenceValue } from "../utils/Helpers"
 import type { Execution } from "../utils/Types"
 
@@ -29,11 +30,13 @@ export type SessionData = {
   description?: string
 }
 
-export type GrantPermissionActionReturnParams = {
+export type PreparePermissionResponse = {
   /** Array of permission IDs for the created sessions. */
   permissionIds: Hex[]
   /** The execution object for the action. */
   action: Execution
+  /** The sessions that were created. */
+  sessions: Session[]
 }
 
 /**
@@ -42,7 +45,7 @@ export type GrantPermissionActionReturnParams = {
 export type GrantPermissionResponse = {
   /** The hash of the user operation. */
   userOpHash: Hex
-} & GrantPermissionActionReturnParams
+} & PreparePermissionResponse
 
 /**
  * Represents the possible modes for a smart session.
@@ -60,7 +63,7 @@ export type UsePermissionModuleData = {
   enableSessionData?: EnableSessionData
   /** The index of the permission ID to use for the session. Defaults to 0. */
   permissionIdIndex?: number
-} & GrantPermissionActionReturnParams
+} & PreparePermissionResponse
 
 type OptionalSessionKeyData = OneOf<
   | {
@@ -80,9 +83,9 @@ export type CreateSessionDataParams = OptionalSessionKeyData & {
   /** Public key for the session. Required for K1 algorithm validators. */
   sessionPublicKey?: Hex
   /** Address of the session validator. */
-  sessionValidatorAddress?: Address
-  /** Type of the session validator. Usually "simple K1 validator". */
-  sessionValidatorType?: string
+  sessionValidator?: Address
+  /** Data for the session validator. */
+  sessionValidatorInitData?: Hex
   /** Optional salt for the session. */
   salt?: Hex
   /** Timestamp until which the session is valid. */
@@ -99,9 +102,9 @@ export type FullCreateSessionDataParams = {
   /** Public key for the session. Required for K1 algorithm validators. */
   sessionPublicKey: Hex
   /** Address of the session validator. */
-  sessionValidatorAddress: Address
-  /** Type of the session validator. Usually "simple K1 validator". */
-  sessionValidatorType?: string
+  sessionValidator?: Address
+  /** Data for the session validator. */
+  sessionValidatorInitData?: Hex
   /** Data for the session key. */
   sessionKeyData: Hex
   /** Optional salt for the session. */
@@ -202,7 +205,7 @@ export type Rule = {
  */
 export type RawParamRule = {
   condition: ParamCondition
-  offset: bigint
+  offset: number
   isLimited: boolean
   ref: Hex
   usage: LimitUsage

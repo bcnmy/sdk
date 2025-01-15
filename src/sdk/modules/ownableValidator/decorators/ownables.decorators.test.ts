@@ -1,4 +1,3 @@
-import { OWNABLE_VALIDATOR_ADDRESS } from "@rhinestone/module-sdk/module"
 import {
   http,
   type Account,
@@ -19,8 +18,13 @@ import {
 } from "../../../../test/testUtils"
 import {
   type NexusClient,
-  createNexusClient
-} from "../../../clients/createNexusClient"
+  createSmartAccountClient
+} from "../../../clients/createSmartAccountClient"
+import {
+  OWNABLE_VALIDATOR_ADDRESS,
+  TEST_ADDRESS_K1_VALIDATOR_ADDRESS,
+  TEST_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
+} from "../../../constants"
 import { toOwnableValidator } from "../toOwnableValidator"
 
 describe("modules.ownables.decorators", async () => {
@@ -50,11 +54,13 @@ describe("modules.ownables.decorators", async () => {
     userThreeAddress = userThree.address
     testClient = toTestClient(chain, getTestAccount(5))
 
-    nexusClient = await createNexusClient({
+    nexusClient = await createSmartAccountClient({
       signer: eoaAccount,
       chain,
       transport: http(),
-      bundlerTransport: http(bundlerUrl)
+      bundlerTransport: http(bundlerUrl),
+      k1ValidatorAddress: TEST_ADDRESS_K1_VALIDATOR_ADDRESS,
+      factoryAddress: TEST_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
     })
 
     nexusAccountAddress = await nexusClient.account.getCounterFactualAddress()

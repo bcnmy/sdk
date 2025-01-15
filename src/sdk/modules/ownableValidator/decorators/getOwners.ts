@@ -1,7 +1,7 @@
-import { getAccount, getOwnableValidatorOwners } from "@rhinestone/module-sdk"
 import type { Address, Chain, Client, PublicClient, Transport } from "viem"
 import { parseAccount } from "viem/utils"
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
+import { getAccount, getOwnableValidatorOwners } from "../../../constants"
 import type { ModularSmartAccount } from "../../utils/Types"
 
 /**

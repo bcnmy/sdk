@@ -1,4 +1,3 @@
-import { SmartSessionMode } from "@rhinestone/module-sdk"
 import {
   http,
   type Address,
@@ -23,17 +22,12 @@ import {
 import type { MasterClient, NetworkConfig } from "../../../test/testUtils"
 import {
   type NexusClient,
-  createNexusClient
-} from "../../clients/createNexusClient"
-import { createNexusSessionClient } from "../../clients/createNexusSessionClient"
+  createSmartAccountClient
+} from "../../clients/createSmartAccountClient"
+import { SmartSessionMode, getUniversalActionPolicy } from "../../constants"
 import { parseReferenceValue } from "../utils/Helpers"
 import type { Module } from "../utils/Types"
-import {
-  abiToPoliciesInfo,
-  parse,
-  stringify,
-  toUniversalActionPolicy
-} from "./Helpers"
+import { abiToPoliciesInfo, parse, stringify, toActionConfig } from "./Helpers"
 import type { CreateSessionDataParams, SessionData } from "./Types"
 import { ParamCondition } from "./Types"
 import { smartSessionCreateActions, smartSessionUseActions } from "./decorators"
@@ -55,7 +49,7 @@ describe("modules.smartSessions", async () => {
   let sessionsModule: Module
 
   beforeAll(async () => {
-    network = await toNetwork("BASE_SEPOLIA_FORKED")
+    network = await toNetwork("BESPOKE_ANVIL_NETWORK_FORKING_BASE_SEPOLIA")
 
     chain = network.chain
     bundlerUrl = network.bundlerUrl
@@ -64,7 +58,7 @@ describe("modules.smartSessions", async () => {
     sessionPublicKey = sessionKeyAccount.address
     testClient = toTestClient(chain, getTestAccount(5))
 
-    nexusClient = await createNexusClient({
+    nexusClient = await createSmartAccountClient({
       signer: eoaAccount,
       chain,
       transport: http(),
@@ -173,7 +167,9 @@ describe("modules.smartSessions", async () => {
         ]
       }
     }
-    const installUniversalPolicy = toUniversalActionPolicy(actionConfigData)
+    const installUniversalPolicy = getUniversalActionPolicy(
+      toActionConfig(actionConfigData)
+    )
 
     expect(installUniversalPolicy.policy).toEqual(testAddresses.UniActionPolicy)
     expect(installUniversalPolicy.initData).toBeDefined()
@@ -196,29 +192,26 @@ describe("modules.smartSessions", async () => {
     }
   )
 
-  test.concurrent(
-    "should install sessions module with no init data",
-    async () => {
-      const isInstalledBefore = await nexusClient.isModuleInstalled({
+  test("should install sessions module with no init data", async () => {
+    const isInstalledBefore = await nexusClient.isModuleInstalled({
+      module: sessionsModule.moduleInitData
+    })
+
+    if (!isInstalledBefore) {
+      const hash = await nexusClient.installModule({
         module: sessionsModule.moduleInitData
       })
 
-      if (!isInstalledBefore) {
-        const hash = await nexusClient.installModule({
-          module: sessionsModule.moduleInitData
-        })
-
-        const { success: installSuccess } =
-          await nexusClient.waitForUserOperationReceipt({ hash })
-        expect(installSuccess).toBe(true)
-      }
-
-      const isInstalledAfter = await nexusClient.isModuleInstalled({
-        module: sessionsModule
-      })
-      expect(isInstalledAfter).toBe(true)
+      const { success: installSuccess } =
+        await nexusClient.waitForUserOperationReceipt({ hash })
+      expect(installSuccess).toBe(true)
     }
-  )
+
+    const isInstalledAfter = await nexusClient.isModuleInstalled({
+      module: sessionsModule
+    })
+    expect(isInstalledAfter).toBe(true)
+  })
 
   test("should create Counter increment session (USE mode) on installed smart session validator", async () => {
     const isInstalledBefore = await nexusClient.isModuleInstalled({
@@ -258,7 +251,8 @@ describe("modules.smartSessions", async () => {
       moduleData: {
         permissionIds: createSessionsResponse.permissionIds,
         action: createSessionsResponse.action,
-        mode: SmartSessionMode.USE
+        mode: SmartSessionMode.USE,
+        sessions: createSessionsResponse.sessions
       }
     }
 
@@ -272,6 +266,10 @@ describe("modules.smartSessions", async () => {
   }, 200000)
 
   test("should make use of already enabled session (USE mode) to increment a counter using a session key", async () => {
+    if (!cachedSessionData) {
+      throw new Error("Session data not found")
+    }
+
     const counterBefore = await testClient.readContract({
       address: testAddresses.Counter,
       abi: CounterAbi,
@@ -280,7 +278,7 @@ describe("modules.smartSessions", async () => {
 
     const parsedSessionData = parse(cachedSessionData) as SessionData
 
-    const smartSessionNexusClient = await createNexusSessionClient({
+    const smartSessionNexusClient = await createSmartAccountClient({
       chain,
       accountAddress: nexusClient.account.address,
       signer: sessionKeyAccount,

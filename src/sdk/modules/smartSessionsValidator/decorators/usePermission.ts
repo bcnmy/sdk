@@ -26,6 +26,12 @@ export type UsePermissionParameters<
   account?: TModularSmartAccount
   /** The signer to use for the session. Defaults to the signer of the client. */
   signer?: Signer
+  /** The gas limit for the pre-verification phase. */
+  preVerificationGas?: bigint
+  /** The gas limit for the verification phase. */
+  verificationGasLimit?: bigint
+  /** The gas limit for the call phase. */
+  callGasLimit?: bigint
 }
 
 /**
@@ -79,5 +85,5 @@ export async function usePermission<
     sendUserOperation,
     "sendUserOperation"
     // @ts-ignore
-  )({ ...parameters, account: account_ })
+  )(parameters)
 }

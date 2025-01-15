@@ -1,5 +1,4 @@
-import { SmartSessionMode } from "@rhinestone/module-sdk"
-import { http, type Address, type Chain, type Hex, toBytes, toHex } from "viem"
+import { http, type Address, type Chain, type Hex } from "viem"
 import type { LocalAccount, PublicClient } from "viem"
 import { encodeFunctionData } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
@@ -13,7 +12,7 @@ import {
   toTestClient
 } from "../../test/testUtils"
 import type { MasterClient, NetworkConfig } from "../../test/testUtils"
-import { SMART_SESSIONS_ADDRESS } from "../constants"
+import { SMART_SESSIONS_ADDRESS, SmartSessionMode } from "../constants"
 import {
   isPermissionEnabled,
   parse,
@@ -29,8 +28,10 @@ import {
 } from "../modules/smartSessionsValidator/decorators"
 import { toSmartSessionsValidator } from "../modules/smartSessionsValidator/toSmartSessionsValidator"
 import type { Module } from "../modules/utils/Types"
-import { type NexusClient, createNexusClient } from "./createNexusClient"
-import { createNexusSessionClient } from "./createNexusSessionClient"
+import {
+  type NexusClient,
+  createSmartAccountClient
+} from "./createSmartAccountClient"
 
 describe("nexus.session.client", async () => {
   let network: NetworkConfig
@@ -49,7 +50,7 @@ describe("nexus.session.client", async () => {
   let sessionsModule: Module
 
   beforeAll(async () => {
-    network = await toNetwork("BASE_SEPOLIA_FORKED")
+    network = await toNetwork("BESPOKE_ANVIL_NETWORK_FORKING_BASE_SEPOLIA")
 
     chain = network.chain
     bundlerUrl = network.bundlerUrl
@@ -59,7 +60,7 @@ describe("nexus.session.client", async () => {
 
     testClient = toTestClient(chain, getTestAccount(5))
 
-    nexusClient = await createNexusClient({
+    nexusClient = await createSmartAccountClient({
       signer: eoaAccount,
       chain,
       transport: http(),
@@ -113,15 +114,6 @@ describe("nexus.session.client", async () => {
       smartSessionCreateActions(sessionsModule)
     )
 
-    const trustAttestersHash = await nexusSessionClient.trustAttesters()
-    const userOpReceipt = await nexusSessionClient.waitForUserOperationReceipt({
-      hash: trustAttestersHash
-    })
-    const { status } = await testClient.waitForTransactionReceipt({
-      hash: userOpReceipt.receipt.transactionHash
-    })
-    expect(status).toBe("success")
-
     // session key signer address is declared here
     const sessionRequestedInfo: CreateSessionDataParams[] = [
       {
@@ -152,7 +144,8 @@ describe("nexus.session.client", async () => {
       moduleData: {
         permissionIds: createSessionsResponse.permissionIds,
         action: createSessionsResponse.action,
-        mode: SmartSessionMode.USE
+        mode: SmartSessionMode.USE,
+        sessions: createSessionsResponse.sessions
       }
     }
 
@@ -181,7 +174,7 @@ describe("nexus.session.client", async () => {
       functionName: "getNumber"
     })
 
-    const smartSessionNexusClient = await createNexusSessionClient({
+    const smartSessionNexusClient = await createSmartAccountClient({
       chain,
       accountAddress: nexusClient.account.address,
       signer: sessionKeyAccount,
@@ -238,7 +231,7 @@ describe("nexus.session.client", async () => {
       moduleData: sessionData.moduleData
     })
 
-    const smartSessionNexusClient = await createNexusSessionClient({
+    const smartSessionNexusClient = await createSmartAccountClient({
       chain,
       accountAddress: nexusClient.account.address,
       signer: sessionKeyAccount,

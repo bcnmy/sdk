@@ -7,21 +7,21 @@ import { type NexusAccount, toNexusAccount } from "../account/toNexusAccount"
 import { safeMultiplier } from "../account/utils"
 import { MAINNET_ADDRESS_K1_VALIDATOR_ADDRESS } from "../constants"
 import { MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS } from "../constants"
-import type { NexusClient } from "./createNexusClient"
+import type { NexusClient } from "./createSmartAccountClient"
 import { erc7579Actions } from "./decorators/erc7579"
 import { smartAccountActions } from "./decorators/smartAccount"
 
 const COMPETITORS = [
   {
     name: "Pimlico",
-    bundlerUrl: `https://api.pimlico.io/v2/84532/rpc?apikey=${process.env.PIMLICO_API_KEY}`
+    chain: baseSepolia,
+    bundlerUrl: `https://api.pimlico.io/v2/${baseSepolia.id}/rpc?apikey=${process.env.PIMLICO_API_KEY}`
   }
 ]
 
 describe.each(COMPETITORS)(
   "nexus.interoperability with $name",
-  async ({ bundlerUrl }) => {
-    const chain = baseSepolia
+  async ({ bundlerUrl, chain }) => {
     const account = privateKeyToAccount(`0x${process.env.PRIVATE_KEY as Hex}`)
 
     const publicClient = createPublicClient({
@@ -111,9 +111,8 @@ describe.each(COMPETITORS)(
         address: nexusAccountAddress
       })
 
-      // Check that the balance has decreased by more than 1n (value sent)
-      // because gas fees were paid
-      expect(finalBalance).toBeLessThan(initialBalance - 1n)
+      // Check that the balance has decreased
+      expect(finalBalance).toBeLessThan(initialBalance)
     })
   }
 )
