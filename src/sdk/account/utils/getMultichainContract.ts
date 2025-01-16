@@ -23,6 +23,11 @@ import type { MultichainSmartAccount } from "../toMultiChainNexusAccount"
 /**
  * Contract instance capable of encoding transactions across multiple chains
  * @template TAbi - The contract ABI type
+ * @property abi - {@link Abi} The contract's ABI
+ * @property deployments - Map of chain IDs to {@link Address} contract addresses
+ * @property on - Function to get chain-specific contract instance
+ * @property addressOn - Function to get contract address for a specific chain
+ * @property read - Function to read contract state across multiple chains
  */
 export type MultichainContract<TAbi extends Abi> = {
   abi: TAbi
@@ -44,6 +49,11 @@ export type MultichainContract<TAbi extends Abi> = {
   >
 }
 
+/**
+ * Chain-specific contract instance with typed function calls
+ * @template TAbi - The contract ABI type
+ * @property [functionName] - Each function from the ABI becomes a property that returns an {@link Instruction}
+ */
 export type ChainSpecificContract<TAbi extends Abi> = {
   [TFunctionName in ExtractAbiFunctionNames<TAbi>]: (params: {
     args: AbiParametersToPrimitiveTypes<
@@ -100,20 +110,39 @@ function createChainSpecificContract<TAbi extends Abi>(
 
 /**
  * Creates a contract instance that can encode function calls across multiple chains
- * @template TAbi The contract ABI type
+ *
+ * @template TAbi - The contract ABI type
+ * @param config - Configuration for the multichain contract
+ * @param config.abi - {@link Abi} The contract's ABI
+ * @param config.deployments - Array of tuples containing [address, chainId] for each deployment
+ *
+ * @returns {@link MultichainContract} A contract instance that works across multiple chains
+ *
+ * @throws Error if attempting to access contract on an unsupported chain
+ * @throws Error if attempting to call a non-existent function
+ * @throws Error if attempting to read a non-view/pure function
+ *
  * @example
  * const mcUSDC = getMultichainContract({
  *   abi: erc20ABI,
  *   deployments: [
- *     ['0x...', optimism.id],
- *     ['0x...', base.id],
- *     // Other chains
+ *     ["0x7F5c764cBc14f9669B88837ca1490cCa17c31607", optimism.id], // Optimism USDC
+ *     ["0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", base.id]      // Base USDC
  *   ]
  * });
  *
- * const transferOp = usdc.on(optimism.id).transfer({
- *   args: ['0x...', 100n],
+ * // Encode a transfer on Optimism
+ * const transferOp = mcUSDC.on(optimism.id).transfer({
+ *   args: ["0x123...", BigInt("1000000")], // 1 USDC
  *   gasLimit: 100000n
+ * });
+ *
+ * // Read balances across multiple chains
+ * const balances = await mcUSDC.read({
+ *   onChains: [optimism, base],
+ *   functionName: "balanceOf",
+ *   args: ["0x123..."],
+ *   account: myMultichainAccount
  * });
  */
 export function getMultichainContract<TAbi extends Abi>(config: {

@@ -7,7 +7,6 @@ import {
 } from "../constants"
 import type { MeeSmartAccount } from "../modules/utils/Types"
 import { toNexusAccount } from "./toNexusAccount"
-import type { MultichainContract } from "./utils/getMultichainContract"
 import type { Signer } from "./utils/toSigner"
 
 import {
@@ -16,7 +15,7 @@ import {
 } from "./decorators/build"
 import {
   type BridgingInstructions,
-  type BuildBridgeInstructionParams,
+  type MultichainBridgingParams,
   buildBridgeInstructions as buildBridgeInstructionsDecorator
 } from "./decorators/buildBridgeInstructions"
 import {
@@ -28,6 +27,7 @@ import {
   type QueryBridgeParams,
   queryBridge as queryBridgeDecorator
 } from "./decorators/queryBridge"
+import type { MultichainToken } from "./utils/Types"
 /**
  * Parameters required to create a multichain Nexus account
  */
@@ -64,7 +64,7 @@ export type MultichainSmartAccount = BaseMultichainSmartAccount & {
    * const balance = await mcAccount.getUnifiedERC20Balance(mcUSDC)
    */
   getUnifiedERC20Balance: (
-    mcToken: MultichainContract<typeof erc20Abi>
+    mcToken: MultichainToken
   ) => Promise<UnifiedERC20Balance>
   /**
    * Function to build instructions for bridging a token across all deployments
@@ -93,7 +93,7 @@ export type MultichainSmartAccount = BaseMultichainSmartAccount & {
    * })
    */
   buildBridgeInstructions: (
-    params: Omit<BuildBridgeInstructionParams, "account">
+    params: Omit<MultichainBridgingParams, "account">
   ) => Promise<BridgingInstructions>
   /**
    * Function to query the bridge
@@ -111,8 +111,33 @@ export type MultichainSmartAccount = BaseMultichainSmartAccount & {
 
 /**
  * Creates a multichain Nexus account across specified chains
- * @param parameters - Configuration parameters for multichain account creation
- * @returns Promise resolving to a MultichainSmartAccount instance
+ *
+ * @param parameters - {@link MultichainNexusParams} Configuration for multichain account creation
+ * @param parameters.signer - The signer instance used for account creation
+ * @param parameters.chains - Array of chains where the account will be deployed
+ *
+ * @returns Promise resolving to {@link MultichainSmartAccount} instance
+ *
+ * @throws Error if account creation fails on any chain
+ *
+ * @example
+ * const account = await toMultichainNexusAccount({
+ *   signer: mySigner,
+ *   chains: [optimism, base]
+ * });
+ *
+ * // Get deployment on specific chain
+ * const optimismDeployment = account.deploymentOn(10);
+ *
+ * // Check token balance across chains
+ * const balance = await account.getUnifiedERC20Balance(mcUSDC);
+ *
+ * // Build bridge transaction
+ * const bridgeInstructions = await account.buildBridgeInstructions({
+ *   amount: BigInt("1000000"), // 1 USDC
+ *   mcToken: mcUSDC,
+ *   toChain: base
+ * });
  */
 export async function toMultichainNexusAccount(
   parameters: MultichainNexusParams
@@ -145,9 +170,7 @@ export async function toMultichainNexusAccount(
     deploymentOn
   }
 
-  const getUnifiedERC20Balance = (
-    mcToken: MultichainContract<typeof erc20Abi>
-  ) => {
+  const getUnifiedERC20Balance = (mcToken: MultichainToken) => {
     return getUnifiedERC20BalanceDecorator({ mcToken, account: baseAccount })
   }
 
@@ -158,7 +181,7 @@ export async function toMultichainNexusAccount(
     buildDecorator({ currentInstructions, account: baseAccount }, params)
 
   const buildBridgeInstructions = (
-    params: Omit<BuildBridgeInstructionParams, "account">
+    params: Omit<MultichainBridgingParams, "account">
   ) => buildBridgeInstructionsDecorator({ ...params, account: baseAccount })
 
   const queryBridge = (params: QueryBridgeParams) =>

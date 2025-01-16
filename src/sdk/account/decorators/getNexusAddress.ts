@@ -9,37 +9,47 @@ import { AccountFactoryAbi } from "../../constants/abi/AccountFactory"
 import { K1ValidatorFactoryAbi } from "../../constants/abi/K1ValidatorFactory"
 
 /**
- * Get the counterfactual address of a signer
+ * Parameters for getting the K1 counterfactual address
+ * @property publicClient - {@link PublicClient} The public client to use for the read contract
+ * @property signerAddress - {@link Address} The address of the EOA signer
+ * @property index - Optional BigInt index for deterministic deployment (defaults to 0)
+ * @property attesters - Optional array of {@link Address} attester addresses (defaults to [RHINESTONE_ATTESTER_ADDRESS])
+ * @property threshold - Optional number of required attesters (defaults to 1)
+ * @property factoryAddress - Optional {@link Address} of the factory contract (defaults to MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS)
+ */
+export type K1CounterFactualAddressParams<
+  ExtendedPublicClient extends PublicClient
+> = {
+  publicClient: ExtendedPublicClient
+  signerAddress: Address
+  index?: bigint
+  attesters?: Address[]
+  threshold?: number
+  factoryAddress?: Address
+}
+
+/**
+ * Gets the counterfactual address for a K1 Nexus account
  *
- * @param publicClient - The public client to use for the read contract
- * @param signerAddress - The address of the signer
- * @param index - The index of the account
- * @param attesters - The attesters to use
- * @param threshold - The threshold of the attesters
- * @param factoryAddress - The factory address to use
- * @returns The counterfactual address
+ * @param params - {@link K1CounterFactualAddressParams} Configuration for address computation
+ * @param params.publicClient - The public client to use for the read contract
+ * @param params.signerAddress - The address of the EOA signer
+ * @param params.index - Optional account index (defaults to 0)
+ * @param params.attesters - Optional array of attester addresses
+ * @param params.threshold - Optional attestation threshold
+ * @param params.factoryAddress - Optional factory contract address
+ *
+ * @returns Promise resolving to the {@link Address} of the counterfactual account
  *
  * @example
- * ```ts
- *   const counterFactualAddress = await getCounterFactualAddress(publicClient, signerAddress)
- * ```
+ * const accountAddress = await getK1NexusAddress({
+ *   publicClient: viemPublicClient,
+ *   signerAddress: "0x123...",
+ *   index: BigInt(0),
+ *   attesters: ["0xabc..."],
+ *   threshold: 1
+ * });
  */
-
-type K1CounterFactualAddressParams<ExtendedPublicClient extends PublicClient> =
-  {
-    /** The public client to use for the read contract */
-    publicClient: ExtendedPublicClient
-    /** The address of the signer */
-    signerAddress: Address
-    /** The index of the account */
-    index?: bigint
-    /** The attesters to use */
-    attesters?: Address[]
-    /** The threshold of the attesters */
-    threshold?: number
-    /** The factory address to use. Defaults to the mainnet factory address */
-    factoryAddress?: Address
-  }
 export const getK1NexusAddress = async <
   ExtendedPublicClient extends PublicClient
 >(
@@ -62,19 +72,40 @@ export const getK1NexusAddress = async <
   })
 }
 
-type MeeCounterFactualAddressParams<ExtendedPublicClient extends PublicClient> =
-  {
-    /** The public client to use for the read contract */
-    publicClient: ExtendedPublicClient
-    /** The address of the signer */
-    signerAddress: Address
-    /** The salt for the account */
-    index?: bigint
-  }
+/**
+ * Parameters for getting the MEE counterfactual address
+ * @property publicClient - {@link PublicClient} The public client to use for the read contract
+ * @property signerAddress - {@link Address} The address of the EOA signer
+ * @property index - Optional BigInt index for deterministic deployment (defaults to 0)
+ */
+export type MeeCounterFactualAddressParams<
+  ExtendedPublicClient extends PublicClient
+> = {
+  publicClient: ExtendedPublicClient
+  signerAddress: Address
+  index?: bigint
+}
 
+/**
+ * Gets the counterfactual address for a MEE Nexus account
+ *
+ * @param params - {@link MeeCounterFactualAddressParams} Configuration for address computation
+ * @param params.publicClient - The public client to use for the read contract
+ * @param params.signerAddress - The address of the EOA signer
+ * @param params.index - Optional account index (defaults to 0)
+ *
+ * @returns Promise resolving to the {@link Address} of the counterfactual account
+ *
+ * @example
+ * const accountAddress = await getMeeNexusAddress({
+ *   publicClient: viemPublicClient,
+ *   signerAddress: "0x123...",
+ *   index: BigInt(0)
+ * });
+ */
 export const getMeeNexusAddress = async (
   params: MeeCounterFactualAddressParams<PublicClient>
-) => {
+): Promise<Address> => {
   const salt = pad(toHex(params.index ?? 0n), { size: 32 })
   const { publicClient, signerAddress } = params
 

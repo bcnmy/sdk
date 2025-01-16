@@ -1,4 +1,4 @@
-import type { Address, Chain, Prettify } from "viem"
+import type { Address, Chain } from "viem"
 import type { Instruction } from "../../clients/decorators/mee/getQuote"
 import type { BaseMultichainSmartAccount } from "../toMultiChainNexusAccount"
 import { toAcrossPlugin } from "../utils/toAcrossPlugin"
@@ -11,24 +11,20 @@ import { queryBridge } from "./queryBridge"
  * @property chainId - The numeric ID of the chain
  * @property address - {@link Address} The token's contract address on the chain
  */
-export type AddressMapping = Prettify<{
-  /** The numeric ID of the chain */
+export type AddressMapping = {
   chainId: number
-  /** The token's contract address on the chain */
   address: Address
-}>
+}
 
 /**
  * Cross-chain token address mapping with helper functions
  * @property deployments - Array of {@link AddressMapping} containing token addresses per chain
  * @property on - Function to retrieve token address for a specific chain ID
  */
-export type MultichainAddressMapping = Prettify<{
-  /** Array of {@link AddressMapping} containing token addresses per chain */
+export type MultichainAddressMapping = {
   deployments: AddressMapping[]
-  /** Returns the token address for a given chain ID */
   on: (chainId: number) => Address
-}>
+}
 
 /**
  * Fee data for the transaction fee
@@ -36,9 +32,7 @@ export type MultichainAddressMapping = Prettify<{
  * @property txFeeAmount - The amount of tx fee to pay
  */
 export type FeeData = {
-  /** The chain ID where the tx fee is paid */
   txFeeChainId: number
-  /** The amount of tx fee to pay */
   txFeeAmount: bigint
 }
 
@@ -48,15 +42,15 @@ export type FeeData = {
  * @property unifiedBalance - {@link UnifiedERC20Balance} Token balance information across all chains
  * @property amount - Amount of tokens to bridge as BigInt
  * @property bridgingPlugins - Optional array of {@link BridgingPlugin} to use for bridging
- * @property feeData - Optional fee information for the transaction
+ * @property feeData - Optional {@link FeeData} for the transaction
  */
-export type MultichainBridgingParams = Prettify<{
+export type MultichainBridgingParams = {
   toChain: Chain
   unifiedBalance: UnifiedERC20Balance
   amount: bigint
   bridgingPlugins?: BridgingPlugin[]
   feeData?: FeeData
-}>
+}
 
 /**
  * Result of a bridging plugin operation
@@ -65,11 +59,8 @@ export type MultichainBridgingParams = Prettify<{
  * @property bridgingDurationExpectedMs - Expected duration of the bridging operation
  */
 export type BridgingPluginResult = {
-  /** User operation to execute the bridge */
   userOp: Instruction
-  /** Expected amount to be received at destination */
   receivedAtDestination?: bigint
-  /** Expected duration of the bridging operation in milliseconds */
   bridgingDurationExpectedMs?: number
 }
 
@@ -81,13 +72,13 @@ export type BridgingPluginResult = {
  * @property tokenMapping - {@link MultichainAddressMapping} Token addresses across chains
  * @property bridgingAmount - Amount to bridge as BigInt
  */
-export type BridgingUserOpParams = Prettify<{
+export type BridgingUserOpParams = {
   fromChain: Chain
   toChain: Chain
   account: BaseMultichainSmartAccount
   tokenMapping: MultichainAddressMapping
   bridgingAmount: bigint
-}>
+}
 
 /**
  * Interface for a bridging plugin implementation
@@ -99,34 +90,27 @@ export type BridgingPlugin = {
   ) => Promise<BridgingPluginResult>
 }
 
-export type BuildBridgeInstructionParams = MultichainBridgingParams & {
-  /** Smart account to execute the bridging */
-  account: BaseMultichainSmartAccount
-}
-
 /**
  * Single bridge operation result
+ * @property userOp - {@link Instruction} User operation to execute
+ * @property receivedAtDestination - Expected amount to be received at destination
+ * @property bridgingDurationExpectedMs - Expected duration of the bridging operation
  */
 export type BridgingInstruction = {
-  /** User operation to execute */
   userOp: Instruction
-  /** Expected amount to be received at destination */
   receivedAtDestination?: bigint
-  /** Expected duration of the bridging operation */
   bridgingDurationExpectedMs?: number
 }
 
 /**
  * Complete set of bridging instructions and final outcome
+ * @property instructions - Array of {@link Instruction} to execute
+ * @property meta - Meta information about the bridging process
  */
 export type BridgingInstructions = {
-  /** Array of bridging operations to execute */
   instructions: Instruction[]
-  /** Meta information about the bridging process */
   meta: {
-    /** Total amount that will be available on destination chain */
     totalAvailableOnDestination: bigint
-    /** Array of bridging operations to execute */
     bridgingInstructions: BridgingInstruction[]
   }
 }
@@ -135,13 +119,13 @@ export type BridgingInstructions = {
  * Makes sure that the user has enough funds on the selected chain before filling the
  * supertransaction. Bridges funds from other chains if needed.
  *
- * @param params - Configuration for the bridge operation
- * @param params.account - {@link BaseMultichainSmartAccount} The smart account to execute the bridging
- * @param params.amount - The amount to bridge as BigInt
- * @param params.toChain - {@link Chain} The destination chain
- * @param params.unifiedBalance - {@link UnifiedERC20Balance} Current token balances across chains
- * @param params.bridgingPlugins - Optional array of {@link BridgingPlugin} to use (defaults to Across)
- * @param params.feeData - Optional fee configuration for the transaction
+ * @param params - {@link MultichainBridgingParams} Configuration for the bridge operation
+ * @param params.account - The smart account to execute the bridging
+ * @param params.amount - The amount to bridge
+ * @param params.toChain - The destination chain
+ * @param params.unifiedBalance - Current token balances across chains
+ * @param params.bridgingPlugins - Optional array of bridging plugins (defaults to Across)
+ * @param params.feeData - Optional fee configuration
  *
  * @returns Promise resolving to {@link BridgingInstructions} containing all necessary operations
  *
@@ -162,7 +146,9 @@ export type BridgingInstructions = {
  * });
  */
 export const buildBridgeInstructions = async (
-  params: BuildBridgeInstructionParams
+  params: MultichainBridgingParams & {
+    account: BaseMultichainSmartAccount
+  }
 ): Promise<BridgingInstructions> => {
   const {
     account,

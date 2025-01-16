@@ -3,18 +3,27 @@ import type { Url } from "../../clients/createHttpClient"
 import { getChain } from "./getChain"
 
 /**
- * Get the explorer tx link
- * @param hash - The transaction hash
- * @param chain - The chain
- * @returns The explorer tx link
+ * Gets the block explorer transaction link for a given chain
+ *
+ * @param hash - {@link Hex} The transaction hash to view
+ * @param chain_ - {@link Chain} The chain object, chain ID, or chain name
+ * @returns {@link Url} The complete URL to view the transaction
+ *
+ * @throws Error if the chain has no block explorer configured
  *
  * @example
- * ```ts
- * const hash = "0x123"
- * const chain = optimism
- * const url = getExplorerTxLink(hash, chain)
- * console.log(url) // https://meescan.biconomy.io/details/0x123
- * ```
+ * // Using chain object
+ * const url = getExplorerTxLink(
+ *   "0x123...",
+ *   optimism
+ * );
+ *
+ * @example
+ * // Using chain ID
+ * const url = getExplorerTxLink(
+ *   "0x123...",
+ *   10 // Optimism chain ID
+ * );
  */
 export const getExplorerTxLink = (
   hash: Hex,
@@ -29,32 +38,28 @@ export const getExplorerTxLink = (
 }
 
 /**
- * Get the jiffyscan tx link
- * @param hash - The transaction hash
- * @returns The jiffyscan tx link
+ * Gets the JiffyScan transaction link for a user operation
+ *
+ * @param userOpHash - {@link Hex} The user operation hash to view
+ * @returns {@link Url} The complete URL to view the user operation on JiffyScan
  *
  * @example
- * ```ts
- * const hash = "0x123"
- * const url = getJiffyScanLink(hash)
- * console.log(url) // https://jiffyscan.com/tx/0x123
- * ```
+ * const url = getJiffyScanLink("0x123...");
+ * console.log(url); // https://v2.jiffyscan.xyz/tx/0x123...
  */
 export const getJiffyScanLink = (userOpHash: Hex): Url => {
   return `https://v2.jiffyscan.xyz/tx/${userOpHash}` as Url
 }
 
 /**
- * Get the meescan tx link
- * @param hash - The transaction hash
- * @returns The meescan tx link
+ * Gets the MeeScan transaction link for a user operation
+ *
+ * @param hash - {@link Hex} The transaction or user operation hash to view
+ * @returns {@link Url} The complete URL to view the transaction on MeeScan
  *
  * @example
- * ```ts
- * const hash = "0x123"
- * const url = getMeeScanLink(hash)
- * console.log(url) // https://meescan.biconomy.io/details/0x123
- * ```
+ * const url = getMeeScanLink("0x123...");
+ * console.log(url); // https://meescan.biconomy.io/details/0x123...
  */
 export const getMeeScanLink = (hash: Hex): Url => {
   return `https://meescan.biconomy.io/details/${hash}` as Url

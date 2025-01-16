@@ -155,8 +155,6 @@ describe("mee.createMeeClient", async () => {
       }
     })
 
-    console.log(quote.userOps)
-
     expect(quote.userOps.length).toEqual(3)
     expect(quote).toBeDefined()
     expect(quote.paymentInfo.sender).toEqual(

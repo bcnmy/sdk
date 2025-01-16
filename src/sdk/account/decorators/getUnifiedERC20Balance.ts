@@ -1,50 +1,72 @@
 import { erc20Abi, getContract } from "viem"
 import type { BaseMultichainSmartAccount } from "../toMultiChainNexusAccount"
+import type { MultichainToken } from "../utils/Types"
 import type { MultichainContract } from "../utils/getMultichainContract"
 
 /**
  * Represents a balance item with its decimal precision
+ * @property balance - The token balance as a bigint
+ * @property decimals - Number of decimal places for the token
  */
 export type UnifiedBalanceItem = {
-  /** The token balance as a bigint */
   balance: bigint
-  /** Number of decimal places for the token */
   decimals: number
 }
 
-export type RelevantBalance = UnifiedBalanceItem & { chainId: number }
+/**
+ * Represents a balance item for a specific chain
+ * @property balance - The token balance as a bigint
+ * @property decimals - Number of decimal places for the token
+ * @property chainId - The numeric ID of the chain this balance is on
+ */
+export type RelevantBalance = UnifiedBalanceItem & {
+  chainId: number
+}
 
 /**
  * Represents a unified balance across multiple chains for an ERC20 token
+ * @property mcToken - {@link MultichainContract} The multichain ERC20 token contract
+ * @property breakdown - Array of {@link RelevantBalance} Individual balance breakdown per chain
+ * @property balance - The total balance across all chains as a bigint
+ * @property decimals - Number of decimal places for the token
  */
 export type UnifiedERC20Balance = {
-  /** The multichain ERC20 token contract */
-  mcToken: MultichainContract<typeof erc20Abi>
-  /** Individual balance breakdown per chain */
+  mcToken: MultichainToken
   breakdown: RelevantBalance[]
 } & UnifiedBalanceItem
 
+/**
+ * Parameters for fetching unified ERC20 balance
+ * @property mcToken - {@link MultichainContract} The multichain ERC20 token contract
+ * @property account - {@link BaseMultichainSmartAccount} The multichain smart account to check balances for
+ */
 export type GetUnifiedERC20BalanceParameters = {
-  /** The multichain ERC20 token contract */
-  mcToken: MultichainContract<typeof erc20Abi>
-  /** The multichain smart account to check balances for */
+  mcToken: MultichainToken
   account: BaseMultichainSmartAccount
 }
 
 /**
  * Fetches and aggregates ERC20 token balances across multiple chains for a given account
  *
- * @param parameters - The input parameters
+ * @param parameters - {@link GetUnifiedERC20BalanceParameters} Configuration for balance fetching
  * @param parameters.mcToken - The multichain ERC20 token contract
- * @param parameters.deployments - The multichain smart account deployments to check balances for
- * @returns A unified balance object containing the total balance and per-chain breakdown
- * @throws Error if the account is not initialized on a chain or if token decimals mismatch across chains
+ * @param parameters.account - The multichain smart account to check balances for
+ *
+ * @returns Promise resolving to {@link UnifiedERC20Balance} containing total balance and per-chain breakdown
+ *
+ * @throws Error if token decimals mismatch across chains
  *
  * @example
- * const balance = await getUnifiedERC20Balance(client, {
+ * const balance = await getUnifiedERC20Balance({
  *   mcToken: mcUSDC,
- *   deployments: mcNexus.deployments
- * })
+ *   account: myMultichainAccount
+ * });
+ *
+ * console.log(`Total balance: ${balance.balance}`);
+ * console.log(`Decimals: ${balance.decimals}`);
+ * balance.breakdown.forEach(chainBalance => {
+ *   console.log(`Chain ${chainBalance.chainId}: ${chainBalance.balance}`);
+ * });
  */
 export async function getUnifiedERC20Balance(
   parameters: GetUnifiedERC20BalanceParameters

@@ -11,9 +11,9 @@ import {
   type MultichainSmartAccount,
   toMultichainNexusAccount
 } from "../../toMultiChainNexusAccount"
-import buildBaseInstructions from "./buildBaseInstructions"
+import buildDefaultInstructions from "./buildDefaultInstructions"
 
-describe("mee:buildBaseInstructions", () => {
+describe("mee:buildDefaultInstructions", () => {
   let network: NetworkConfig
   let eoaAccount: LocalAccount
   let paymentChain: Chain
@@ -37,7 +37,7 @@ describe("mee:buildBaseInstructions", () => {
   })
 
   it("should call the bridge with a unified balance", async () => {
-    const instructions = await buildBaseInstructions(
+    const instructions = await buildDefaultInstructions(
       {
         account: mcNexus
       },

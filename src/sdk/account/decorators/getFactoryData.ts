@@ -18,11 +18,10 @@ import { NexusBootstrapAbi } from "../../constants/abi/NexusBootstrapAbi"
 
 /**
  * Parameters for generating K1 factory initialization data
- * @interface GetK1FactoryDataParams
- * @property {Address} signerAddress - The address of the EOA signer
- * @property {bigint} index - The account index
- * @property {Address[]} attesters - Array of attester addresses
- * @property {number} attesterThreshold - Minimum number of attesters required
+ * @property signerAddress - {@link Address} The address of the EOA signer
+ * @property index - Account index as BigInt for deterministic deployment
+ * @property attesters - Array of {@link Address} attester addresses for account verification
+ * @property attesterThreshold - Minimum number of attesters required for validation
  */
 export type GetK1FactoryDataParams = {
   signerAddress: Address
@@ -33,8 +32,22 @@ export type GetK1FactoryDataParams = {
 
 /**
  * Generates encoded factory data for K1 account creation
- * @param {GetK1FactoryDataParams} params - Parameters for K1 account creation
- * @returns {Promise<Hex>} Encoded function data for account creation
+ *
+ * @param params - {@link GetK1FactoryDataParams} Parameters for K1 account creation
+ * @param params.signerAddress - The address of the EOA signer
+ * @param params.index - Account index for deterministic deployment
+ * @param params.attesters - Array of attester addresses
+ * @param params.attesterThreshold - Minimum number of attesters required
+ *
+ * @returns Promise resolving to {@link Hex} encoded function data for account creation
+ *
+ * @example
+ * const factoryData = await getK1FactoryData({
+ *   signerAddress: "0x123...",
+ *   index: BigInt(0),
+ *   attesters: ["0xabc...", "0xdef..."],
+ *   attesterThreshold: 2
+ * });
  */
 export const getK1FactoryData = async ({
   signerAddress,
@@ -52,13 +65,15 @@ export const getK1FactoryData = async ({
 
 /**
  * Parameters for generating MEE factory initialization data
- * @interface GetMeeFactoryDataParams
- * @extends {GetK1FactoryDataParams}
- * @property {Address} validatorAddress - The address of the validator
- * @property {Address} registryAddress - The address of the registry contract
- * @property {PublicClient} publicClient - Viem public client instance
- * @property {WalletClient} walletClient - Viem wallet client instance
- * @property {Address} bootStrapAddress - The address of the bootstrap contract
+ * @property signerAddress - {@link Address} The address of the EOA signer
+ * @property index - Account index as BigInt for deterministic deployment
+ * @property attesters - Array of {@link Address} attester addresses for account verification
+ * @property attesterThreshold - Minimum number of attesters required for validation
+ * @property validatorAddress - Optional {@link Address} of the validator (defaults to MEE_VALIDATOR_ADDRESS)
+ * @property registryAddress - Optional {@link Address} of the registry contract (defaults to REGISTRY_ADDRESS)
+ * @property publicClient - {@link PublicClient} Viem public client instance
+ * @property walletClient - {@link WalletClient} Viem wallet client instance
+ * @property bootStrapAddress - Optional {@link Address} of the bootstrap contract (defaults to NEXUS_BOOTSTRAP_ADDRESS)
  */
 export type GetMeeFactoryDataParams = GetK1FactoryDataParams & {
   validatorAddress?: Address
@@ -70,8 +85,30 @@ export type GetMeeFactoryDataParams = GetK1FactoryDataParams & {
 
 /**
  * Generates encoded factory data for MEE account creation
- * @param {GetMeeFactoryDataParams} params - Parameters for MEE account creation
- * @returns {Promise<Hex>} Encoded function data for account creation
+ *
+ * @param params - {@link GetMeeFactoryDataParams} Parameters for MEE account creation
+ * @param params.validatorAddress - Optional validator address
+ * @param params.attesters - Array of attester addresses
+ * @param params.registryAddress - Optional registry contract address
+ * @param params.attesterThreshold - Minimum number of attesters required
+ * @param params.publicClient - Viem public client instance
+ * @param params.walletClient - Viem wallet client instance
+ * @param params.bootStrapAddress - Optional bootstrap contract address
+ * @param params.signerAddress - The address of the EOA signer
+ * @param params.index - Account index for deterministic deployment
+ *
+ * @returns Promise resolving to {@link Hex} encoded function data for account creation
+ *
+ * @example
+ * const factoryData = await getMeeFactoryData({
+ *   signerAddress: "0x123...",
+ *   index: BigInt(0),
+ *   attesters: ["0xabc...", "0xdef..."],
+ *   attesterThreshold: 2,
+ *   publicClient: viemPublicClient,
+ *   walletClient: viemWalletClient,
+ *   validatorAddress: "0x789..." // optional
+ * });
  */
 export const getMeeFactoryData = async ({
   validatorAddress = MEE_VALIDATOR_ADDRESS,
@@ -106,13 +143,11 @@ export const getMeeFactoryData = async ({
 
   const salt = pad(toHex(index), { size: 32 })
 
-  const factoryData = encodeFunctionData({
+  return encodeFunctionData({
     abi: parseAbi([
       "function createAccount(bytes initData, bytes32 salt) external returns (address)"
     ]),
     functionName: "createAccount",
     args: [initData, salt]
   })
-
-  return factoryData
 }

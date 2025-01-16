@@ -9,6 +9,12 @@ import type {
 
 /**
  * Parameters for querying bridge operations
+ * @property fromChain - {@link Chain} Source chain for the bridge operation
+ * @property toChain - {@link Chain} Destination chain for the bridge operation
+ * @property plugin - Optional {@link BridgingPlugin} implementation (defaults to Across)
+ * @property amount - Amount to bridge in base units (wei) as BigInt
+ * @property account - {@link BaseMultichainSmartAccount} Smart account to execute the bridging
+ * @property tokenMapping - {@link MultichainAddressMapping} Token addresses across chains
  */
 export type QueryBridgeParams = {
   /** Source chain for the bridge operation */
@@ -27,6 +33,12 @@ export type QueryBridgeParams = {
 
 /**
  * Result of a bridge query including chain info
+ * @property fromChainId - ID of the source chain
+ * @property amount - Amount to bridge in base units (wei) as BigInt
+ * @property receivedAtDestination - Expected amount to receive at destination after fees
+ * @property plugin - {@link BridgingPlugin} Plugin implementation used for the bridging operation
+ * @property userOp - {@link Instruction} Resolved user operation for the bridge
+ * @property bridgingDurationExpectedMs - Optional expected duration of the bridging operation in milliseconds
  */
 export type BridgeQueryResult = {
   /** ID of the source chain */
@@ -45,20 +57,38 @@ export type BridgeQueryResult = {
 
 /**
  * Queries a bridge operation to determine expected outcomes and fees
- * @param client - MEE client instance
- * @param params - Bridge query parameters
- * @returns Bridge query result or null if received amount cannot be determined
+ *
+ * @param params - {@link QueryBridgeParams} Configuration for the bridge query
+ * @param params.fromChain - Source chain for the bridge operation
+ * @param params.toChain - Destination chain for the bridge operation
+ * @param params.plugin - Optional bridging plugin (defaults to Across)
+ * @param params.amount - Amount to bridge in base units (wei)
+ * @param params.account - Smart account to execute the bridging
+ * @param params.tokenMapping - Token addresses across chains
+ *
+ * @returns Promise resolving to {@link BridgeQueryResult} or null if received amount cannot be determined
+ *
  * @throws Error if bridge plugin does not return a received amount
  *
  * @example
  * const result = await queryBridge({
- *   fromChain,
- *   toChain,
- *   plugin,
- *   amount,
- *   account,
- *   tokenMapping
- * })
+ *   fromChain: optimism,
+ *   toChain: base,
+ *   amount: BigInt("1000000"), // 1 USDC
+ *   account: myMultichainAccount,
+ *   tokenMapping: {
+ *     deployments: [
+ *       { chainId: 10, address: "0x123..." },
+ *       { chainId: 8453, address: "0x456..." }
+ *     ],
+ *     on: (chainId) => deployments.find(d => d.chainId === chainId).address
+ *   }
+ * });
+ *
+ * if (result) {
+ *   console.log(`Expected to receive: ${result.receivedAtDestination}`);
+ *   console.log(`Expected duration: ${result.bridgingDurationExpectedMs}ms`);
+ * }
  */
 export const queryBridge = async (
   params: QueryBridgeParams
