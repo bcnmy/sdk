@@ -1,4 +1,5 @@
-import type { Address, Hash, Hex, Log } from "viem"
+import type { Address, Hash, Hex, Log, erc20Abi } from "viem"
+import type { MultichainContract } from "./getMultichainContract"
 
 /** Represents the status of a transaction. */
 export type TStatus = "success" | "reverted"
@@ -100,3 +101,5 @@ export type Call = {
   data?: Hex | undefined
   value?: bigint | undefined
 }
+
+export type MultichainToken = MultichainContract<typeof erc20Abi>

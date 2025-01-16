@@ -37,6 +37,7 @@ import {
   type NexusClient,
   createSmartAccountClient
 } from "../sdk/clients/createSmartAccountClient"
+import { mcUSDC } from "../sdk/constants/tokens"
 import * as hardhatExec from "./executables"
 import type { TestFileNetworkType } from "./testSetup"
 
@@ -64,6 +65,7 @@ export type NetworkConfig = Omit<
   "instance" | "bundlerInstance"
 > & {
   account?: PrivateKeyAccount
+  paymentToken?: Address
   paymasterUrl?: string
   meeNodeUrl?: string
 }
@@ -97,17 +99,17 @@ export const killNetwork = (ids: number[]) =>
     })
   )
 
-export const initTestnetNetwork = async (
+export const initNetwork = async (
   type: TestFileNetworkType = "TESTNET_FROM_ENV_VARS"
 ): Promise<NetworkConfig> => {
   const privateKey = process.env.PRIVATE_KEY
   const chainId_ = process.env.CHAIN_ID
-  const altChainId = process.env.ALT_CHAIN_ID
+  const mainnetChainId = process.env.MAINNET_CHAIN_ID
   const rpcUrl = process.env.RPC_URL //Optional, taken from chain (using chainId) if not provided
   const _bundlerUrl = process.env.BUNDLER_URL // Optional, taken from chain (using chainId) if not provided
   const paymasterUrl = process.env.PAYMASTER_URL // Optional
-
-  const chainId = type === "TESTNET_FROM_ALT_ENV_VARS" ? altChainId : chainId_
+  const chainId = type === "MAINNET_FROM_ENV_VARS" ? mainnetChainId : chainId_
+  const paymentToken = mcUSDC.addressOn(Number(chainId))
 
   let chain: Chain
 
@@ -134,11 +136,12 @@ export const initTestnetNetwork = async (
     bundlerUrl,
     paymasterUrl,
     bundlerPort: 0,
-    account: holder
+    account: holder,
+    paymentToken
   }
 }
 
-export const initLocalhostNetwork = async (
+export const initAnvilNetwork = async (
   shouldForkBaseSepolia = false
 ): Promise<NetworkConfigWithBundler> => {
   const configuredNetwork = await initAnvilPayload(shouldForkBaseSepolia)
@@ -505,7 +508,7 @@ export const setByteCodeDynamic = async (
 
 export type TestnetParams = ReturnType<typeof getTestParamsForTestnet>
 export const getTestParamsForTestnet = (publicClient: PublicClient) => ({
-  k1ValidatorAddress: MAINNET_ADDRESS_K1_VALIDATOR_ADDRESS,
+  validatorAddress: MAINNET_ADDRESS_K1_VALIDATOR_ADDRESS,
   factoryAddress: MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS,
   userOperation: {
     estimateFeesPerGas: async (_) => {

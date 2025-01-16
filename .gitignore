@@ -178,3 +178,6 @@ dist
 docs
 
 sessionStorageData
+
+# Data from scraping scripts
+.data

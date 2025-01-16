@@ -21,7 +21,7 @@
 
 ### Testnet Scope
 - Use by setting `const NETWORK_TYPE: TestFileNetworkType = "TESTNET_FROM_ENV_VARS"` for test files that rely on the network, private key and bundler url specified in your env vars.
-- `"TESTNET_FROM_ALT_ENV_VARS"` is also available, which uses alternative env vars which you've specified.
+- `"MAINNET_FROM_ENV_VARS"` is also available, which uses alternative env vars which you've specified.
 - Networks scoped to a testnet are not isolated to the file in which they are used, they require tesnet tokens, can often fail for gas reasons, and they will add additional latency to tests. 
 - Avoid overusing this option
 

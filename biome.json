@@ -28,7 +28,8 @@
         "noExplicitAny": "warn"
       },
       "style": {
-        "noUnusedTemplateLiteral": "warn"
+        "noUnusedTemplateLiteral": "warn",
+        "noNonNullAssertion": "off"
       }
     }
   },

@@ -1,5 +1,13 @@
 # @biconomy/sdk
 
+## 0.0.29
+
+### Patch Changes
+
+- AbstractJS rebrand
+- meeNode support
+- useTestBundler
+
 ## 0.0.28
 
 ### Patch Changes

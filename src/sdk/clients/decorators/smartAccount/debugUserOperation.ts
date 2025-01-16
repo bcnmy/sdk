@@ -13,9 +13,9 @@ import {
   type UserOperationRequest,
   formatUserOperationRequest,
   getUserOperationError,
+  prepareUserOperation,
   toPackedUserOperation
 } from "viem/account-abstraction"
-import { prepareUserOperationWithoutSignature } from "./prepareUserOperationWithoutSignature"
 
 import type {
   Assign,
@@ -35,6 +35,7 @@ import { parseRequestArguments } from "../../../account/utils/Utils"
 import { deepHexlify } from "../../../account/utils/deepHexlify"
 import { getAAError } from "../../../account/utils/getAAError"
 import { tenderlySimulation } from "../../../account/utils/tenderlySimulation"
+import type { AnyData } from "../../../modules/utils/Types"
 export type DebugUserOperationParameters<
   account extends SmartAccount | undefined = SmartAccount | undefined,
   accountOverride extends SmartAccount | undefined = SmartAccount | undefined,
@@ -132,19 +133,15 @@ export async function debugUserOperation<
     const request = account
       ? await getAction(
           client,
-          prepareUserOperationWithoutSignature,
+          prepareUserOperation,
           "prepareUserOperation"
         )(parameters as unknown as PrepareUserOperationParameters)
       : parameters
 
-    // biome-ignore lint/style/noNonNullAssertion: <explanation>
     const signature = (parameters.signature ||
       (await account?.signUserOperation(request as UserOperation)))!
 
-    const userOpWithSignature = {
-      ...request,
-      signature
-    } as UserOperation
+    const userOpWithSignature = { ...request, signature } as UserOperation
 
     const packed = toPackedUserOperation(userOpWithSignature)
     console.log(
@@ -163,7 +160,6 @@ export async function debugUserOperation<
           method: "eth_sendUserOperation",
           params: [
             rpcParameters,
-            // biome-ignore lint/style/noNonNullAssertion: <explanation>
             (entryPointAddress ?? account?.entryPoint.address)!
           ]
         },
@@ -178,7 +174,7 @@ export async function debugUserOperation<
         console.log({ aaError })
       }
 
-      const calls = (parameters as any).calls
+      const calls = (parameters as AnyData).calls
       throw getUserOperationError(error as BaseError, {
         ...(request as UserOperation),
         ...(calls ? { calls } : {}),

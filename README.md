@@ -1,6 +1,6 @@
 [![Biconomy](https://img.shields.io/badge/Made_with_%F0%9F%8D%8A_by-Biconomy-ff4e17?style=flat)](https://biconomy.io) [![License MIT](https://img.shields.io/badge/License-MIT-blue?&style=flat)](./LICENSE) [![codecov](https://codecov.io/github/bcnmy/sdk/graph/badge.svg?token=DTdIR5aBDA)](https://codecov.io/github/bcnmy/sdk)
 
-# SDK 🚀
+# abstractJS 🚀
 
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/bcnmy/sdk)
 
@@ -32,21 +32,31 @@ bun add @biconomy/sdk viem @rhinestone/module-sdk
 
 2. **Basic Usage:**
 ```typescript
-import { createSmartAccountClient } from "@biconomy/sdk";
-import { http } from "viem";
+import { toMultichainNexusAccount, mcUSDC } from "@biconomy/sdk";
+import { base, optimism } from "viem/chains";
+import { privateKeyToAccount } from "viem/accounts";
 
-const nexusClient = await createSmartAccountClient({
-  signer: account,
-  chain,
-  transport: http(),
-  bundlerTransport: http(bundlerUrl),
-});
+const eoaAccount = privateKeyToAccount(`0x${process.env.PRIVATE_KEY}`)
+const mcNexus = await toMultichainNexusAccount({
+  chains: [base, optimism],
+  signer: eoaAccount
+})
+const meeClient = createMeeClient({ account: mcNexus })
 
-const hash = await nexusClient.sendTransaction({ 
-  calls: [{ to: "0x...", value: 1 }] 
-});
+const quote = await meeClient.getQuote({
+  instructions: [{
+    calls: [{ to: "0x...", value: 1n }],
+    chainId: base.id
+  }],
+  feeToken: {
+    address: mcUSDC.addressOn(base.id), // Token used to pay for the transaction
+    chainId: base.id // Chain where the payment will be processed
+  }
+})
 
-const { status, transactionHash } = await nexusClient.waitForTransactionReceipt({ hash });
+// Execute the quote and get back a transaction hash
+// This sends the transaction to the network
+const { hash } = await meeClient.executeQuote({ quote })
 ```
 
 ### Testing
@@ -67,8 +77,8 @@ bun install --frozen-lockfile
 # Run all tests
 bun run test
 
-# Run tests for a specific module
-bun run test -t=smartSessions
+# Run tests for a specific subset of tests (by test description)
+bun run test -t=mee
 ```
 
 For detailed information about the testing framework, network configurations, and debugging guidelines, please refer to our [Testing Documentation](./src/test/README.md).

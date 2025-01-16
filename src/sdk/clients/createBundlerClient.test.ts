@@ -15,18 +15,20 @@ const COMPETITORS = [
   {
     name: "Pimlico",
     chain: baseSepolia,
-    bundlerUrl: `https://api.pimlico.io/v2/${baseSepolia.id}/rpc?apikey=${process.env.PIMLICO_API_KEY}`
+    bundlerUrl: `https://api.pimlico.io/v2/${baseSepolia.id}/rpc?apikey=${process.env.PIMLICO_API_KEY}`,
+    useTestBundler: true
   },
   {
     name: "Biconomy",
     bundlerUrl: `https://bundler.biconomy.io/api/v3/${baseSepolia.id}/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44`,
-    chain: baseSepolia
+    chain: baseSepolia,
+    useTestBundler: false
   }
 ]
 
 describe.each(COMPETITORS)(
   "nexus.interoperability with $name",
-  async ({ bundlerUrl, chain }) => {
+  async ({ bundlerUrl, chain, useTestBundler }) => {
     const account = privateKeyToAccount(`0x${process.env.PRIVATE_KEY as Hex}`)
 
     const publicClient = createPublicClient({
@@ -44,8 +46,9 @@ describe.each(COMPETITORS)(
         chain,
         transport: http(),
         // You can omit this outside of a testing context
-        k1ValidatorAddress: MAINNET_ADDRESS_K1_VALIDATOR_ADDRESS,
-        factoryAddress: MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
+        validatorAddress: MAINNET_ADDRESS_K1_VALIDATOR_ADDRESS,
+        factoryAddress: MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS,
+        useTestBundler
       })
 
       nexusAccountAddress = await nexusAccount.getCounterFactualAddress()

@@ -62,7 +62,8 @@ describe("modules.smartSessions.sudo.policy", async () => {
       signer: eoaAccount,
       chain,
       transport: http(),
-      bundlerTransport: http(bundlerUrl)
+      bundlerTransport: http(bundlerUrl),
+      useTestBundler: true
     })
 
     nexusAccountAddress = await nexusClient.account.getCounterFactualAddress()
@@ -156,7 +157,8 @@ describe("modules.smartSessions.sudo.policy", async () => {
       accountAddress: usersSessionData.granter,
       signer: sessionKeyAccount,
       transport: http(),
-      bundlerTransport: http(bundlerUrl)
+      bundlerTransport: http(bundlerUrl),
+      useTestBundler: true
     })
 
     // Create a new smart sessions module with the session key

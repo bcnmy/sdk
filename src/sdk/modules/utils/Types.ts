@@ -119,6 +119,18 @@ export type Modularity = {
 export type ModularSmartAccount =
   SmartAccount<NexusSmartAccountImplementation> & Modularity
 
+export type MeeSmartAccount = Pick<
+  SmartAccount<ModularSmartAccount>,
+  | "address"
+  | "getCounterFactualAddress"
+  | "isDeployed"
+  | "client"
+  | "getInitCode"
+  | "getNonce"
+  | "encodeExecuteBatch"
+  | "isDeployed"
+>
+
 export type ModuleMeta = {
   address: Hex
   type: ModuleType

@@ -1,5 +1,6 @@
 import type { Account, Address, Chain, Client, Transport } from "viem"
 import type { UserOperation } from "viem/account-abstraction"
+import type { AnyData } from "../../../modules"
 
 export type BicoTokenPaymasterRpcSchema = [
   {
@@ -27,7 +28,7 @@ export type TokenPaymasterQuotesResponse = {
   mode: PaymasterMode
   paymasterAddress: Address
   feeQuotes: FeeQuote[]
-  unsupportedTokens: any[]
+  unsupportedTokens: AnyData[]
 }
 
 export type TokenPaymasterUserOpParams = {

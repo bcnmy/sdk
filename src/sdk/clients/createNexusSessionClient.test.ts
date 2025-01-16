@@ -61,7 +61,8 @@ describe("nexus.session.client", async () => {
       signer: eoaAccount,
       chain,
       transport: http(),
-      bundlerTransport: http(bundlerUrl)
+      bundlerTransport: http(bundlerUrl),
+      useTestBundler: true
     })
     nexusAccountAddress = await nexusClient.account.getCounterFactualAddress()
 
@@ -181,7 +182,8 @@ describe("nexus.session.client", async () => {
       accountAddress: nexusClient.account.address,
       signer: sessionKeyAccount,
       transport: http(),
-      bundlerTransport: http(bundlerUrl)
+      bundlerTransport: http(bundlerUrl),
+      useTestBundler: true
     })
 
     const usePermissionsModule = toSmartSessionsValidator({
@@ -238,7 +240,8 @@ describe("nexus.session.client", async () => {
       accountAddress: nexusClient.account.address,
       signer: sessionKeyAccount,
       transport: http(),
-      bundlerTransport: http(bundlerUrl)
+      bundlerTransport: http(bundlerUrl),
+      useTestBundler: true
     })
 
     const useSmartSessionNexusClient = smartSessionNexusClient.extend(
