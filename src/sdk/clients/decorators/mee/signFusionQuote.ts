@@ -12,7 +12,7 @@ import type { MultichainSmartAccount } from "../../../account/toMultiChainNexusA
 import type { Call } from "../../../account/utils/Types"
 import type { BaseMeeClient } from "../../createMeeClient"
 import type { GetQuotePayload } from "./getQuote"
-import { type ExecutionMode, PREFIX } from "./signQuote"
+import { type MeeExecutionMode, PREFIX } from "./signQuote"
 
 export const FUSION_NATIVE_TRANSFER_PREFIX = "0x150b7a02"
 
@@ -26,7 +26,7 @@ export type SignFusionQuoteParams = {
   /** Optional smart account to execute the transaction. If not provided, uses the client's default account */
   account?: MultichainSmartAccount
   /** The execution mode to use. Defaults to "direct-to-mee" */
-  executionMode?: ExecutionMode
+  executionMode?: MeeExecutionMode
   /** The on-chain transaction to use as the trigger */
   trigger: {
     /** The on-chain transaction to use as the trigger */

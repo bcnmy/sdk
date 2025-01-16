@@ -4,7 +4,7 @@ import type { BaseMeeClient } from "../../createMeeClient"
 
 import type { GetQuotePayload } from "./getQuote"
 
-export type ExecutionMode =
+export type MeeExecutionMode =
   | "direct-to-mee"
   | "fusion-with-onchain-tx"
   | "fusion-with-erc20permit"
@@ -19,7 +19,7 @@ export type SignQuoteParams = {
   /** Optional smart account to execute the transaction. If not provided, uses the client's default account */
   account?: MultichainSmartAccount
   /** The execution mode to use. Defaults to "direct-to-mee" */
-  executionMode?: ExecutionMode
+  executionMode?: MeeExecutionMode
 }
 
 export type SignQuotePayload = GetQuotePayload & {
@@ -27,7 +27,7 @@ export type SignQuotePayload = GetQuotePayload & {
   signature: Hex
 }
 
-export const PREFIX: Record<ExecutionMode, Hex> = {
+export const PREFIX: Record<MeeExecutionMode, Hex> = {
   "direct-to-mee": "0x00",
   "fusion-with-onchain-tx": "0x01",
   "fusion-with-erc20permit": "0x02"

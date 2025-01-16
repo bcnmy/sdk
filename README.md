@@ -45,7 +45,7 @@ const meeClient = createMeeClient({ account: mcNexus })
 
 const quote = await meeClient.getQuote({
   instructions: [{
-    calls: [{ to: "0x...", value: 1 }],
+    calls: [{ to: "0x...", value: 1n }],
     chainId: base.id
   }],
   feeToken: {

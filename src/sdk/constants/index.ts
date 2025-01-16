@@ -9,6 +9,7 @@ import { type Hex, toBytes, toHex } from "viem"
 import { ParamCondition } from "../modules/smartSessionsValidator/Types"
 
 export * from "./abi"
+export * from "./tokens"
 
 export const ENTRY_POINT_ADDRESS: Hex =
   "0x0000000071727De22E5E9d8BAf0edAc6f37da032"
