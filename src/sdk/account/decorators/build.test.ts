@@ -38,7 +38,7 @@ describe("mee:build", () => {
     const instructions = await build(
       { account: mcNexus },
       {
-        type: "base",
+        type: "default",
         data: {
           instructions: [
             {
@@ -89,7 +89,7 @@ describe("mee:build", () => {
     const instructions = await build(
       { account: mcNexus, currentInstructions },
       {
-        type: "base",
+        type: "default",
         data: {
           instructions: [
             {

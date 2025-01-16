@@ -116,7 +116,7 @@ describe("mee.createMeeClient", async () => {
     // These can be any 'Instruction', or any helper method that resolves to a 'Instruction',
     // including 'build'. They all are resolved in the 'getQuote' method under the hood.
     const currentInstructions = await meeClient.account.build({
-      type: "base",
+      type: "default",
       data: {
         instructions: [
           {
@@ -187,7 +187,7 @@ describe("mee.createMeeClient", async () => {
         }),
         // Second instruction: Execute a simple call on the Base network
         mcNexus.build({
-          type: "base",
+          type: "default",
           data: {
             instructions: [
               {

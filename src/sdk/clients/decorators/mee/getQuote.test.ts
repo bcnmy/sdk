@@ -82,7 +82,7 @@ describe("mee.getQuote", () => {
           }
         }),
         mcNexus.build({
-          type: "base",
+          type: "default",
           data: {
             instructions: [
               {

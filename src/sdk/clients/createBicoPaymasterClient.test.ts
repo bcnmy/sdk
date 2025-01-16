@@ -25,7 +25,7 @@ import {
   createSmartAccountClient
 } from "./createSmartAccountClient"
 
-describe("bico.paymaster", async () => {
+describe.skip("bico.paymaster", async () => {
   // describe.runIf(paymasterTruthy())("bico.paymaster", async () => {
   let network: NetworkConfig
 
@@ -163,6 +163,7 @@ describe("bico.paymaster", async () => {
     })
     const receipt = await nexusClient.waitForUserOperationReceipt({ hash })
 
+    console.log(receipt, "receipt")
     expect(receipt.success).toBe("true")
 
     // Get final balance

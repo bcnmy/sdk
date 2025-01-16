@@ -86,7 +86,10 @@ export const getPermissionAction = async ({
     // })
     // policyData.push(timeFramePolicyData)
 
-    if (actionPolicyInfo.rules && actionPolicyInfo.rules.length > 0) {
+    const hasValidRules =
+      actionPolicyInfo?.rules && actionPolicyInfo?.rules?.length > 0
+
+    if (hasValidRules) {
       const actionConfig = createActionConfig(
         actionPolicyInfo.rules ?? [],
         actionPolicyInfo.valueLimit
@@ -100,7 +103,7 @@ export const getPermissionAction = async ({
     }
 
     // create sudo policy here..
-    if (actionPolicyInfo.sudo) {
+    if (actionPolicyInfo.sudo || !hasValidRules) {
       const sudoPolicy = getSudoPolicy()
       policyData.push(sudoPolicy)
     }

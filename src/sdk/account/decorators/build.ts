@@ -1,7 +1,5 @@
-import type { Chain, erc20Abi } from "viem"
 import type { Instruction } from "../../clients/decorators/mee/getQuote"
 import type { BaseMultichainSmartAccount } from "../toMultiChainNexusAccount"
-import type { MultichainContract } from "../utils/getMultichainContract"
 import {
   type BuildBaseInstructionsParams,
   type BuildIntentParams,
@@ -26,7 +24,7 @@ export type BaseInstructionsParams = {
  */
 export type BuildBaseInstruction = {
   /** The type of action */
-  type: "base"
+  type: "default"
   /** The parameters for the action */
   data: BuildBaseInstructionsParams
 }
@@ -53,7 +51,7 @@ export type BuildInstructionTypes =
  * @param params - The build instructions configuration
  * @param params.account - {@link BaseMultichainSmartAccount} The multichain smart account to check balances for
  * @param params.currentInstructions - {@link Instruction[]} Optional array of existing instructions to append to
- * @param params.type - The type of build action ("base" | "intent")
+ * @param params.type - The type of build action ("default" | "intent")
  * @param params.parameters - {@link BuildBaseInstruction} | {@link BuildIntentInstruction}
  *
  * @returns Promise resolving to an array of {@link Instruction}
@@ -73,7 +71,7 @@ export type BuildInstructionTypes =
  * @example
  * // Default action example
  * const defaultInstructions = await build({
- *   type: "base",
+ *   type: "default",
  *   parameters: myExistingInstruction,
  *   account: myMultichainAccount
  * })
@@ -88,7 +86,7 @@ export const build = async (
     case "intent": {
       return buildIntent(baseParams, data)
     }
-    case "base": {
+    case "default": {
       return buildBaseInstructions(baseParams, data)
     }
     default: {

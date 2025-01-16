@@ -108,7 +108,8 @@ export const toSmartSessionsValidator = (
   } = parameters
 
   const initData = initData_ ?? getUsePermissionInitData(initArgs_)
-  const moduleInitData = moduleInitData_ ?? getSmartSessionsValidator({})
+  const moduleInitData =
+    moduleInitData_ ?? getSmartSessionsValidator({ useRegistry: false })
 
   return toModule({
     ...parameters,
