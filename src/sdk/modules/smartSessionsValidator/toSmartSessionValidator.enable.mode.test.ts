@@ -117,7 +117,9 @@ describe.skip("modules.smartSessions.enable.mode.dx", async () => {
   })
 
   test("full smart sessions enable mode example", async () => {
-    const uninitializedSmartSessions = getSmartSessionsValidator({})
+    const uninitializedSmartSessions = getSmartSessionsValidator({
+      useRegistry: false
+    })
 
     const isInstalled = await nexusClient.isModuleInstalled({
       module: uninitializedSmartSessions
