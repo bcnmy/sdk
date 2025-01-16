@@ -99,7 +99,8 @@ describe.skip("modules.smartSessions.enable.mode.dx", async () => {
       index,
       signer: eoaAccount,
       chain,
-      transport: http()
+      transport: http(),
+      useTestBundler: true
     })
 
     nexusAccountAddress = await nexusAccount.getCounterFactualAddress()
@@ -110,7 +111,8 @@ describe.skip("modules.smartSessions.enable.mode.dx", async () => {
       signer: eoaAccount,
       chain,
       transport: http(),
-      bundlerTransport: http(bundlerUrl)
+      bundlerTransport: http(bundlerUrl),
+      useTestBundler: true
     })
 
     await fundAndDeployClients(testClient, [nexusClient])
@@ -177,7 +179,11 @@ describe.skip("modules.smartSessions.enable.mode.dx", async () => {
     const { permissionEnableHash, ...sessionDetails } =
       sessionDetailsWithPermissionEnableHash
 
+    if (!sessionDetails.enableSessionData?.enableSession.permissionEnableSig) {
+      throw new Error("enableSessionData is undefined")
+    }
     sessionDetails.enableSessionData.enableSession.permissionEnableSig =
+      // @ts-ignore
       await eoaAccount.signMessage({
         message: {
           raw: permissionEnableHash

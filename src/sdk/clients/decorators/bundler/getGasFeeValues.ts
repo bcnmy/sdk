@@ -1,4 +1,5 @@
 import type { Account, Chain, Client, Hex, Transport } from "viem"
+import type { NexusAccount } from "../../../account/toNexusAccount"
 
 export type BicoRpcSchema = [
   {
@@ -65,14 +66,12 @@ export const getGasFeeValues = async (
     BicoRpcSchema
   >
 ): Promise<GetGasFeeValuesReturnType> => {
-  const isABiconomyBundler = client.transport.url
-    .toLowerCase()
-    .includes("biconomy")
+  const usePimlico = !!(client?.account as NexusAccount)?.useTestBundler
 
   const gasPrice = await client.request({
-    method: isABiconomyBundler
-      ? "biconomy_getGasFeeValues"
-      : "pimlico_getUserOperationGasPrice",
+    method: usePimlico
+      ? "pimlico_getUserOperationGasPrice"
+      : "biconomy_getGasFeeValues",
     params: []
   })
 

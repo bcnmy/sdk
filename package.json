@@ -1,6 +1,6 @@
 {
   "name": "@biconomy/sdk",
-  "version": "0.0.28",
+  "version": "0.0.29",
   "author": "Biconomy",
   "repository": "github:bcnmy/sdk",
   "main": "./dist/_cjs/index.js",
@@ -102,6 +102,7 @@
     "test:watch": "bun run test dev",
     "playground": "RUN_PLAYGROUND=true vitest -c ./src/test/vitest.config.ts -t=playground",
     "playground:watch": "RUN_PLAYGROUND=true bun run test -t=playground --watch",
+    "fetch:tokenMap": "bun run scripts/fetch:tokenMap.ts && bun run lint:fix",
     "size": "size-limit",
     "docs": "typedoc --tsconfig ./tsconfig/tsconfig.esm.json",
     "docs:deploy": "bun run docs && gh-pages -d docs",

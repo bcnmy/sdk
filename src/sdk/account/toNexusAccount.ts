@@ -1,4 +1,3 @@
-// viem
 import {
   type AbiParameter,
   type Account,
@@ -48,16 +47,24 @@ import {
   ENTRY_POINT_ADDRESS,
   MAINNET_ADDRESS_K1_VALIDATOR_ADDRESS,
   MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS,
+  MEE_VALIDATOR_ADDRESS,
+  NEXUS_BOOTSTRAP_ADDRESS,
+  REGISTRY_ADDRESS,
   RHINESTONE_ATTESTER_ADDRESS
 } from "../constants"
 // Constants
 import { EntrypointAbi } from "../constants/abi"
-import { getCounterFactualAddress as getCounterFactualAddress_ } from "./utils/getCounterFactualAddress"
+import {
+  getK1NexusAddress,
+  getMeeNexusAddress
+} from "./decorators/getNexusAddress"
 
 // Modules
 import { toK1Validator } from "../modules/k1Validator/toK1Validator"
 import type { Module } from "../modules/utils/Types"
 
+import { getK1FactoryData } from "./decorators/getFactoryData"
+import { getMeeFactoryData } from "./decorators/getFactoryData"
 import {
   EXECUTE_BATCH,
   EXECUTE_SINGLE,
@@ -100,13 +107,19 @@ export type ToNexusSmartAccountParameters = {
   /** Optional factory address */
   factoryAddress?: Address
   /** Optional K1 validator address */
-  k1ValidatorAddress?: Address
+  validatorAddress?: Address
   /** Optional account address override */
   accountAddress?: Address
   /** Attester addresses to apply to the account */
   attesters?: Address[]
   /** Optional attestors threshold for the account */
   attesterThreshold?: number
+  /** Optional boot strap address */
+  bootStrapAddress?: Address
+  /** Optional registry address */
+  registryAddress?: Address
+  /** Optional use test bundler */
+  useTestBundler?: boolean
 } & Prettify<
   Pick<
     ClientConfig<Transport, Chain, Account, RpcSchema>,
@@ -144,11 +157,12 @@ export type NexusSmartAccountImplementation = SmartAccountImplementation<
     getModule: () => Module
     factoryData: Hex
     factoryAddress: Address
-    k1ValidatorAddress: Address
+    validatorAddress: Address
     attesters: Address[]
     signer: Signer
     publicClient: PublicClient
     walletClient: WalletClient
+    useTestBundler: boolean
   }
 >
 
@@ -179,12 +193,17 @@ export const toNexusAccount = async (
     index = 0n,
     module: module_,
     factoryAddress = MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS,
-    k1ValidatorAddress = MAINNET_ADDRESS_K1_VALIDATOR_ADDRESS,
+    validatorAddress = MAINNET_ADDRESS_K1_VALIDATOR_ADDRESS,
     key = "nexus account",
     name = "Nexus Account",
     attesters: attesters_ = [RHINESTONE_ATTESTER_ADDRESS],
-    attesterThreshold = 1
+    attesterThreshold = 1,
+    bootStrapAddress = NEXUS_BOOTSTRAP_ADDRESS,
+    registryAddress = REGISTRY_ADDRESS,
+    useTestBundler = false
   } = parameters
+
+  const useMeeAccount = addressEquals(validatorAddress, MEE_VALIDATOR_ADDRESS)
 
   // @ts-ignore
   const signer = await toSigner({ signer: _signer })
@@ -196,13 +215,12 @@ export const toNexusAccount = async (
     key,
     name
   }).extend(publicActions)
+  const signerAddress = walletClient.account.address
 
   const publicClient = createPublicClient({
     chain,
     transport
   })
-
-  const signerAddress = walletClient.account.address
 
   const entryPointContract = getContract({
     address: ENTRY_POINT_ADDRESS,
@@ -213,15 +231,24 @@ export const toNexusAccount = async (
     }
   })
 
-  // Review:
-  // Todo: attesters can be added here to do one time setup upon deployment.
-  const factoryData = encodeFunctionData({
-    abi: parseAbi([
-      "function createAccount(address eoaOwner, uint256 index, address[] attesters, uint8 threshold) external returns (address)"
-    ]),
-    functionName: "createAccount",
-    args: [signerAddress, index, attesters_, attesterThreshold]
-  })
+  const factoryData = useMeeAccount
+    ? await getMeeFactoryData({
+        signerAddress,
+        index,
+        publicClient,
+        walletClient,
+        bootStrapAddress,
+        registryAddress,
+        attesters: attesters_,
+        attesterThreshold,
+        validatorAddress
+      })
+    : await getK1FactoryData({
+        signerAddress,
+        index,
+        attesters: attesters_,
+        attesterThreshold
+      })
 
   /**
    * @description Gets the init code for the account
@@ -250,14 +277,20 @@ export const toNexusAccount = async (
       }
     }
 
-    const addressFromFactory = await getCounterFactualAddress_(
-      publicClient,
-      signerAddress,
-      index,
-      attesters_,
-      attesterThreshold,
-      factoryAddress
-    )
+    const addressFromFactory = useMeeAccount
+      ? await getMeeNexusAddress({
+          publicClient,
+          signerAddress,
+          index
+        })
+      : await getK1NexusAddress({
+          publicClient,
+          signerAddress,
+          index,
+          attesters: attesters_,
+          threshold: attesterThreshold,
+          factoryAddress
+        })
 
     if (!addressEquals(addressFromFactory, zeroAddress)) {
       _accountAddress = addressFromFactory
@@ -270,7 +303,7 @@ export const toNexusAccount = async (
   let module =
     module_ ??
     toK1Validator({
-      address: k1ValidatorAddress,
+      address: validatorAddress,
       accountAddress: await getCounterFactualAddress(),
       initData: signerAddress,
       deInitData: "0x",
@@ -567,11 +600,12 @@ export const toNexusAccount = async (
       getModule: () => module,
       factoryData,
       factoryAddress,
-      k1ValidatorAddress,
+      validatorAddress,
       signer,
       walletClient,
       publicClient,
-      attesters: attesters_
+      attesters: attesters_,
+      useTestBundler
     }
   })
 }

@@ -54,7 +54,8 @@ describe("modules.smartSessions.policies", async () => {
       signer: eoaAccount,
       chain,
       transport: http(),
-      bundlerTransport: http(bundlerUrl)
+      bundlerTransport: http(bundlerUrl),
+      useTestBundler: true
     })
 
     nexusAccountAddress = await nexusClient.account.getCounterFactualAddress()
@@ -97,7 +98,8 @@ describe("modules.smartSessions.policies", async () => {
       signer: eoaAccount,
       chain,
       transport: http(),
-      bundlerTransport: http(bundlerUrl)
+      bundlerTransport: http(bundlerUrl),
+      useTestBundler: true
     })
 
     // Create a smart sessions module for the user's account

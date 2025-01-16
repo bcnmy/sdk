@@ -145,8 +145,6 @@ describe.skip("bico.paymaster", async () => {
       bundlerTransport: http(bundlerUrl)
     })
 
-    console.log(nexusClient.account.address, "nexusClient.account.address")
-
     const initialBalance = await publicClient.getBalance({
       address: nexusAccountAddress
     })
