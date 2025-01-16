@@ -1,4 +1,4 @@
-import { http, type Chain, type erc20Abi } from "viem"
+import { http, type Chain } from "viem"
 import type { Instruction } from "../clients/decorators/mee/getQuote"
 import {
   MEE_VALIDATOR_ADDRESS,

@@ -1,4 +1,4 @@
-import type { Chain, erc20Abi } from "viem"
+import type { Chain } from "viem"
 import type { Instruction } from "../../../clients/decorators/mee"
 import type { BaseMultichainSmartAccount } from "../../toMultiChainNexusAccount"
 import type { MultichainToken } from "../../utils/Types"

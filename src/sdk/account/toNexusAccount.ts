@@ -118,6 +118,8 @@ export type ToNexusSmartAccountParameters = {
   bootStrapAddress?: Address
   /** Optional registry address */
   registryAddress?: Address
+  /** Optional use test bundler */
+  useTestBundler?: boolean
 } & Prettify<
   Pick<
     ClientConfig<Transport, Chain, Account, RpcSchema>,
@@ -160,6 +162,7 @@ export type NexusSmartAccountImplementation = SmartAccountImplementation<
     signer: Signer
     publicClient: PublicClient
     walletClient: WalletClient
+    useTestBundler: boolean
   }
 >
 
@@ -196,7 +199,8 @@ export const toNexusAccount = async (
     attesters: attesters_ = [RHINESTONE_ATTESTER_ADDRESS],
     attesterThreshold = 1,
     bootStrapAddress = NEXUS_BOOTSTRAP_ADDRESS,
-    registryAddress = REGISTRY_ADDRESS
+    registryAddress = REGISTRY_ADDRESS,
+    useTestBundler = false
   } = parameters
 
   const useMeeAccount = addressEquals(validatorAddress, MEE_VALIDATOR_ADDRESS)
@@ -600,7 +604,8 @@ export const toNexusAccount = async (
       signer,
       walletClient,
       publicClient,
-      attesters: attesters_
+      attesters: attesters_,
+      useTestBundler
     }
   })
 }

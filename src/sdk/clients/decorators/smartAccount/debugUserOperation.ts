@@ -13,9 +13,9 @@ import {
   type UserOperationRequest,
   formatUserOperationRequest,
   getUserOperationError,
+  prepareUserOperation,
   toPackedUserOperation
 } from "viem/account-abstraction"
-import { prepareUserOperationWithoutSignature } from "./prepareUserOperationWithoutSignature"
 
 import type {
   Assign,
@@ -133,7 +133,7 @@ export async function debugUserOperation<
     const request = account
       ? await getAction(
           client,
-          prepareUserOperationWithoutSignature,
+          prepareUserOperation,
           "prepareUserOperation"
         )(parameters as unknown as PrepareUserOperationParameters)
       : parameters
@@ -141,10 +141,7 @@ export async function debugUserOperation<
     const signature = (parameters.signature ||
       (await account?.signUserOperation(request as UserOperation)))!
 
-    const userOpWithSignature = {
-      ...request,
-      signature
-    } as UserOperation
+    const userOpWithSignature = { ...request, signature } as UserOperation
 
     const packed = toPackedUserOperation(userOpWithSignature)
     console.log(

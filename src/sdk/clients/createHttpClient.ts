@@ -64,6 +64,7 @@ export const createHttpClient = (url: Url): HttpClient => {
     })
 
     if (!result.ok) {
+      console.log({ result })
       throw new Error(result.statusText)
     }
 

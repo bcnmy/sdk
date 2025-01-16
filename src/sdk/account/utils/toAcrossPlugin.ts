@@ -12,6 +12,10 @@ import type {
   BridgingUserOpParams
 } from "../decorators/buildBridgeInstructions"
 
+/**
+ * Response type for Across bridge relay fee information
+ * @interface AcrossRelayFeeResponse
+ */
 export interface AcrossRelayFeeResponse {
   totalRelayFee: {
     pct: string
@@ -37,6 +41,10 @@ export interface AcrossRelayFeeResponse {
   exclusivityDeadline: string
 }
 
+/**
+ * Parameters for fetching suggested fees from Across bridge
+ * @interface AcrossSuggestedFeesParams
+ */
 type AcrossSuggestedFeesParams = {
   inputToken: Address
   outputToken: Address
@@ -48,6 +56,16 @@ type AcrossSuggestedFeesParams = {
 // Create HTTP client instance
 const acrossClient = createHttpClient("https://app.across.to/api")
 
+/**
+ * Fetches suggested fees from Across bridge API
+ * @param {AcrossSuggestedFeesParams} params - Parameters for fee calculation
+ * @param {Address} params.inputToken - Source token address
+ * @param {Address} params.outputToken - Destination token address
+ * @param {number} params.originChainId - Source chain ID
+ * @param {number} params.destinationChainId - Destination chain ID
+ * @param {bigint} params.amount - Amount to bridge
+ * @returns {Promise<AcrossRelayFeeResponse>} Suggested fees and related information
+ */
 const acrossGetSuggestedFees = async ({
   inputToken,
   outputToken,
@@ -67,6 +85,17 @@ const acrossGetSuggestedFees = async ({
     }
   })
 
+/**
+ * Encodes a bridging operation for the Across protocol into a user operation
+ * @param {BridgingUserOpParams} params - Parameters for the bridge operation
+ * @param {bigint} params.bridgingAmount - Amount to bridge
+ * @param {Chain} params.fromChain - Source chain information
+ * @param {Account} params.account - User's account information
+ * @param {Chain} params.toChain - Destination chain information
+ * @param {TokenMapping} params.tokenMapping - Token address mapping across chains
+ * @returns {Promise<BridgingPluginResult>} Encoded user operation and bridging details
+ * @throws {Error} When depositor or recipient address cannot be found
+ */
 export const acrossEncodeBridgingUserOp = async (
   params: BridgingUserOpParams
 ): Promise<BridgingPluginResult> => {
@@ -143,6 +172,20 @@ export const acrossEncodeBridgingUserOp = async (
   }
 }
 
+/**
+ * Creates an Across bridging plugin instance
+ * @returns {BridgingPlugin} Plugin instance implementing the Across bridge protocol
+ *
+ * @example
+ * const acrossPlugin = toAcrossPlugin()
+ * const bridgeResult = await acrossPlugin.encodeBridgeUserOp({
+ *   bridgingAmount: 1000000n,
+ *   fromChain: sourceChain,
+ *   toChain: destChain,
+ *   account: userAccount,
+ *   tokenMapping: tokens
+ * })
+ */
 export const toAcrossPlugin = (): BridgingPlugin => ({
   encodeBridgeUserOp: async (params) => {
     return await acrossEncodeBridgingUserOp(params)

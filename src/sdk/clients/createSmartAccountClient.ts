@@ -176,6 +176,8 @@ export type SmartAccountClientConfig<
     bootStrapAddress?: Address
     /** Registry address */
     registryAddress?: Address
+    /** Use test bundler */
+    useTestBundler?: boolean
   }
 >
 
@@ -217,6 +219,7 @@ export async function createSmartAccountClient(
     paymasterContext,
     attesters,
     attesterThreshold,
+    useTestBundler = false,
     ...bundlerConfig
   } = parameters
 
@@ -234,7 +237,8 @@ export async function createSmartAccountClient(
       factoryAddress,
       validatorAddress,
       attesters,
-      attesterThreshold
+      attesterThreshold,
+      useTestBundler
     }))
 
   const bundler_ = createBicoBundlerClient({

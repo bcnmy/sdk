@@ -99,7 +99,8 @@ describe.skip("modules.smartSessions.enable.mode.dx", async () => {
       index,
       signer: eoaAccount,
       chain,
-      transport: http()
+      transport: http(),
+      useTestBundler: true
     })
 
     nexusAccountAddress = await nexusAccount.getCounterFactualAddress()
@@ -110,7 +111,8 @@ describe.skip("modules.smartSessions.enable.mode.dx", async () => {
       signer: eoaAccount,
       chain,
       transport: http(),
-      bundlerTransport: http(bundlerUrl)
+      bundlerTransport: http(bundlerUrl),
+      useTestBundler: true
     })
 
     await fundAndDeployClients(testClient, [nexusClient])

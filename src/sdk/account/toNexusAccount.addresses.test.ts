@@ -72,7 +72,8 @@ describe("nexus.account.addresses", async () => {
       transport: http(),
       bundlerTransport: http(bundlerUrl),
       validatorAddress: TEST_ADDRESS_K1_VALIDATOR_ADDRESS,
-      factoryAddress: TEST_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
+      factoryAddress: TEST_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS,
+      useTestBundler: true
     })
 
     nexusAccount = nexusClient.account
@@ -139,14 +140,16 @@ describe("nexus.account.addresses", async () => {
       signer: eoaAccount,
       chain: base,
       transport: http(),
-      bundlerTransport: http(bundlerUrl)
+      bundlerTransport: http(bundlerUrl),
+      useTestBundler: true
     })
 
     const testnetClient = await createSmartAccountClient({
       signer: eoaAccount,
       chain: baseSepolia,
       transport: http(),
-      bundlerTransport: http(bundlerUrl)
+      bundlerTransport: http(bundlerUrl),
+      useTestBundler: true
     })
 
     const testnetAddress = await testnetClient.account.getAddress()
@@ -164,7 +167,8 @@ describe("nexus.account.addresses", async () => {
       transport: http(),
       validatorAddress: MEE_VALIDATOR_ADDRESS,
       factoryAddress: NEXUS_ACCOUNT_FACTORY,
-      attesters: [TEMP_MEE_ATTESTER_ADDR]
+      attesters: [TEMP_MEE_ATTESTER_ADDR],
+      useTestBundler: true
     })
 
     const meeAddress = await meeAccount.getAddress()

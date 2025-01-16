@@ -32,21 +32,31 @@ bun add @biconomy/sdk viem @rhinestone/module-sdk
 
 2. **Basic Usage:**
 ```typescript
-import { createSmartAccountClient } from "@biconomy/sdk";
-import { http } from "viem";
+import { toMultichainNexusAccount, mcUSDC } from "@biconomy/sdk";
+import { base, optimism } from "viem/chains";
+import { privateKeyToAccount } from "viem/accounts";
 
-const nexusClient = await createSmartAccountClient({
-  signer: account,
-  chain,
-  transport: http(),
-  bundlerTransport: http(bundlerUrl),
-});
+const eoaAccount = privateKeyToAccount(`0x${process.env.PRIVATE_KEY}`)
+const mcNexus = await toMultichainNexusAccount({
+  chains: [base, optimism],
+  signer: eoaAccount
+})
+const meeClient = createMeeClient({ account: mcNexus })
 
-const hash = await nexusClient.sendTransaction({ 
-  calls: [{ to: "0x...", value: 1 }] 
-});
+const quote = await meeClient.getQuote({
+  instructions: [{
+    calls: [{ to: "0x...", value: 1 }],
+    chainId: base.id
+  }],
+  feeToken: {
+    address: mcUSDC.addressOn(base.id), // Token used to pay for the transaction
+    chainId: base.id // Chain where the payment will be processed
+  }
+})
 
-const { status, transactionHash } = await nexusClient.waitForTransactionReceipt({ hash });
+// Execute the quote and get back a transaction hash
+// This sends the transaction to the network
+const { hash } = await meeClient.executeQuote({ quote })
 ```
 
 ### Testing

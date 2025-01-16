@@ -1,7 +1,7 @@
 import type { Instruction } from "../../clients/decorators/mee/getQuote"
 import type { BaseMultichainSmartAccount } from "../toMultiChainNexusAccount"
 import {
-  type BuildDefaultInstructionsParams,
+  type BuildDefaultParams,
   buildDefaultInstructions
 } from "./instructions/buildDefaultInstructions"
 import {
@@ -26,7 +26,7 @@ export type BaseInstructionsParams = {
  */
 export type BuildDefaultInstruction = {
   type: "default"
-  data: BuildDefaultInstructionsParams
+  data: BuildDefaultParams
 }
 
 /**

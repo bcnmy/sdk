@@ -84,7 +84,8 @@ describe("modules.smartSessions.dx", async () => {
       signer: eoaAccount,
       chain,
       transport: http(),
-      bundlerTransport: http(bundlerUrl)
+      bundlerTransport: http(bundlerUrl),
+      useTestBundler: true
     })
 
     // Fund the account and deploy the smart contract wallet
@@ -157,7 +158,8 @@ describe("modules.smartSessions.dx", async () => {
       accountAddress: usersSessionData.granter,
       signer: sessionKeyAccount,
       transport: http(),
-      bundlerTransport: http(bundlerUrl)
+      bundlerTransport: http(bundlerUrl),
+      useTestBundler: true
     })
 
     // Create a new smart sessions module with the session key

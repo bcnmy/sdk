@@ -10,21 +10,10 @@ export type BuildDefaultParams = {
 }
 
 /**
- * Parameters for building base instructions
- * @property currentInstructions - Optional array of {@link Instruction} existing instructions to append to
- * @property instructions - Single {@link Instruction} or array of instructions to add
- */
-export type BuildDefaultInstructionsParams = BaseInstructionsParams &
-  BuildDefaultParams
-
-/**
  * Builds a base set of instructions by combining existing instructions with new ones
  *
  * @param baseParams - {@link BaseInstructionsParams} Base configuration
- * @param baseParams.currentInstructions - Optional array of existing instructions (defaults to empty array)
- * @param params - {@link BuildDefaultInstructionsParams} Instructions configuration
- * @param params.instructions - Single instruction or array of instructions to append
- *
+ * @param params - {@link BuildDefaultParams} Instructions configuration
  * @returns Promise resolving to an array of {@link Instruction}
  *
  * @example
