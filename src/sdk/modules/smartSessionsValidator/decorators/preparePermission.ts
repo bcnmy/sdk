@@ -1,4 +1,7 @@
-import { getUniversalActionPolicy } from "@rhinestone/module-sdk"
+import {
+  getTimeFramePolicy,
+  getUniversalActionPolicy
+} from "@rhinestone/module-sdk"
 import { getPermissionId } from "@rhinestone/module-sdk"
 import type { Chain, Client, Hex, PublicClient, Transport } from "viem"
 import { encodeFunctionData, parseAccount } from "viem/utils"
@@ -80,11 +83,11 @@ export const getPermissionAction = async ({
     const policyData: PolicyData[] = []
 
     // create time frame policy here..
-    // const timeFramePolicyData = getTimeFramePolicy({
-    //   validUntil: actionPolicyInfo.validUntil ?? ONE_YEAR_FROM_NOW_IN_SECONDS,
-    //   validAfter: actionPolicyInfo.validAfter ?? 0
-    // })
-    // policyData.push(timeFramePolicyData)
+    const timeFramePolicyData = getTimeFramePolicy({
+      validUntil: actionPolicyInfo.validUntil ?? ONE_YEAR_FROM_NOW_IN_SECONDS,
+      validAfter: actionPolicyInfo.validAfter ?? 0
+    })
+    policyData.push(timeFramePolicyData)
 
     const hasValidRules =
       actionPolicyInfo?.rules && actionPolicyInfo?.rules?.length > 0
@@ -160,6 +163,11 @@ export const getPermissionAction = async ({
       }
     }
 
+    const userOpTimeFramePolicyData = getTimeFramePolicy({
+      validUntil: sessionInfo.sessionValidUntil ?? ONE_YEAR_FROM_NOW_IN_SECONDS,
+      validAfter: sessionInfo.sessionValidAfter ?? 0
+    })
+
     const session: Session = {
       chainId: BigInt(chainId),
       permitERC4337Paymaster: true,
@@ -169,7 +177,7 @@ export const getPermissionAction = async ({
         owners: [sessionInfo.sessionKeyData]
       }),
       salt: sessionInfo.salt ?? generateSalt(),
-      userOpPolicies: [],
+      userOpPolicies: [userOpTimeFramePolicyData],
       actions: actionPolicies,
       erc7739Policies: {
         allowedERC7739Content: [],

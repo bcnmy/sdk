@@ -104,8 +104,8 @@ describe("modules.smartSessions.sudo.policy", async () => {
       sessionRequestedInfo: [
         {
           sessionPublicKey,
-          // sessionValidUntil: number
-          // sessionValidAfter: number
+          sessionValidUntil: Date.now() + 1000 * 60 * 60 * 24, // 1 day from now
+          sessionValidAfter: 0,
           // chainIds: bigint[]
           actionPoliciesInfo: [
             {

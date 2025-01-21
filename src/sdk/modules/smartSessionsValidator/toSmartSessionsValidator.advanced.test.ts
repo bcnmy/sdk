@@ -119,17 +119,18 @@ describe("modules.smartSessions.dx", async () => {
       sessionRequestedInfo: [
         {
           sessionPublicKey, // Public key of the session
-          // sessionValidUntil: number
-          // sessionValidAfter: number
+          sessionValidUntil: Date.now() + 1000 * 60 * 60 * 24, // 1 day from now
+          sessionValidAfter: 0,
           // chainIds: bigint[]
           actionPoliciesInfo: [
             {
               abi: CounterAbi,
               contractAddress: testAddresses.Counter,
-              sudo: true
-              // validUntil?: number
-              // validAfter?: number
-              // valueLimit?: bigint
+              sudo: true,
+              validUntil: Date.now() + 1000 * 60 * 60 * 24, // 1 day from now
+              validAfter: 0,
+              valueLimit: 1000n,
+              usageLimit: 1000n
             }
           ]
         }
@@ -212,10 +213,12 @@ describe("modules.smartSessions.dx", async () => {
     })
 
     // Wait for the action to be mined and check its success
-    const { success: sessionUseSuccess } =
+    const { success: sessionUseSuccess, receipt } =
       await useSmartSessionNexusClient.waitForUserOperationReceipt({
         hash: userOpHash
       })
+
+    console.log("receipt", receipt)
 
     expect(sessionUseSuccess).toBe(true)
   }, 200000) // Test timeout set to 60 seconds

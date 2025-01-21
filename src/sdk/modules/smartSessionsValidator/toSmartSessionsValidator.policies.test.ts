@@ -121,6 +121,7 @@ describe("modules.smartSessions.policies", async () => {
           sessionPublicKey, // Public key of the session
           sessionValidUntil: Date.now() + 1000 * 60 * 60 * 24, // 1 day from now
           chainIds: [BigInt(chain.id)],
+          sessionValidAfter: Date.now(),
           actionPoliciesInfo: [
             {
               contractAddress: testAddresses.Counter,
@@ -131,8 +132,8 @@ describe("modules.smartSessions.policies", async () => {
                   limit: BigInt(1000)
                 }
               ], // covered in another test
-              // usageLimit: 1000n, // TODO: failing because of attestations
-              // valueLimit: 1000n, // TODO: failing because of attestations
+              // usageLimit: 1000n,
+              // valueLimit: 1000n,
               validUntil: Date.now() + 1000 * 60 * 60 * 24, // 1 day from now
               functionSelector: "0x871cc9d4" // decrementNumber
             }
