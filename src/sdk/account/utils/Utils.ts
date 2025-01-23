@@ -1,12 +1,17 @@
 import {
+  type Account,
   type Address,
+  type Chain,
   type Client,
   type Hash,
   type Hex,
+  type LocalAccount,
   type PublicClient,
+  type Transport,
   type TypedData,
   type TypedDataDomain,
   type TypedDataParameter,
+  type WalletClient,
   concat,
   decodeFunctionResult,
   encodeAbiParameters,
@@ -410,15 +415,6 @@ export const getTenderlyDetails = (): TenderlyDetails | null => {
 export const safeMultiplier = (bI: bigint, multiplier: number): bigint =>
   BigInt(Math.round(Number(bI) * multiplier))
 
-export type EthersWallet = {
-  signTransaction: (...args: AnyData[]) => Promise<AnyData>
-  signMessage: (...args: AnyData[]) => Promise<AnyData>
-  signTypedData: (...args: AnyData[]) => Promise<AnyData>
-  getAddress: () => Promise<AnyData>
-  address: Address | string
-  provider: AnyData
-}
-
 export const getAllowance = async (
   client: PublicClient,
   accountAddress: Address,
@@ -434,6 +430,38 @@ export const getAllowance = async (
   return approval as bigint
 }
 
+type EthersWalletSigner = {
+  signTransaction: (...args: AnyData) => AnyData
+  signMessage: (...args: AnyData) => AnyData
+  signTypedData: (...args: AnyData) => AnyData
+  getAddress: () => Promise<AnyData>
+  provider: unknown
+}
+
+type JsonRpcSigner = {
+  signTransaction: (...args: AnyData) => AnyData
+  signMessage: (...args: AnyData) => AnyData
+  _signTypedData: (...args: AnyData) => AnyData
+  getAddress: () => Promise<AnyData>
+  provider: unknown
+}
+
+type LocalAccountSigner = {
+  type: "local"
+} & LocalAccount
+
+type WalletClientSigner = WalletClient<Transport, Chain | undefined, Account>
+
+type ProviderSigner = {
+  request(...args: AnyData): Promise<AnyData>
+}
+
+export type ValidSigner =
+  | EthersWalletSigner
+  | LocalAccountSigner
+  | WalletClientSigner
+  | ProviderSigner
+  | JsonRpcSigner
 export function parseRequestArguments(input: string[]) {
   const fieldsToOmit = [
     "callGasLimit",

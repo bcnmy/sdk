@@ -1,17 +1,13 @@
 import type {
-  Account,
   Address,
   BundlerRpcSchema,
   Chain,
   Client,
   ClientConfig,
   EstimateFeesPerGasReturnType,
-  LocalAccount,
-  OneOf,
   Prettify,
   RpcSchema,
-  Transport,
-  WalletClient
+  Transport
 } from "viem"
 import type {
   BundlerActions,
@@ -21,12 +17,11 @@ import type {
   UserOperationRequest
 } from "viem/account-abstraction"
 
+import type { ValidSigner } from "../account"
 import {
   type ToNexusSmartAccountParameters,
   toNexusAccount
 } from "../account/toNexusAccount"
-import type { EthersWallet } from "../account/utils/Utils"
-import type { EthereumProvider } from "../account/utils/toSigner"
 import {
   MAINNET_ADDRESS_K1_VALIDATOR_ADDRESS,
   MAINNET_ADDRESS_K1_VALIDATOR_FACTORY_ADDRESS
@@ -152,12 +147,7 @@ export type SmartAccountClientConfig<
         }
       | undefined
     /** Owner of the account. */
-    signer: OneOf<
-      | EthereumProvider
-      | WalletClient<Transport, Chain | undefined, Account>
-      | LocalAccount
-      | EthersWallet
-    >
+    signer: ValidSigner
     /** Index of the account. */
     index?: bigint
     /** Active module of the account. */
